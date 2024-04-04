@@ -1,0 +1,3 @@
+pnpm format
+pnpm type-check
+pnpm lint

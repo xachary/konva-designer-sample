@@ -6,5 +6,4 @@
   <div class="test">Hello World!</div>
 </template>
 
-<style lang="less" scoped>
-</style>
+<style lang="less" scoped></style>
