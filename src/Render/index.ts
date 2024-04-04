@@ -81,6 +81,11 @@ export class Render {
       width: width,
       height: height
     })
+
+    // 更新背景
+    this.draws[Draws.BgDraw.name].draw()
+    // 更新比例尺
+    this.draws[Draws.RulerDraw.name].draw()
   }
 
   // 事件绑定
