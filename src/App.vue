@@ -3,7 +3,8 @@
 </script>
 
 <template>
-  <div>Hello World!</div>
+  <div class="test">Hello World!</div>
 </template>
 
-<style scoped></style>
+<style lang="less" scoped>
+</style>
