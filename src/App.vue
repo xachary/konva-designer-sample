@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 
-import { Render } from './Render';
+import { Render } from './Render'
 
 // 容器
 const boardElement = ref<HTMLDivElement>()
@@ -9,7 +9,7 @@ const boardElement = ref<HTMLDivElement>()
 const stageElement = ref<HTMLDivElement>()
 
 // 渲染器
-let render: Render | null = null;
+let render: Render | null = null
 
 const resizer = (() => {
   // 监听器
