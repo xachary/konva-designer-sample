@@ -42,20 +42,6 @@ export class ZoomHandlers implements Types.Handler {
               y: pos.y - mousePointTo.y * newScale
             })
 
-            // 调整连接点（还要计算 group 本身 scale）
-            const groups = this.render.layer.getChildren()
-            for (const g of groups) {
-              const points = (g as Konva.Group).find('.point')
-              for (const point of points) {
-                point.setAttrs({
-                  scale: {
-                    x: 1 / newScale / g.scaleX(),
-                    y: 1 / newScale / g.scaleY()
-                  }
-                })
-              }
-            }
-
             // 更新背景
             this.render.draws[Draws.BgDraw.name].draw()
             // 更新比例尺
