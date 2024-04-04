@@ -1,4 +1,4 @@
-# 使用 Konva 实现一个设计器示例
+# 使用 Konva 实现一个设计器交互
 
 ![image](https://github.com/xachary/konva-designer-sample/assets/16830398/4a995eb9-5756-4ec4-a02d-f3a5eb21189a)
 
