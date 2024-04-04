@@ -4,3 +4,7 @@
   min-height: 100vh;
   display: flex;
 }
+
+*:focus-visible {
+  outline: none;
+}

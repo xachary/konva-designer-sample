@@ -63,7 +63,10 @@ function init() {
           // 初始化渲染
           render = new Render(stageElement.value!, {
             width,
-            height
+            height,
+            //
+            showBg: true,
+            showRuler: true
           })
         }
         render.resize(width, height)
