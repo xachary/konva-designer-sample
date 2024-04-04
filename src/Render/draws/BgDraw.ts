@@ -67,7 +67,7 @@ export class BgDraw extends Types.BaseDraw implements Types.Draw {
       )
 
       // 竖线
-      for (let x = startX; x < lenX + startX; x++) {
+      for (let x = startX; x < lenX + startX + 1; x++) {
         group.add(
           new Konva.Line({
             name: this.constructor.name,
@@ -83,7 +83,7 @@ export class BgDraw extends Types.BaseDraw implements Types.Draw {
       }
 
       // 横线
-      for (let y = startY; y < lenY + startY; y++) {
+      for (let y = startY; y < lenY + startY + 1; y++) {
         group.add(
           new Konva.Line({
             name: this.constructor.name,
