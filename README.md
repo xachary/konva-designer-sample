@@ -1,5 +1,7 @@
 # 使用 Konva 实现一个设计器交互
 
+[示例地址](https://xachary.github.io/konva-designer-sample/)
+
 ![image](https://github.com/xachary/konva-designer-sample/assets/16830398/4a995eb9-5756-4ec4-a02d-f3a5eb21189a)
 
 ![2](https://github.com/xachary/konva-designer-sample/assets/16830398/e43cc89c-c543-4c22-a029-db867ad8502d)
