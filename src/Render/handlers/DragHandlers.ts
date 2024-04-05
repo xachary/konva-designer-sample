@@ -13,21 +13,28 @@ export class DragHandlers implements Types.Handler {
     this.render = render
   }
 
+  // 右键是否按下
   mousedownRight = false
-  mousedownPosition = { x: 0, y: 0 }
-  mousedownPointerPosition = { x: 0, y: 0 }
+  // 右键按下 stage 位置
+  mousedownStagePos = { x: 0, y: 0 }
+  // 右键按下位置
+  mousedownPointerPos = { x: 0, y: 0 }
 
   handlers = {
     stage: {
       mousedown: (e: Konva.KonvaEventObject<GlobalEventHandlersEventMap['mousedown']>) => {
         if (e.evt.button === Types.MouseButton.右键) {
+          // stage 状态
+          const stageState = this.render.getStageState()
+
           // 鼠标右键
           this.mousedownRight = true
 
-          this.mousedownPosition = { x: this.render.stage.x(), y: this.render.stage.y() }
+          this.mousedownStagePos = { x: stageState.x, y: stageState.y }
+
           const pos = this.render.stage.getPointerPosition()
           if (pos) {
-            this.mousedownPointerPosition = { x: pos.x, y: pos.y }
+            this.mousedownPointerPos = { x: pos.x, y: pos.y }
           }
 
           document.body.style.cursor = 'pointer'
@@ -43,11 +50,13 @@ export class DragHandlers implements Types.Handler {
           // 鼠标右键拖动
           const pos = this.render.stage.getPointerPosition()
           if (pos) {
-            const offsetX = pos.x - this.mousedownPointerPosition.x
-            const offsetY = pos.y - this.mousedownPointerPosition.y
+            const offsetX = pos.x - this.mousedownPointerPos.x
+            const offsetY = pos.y - this.mousedownPointerPos.y
+
+            // 移动 stage
             this.render.stage.position({
-              x: this.mousedownPosition.x + offsetX,
-              y: this.mousedownPosition.y + offsetY
+              x: this.mousedownStagePos.x + offsetX,
+              y: this.mousedownStagePos.y + offsetY
             })
 
             // 更新背景

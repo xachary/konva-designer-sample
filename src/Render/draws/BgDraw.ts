@@ -1,5 +1,6 @@
 import _ from 'lodash-es'
 import Konva from 'konva'
+//
 import * as Types from '../types'
 
 export interface BgDrawOption {
@@ -8,47 +9,34 @@ export interface BgDrawOption {
 export class BgDraw extends Types.BaseDraw implements Types.Draw {
   static override readonly name = 'bg'
 
-  private option: BgDrawOption
+  option: BgDrawOption
 
-  state = {}
-
-  on = {}
-
-  constructor(
-    stage: Konva.Stage,
-    config: Types.RenderConfig,
-    layer: Konva.Layer,
-    option: BgDrawOption
-  ) {
-    super(stage, config, layer)
+  constructor(render: Types.Render, layer: Konva.Layer, option: BgDrawOption) {
+    super(render, layer)
 
     this.option = option
     this.group.listening(false)
   }
 
   override draw() {
-    if (this.config.showBg) {
+    if (this.render.config.showBg) {
       this.clear()
+
+      // stage 状态
+      const stageState = this.render.getStageState()
 
       // 相关参数
 
       // 格子大小
       const cellSize = this.option.size
-      //
-      const width = this.stage.width()
-      const height = this.stage.height()
-      const scaleX = this.stage.scaleX()
-      const scaleY = this.stage.scaleY()
-      const stageX = this.stage.x()
-      const stageY = this.stage.y()
 
       // 列数
-      const lenX = Math.ceil(width / scaleX / cellSize)
+      const lenX = Math.ceil(stageState.width / stageState.scale / cellSize)
       // 行数
-      const lenY = Math.ceil(height / scaleY / cellSize)
+      const lenY = Math.ceil(stageState.height / stageState.scale / cellSize)
 
-      const startX = -Math.ceil(stageX / scaleX / cellSize)
-      const startY = -Math.ceil(stageY / scaleY / cellSize)
+      const startX = -Math.ceil(stageState.x / stageState.scale / cellSize)
+      const startY = -Math.ceil(stageState.y / stageState.scale / cellSize)
 
       const group = new Konva.Group()
 
@@ -57,10 +45,10 @@ export class BgDraw extends Types.BaseDraw implements Types.Draw {
           name: this.constructor.name,
           x: 0,
           y: 0,
-          width: width,
-          height: height,
+          width: stageState.width,
+          height: stageState.height,
           stroke: 'rgba(255,0,0,0.1)',
-          strokeWidth: 2 / scaleY,
+          strokeWidth: 2 / stageState.scale,
           listening: false,
           dash: [4, 4]
         })
@@ -72,11 +60,11 @@ export class BgDraw extends Types.BaseDraw implements Types.Draw {
           new Konva.Line({
             name: this.constructor.name,
             points: _.flatten([
-              [cellSize * x, -stageY / scaleY],
-              [cellSize * x, (height - stageY) / scaleY]
+              [cellSize * x, -stageState.y / stageState.scale],
+              [cellSize * x, (stageState.height - stageState.y) / stageState.scale]
             ]),
             stroke: '#ddd',
-            strokeWidth: 1 / scaleY,
+            strokeWidth: 1 / stageState.scale,
             listening: false
           })
         )
@@ -88,11 +76,11 @@ export class BgDraw extends Types.BaseDraw implements Types.Draw {
           new Konva.Line({
             name: this.constructor.name,
             points: _.flatten([
-              [-stageX / scaleX, cellSize * y],
-              [(width - stageX) / scaleX, cellSize * y]
+              [-stageState.x / stageState.scale, cellSize * y],
+              [(stageState.width - stageState.x) / stageState.scale, cellSize * y]
             ]),
             stroke: '#ddd',
-            strokeWidth: 1 / scaleX,
+            strokeWidth: 1 / stageState.scale,
             listening: false
           })
         )

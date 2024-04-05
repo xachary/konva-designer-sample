@@ -1,4 +1,5 @@
 import Konva from 'konva'
+import { Render } from './index'
 
 export type ValueOf<T> = T[keyof T]
 
@@ -28,28 +29,21 @@ export enum MouseButton {
 }
 
 export interface Draw {
-  layer: Konva.Layer
-  config: RenderConfig
+  option: {
+    [index: string]: any
+  }
   init: () => void
   draw: () => void
   clear: () => void
-  state: {
-    [index: string]: any
-  }
-  on: {
-    [index: string]: (e?: any) => any
-  }
 }
 
 export class BaseDraw {
-  protected stage: Konva.Stage
+  protected render: Render
   readonly layer: Konva.Layer
-  readonly config: RenderConfig
   readonly group: Konva.Group
 
-  constructor(stage: Konva.Stage, config: RenderConfig, layer: Konva.Layer) {
-    this.stage = stage
-    this.config = config
+  constructor(render: Render, layer: Konva.Layer) {
+    this.render = render
     this.layer = layer
 
     this.group = new Konva.Group()
@@ -67,3 +61,5 @@ export class BaseDraw {
     this.group.removeChildren()
   }
 }
+
+export { Render }

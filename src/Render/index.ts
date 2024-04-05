@@ -41,17 +41,12 @@ export class Render {
     })
 
     // 附加工具
-    this.draws[Draws.BgDraw.name] = new Draws.BgDraw(this.stage, this.config, this.layerFloor, {
+    this.draws[Draws.BgDraw.name] = new Draws.BgDraw(this, this.layerFloor, {
       size: this.bgSize
     })
-    this.draws[Draws.RulerDraw.name] = new Draws.RulerDraw(
-      this.stage,
-      this.config,
-      this.layerCover,
-      {
-        size: this.rulerSize
-      }
-    )
+    this.draws[Draws.RulerDraw.name] = new Draws.RulerDraw(this, this.layerCover, {
+      size: this.rulerSize
+    })
 
     // 事件处理
     this.handlers[Handlers.DragHandlers.name] = new Handlers.DragHandlers(this)
@@ -124,6 +119,17 @@ export class Render {
           this.handlers[k].handlers?.dom?.[event]?.(e)
         }
       })
+    }
+  }
+
+  // 获取 stage 状态
+  getStageState() {
+    return {
+      width: this.stage.width(),
+      height: this.stage.height(),
+      scale: this.stage.scaleX(),
+      x: this.stage.x(),
+      y: this.stage.y()
     }
   }
 }

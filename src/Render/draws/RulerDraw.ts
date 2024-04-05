@@ -1,5 +1,6 @@
 import _ from 'lodash-es'
 import Konva from 'konva'
+//
 import * as Types from '../types'
 
 export interface RulerDrawOption {
@@ -9,58 +10,46 @@ export interface RulerDrawOption {
 export class RulerDraw extends Types.BaseDraw implements Types.Draw {
   static override readonly name = 'ruler'
 
-  private option: RulerDrawOption
+  option: RulerDrawOption
 
-  state = {}
-
-  on = {}
-
-  constructor(
-    stage: Konva.Stage,
-    config: Types.RenderConfig,
-    layer: Konva.Layer,
-    option: RulerDrawOption
-  ) {
-    super(stage, config, layer)
+  constructor(render: Types.Render, layer: Konva.Layer, option: RulerDrawOption) {
+    super(render, layer)
     this.option = option
   }
 
   override draw() {
-    if (this.config.showRuler) {
+    if (this.render.config.showRuler) {
       this.clear()
+
+      // stage 状态
+      const stageState = this.render.getStageState()
 
       // 格子大小
       const cellSize = 20
 
-      const width = this.stage.width()
-      const height = this.stage.height()
-      const scaleX = this.stage.scaleX()
-      const scaleY = this.stage.scaleY()
-      const stageX = this.stage.x()
-      const stageY = this.stage.y()
       const fontSizeMax = 12
 
       // 列数
-      const lenX = Math.ceil(width / scaleX / cellSize)
+      const lenX = Math.ceil(stageState.width / stageState.scale / cellSize)
       // 行数
-      const lenY = Math.ceil(height / scaleY / cellSize)
+      const lenY = Math.ceil(stageState.height / stageState.scale / cellSize)
 
-      const startX = -Math.ceil((stageX - this.option.size) / scaleX / cellSize)
-      const startY = -Math.ceil((stageY - this.option.size) / scaleY / cellSize)
+      const startX = -Math.ceil((stageState.x - this.option.size) / stageState.scale / cellSize)
+      const startY = -Math.ceil((stageState.y - this.option.size) / stageState.scale / cellSize)
 
       const group = new Konva.Group()
 
       const groupTop = new Konva.Group({
-        x: -stageX / scaleX + this.option.size / scaleY,
-        y: -stageY / scaleY,
-        width: width / scaleX - this.option.size / scaleY,
-        height: this.option.size / scaleY
+        x: -stageState.x / stageState.scale + this.option.size / stageState.scale,
+        y: -stageState.y / stageState.scale,
+        width: stageState.width / stageState.scale - this.option.size / stageState.scale,
+        height: this.option.size / stageState.scale
       })
       const groupLeft = new Konva.Group({
-        x: -stageX / scaleX,
-        y: -stageY / scaleY + this.option.size / scaleX,
-        width: this.option.size / scaleX,
-        height: height / scaleY - this.option.size / scaleX
+        x: -stageState.x / stageState.scale,
+        y: -stageState.y / stageState.scale + this.option.size / stageState.scale,
+        width: this.option.size / stageState.scale,
+        height: stageState.height / stageState.scale - this.option.size / stageState.scale
       })
 
       {
@@ -78,8 +67,8 @@ export class RulerDraw extends Types.BaseDraw implements Types.Draw {
 
         for (let x = lenX + startX - 1; x >= startX; x--) {
           const nx = -groupTop.x() + cellSize * x
-          const long = (this.option.size / scaleY / 5) * 4
-          const short = (this.option.size / scaleY / 5) * 3
+          const long = (this.option.size / stageState.scale / 5) * 4
+          const short = (this.option.size / stageState.scale / 5) * 3
 
           if (nx >= 0) {
             groupTop.add(
@@ -87,10 +76,10 @@ export class RulerDraw extends Types.BaseDraw implements Types.Draw {
                 name: this.constructor.name,
                 points: _.flatten([
                   [nx, x % 5 ? long : short],
-                  [nx, this.option.size / scaleY]
+                  [nx, this.option.size / stageState.scale]
                 ]),
                 stroke: '#999',
-                strokeWidth: 1 / scaleY,
+                strokeWidth: 1 / stageState.scale,
                 listening: false
               })
             )
@@ -100,19 +89,19 @@ export class RulerDraw extends Types.BaseDraw implements Types.Draw {
 
               const text = new Konva.Text({
                 name: this.constructor.name,
-                y: this.option.size / scaleY / 2 - fontSize / scaleY,
+                y: this.option.size / stageState.scale / 2 - fontSize / stageState.scale,
                 text: (x * cellSize).toString(),
-                fontSize: fontSize / scaleY,
+                fontSize: fontSize / stageState.scale,
                 fill: '#999',
                 align: 'center',
                 verticalAlign: 'bottom',
                 lineHeight: 1.6
               })
 
-              while (text.width() / scaleY > (cellSize / scaleY) * 4.6) {
+              while (text.width() / stageState.scale > (cellSize / stageState.scale) * 4.6) {
                 fontSize -= 1
-                text.fontSize(fontSize / scaleY)
-                text.y(this.option.size / scaleY / 2 - fontSize / scaleY)
+                text.fontSize(fontSize / stageState.scale)
+                text.y(this.option.size / stageState.scale / 2 - fontSize / stageState.scale)
               }
               text.x(nx - text.width() / 2)
               groupTop.add(text)
@@ -136,8 +125,8 @@ export class RulerDraw extends Types.BaseDraw implements Types.Draw {
 
         for (let y = lenY + startY - 1; y >= startY; y--) {
           const ny = -groupLeft.y() + cellSize * y
-          const long = (this.option.size / scaleX / 5) * 4
-          const short = (this.option.size / scaleX / 5) * 3
+          const long = (this.option.size / stageState.scale / 5) * 4
+          const short = (this.option.size / stageState.scale / 5) * 3
 
           if (ny >= 0) {
             groupLeft.add(
@@ -145,10 +134,10 @@ export class RulerDraw extends Types.BaseDraw implements Types.Draw {
                 name: this.constructor.name,
                 points: _.flatten([
                   [y % 5 ? long : short, ny],
-                  [this.option.size / scaleY, ny]
+                  [this.option.size / stageState.scale, ny]
                 ]),
                 stroke: '#999',
-                strokeWidth: 1 / scaleY,
+                strokeWidth: 1 / stageState.scale,
                 listening: false
               })
             )
@@ -161,7 +150,7 @@ export class RulerDraw extends Types.BaseDraw implements Types.Draw {
                 x: 0,
                 y: ny,
                 text: (y * cellSize).toString(),
-                fontSize: fontSize / scaleX,
+                fontSize: fontSize / stageState.scale,
                 fill: '#999',
                 align: 'right',
                 verticalAlign: 'bottom',
@@ -171,10 +160,10 @@ export class RulerDraw extends Types.BaseDraw implements Types.Draw {
 
               while (text.width() > short * 0.8) {
                 fontSize -= 1
-                text.fontSize(fontSize / scaleX)
+                text.fontSize(fontSize / stageState.scale)
               }
               text.y(ny - text.height() / 2)
-              text.width(short - 1 / scaleX)
+              text.width(short - 1 / stageState.scale)
               groupLeft.add(text)
             }
           }
@@ -185,10 +174,10 @@ export class RulerDraw extends Types.BaseDraw implements Types.Draw {
         // 角
         new Konva.Rect({
           name: this.constructor.name,
-          x: -stageX / scaleX,
-          y: -stageY / scaleY,
-          width: this.option.size / scaleX,
-          height: this.option.size / scaleY,
+          x: -stageState.x / stageState.scale,
+          y: -stageState.y / stageState.scale,
+          width: this.option.size / stageState.scale,
+          height: this.option.size / stageState.scale,
           fill: '#ddd'
         })
       )
@@ -196,15 +185,15 @@ export class RulerDraw extends Types.BaseDraw implements Types.Draw {
         // 倍率
         new Konva.Text({
           name: this.constructor.name,
-          x: -stageX / scaleX,
-          y: -stageY / scaleY,
-          text: `x${scaleX.toFixed(1)}`,
-          fontSize: 14 / scaleX,
+          x: -stageState.x / stageState.scale,
+          y: -stageState.y / stageState.scale,
+          text: `x${stageState.scale.toFixed(1)}`,
+          fontSize: 14 / stageState.scale,
           fill: 'blue',
           align: 'center',
           verticalAlign: 'middle',
-          width: this.option.size / scaleX,
-          height: this.option.size / scaleY
+          width: this.option.size / stageState.scale,
+          height: this.option.size / stageState.scale
         })
       )
 
