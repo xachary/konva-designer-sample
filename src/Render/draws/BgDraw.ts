@@ -31,12 +31,12 @@ export class BgDraw extends Types.BaseDraw implements Types.Draw {
       const cellSize = this.option.size
 
       // 列数
-      const lenX = Math.ceil(stageState.width / stageState.scale / cellSize)
+      const lenX = Math.ceil(this.render.toStageValue(stageState.width) / cellSize)
       // 行数
-      const lenY = Math.ceil(stageState.height / stageState.scale / cellSize)
+      const lenY = Math.ceil(this.render.toStageValue(stageState.height) / cellSize)
 
-      const startX = -Math.ceil(stageState.x / stageState.scale / cellSize)
-      const startY = -Math.ceil(stageState.y / stageState.scale / cellSize)
+      const startX = -Math.ceil(this.render.toStageValue(stageState.x) / cellSize)
+      const startY = -Math.ceil(this.render.toStageValue(stageState.y) / cellSize)
 
       const group = new Konva.Group()
 
@@ -47,10 +47,10 @@ export class BgDraw extends Types.BaseDraw implements Types.Draw {
           y: 0,
           width: stageState.width,
           height: stageState.height,
-          stroke: 'rgba(255,0,0,0.1)',
-          strokeWidth: 2 / stageState.scale,
+          stroke: 'rgba(255,0,0,0.2)',
+          strokeWidth: this.render.toStageValue(2),
           listening: false,
-          dash: [4, 4]
+          dash: [this.render.toStageValue(6), this.render.toStageValue(6)]
         })
       )
 
@@ -60,11 +60,11 @@ export class BgDraw extends Types.BaseDraw implements Types.Draw {
           new Konva.Line({
             name: this.constructor.name,
             points: _.flatten([
-              [cellSize * x, -stageState.y / stageState.scale],
-              [cellSize * x, (stageState.height - stageState.y) / stageState.scale]
+              [cellSize * x, this.render.toStageValue(-stageState.y)],
+              [cellSize * x, this.render.toStageValue(stageState.height - stageState.y)]
             ]),
             stroke: '#ddd',
-            strokeWidth: 1 / stageState.scale,
+            strokeWidth: this.render.toStageValue(1),
             listening: false
           })
         )
@@ -76,11 +76,11 @@ export class BgDraw extends Types.BaseDraw implements Types.Draw {
           new Konva.Line({
             name: this.constructor.name,
             points: _.flatten([
-              [-stageState.x / stageState.scale, cellSize * y],
-              [(stageState.width - stageState.x) / stageState.scale, cellSize * y]
+              [this.render.toStageValue(-stageState.x), cellSize * y],
+              [this.render.toStageValue(stageState.width - stageState.x), cellSize * y]
             ]),
             stroke: '#ddd',
-            strokeWidth: 1 / stageState.scale,
+            strokeWidth: this.render.toStageValue(1),
             listening: false
           })
         )

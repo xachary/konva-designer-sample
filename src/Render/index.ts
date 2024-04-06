@@ -132,4 +132,14 @@ export class Render {
       y: this.stage.y()
     }
   }
+
+  // 相对大小（基于 stage，且无视 scale）
+  toStageValue(boardPos: number) {
+    return boardPos / this.stage.scaleX()
+  }
+
+  // 绝对大小（基于可视区域像素）
+  toBoardValue(stagePos: number) {
+    return stagePos * this.stage.scaleX()
+  }
 }

@@ -30,26 +30,30 @@ export class RulerDraw extends Types.BaseDraw implements Types.Draw {
       const fontSizeMax = 12
 
       // 列数
-      const lenX = Math.ceil(stageState.width / stageState.scale / cellSize)
+      const lenX = Math.ceil(this.render.toStageValue(stageState.width) / cellSize)
       // 行数
-      const lenY = Math.ceil(stageState.height / stageState.scale / cellSize)
+      const lenY = Math.ceil(this.render.toStageValue(stageState.height) / cellSize)
 
-      const startX = -Math.ceil((stageState.x - this.option.size) / stageState.scale / cellSize)
-      const startY = -Math.ceil((stageState.y - this.option.size) / stageState.scale / cellSize)
+      const startX = -Math.ceil(
+        this.render.toStageValue(stageState.x - this.option.size) / cellSize
+      )
+      const startY = -Math.ceil(
+        this.render.toStageValue(stageState.y - this.option.size) / cellSize
+      )
 
       const group = new Konva.Group()
 
       const groupTop = new Konva.Group({
-        x: -stageState.x / stageState.scale + this.option.size / stageState.scale,
-        y: -stageState.y / stageState.scale,
-        width: stageState.width / stageState.scale - this.option.size / stageState.scale,
-        height: this.option.size / stageState.scale
+        x: this.render.toStageValue(-stageState.x + this.option.size),
+        y: this.render.toStageValue(-stageState.y),
+        width: this.render.toStageValue(stageState.width - this.option.size),
+        height: this.render.toStageValue(this.option.size)
       })
       const groupLeft = new Konva.Group({
-        x: -stageState.x / stageState.scale,
-        y: -stageState.y / stageState.scale + this.option.size / stageState.scale,
-        width: this.option.size / stageState.scale,
-        height: stageState.height / stageState.scale - this.option.size / stageState.scale
+        x: this.render.toStageValue(-stageState.x),
+        y: this.render.toStageValue(-stageState.y + this.option.size),
+        width: this.render.toStageValue(this.option.size),
+        height: this.render.toStageValue(stageState.height - this.option.size)
       })
 
       {
@@ -67,8 +71,8 @@ export class RulerDraw extends Types.BaseDraw implements Types.Draw {
 
         for (let x = lenX + startX - 1; x >= startX; x--) {
           const nx = -groupTop.x() + cellSize * x
-          const long = (this.option.size / stageState.scale / 5) * 4
-          const short = (this.option.size / stageState.scale / 5) * 3
+          const long = (this.render.toStageValue(this.option.size) / 5) * 4
+          const short = (this.render.toStageValue(this.option.size) / 5) * 3
 
           if (nx >= 0) {
             groupTop.add(
@@ -76,10 +80,10 @@ export class RulerDraw extends Types.BaseDraw implements Types.Draw {
                 name: this.constructor.name,
                 points: _.flatten([
                   [nx, x % 5 ? long : short],
-                  [nx, this.option.size / stageState.scale]
+                  [nx, this.render.toStageValue(this.option.size)]
                 ]),
                 stroke: '#999',
-                strokeWidth: 1 / stageState.scale,
+                strokeWidth: this.render.toStageValue(1),
                 listening: false
               })
             )
@@ -89,19 +93,22 @@ export class RulerDraw extends Types.BaseDraw implements Types.Draw {
 
               const text = new Konva.Text({
                 name: this.constructor.name,
-                y: this.option.size / stageState.scale / 2 - fontSize / stageState.scale,
+                y: this.render.toStageValue(this.option.size / 2 - fontSize),
                 text: (x * cellSize).toString(),
-                fontSize: fontSize / stageState.scale,
+                fontSize: this.render.toStageValue(fontSize),
                 fill: '#999',
                 align: 'center',
                 verticalAlign: 'bottom',
                 lineHeight: 1.6
               })
 
-              while (text.width() / stageState.scale > (cellSize / stageState.scale) * 4.6) {
+              while (
+                this.render.toStageValue(text.width()) >
+                this.render.toStageValue(cellSize) * 4.6
+              ) {
                 fontSize -= 1
-                text.fontSize(fontSize / stageState.scale)
-                text.y(this.option.size / stageState.scale / 2 - fontSize / stageState.scale)
+                text.fontSize(this.render.toStageValue(fontSize))
+                text.y(this.render.toStageValue(this.option.size / 2 - fontSize) / 2)
               }
               text.x(nx - text.width() / 2)
               groupTop.add(text)
@@ -125,8 +132,8 @@ export class RulerDraw extends Types.BaseDraw implements Types.Draw {
 
         for (let y = lenY + startY - 1; y >= startY; y--) {
           const ny = -groupLeft.y() + cellSize * y
-          const long = (this.option.size / stageState.scale / 5) * 4
-          const short = (this.option.size / stageState.scale / 5) * 3
+          const long = (this.render.toStageValue(this.option.size) / 5) * 4
+          const short = (this.render.toStageValue(this.option.size) / 5) * 3
 
           if (ny >= 0) {
             groupLeft.add(
@@ -134,10 +141,10 @@ export class RulerDraw extends Types.BaseDraw implements Types.Draw {
                 name: this.constructor.name,
                 points: _.flatten([
                   [y % 5 ? long : short, ny],
-                  [this.option.size / stageState.scale, ny]
+                  [this.render.toStageValue(this.option.size), ny]
                 ]),
                 stroke: '#999',
-                strokeWidth: 1 / stageState.scale,
+                strokeWidth: this.render.toStageValue(1),
                 listening: false
               })
             )
@@ -150,7 +157,7 @@ export class RulerDraw extends Types.BaseDraw implements Types.Draw {
                 x: 0,
                 y: ny,
                 text: (y * cellSize).toString(),
-                fontSize: fontSize / stageState.scale,
+                fontSize: this.render.toStageValue(fontSize),
                 fill: '#999',
                 align: 'right',
                 verticalAlign: 'bottom',
@@ -160,10 +167,10 @@ export class RulerDraw extends Types.BaseDraw implements Types.Draw {
 
               while (text.width() > short * 0.8) {
                 fontSize -= 1
-                text.fontSize(fontSize / stageState.scale)
+                text.fontSize(this.render.toStageValue(fontSize))
               }
               text.y(ny - text.height() / 2)
-              text.width(short - 1 / stageState.scale)
+              text.width(short - this.render.toStageValue(1))
               groupLeft.add(text)
             }
           }
@@ -174,10 +181,10 @@ export class RulerDraw extends Types.BaseDraw implements Types.Draw {
         // 角
         new Konva.Rect({
           name: this.constructor.name,
-          x: -stageState.x / stageState.scale,
-          y: -stageState.y / stageState.scale,
-          width: this.option.size / stageState.scale,
-          height: this.option.size / stageState.scale,
+          x: this.render.toStageValue(-stageState.x),
+          y: this.render.toStageValue(-stageState.y),
+          width: this.render.toStageValue(this.option.size),
+          height: this.render.toStageValue(this.option.size),
           fill: '#ddd'
         })
       )
@@ -185,15 +192,15 @@ export class RulerDraw extends Types.BaseDraw implements Types.Draw {
         // 倍率
         new Konva.Text({
           name: this.constructor.name,
-          x: -stageState.x / stageState.scale,
-          y: -stageState.y / stageState.scale,
+          x: this.render.toStageValue(-stageState.x),
+          y: this.render.toStageValue(-stageState.y),
           text: `x${stageState.scale.toFixed(1)}`,
-          fontSize: 14 / stageState.scale,
+          fontSize: this.render.toStageValue(14),
           fill: 'blue',
           align: 'center',
           verticalAlign: 'middle',
-          width: this.option.size / stageState.scale,
-          height: this.option.size / stageState.scale
+          width: this.render.toStageValue(this.option.size),
+          height: this.render.toStageValue(this.option.size)
         })
       )
 
