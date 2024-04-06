@@ -64,3 +64,7 @@ export class BaseDraw {
 }
 
 export { Render }
+
+export interface AssetInfo {
+  url: string
+}

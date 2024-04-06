@@ -17,6 +17,7 @@
     "@types/lodash-es": "4.17.12",
     "konva": "9.3.6",
     "lodash-es": "4.17.21",
+    "nanoid": "5.0.6",
     "vue": "^3.4.21"
   },
   "devDependencies": {

@@ -30,3 +30,4 @@ coverage
 *.tsbuildinfo
 
 docs
+public

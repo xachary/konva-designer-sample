@@ -4,6 +4,7 @@ import * as Types from './types'
 //
 import * as Draws from './draws'
 import * as Handlers from './handlers'
+import * as Tools from './tools'
 
 // 渲染器
 export class Render {
@@ -21,6 +22,9 @@ export class Render {
 
   // 附加工具
   draws: { [index: string]: Types.Draw & Types.Handler } = {}
+
+  // 素材工具
+  assetTool: Tools.AssetTool
 
   // 事件处理
   handlers: { [index: string]: Types.Handler } = {}
@@ -51,9 +55,13 @@ export class Render {
       padding: this.rulerSize
     })
 
+    // 素材工具
+    this.assetTool = new Tools.AssetTool(this)
+
     // 事件处理
     this.handlers[Handlers.DragHandlers.name] = new Handlers.DragHandlers(this)
     this.handlers[Handlers.ZoomHandlers.name] = new Handlers.ZoomHandlers(this)
+    this.handlers[Handlers.DragOutsideHandlers.name] = new Handlers.DragOutsideHandlers(this)
     this.handlers[Draws.RefLineDraw.name] = this.draws[Draws.RefLineDraw.name]
 
     // 初始化
@@ -107,7 +115,15 @@ export class Render {
     const container = this.stage.container()
     container.tabIndex = 1
     container.focus()
-    for (const event of ['mouseenter', 'dragenter', 'mousemove', 'mouseout']) {
+    for (const event of [
+      'mouseenter',
+      'dragenter',
+      'mousemove',
+      'mouseout',
+      'dragenter',
+      'dragover',
+      'drop'
+    ]) {
       container.addEventListener(event, (e) => {
         e?.preventDefault()
 
@@ -146,5 +162,21 @@ export class Render {
   // 绝对大小（基于可视区域像素）
   toBoardValue(stagePos: number) {
     return stagePos * this.stage.scaleX()
+  }
+
+  // 忽略非素材
+  ignore(node: Konva.Node) {
+    // 素材有各自根 group
+    const isGroup = node instanceof Konva.Group
+    return !isGroup || this.ignoreDraw(node)
+  }
+
+  // 忽略各 draw 的根 group
+  ignoreDraw(node: Konva.Node) {
+    return (
+      node.name() === Draws.BgDraw.name ||
+      node.name() === Draws.RulerDraw.name ||
+      node.name() === Draws.RefLineDraw.name
+    )
   }
 }

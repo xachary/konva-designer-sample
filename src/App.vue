@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 
 import { Render } from './Render'
+
+import * as Types from './Render/types'
 
 // 容器
 const boardElement = ref<HTMLDivElement>()
@@ -79,13 +81,44 @@ function init() {
 onMounted(() => {
   init()
 })
+
+const assetsModules: Record<string, { default: string }> = import.meta.glob(
+  ['./assets/*/*.{svg,png,jpg,gif}'],
+  {
+    eager: true
+  }
+)
+
+const assetsInfos = computed(() => {
+  return Object.keys(assetsModules).map((o) => ({
+    url: assetsModules[o].default
+  }))
+})
+
+function onDragstart(e: GlobalEventHandlersEventMap['dragstart'], item: Types.AssetInfo) {
+  if (e.dataTransfer) {
+    e.dataTransfer.setData('src', item.url)
+    e.dataTransfer.setData('type', item.url.match(/([^./]+)\.([^./]+)$/)?.[2] ?? '')
+  }
+}
 </script>
 
 <template>
   <div class="page">
     <header></header>
     <section>
-      <header></header>
+      <header>
+        <ul>
+          <li
+            v-for="(item, idx) of assetsInfos"
+            :key="idx"
+            draggable="true"
+            @dragstart="onDragstart($event, item)"
+          >
+            <img :src="item.url" style="object-fit: contain; width: 100%; height: 100%" />
+          </li>
+        </ul>
+      </header>
       <section ref="boardElement">
         <div ref="stageElement"></div>
       </section>
@@ -126,6 +159,17 @@ onMounted(() => {
     }
     & > header {
       box-shadow: 1px 0 2px 0 rgba(0, 0, 0, 0.05);
+      overflow: auto;
+      & > ul {
+        display: flex;
+        flex-wrap: wrap;
+        & > li {
+          width: 33.33%;
+          flex-shrink: 0;
+          border: 1px solid #eee;
+          cursor: move;
+        }
+      }
     }
     & > footer {
       box-shadow: -1px 0 2px 0 rgba(0, 0, 0, 0.05);
