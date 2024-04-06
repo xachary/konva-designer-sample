@@ -12,7 +12,9 @@ export default defineConfig({
     }
   },
   build: {
-    outDir: 'docs'
+    outDir: 'docs',
+    minify: false,
+    assetsInlineLimit: 0
   },
   base: './'
 })

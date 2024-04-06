@@ -83,7 +83,7 @@ onMounted(() => {
 })
 
 const assetsModules: Record<string, { default: string }> = import.meta.glob(
-  ['./assets/*/*.{svg,png,jpg,gif}'],
+  ['./assets/img/*/*.{svg,png,jpg,gif}'],
   {
     eager: true
   }
