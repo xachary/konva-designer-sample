@@ -46,12 +46,15 @@ export class RulerDraw extends Types.BaseDraw implements Types.Draw {
 
       const group = new Konva.Group()
 
+      // 比例尺 - 上
       const groupTop = new Konva.Group({
         x: this.render.toStageValue(-stageState.x + this.option.size),
         y: this.render.toStageValue(-stageState.y),
         width: this.render.toStageValue(stageState.width - this.option.size),
         height: this.render.toStageValue(this.option.size)
       })
+
+      // 比例尺 - 左
       const groupLeft = new Konva.Group({
         x: this.render.toStageValue(-stageState.x),
         y: this.render.toStageValue(-stageState.y + this.option.size),
