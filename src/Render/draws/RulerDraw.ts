@@ -14,7 +14,10 @@ export class RulerDraw extends Types.BaseDraw implements Types.Draw {
 
   constructor(render: Types.Render, layer: Konva.Layer, option: RulerDrawOption) {
     super(render, layer)
+
     this.option = option
+
+    this.group.listening(false)
   }
 
   override draw() {

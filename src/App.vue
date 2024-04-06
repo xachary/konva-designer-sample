@@ -66,7 +66,8 @@ function init() {
             height,
             //
             showBg: true,
-            showRuler: true
+            showRuler: true,
+            showRefLine: true
           })
         }
         render.resize(width, height)

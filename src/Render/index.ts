@@ -47,10 +47,14 @@ export class Render {
     this.draws[Draws.RulerDraw.name] = new Draws.RulerDraw(this, this.layerCover, {
       size: this.rulerSize
     })
+    this.draws[Draws.RefLineDraw.name] = new Draws.RefLineDraw(this, this.layerCover, {
+      padding: this.rulerSize
+    })
 
     // 事件处理
     this.handlers[Handlers.DragHandlers.name] = new Handlers.DragHandlers(this)
     this.handlers[Handlers.ZoomHandlers.name] = new Handlers.ZoomHandlers(this)
+    this.handlers[Draws.RefLineDraw.name] = this.draws[Draws.RefLineDraw.name]
 
     // 初始化
     this.init()
@@ -65,6 +69,7 @@ export class Render {
 
     this.stage.add(this.layerCover)
     this.draws[Draws.RulerDraw.name].init()
+    this.draws[Draws.RefLineDraw.name].init()
 
     // 事件绑定
     this.eventBind()
@@ -102,7 +107,7 @@ export class Render {
     const container = this.stage.container()
     container.tabIndex = 1
     container.focus()
-    for (const event of ['mouseenter', 'dragenter']) {
+    for (const event of ['mouseenter', 'dragenter', 'mousemove', 'mouseout']) {
       container.addEventListener(event, (e) => {
         e?.preventDefault()
 
