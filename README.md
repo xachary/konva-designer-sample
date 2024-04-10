@@ -8,9 +8,9 @@
 
 ![3](https://github.com/xachary/konva-designer-sample/assets/16830398/3f7f57d7-152b-4131-8cbd-5d94b553df4c)
 
-![3](https://github.com/xachary/konva-designer-sample/assets/16830398/bc01aa40-7db0-4c5b-832c-b0eb4c621ab8)
-
 ![3](https://github.com/xachary/konva-designer-sample/assets/16830398/4b62f3fe-eb06-4860-a752-6c81b1bf79da)
+
+![3](https://github.com/xachary/konva-designer-sample/assets/16830398/bc01aa40-7db0-4c5b-832c-b0eb4c621ab8)
 
 ## 功能点
 
