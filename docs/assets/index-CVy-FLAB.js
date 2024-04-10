@@ -23845,6 +23845,242 @@ class DragOutsideHandlers {
   }
 }
 __publicField(DragOutsideHandlers, "name", "DragOutside");
+class SelectionHandlers {
+  constructor(render) {
+    __publicField(this, "render");
+    // selectRect 拉动的开始和结束坐标
+    __publicField(this, "selectRectStartX", 0);
+    __publicField(this, "selectRectStartY", 0);
+    __publicField(this, "selectRectEndX", 0);
+    __publicField(this, "selectRectEndY", 0);
+    // 是否正在使用 selectRect
+    __publicField(this, "selecting", false);
+    // 拖动前的位置
+    __publicField(this, "transformerMousedownPos", { x: 0, y: 0 });
+    // 拖动偏移
+    __publicField(this, "groupImmediateLocOffset", { x: 0, y: 0 });
+    __publicField(this, "handlers", {
+      // 选择相关
+      stage: {
+        mousedown: (e) => {
+          const parent2 = e.target.getParent();
+          if (e.target === this.render.stage) {
+            this.render.selectionTool.selectingClear();
+            if (e.evt.button === MouseButton.左键) {
+              const pos = this.render.stage.getPointerPosition();
+              if (pos) {
+                this.selectRectStartX = pos.x;
+                this.selectRectStartY = pos.y;
+                this.selectRectEndX = pos.x;
+                this.selectRectEndY = pos.y;
+              }
+              this.render.selectRect.width(0);
+              this.render.selectRect.height(0);
+              this.selecting = true;
+            }
+          } else if (parent2 instanceof Konva.Transformer)
+            ;
+          else if (parent2 instanceof Konva.Group) {
+            if (e.evt.button === MouseButton.左键) {
+              if (!this.render.ignore(parent2) && !this.render.ignoreDraw(e.target)) {
+                if (e.evt.ctrlKey) {
+                  this.render.selectionTool.select([
+                    ...this.render.selectionTool.selectingNodes,
+                    parent2
+                  ]);
+                } else {
+                  this.render.selectionTool.select([parent2]);
+                }
+              }
+            } else {
+              this.render.selectionTool.selectingClear();
+            }
+          }
+        },
+        mousemove: () => {
+          const stageState = this.render.getStageState();
+          if (this.selecting) {
+            const pos = this.render.stage.getPointerPosition();
+            if (pos) {
+              this.selectRectEndX = pos.x;
+              this.selectRectEndY = pos.y;
+            }
+            this.render.selectRect.setAttrs({
+              visible: true,
+              // 显示
+              x: this.render.toStageValue(
+                Math.min(this.selectRectStartX, this.selectRectEndX) - stageState.x
+              ),
+              y: this.render.toStageValue(
+                Math.min(this.selectRectStartY, this.selectRectEndY) - stageState.y
+              ),
+              width: this.render.toStageValue(Math.abs(this.selectRectEndX - this.selectRectStartX)),
+              height: this.render.toStageValue(Math.abs(this.selectRectEndY - this.selectRectStartY))
+            });
+          }
+        },
+        mouseup: () => {
+          const box = this.render.selectRect.getClientRect();
+          if (box.width > 0 && box.height > 0) {
+            const shapes = this.render.layer.getChildren((node) => {
+              return !this.render.ignore(node);
+            });
+            const selected = shapes.filter(
+              (shape) => (
+                // 关键 api
+                Konva.Util.haveIntersection(box, shape.getClientRect())
+              )
+            );
+            this.render.selectionTool.select(selected);
+          }
+          this.render.selectRect.setAttrs({
+            visible: false,
+            // 隐藏
+            x: 0,
+            y: 0,
+            width: 0,
+            height: 0
+          });
+          this.selecting = false;
+        }
+      },
+      transformer: {
+        // 记录初始状态
+        mousedown: (e) => {
+          const anchor = this.render.transformer.getActiveAnchor();
+          if (!anchor) {
+            if (e.evt.ctrlKey) {
+              if (this.render.selectionTool.selectingNodesArea) {
+                const pos = this.render.stage.getPointerPosition();
+                if (pos) {
+                  const keeps = [];
+                  const removes = [];
+                  let finded = false;
+                  for (const node of this.render.selectionTool.selectingNodes.sort(
+                    (a, b) => b.zIndex() - a.zIndex()
+                  )) {
+                    if (!finded && Konva.Util.haveIntersection(node.getClientRect(), {
+                      ...pos,
+                      width: 1,
+                      height: 1
+                    })) {
+                      removes.unshift(node);
+                      finded = true;
+                    } else {
+                      keeps.unshift(node);
+                    }
+                  }
+                  if (removes.length > 0) {
+                    this.render.selectionTool.select(keeps);
+                  } else {
+                    let finded2 = false;
+                    const adds = [];
+                    for (const node of this.render.layer.getChildren().filter((node2) => !this.render.ignore(node2)).sort((a, b) => b.zIndex() - a.zIndex())) {
+                      if (!finded2 && Konva.Util.haveIntersection(node.getClientRect(), {
+                        ...pos,
+                        width: 1,
+                        height: 1
+                      })) {
+                        adds.unshift(node);
+                        finded2 = true;
+                      }
+                    }
+                    if (adds.length > 0) {
+                      this.render.selectionTool.select([
+                        ...this.render.selectionTool.selectingNodes,
+                        ...adds
+                      ]);
+                    }
+                  }
+                }
+              }
+            } else {
+              if (this.render.selectionTool.selectingNodesArea) {
+                this.reset();
+              }
+            }
+          } else {
+            this.reset();
+          }
+        },
+        transformend: () => {
+          this.reset();
+        },
+        //
+        dragstart: () => {
+          var _a, _b;
+          (_b = this.render.selectionTool.selectingNodesArea) == null ? void 0 : _b.setAttrs({
+            areaMousedownPos: (_a = this.render.selectionTool.selectingNodesArea) == null ? void 0 : _a.position()
+          });
+        },
+        // 拖动
+        dragmove: () => {
+          this.selectingNodesPositionByOffset(this.groupImmediateLocOffset);
+        },
+        dragend: () => {
+          this.selectingNodesPositionByOffset(this.groupImmediateLocOffset);
+          this.reset();
+        }
+      }
+    });
+    // transformer config
+    __publicField(this, "transformerConfig", {
+      // 拖动中
+      dragBoundFunc: (pos) => {
+        const transformPosOffsetX = pos.x - this.transformerMousedownPos.x;
+        const transformPosOffsetY = pos.y - this.transformerMousedownPos.y;
+        this.groupImmediateLocOffset = {
+          x: this.render.toStageValue(transformPosOffsetX),
+          y: this.render.toStageValue(transformPosOffsetY)
+        };
+        return pos;
+      }
+    });
+    this.render = render;
+  }
+  // 通过偏移量（selectingNodesArea）移动【目标节点】
+  selectingNodesPositionByOffset(offset) {
+    for (const node of this.render.selectionTool.selectingNodes) {
+      const x = node.attrs.nodeMousedownPos.x + offset.x;
+      const y = node.attrs.nodeMousedownPos.y + offset.y;
+      node.x(x);
+      node.y(y);
+    }
+    const area = this.render.selectionTool.selectingNodesArea;
+    if (area) {
+      area.x(area.attrs.areaMousedownPos.x + offset.x);
+      area.y(area.attrs.areaMousedownPos.y + offset.y);
+    }
+  }
+  // 重置【目标节点】的 nodeMousedownPos
+  selectingNodesPositionReset() {
+    for (const node of this.render.selectionTool.selectingNodes) {
+      node.attrs.nodeMousedownPos.x = node.x();
+      node.attrs.nodeMousedownPos.y = node.y();
+    }
+  }
+  // 重置 transformer 状态
+  transformerStateReset() {
+    this.transformerMousedownPos = this.render.transformer.position();
+  }
+  // 重置 selectingNodesArea 状态
+  selectingNodesAreaReset() {
+    var _a;
+    (_a = this.render.selectionTool.selectingNodesArea) == null ? void 0 : _a.setAttrs({
+      areaMousedownPos: {
+        x: 0,
+        y: 0
+      }
+    });
+  }
+  // 重置
+  reset() {
+    this.transformerStateReset();
+    this.selectingNodesPositionReset();
+    this.selectingNodesAreaReset();
+  }
+}
+__publicField(SelectionHandlers, "name", "Selection");
 const gifler = window.gifler;
 class AssetTool {
   constructor(render) {
@@ -23894,6 +24130,80 @@ class AssetTool {
   }
 }
 __publicField(AssetTool, "name", "AssetTool");
+class SelectionTool {
+  constructor(render) {
+    __publicField(this, "render");
+    // 【被选中的】
+    __publicField(this, "selectingNodes", []);
+    // 代替【被选中的】进行整体移动、放大缩小、旋转动作
+    __publicField(this, "selectingNodesArea", null);
+    this.render = render;
+  }
+  // 清空已选
+  selectingClear() {
+    var _a;
+    this.render.transformer.nodes([]);
+    (_a = this.selectingNodesArea) == null ? void 0 : _a.remove();
+    this.selectingNodesArea = null;
+    for (const node of this.selectingNodes.sort(
+      (a, b) => a.attrs.lastZIndex - b.attrs.lastZIndex
+    )) {
+      node.setAttrs({
+        listening: true,
+        opacity: node.attrs.lastOpacity ?? 1,
+        zIndex: node.attrs.lastZIndex
+      });
+    }
+    for (const node of this.selectingNodes) {
+      node.setAttrs({
+        nodeMousedownPos: void 0,
+        lastOpacity: void 0,
+        lastZIndex: void 0,
+        selectingZIndex: void 0
+      });
+    }
+    this.selectingNodes = [];
+  }
+  // 选择节点
+  select(nodes) {
+    this.selectingClear();
+    if (nodes.length > 0) {
+      this.selectingNodesArea = new Konva.Group({
+        visible: false,
+        // opacity: 0.2,
+        listening: false
+      });
+      const maxZIndex = Math.max(
+        ...this.render.layer.getChildren((node) => {
+          return !this.render.ignore(node);
+        }).map((o) => o.zIndex())
+      );
+      for (const node of nodes) {
+        node.setAttrs({
+          nodeMousedownPos: node.position(),
+          // 后面用于移动所选
+          lastOpacity: node.opacity(),
+          // 选中时，下面会使其变透明，记录原有的透明度
+          lastZIndex: node.zIndex()
+          // 记录原有的层次，后面暂时提升所选节点的层次
+        });
+      }
+      for (const node of nodes.sort((a, b) => a.zIndex() - b.zIndex())) {
+        const copy = node.clone();
+        this.selectingNodesArea.add(copy);
+        node.setAttrs({
+          listening: false,
+          opacity: node.opacity() * 0.8,
+          zIndex: maxZIndex
+        });
+      }
+      this.selectingNodes = nodes;
+      this.render.groupTransformer.add(this.selectingNodesArea);
+      this.render.transformer.nodes([...this.selectingNodes, this.selectingNodesArea]);
+    }
+  }
+}
+__publicField(SelectionTool, "name", "SelectionTool");
 class Render {
   constructor(stageEle, config) {
     __publicField(this, "stage");
@@ -23909,6 +24219,23 @@ class Render {
     __publicField(this, "draws", {});
     // 素材工具
     __publicField(this, "assetTool");
+    // 选择工具
+    __publicField(this, "selectionTool");
+    // 多选器层
+    __publicField(this, "groupTransformer", new Konva.Group());
+    // 多选器
+    __publicField(this, "transformer", new Konva.Transformer({
+      shouldOverdrawWholeArea: true,
+      borderDash: [4, 4],
+      padding: 1,
+      rotationSnaps: [0, 45, 90, 135, 180, 225, 270, 315, 360]
+    }));
+    // 选择框
+    __publicField(this, "selectRect", new Konva.Rect({
+      id: "selectRect",
+      fill: "rgba(0,0,255,0.1)",
+      visible: false
+    }));
     // 事件处理
     __publicField(this, "handlers", {});
     // 参数
@@ -23922,6 +24249,9 @@ class Render {
       width: config.width,
       height: config.height
     });
+    this.groupTransformer.add(this.transformer);
+    this.groupTransformer.add(this.selectRect);
+    this.layerCover.add(this.groupTransformer);
     this.draws[BgDraw.name] = new BgDraw(this, this.layerFloor, {
       size: this.bgSize
     });
@@ -23932,10 +24262,12 @@ class Render {
       padding: this.rulerSize
     });
     this.assetTool = new AssetTool(this);
+    this.selectionTool = new SelectionTool(this);
     this.handlers[DragHandlers.name] = new DragHandlers(this);
     this.handlers[ZoomHandlers.name] = new ZoomHandlers(this);
     this.handlers[DragOutsideHandlers.name] = new DragOutsideHandlers(this);
     this.handlers[RefLineDraw.name] = this.draws[RefLineDraw.name];
+    this.handlers[SelectionHandlers.name] = new SelectionHandlers(this);
     this.init();
   }
   // 初始化
@@ -23959,10 +24291,11 @@ class Render {
   }
   // 事件绑定
   eventBind() {
+    var _a;
     for (const event of ["mousedown", "mouseup", "mousemove", "wheel", "contextmenu"]) {
       this.stage.on(event, (e) => {
-        var _a, _b, _c, _d, _e, _f, _g;
-        (_a = e == null ? void 0 : e.evt) == null ? void 0 : _a.preventDefault();
+        var _a2, _b, _c, _d, _e, _f, _g;
+        (_a2 = e == null ? void 0 : e.evt) == null ? void 0 : _a2.preventDefault();
         for (const k in this.draws) {
           (_d = (_c = (_b = this.draws[k].handlers) == null ? void 0 : _b.stage) == null ? void 0 : _c[event]) == null ? void 0 : _d.call(_c, e);
         }
@@ -23984,19 +24317,34 @@ class Render {
       "drop"
     ]) {
       container.addEventListener(event, (e) => {
-        var _a, _b, _c, _d, _e, _f;
+        var _a2, _b, _c, _d, _e, _f;
         e == null ? void 0 : e.preventDefault();
         if (["mouseenter", "dragenter"].includes(event)) {
           this.stage.container().focus();
         }
         for (const k in this.draws) {
-          (_c = (_b = (_a = this.draws[k].handlers) == null ? void 0 : _a.dom) == null ? void 0 : _b[event]) == null ? void 0 : _c.call(_b, e);
+          (_c = (_b = (_a2 = this.draws[k].handlers) == null ? void 0 : _a2.dom) == null ? void 0 : _b[event]) == null ? void 0 : _c.call(_b, e);
         }
         for (const k in this.handlers) {
           (_f = (_e = (_d = this.handlers[k].handlers) == null ? void 0 : _d.dom) == null ? void 0 : _e[event]) == null ? void 0 : _f.call(_e, e);
         }
       });
     }
+    for (const event of ["mousedown", "transformend", "dragstart", "dragmove", "dragend"]) {
+      this.transformer.on(event, (e) => {
+        var _a2, _b, _c, _d, _e, _f, _g;
+        (_a2 = e == null ? void 0 : e.evt) == null ? void 0 : _a2.preventDefault();
+        for (const k in this.draws) {
+          (_d = (_c = (_b = this.draws[k].handlers) == null ? void 0 : _b.transformer) == null ? void 0 : _c[event]) == null ? void 0 : _d.call(_c, e);
+        }
+        for (const k in this.handlers) {
+          (_g = (_f = (_e = this.handlers[k].handlers) == null ? void 0 : _e.transformer) == null ? void 0 : _f[event]) == null ? void 0 : _g.call(_f, e);
+        }
+      });
+    }
+    ((_a = this.handlers[SelectionHandlers.name].transformerConfig) == null ? void 0 : _a.dragBoundFunc) && this.transformer.dragBoundFunc(
+      this.handlers[SelectionHandlers.name].transformerConfig.dragBoundFunc
+    );
   }
   // 获取 stage 状态
   getStageState() {
@@ -24019,7 +24367,7 @@ class Render {
   // 忽略非素材
   ignore(node) {
     const isGroup = node instanceof Konva.Group;
-    return !isGroup || this.ignoreDraw(node);
+    return !isGroup || node.id() === "selectRect" || this.ignoreDraw(node);
   }
   // 忽略各 draw 的根 group
   ignoreDraw(node) {
