@@ -26,6 +26,27 @@ export class Render {
   // 素材工具
   assetTool: Tools.AssetTool
 
+  // 选择工具
+  selectionTool: Tools.SelectionTool
+
+  // 多选器层
+  groupTransformer: Konva.Group = new Konva.Group()
+
+  // 多选器
+  transformer: Konva.Transformer = new Konva.Transformer({
+    shouldOverdrawWholeArea: true,
+    borderDash: [4, 4],
+    padding: 1,
+    rotationSnaps: [0, 45, 90, 135, 180, 225, 270, 315, 360]
+  })
+
+  // 选择框
+  selectRect: Konva.Rect = new Konva.Rect({
+    id: 'selectRect',
+    fill: 'rgba(0,0,255,0.1)',
+    visible: false
+  })
+
   // 事件处理
   handlers: { [index: string]: Types.Handler } = {}
 
@@ -44,6 +65,11 @@ export class Render {
       height: config.height
     })
 
+    // 辅助层 - 顶层
+    this.groupTransformer.add(this.transformer)
+    this.groupTransformer.add(this.selectRect)
+    this.layerCover.add(this.groupTransformer)
+
     // 附加工具
     this.draws[Draws.BgDraw.name] = new Draws.BgDraw(this, this.layerFloor, {
       size: this.bgSize
@@ -58,11 +84,15 @@ export class Render {
     // 素材工具
     this.assetTool = new Tools.AssetTool(this)
 
+    // 选择工具
+    this.selectionTool = new Tools.SelectionTool(this)
+
     // 事件处理
     this.handlers[Handlers.DragHandlers.name] = new Handlers.DragHandlers(this)
     this.handlers[Handlers.ZoomHandlers.name] = new Handlers.ZoomHandlers(this)
     this.handlers[Handlers.DragOutsideHandlers.name] = new Handlers.DragOutsideHandlers(this)
     this.handlers[Draws.RefLineDraw.name] = this.draws[Draws.RefLineDraw.name]
+    this.handlers[Handlers.SelectionHandlers.name] = new Handlers.SelectionHandlers(this)
 
     // 初始化
     this.init()
@@ -141,6 +171,25 @@ export class Render {
         }
       })
     }
+
+    for (const event of ['mousedown', 'transformend', 'dragstart', 'dragmove', 'dragend']) {
+      this.transformer.on(event, (e) => {
+        e?.evt?.preventDefault()
+
+        for (const k in this.draws) {
+          this.draws[k].handlers?.transformer?.[event]?.(e)
+        }
+
+        for (const k in this.handlers) {
+          this.handlers[k].handlers?.transformer?.[event]?.(e)
+        }
+      })
+    }
+
+    this.handlers[Handlers.SelectionHandlers.name].transformerConfig?.dragBoundFunc &&
+      this.transformer.dragBoundFunc(
+        this.handlers[Handlers.SelectionHandlers.name].transformerConfig!.dragBoundFunc!
+      )
   }
 
   // 获取 stage 状态
@@ -168,7 +217,7 @@ export class Render {
   ignore(node: Konva.Node) {
     // 素材有各自根 group
     const isGroup = node instanceof Konva.Group
-    return !isGroup || this.ignoreDraw(node)
+    return !isGroup || node.id() === 'selectRect' || this.ignoreDraw(node)
   }
 
   // 忽略各 draw 的根 group
