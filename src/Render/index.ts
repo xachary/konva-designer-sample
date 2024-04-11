@@ -93,6 +93,7 @@ export class Render {
     this.handlers[Handlers.DragOutsideHandlers.name] = new Handlers.DragOutsideHandlers(this)
     this.handlers[Draws.RefLineDraw.name] = this.draws[Draws.RefLineDraw.name]
     this.handlers[Handlers.SelectionHandlers.name] = new Handlers.SelectionHandlers(this)
+    this.handlers[Handlers.KeyMoveHandlers.name] = new Handlers.KeyMoveHandlers(this)
 
     // 初始化
     this.init()
@@ -152,7 +153,9 @@ export class Render {
       'mouseout',
       'dragenter',
       'dragover',
-      'drop'
+      'drop',
+      'keydown',
+      'keyup'
     ]) {
       container.addEventListener(event, (e) => {
         e?.preventDefault()

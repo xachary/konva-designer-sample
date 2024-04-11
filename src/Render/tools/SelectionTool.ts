@@ -103,4 +103,18 @@ export class SelectionTool {
       this.render.transformer.nodes([...this.selectingNodes, this.selectingNodesArea])
     }
   }
+
+  // 更新已选位置
+  selectingNodesAreaMove(offset: Konva.Vector2d) {
+    this.selectingNodesArea?.x(this.selectingNodesArea.x() + offset.x)
+    this.selectingNodesArea?.y(this.selectingNodesArea.y() + offset.y)
+  }
+
+  // 更新节点位置
+  selectingNodesMove(offset: Konva.Vector2d) {
+    for (const node of this.render.selectionTool.selectingNodes) {
+      node.x(node.x() + offset.x)
+      node.y(node.y() + offset.y)
+    }
+  }
 }

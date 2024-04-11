@@ -79,3 +79,10 @@ export { Render }
 export interface AssetInfo {
   url: string
 }
+
+export enum MoveKey {
+  上 = 'ArrowUp',
+  左 = 'ArrowLeft',
+  右 = 'ArrowRight',
+  下 = 'ArrowDown'
+}

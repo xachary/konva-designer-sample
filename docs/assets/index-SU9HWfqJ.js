@@ -17280,6 +17280,13 @@ class BaseDraw {
     this.group.removeChildren();
   }
 }
+var MoveKey = /* @__PURE__ */ ((MoveKey2) => {
+  MoveKey2["上"] = "ArrowUp";
+  MoveKey2["左"] = "ArrowLeft";
+  MoveKey2["右"] = "ArrowRight";
+  MoveKey2["下"] = "ArrowDown";
+  return MoveKey2;
+})(MoveKey || {});
 var freeGlobal = typeof global == "object" && global && global.Object === Object && global;
 var freeSelf = typeof self == "object" && self && self.Object === Object && self;
 var root = freeGlobal || freeSelf || Function("return this")();
@@ -24081,6 +24088,44 @@ class SelectionHandlers {
   }
 }
 __publicField(SelectionHandlers, "name", "Selection");
+class KeyMoveHandlers {
+  constructor(render) {
+    __publicField(this, "render");
+    __publicField(this, "speed", 1);
+    __publicField(this, "speedMax", 20);
+    __publicField(this, "handlers", {
+      dom: {
+        keydown: (e) => {
+          if (!e.ctrlKey) {
+            if (Object.values(MoveKey).map((o) => o.toString()).includes(e.code)) {
+              if (e.code === MoveKey.上) {
+                this.render.selectionTool.selectingNodesAreaMove({ x: 0, y: -this.speed });
+                this.render.selectionTool.selectingNodesMove({ x: 0, y: -this.speed });
+              } else if (e.code === MoveKey.左) {
+                this.render.selectionTool.selectingNodesAreaMove({ x: -this.speed, y: 0 });
+                this.render.selectionTool.selectingNodesMove({ x: -this.speed, y: 0 });
+              } else if (e.code === MoveKey.右) {
+                this.render.selectionTool.selectingNodesAreaMove({ x: this.speed, y: 0 });
+                this.render.selectionTool.selectingNodesMove({ x: this.speed, y: 0 });
+              } else if (e.code === MoveKey.下) {
+                this.render.selectionTool.selectingNodesAreaMove({ x: 0, y: this.speed });
+                this.render.selectionTool.selectingNodesMove({ x: 0, y: this.speed });
+              }
+              if (this.speed < this.speedMax) {
+                this.speed++;
+              }
+            }
+          }
+        },
+        keyup: () => {
+          this.speed = 1;
+        }
+      }
+    });
+    this.render = render;
+  }
+}
+__publicField(KeyMoveHandlers, "name", "KeyMove");
 const gifler = window.gifler;
 class AssetTool {
   constructor(render) {
@@ -24202,6 +24247,19 @@ class SelectionTool {
       this.render.transformer.nodes([...this.selectingNodes, this.selectingNodesArea]);
     }
   }
+  // 更新已选位置
+  selectingNodesAreaMove(offset) {
+    var _a, _b;
+    (_a = this.selectingNodesArea) == null ? void 0 : _a.x(this.selectingNodesArea.x() + offset.x);
+    (_b = this.selectingNodesArea) == null ? void 0 : _b.y(this.selectingNodesArea.y() + offset.y);
+  }
+  // 更新节点位置
+  selectingNodesMove(offset) {
+    for (const node of this.render.selectionTool.selectingNodes) {
+      node.x(node.x() + offset.x);
+      node.y(node.y() + offset.y);
+    }
+  }
 }
 __publicField(SelectionTool, "name", "SelectionTool");
 class Render {
@@ -24268,6 +24326,7 @@ class Render {
     this.handlers[DragOutsideHandlers.name] = new DragOutsideHandlers(this);
     this.handlers[RefLineDraw.name] = this.draws[RefLineDraw.name];
     this.handlers[SelectionHandlers.name] = new SelectionHandlers(this);
+    this.handlers[KeyMoveHandlers.name] = new KeyMoveHandlers(this);
     this.init();
   }
   // 初始化
@@ -24314,7 +24373,9 @@ class Render {
       "mouseout",
       "dragenter",
       "dragover",
-      "drop"
+      "drop",
+      "keydown",
+      "keyup"
     ]) {
       container.addEventListener(event, (e) => {
         var _a2, _b, _c, _d, _e, _f;
