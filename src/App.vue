@@ -69,7 +69,8 @@ function init() {
             //
             showBg: true,
             showRuler: true,
-            showRefLine: true
+            showRefLine: true,
+            attractResize: true
           })
         }
         render.resize(width, height)

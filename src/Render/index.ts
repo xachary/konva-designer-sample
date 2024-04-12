@@ -193,6 +193,10 @@ export class Render {
       this.transformer.dragBoundFunc(
         this.handlers[Handlers.SelectionHandlers.name].transformerConfig!.dragBoundFunc!
       )
+    this.handlers[Handlers.SelectionHandlers.name].transformerConfig?.anchorDragBoundFunc &&
+      this.transformer.anchorDragBoundFunc(
+        this.handlers[Handlers.SelectionHandlers.name].transformerConfig!.anchorDragBoundFunc!
+      )
   }
 
   // 获取 stage 状态

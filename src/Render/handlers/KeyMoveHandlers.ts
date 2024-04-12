@@ -1,5 +1,3 @@
-import _ from 'lodash-es'
-//
 import { Render } from '../index'
 import * as Types from '../types'
 

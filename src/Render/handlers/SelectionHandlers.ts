@@ -1,5 +1,4 @@
 import Konva from 'konva'
-import _ from 'lodash-es'
 //
 import { Render } from '../index'
 import * as Types from '../types'
@@ -316,6 +315,56 @@ export class SelectionHandlers implements Types.Handler {
       return pos
 
       // 接着到 dragmove 事件处理
+    },
+    // 变换中
+    anchorDragBoundFunc: (oldPos: Konva.Vector2d, newPos: Konva.Vector2d) => {
+      // 磁贴逻辑
+
+      if (this.render.config.attractResize) {
+        // transformer 锚点按钮
+        const anchor = this.render.transformer.getActiveAnchor()
+
+        // 非旋转（就是放大缩小时）
+        if (anchor && anchor !== 'rotater') {
+          // stage 状态
+          const stageState = this.render.getStageState()
+
+          const logicX = this.render.toStageValue(newPos.x - stageState.x) // x坐标
+          const logicNumX = Math.round(logicX / this.render.bgSize) // x单元格个数
+          const logicClosestX = logicNumX * this.render.bgSize // x磁贴目标坐标
+          const logicDiffX = Math.abs(logicX - logicClosestX) // x磁贴偏移量
+          const snappedX = /-(left|right)$/.test(anchor) && logicDiffX < this.render.bgSize / 5 // x磁贴阈值
+
+          const logicY = this.render.toStageValue(newPos.y - stageState.y) // y坐标
+          const logicNumY = Math.round(logicY / this.render.bgSize) // y单元格个数
+          const logicClosestY = logicNumY * this.render.bgSize // y磁贴目标坐标
+          const logicDiffY = Math.abs(logicY - logicClosestY) // y磁贴偏移量
+          const snappedY = /^(top|bottom)-/.test(anchor) && logicDiffY < this.render.bgSize / 5 // y磁贴阈值
+
+          if (snappedX && !snappedY) {
+            // x磁贴
+            return {
+              x: this.render.toBoardValue(logicClosestX) + stageState.x,
+              y: oldPos.y
+            }
+          } else if (snappedY && !snappedX) {
+            // y磁贴
+            return {
+              x: oldPos.x,
+              y: this.render.toBoardValue(logicClosestY) + stageState.y
+            }
+          } else if (snappedX && snappedY) {
+            // xy磁贴
+            return {
+              x: this.render.toBoardValue(logicClosestX) + stageState.x,
+              y: this.render.toBoardValue(logicClosestY) + stageState.y
+            }
+          }
+        }
+      }
+
+      // 不磁贴
+      return newPos
     }
   }
 }

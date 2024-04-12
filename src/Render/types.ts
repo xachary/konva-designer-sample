@@ -10,6 +10,7 @@ export interface RenderConfig {
   showBg?: boolean
   showRuler?: boolean
   showRefLine?: boolean
+  attractResize?: boolean
   //
 }
 
