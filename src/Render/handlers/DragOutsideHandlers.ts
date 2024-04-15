@@ -44,7 +44,8 @@ export class DragOutsideHandlers implements Types.Handler {
               const group = new Konva.Group({
                 id: nanoid(),
                 width: image.width(),
-                height: image.height()
+                height: image.height(),
+                name: 'asset'
               })
 
               this.render.layer.add(group)

@@ -13,17 +13,10 @@ export class SelectionTool {
   // 【被选中的】
   selectingNodes: Konva.Node[] = []
 
-  // 代替【被选中的】进行整体移动、放大缩小、旋转动作
-  selectingNodesArea: Konva.Group | null = null
-
   // 清空已选
   selectingClear() {
     // 清空选择
     this.render.transformer.nodes([])
-
-    // 移除 selectingNodesArea
-    this.selectingNodesArea?.remove()
-    this.selectingNodesArea = null
 
     // 恢复透明度、层次、可交互
     for (const node of this.selectingNodes.sort(
@@ -45,6 +38,11 @@ export class SelectionTool {
       })
     }
 
+    // test
+    this.render.transformer.find('.back')[0].setAttrs({
+      nodeMousedownPos: undefined
+    })
+
     // 清空选择节点
     this.selectingNodes = []
   }
@@ -55,13 +53,6 @@ export class SelectionTool {
     this.selectingClear()
 
     if (nodes.length > 0) {
-      // 用于撑开 transformer
-      this.selectingNodesArea = new Konva.Group({
-        visible: false,
-        // opacity: 0.2,
-        listening: false
-      })
-
       // 最大zIndex
       const maxZIndex = Math.max(
         ...this.render.layer
@@ -80,12 +71,13 @@ export class SelectionTool {
         })
       }
 
+      // test
+      this.render.transformer.find('.back')[0].setAttrs({
+        nodeMousedownPos: this.render.transformer.find('.back')[0].position()
+      })
+
       // 设置透明度、提升层次、不可交互
       for (const node of nodes.sort((a, b) => a.zIndex() - b.zIndex())) {
-        const copy = node.clone()
-
-        this.selectingNodesArea.add(copy)
-
         node.setAttrs({
           listening: false,
           opacity: node.opacity() * 0.8,
@@ -96,18 +88,9 @@ export class SelectionTool {
       // 选中的节点
       this.selectingNodes = nodes
 
-      // 放进 transformer 所在的层
-      this.render.groupTransformer.add(this.selectingNodesArea)
-
       // 选中的节点，放进 transformer
-      this.render.transformer.nodes([...this.selectingNodes, this.selectingNodesArea])
+      this.render.transformer.nodes(this.selectingNodes)
     }
-  }
-
-  // 更新已选位置
-  selectingNodesAreaMove(offset: Konva.Vector2d) {
-    this.selectingNodesArea?.x(this.selectingNodesArea.x() + offset.x)
-    this.selectingNodesArea?.y(this.selectingNodesArea.y() + offset.y)
   }
 
   // 更新节点位置

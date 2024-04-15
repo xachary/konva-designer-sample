@@ -25,19 +25,13 @@ export class SelectionHandlers implements Types.Handler {
   // 拖动偏移
   groupImmediateLocOffset: Konva.Vector2d = { x: 0, y: 0 }
 
-  // 通过偏移量（selectingNodesArea）移动【目标节点】
+  // 通过偏移量移动【目标节点】
   selectingNodesPositionByOffset(offset: Konva.Vector2d) {
     for (const node of this.render.selectionTool.selectingNodes) {
       const x = node.attrs.nodeMousedownPos.x + offset.x
       const y = node.attrs.nodeMousedownPos.y + offset.y
       node.x(x)
       node.y(y)
-    }
-
-    const area = this.render.selectionTool.selectingNodesArea
-    if (area) {
-      area.x(area.attrs.areaMousedownPos.x + offset.x)
-      area.y(area.attrs.areaMousedownPos.y + offset.y)
     }
   }
 
@@ -55,21 +49,10 @@ export class SelectionHandlers implements Types.Handler {
     this.transformerMousedownPos = this.render.transformer.position()
   }
 
-  // 重置 selectingNodesArea 状态
-  selectingNodesAreaReset() {
-    this.render.selectionTool.selectingNodesArea?.setAttrs({
-      areaMousedownPos: {
-        x: 0,
-        y: 0
-      }
-    })
-  }
-
   // 重置
   reset() {
     this.transformerStateReset()
     this.selectingNodesPositionReset()
-    this.selectingNodesAreaReset()
   }
 
   handlers = {
@@ -195,7 +178,7 @@ export class SelectionHandlers implements Types.Handler {
           // 非变换
           if (e.evt.ctrlKey) {
             // 选择
-            if (this.render.selectionTool.selectingNodesArea) {
+            if (this.render.selectionTool.selectingNodes.length > 0) {
               const pos = this.render.stage.getPointerPosition()
               if (pos) {
                 const keeps: Konva.Node[] = []
@@ -257,7 +240,7 @@ export class SelectionHandlers implements Types.Handler {
               }
             }
           } else {
-            if (this.render.selectionTool.selectingNodesArea) {
+            if (this.render.selectionTool.selectingNodes.length > 0) {
               // 拖动前
               // 重置状态
               this.reset()
@@ -277,11 +260,6 @@ export class SelectionHandlers implements Types.Handler {
         this.reset()
       },
       //
-      dragstart: () => {
-        this.render.selectionTool.selectingNodesArea?.setAttrs({
-          areaMousedownPos: this.render.selectionTool.selectingNodesArea?.position()
-        })
-      },
       // 拖动
       dragmove: () => {
         // 拖动中
@@ -290,11 +268,70 @@ export class SelectionHandlers implements Types.Handler {
       dragend: () => {
         // 拖动结束
 
-        this.selectingNodesPositionByOffset(this.groupImmediateLocOffset)
-
         // 重置状态
         this.reset()
       }
+    }
+  }
+
+  // 吸附逻辑（左上角）
+  attract = (newPos: Konva.Vector2d) => {
+    // stage 状态
+    const stageState = this.render.getStageState()
+
+    const width = this.render.transformer.width()
+    const height = this.render.transformer.height()
+
+    let newPosX = newPos.x
+    let newPosY = newPos.y
+
+    if (this.render.config.attractBg) {
+      const logicLeftX = this.render.toStageValue(newPos.x - stageState.x) // x坐标
+      const logicNumLeftX = Math.round(logicLeftX / this.render.bgSize) // x单元格个数
+      const logicClosestLeftX = logicNumLeftX * this.render.bgSize // x磁贴目标坐标
+      const logicDiffLeftX = Math.abs(logicLeftX - logicClosestLeftX) // x磁贴偏移量
+      const snappedLeftX = logicDiffLeftX < this.render.bgSize / 5 // x磁贴阈值
+
+      const logicRightX = this.render.toStageValue(newPos.x + width - stageState.x) // x坐标
+      const logicNumRightX = Math.round(logicRightX / this.render.bgSize) // x单元格个数
+      const logicClosestRightX = logicNumRightX * this.render.bgSize // x磁贴目标坐标
+      const logicDiffRightX = Math.abs(logicRightX - logicClosestRightX) // x磁贴偏移量
+      const snappedRightX = logicDiffRightX < this.render.bgSize / 5 // x磁贴阈值
+
+      // 左磁贴优先
+      if (snappedLeftX) {
+        newPosX = this.render.toBoardValue(logicClosestLeftX) + stageState.x
+      } else if (snappedRightX) {
+        newPosX = this.render.toBoardValue(logicClosestRightX) + stageState.x - width
+      } else {
+        newPosX = newPos.x
+      }
+
+      const logicLeftY = this.render.toStageValue(newPos.y - stageState.y) // y坐标
+      const logicNumLeftY = Math.round(logicLeftY / this.render.bgSize) // y单元格个数
+      const logicClosestLeftY = logicNumLeftY * this.render.bgSize // y磁贴目标坐标
+      const logicDiffLeftY = Math.abs(logicLeftY - logicClosestLeftY) // y磁贴偏移量
+      const snappedLeftY = logicDiffLeftY < this.render.bgSize / 5 // y磁贴阈值
+
+      const logicRightY = this.render.toStageValue(newPos.y + height - stageState.y) // y坐标
+      const logicNumRightY = Math.round(logicRightY / this.render.bgSize) // y单元格个数
+      const logicClosestRightY = logicNumRightY * this.render.bgSize // y磁贴目标坐标
+      const logicDiffRightY = Math.abs(logicRightY - logicClosestRightY) // y磁贴偏移量
+      const snappedRightY = logicDiffRightY < this.render.bgSize / 5 // y磁贴阈值
+
+      // 上磁贴优先
+      if (snappedLeftY) {
+        newPosY = this.render.toBoardValue(logicClosestLeftY) + stageState.y
+      } else if (snappedRightY) {
+        newPosY = this.render.toBoardValue(logicClosestRightY) + stageState.y - height
+      } else {
+        newPosY = newPos.y
+      }
+    }
+
+    return {
+      x: newPosX,
+      y: newPosY
     }
   }
 
@@ -302,11 +339,14 @@ export class SelectionHandlers implements Types.Handler {
   transformerConfig = {
     // 拖动中
     dragBoundFunc: (pos: Konva.Vector2d) => {
-      // transform pos 偏移
-      const transformPosOffsetX = pos.x - this.transformerMousedownPos.x
-      const transformPosOffsetY = pos.y - this.transformerMousedownPos.y
+      // 磁吸后 transform pos
+      const transformerPos = this.attract(pos)
 
-      // group loc 偏移
+      // 磁吸 transform pos 偏移
+      const transformPosOffsetX = transformerPos.x - this.transformerMousedownPos.x
+      const transformPosOffsetY = transformerPos.y - this.transformerMousedownPos.y
+
+      // 磁吸 group loc 偏移
       this.groupImmediateLocOffset = {
         x: this.render.toStageValue(transformPosOffsetX),
         y: this.render.toStageValue(transformPosOffsetY)

@@ -11,6 +11,7 @@ export interface RenderConfig {
   showRuler?: boolean
   showRefLine?: boolean
   attractResize?: boolean
+  attractBg?: boolean
   //
 }
 

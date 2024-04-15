@@ -22,16 +22,12 @@ export class KeyMoveHandlers implements Types.Handler {
               .includes(e.code)
           ) {
             if (e.code === Types.MoveKey.上) {
-              this.render.selectionTool.selectingNodesAreaMove({ x: 0, y: -this.speed })
               this.render.selectionTool.selectingNodesMove({ x: 0, y: -this.speed })
             } else if (e.code === Types.MoveKey.左) {
-              this.render.selectionTool.selectingNodesAreaMove({ x: -this.speed, y: 0 })
               this.render.selectionTool.selectingNodesMove({ x: -this.speed, y: 0 })
             } else if (e.code === Types.MoveKey.右) {
-              this.render.selectionTool.selectingNodesAreaMove({ x: this.speed, y: 0 })
               this.render.selectionTool.selectingNodesMove({ x: this.speed, y: 0 })
             } else if (e.code === Types.MoveKey.下) {
-              this.render.selectionTool.selectingNodesAreaMove({ x: 0, y: this.speed })
               this.render.selectionTool.selectingNodesMove({ x: 0, y: this.speed })
             }
 
