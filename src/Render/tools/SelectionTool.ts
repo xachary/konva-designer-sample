@@ -38,11 +38,6 @@ export class SelectionTool {
       })
     }
 
-    // test
-    this.render.transformer.find('.back')[0].setAttrs({
-      nodeMousedownPos: undefined
-    })
-
     // 清空选择节点
     this.selectingNodes = []
   }
@@ -70,11 +65,6 @@ export class SelectionTool {
           lastZIndex: node.zIndex() // 记录原有的层次，后面暂时提升所选节点的层次
         })
       }
-
-      // test
-      this.render.transformer.find('.back')[0].setAttrs({
-        nodeMousedownPos: this.render.transformer.find('.back')[0].position()
-      })
 
       // 设置透明度、提升层次、不可交互
       for (const node of nodes.sort((a, b) => a.zIndex() - b.zIndex())) {

@@ -260,10 +260,15 @@ export class SelectionHandlers implements Types.Handler {
         this.reset()
       },
       //
+      dragstart: () => {
+        //
+      },
       // 拖动
       dragmove: () => {
-        // 拖动中
-        this.selectingNodesPositionByOffset(this.groupImmediateLocOffset)
+        if (this.attractActive) {
+          this.selectingNodesPositionByOffset(this.groupImmediateLocOffset)
+          this.attractActive = false
+        }
       },
       dragend: () => {
         // 拖动结束
@@ -273,6 +278,9 @@ export class SelectionHandlers implements Types.Handler {
       }
     }
   }
+
+  attractActive = false
+  attractPause = false
 
   // 吸附逻辑（左上角）
   attract = (newPos: Konva.Vector2d) => {
@@ -290,42 +298,56 @@ export class SelectionHandlers implements Types.Handler {
       const logicNumLeftX = Math.round(logicLeftX / this.render.bgSize) // x单元格个数
       const logicClosestLeftX = logicNumLeftX * this.render.bgSize // x磁贴目标坐标
       const logicDiffLeftX = Math.abs(logicLeftX - logicClosestLeftX) // x磁贴偏移量
-      const snappedLeftX = logicDiffLeftX < this.render.bgSize / 5 // x磁贴阈值
 
       const logicRightX = this.render.toStageValue(newPos.x + width - stageState.x) // x坐标
       const logicNumRightX = Math.round(logicRightX / this.render.bgSize) // x单元格个数
       const logicClosestRightX = logicNumRightX * this.render.bgSize // x磁贴目标坐标
       const logicDiffRightX = Math.abs(logicRightX - logicClosestRightX) // x磁贴偏移量
-      const snappedRightX = logicDiffRightX < this.render.bgSize / 5 // x磁贴阈值
-
-      // 左磁贴优先
-      if (snappedLeftX) {
-        newPosX = this.render.toBoardValue(logicClosestLeftX) + stageState.x
-      } else if (snappedRightX) {
-        newPosX = this.render.toBoardValue(logicClosestRightX) + stageState.x - width
-      } else {
-        newPosX = newPos.x
-      }
 
       const logicLeftY = this.render.toStageValue(newPos.y - stageState.y) // y坐标
       const logicNumLeftY = Math.round(logicLeftY / this.render.bgSize) // y单元格个数
       const logicClosestLeftY = logicNumLeftY * this.render.bgSize // y磁贴目标坐标
       const logicDiffLeftY = Math.abs(logicLeftY - logicClosestLeftY) // y磁贴偏移量
-      const snappedLeftY = logicDiffLeftY < this.render.bgSize / 5 // y磁贴阈值
 
       const logicRightY = this.render.toStageValue(newPos.y + height - stageState.y) // y坐标
       const logicNumRightY = Math.round(logicRightY / this.render.bgSize) // y单元格个数
       const logicClosestRightY = logicNumRightY * this.render.bgSize // y磁贴目标坐标
       const logicDiffRightY = Math.abs(logicRightY - logicClosestRightY) // y磁贴偏移量
-      const snappedRightY = logicDiffRightY < this.render.bgSize / 5 // y磁贴阈值
 
-      // 上磁贴优先
-      if (snappedLeftY) {
-        newPosY = this.render.toBoardValue(logicClosestLeftY) + stageState.y
-      } else if (snappedRightY) {
-        newPosY = this.render.toBoardValue(logicClosestRightY) + stageState.y - height
-      } else {
-        newPosY = newPos.y
+      const diffArr = [
+        { type: 'minX', value: logicDiffLeftX },
+        { type: 'maxX', value: logicDiffRightX },
+        { type: 'minY', value: logicDiffLeftY },
+        { type: 'maxY', value: logicDiffRightY }
+      ].sort((a, b) => a.value - b.value)
+
+      let diffTarget: (typeof diffArr)[number] | null = null
+      for (const diff of diffArr) {
+        if (diff.value > 1 && diff.value < this.render.bgSize / 5) {
+          diffTarget = diff
+        }
+      }
+
+      if (diffTarget) {
+        if (diffTarget.type === 'minX') {
+          newPosX = this.render.toBoardValue(logicClosestLeftX) + stageState.x
+          newPosY = newPos.y
+        } else if (diffTarget.type === 'maxX') {
+          newPosX = this.render.toBoardValue(logicClosestRightX) + stageState.x - width
+          newPosY = newPos.y
+        } else if (diffTarget.type === 'minY') {
+          newPosX = newPos.x
+          newPosY = this.render.toBoardValue(logicClosestLeftY) + stageState.y
+        } else if (diffTarget.type === 'maxY') {
+          newPosX = newPos.x
+          newPosY = this.render.toBoardValue(logicClosestRightY) + stageState.y - height
+        }
+
+        this.attractActive = true
+        this.attractPause = true
+        setTimeout(() => {
+          this.attractPause = false
+        }, 200)
       }
     }
 
@@ -340,16 +362,12 @@ export class SelectionHandlers implements Types.Handler {
     // 拖动中
     dragBoundFunc: (pos: Konva.Vector2d) => {
       // 磁吸后 transform pos
-      const transformerPos = this.attract(pos)
+      const transformerPos = this.attractPause ? pos : this.attract(pos)
 
-      // 磁吸 transform pos 偏移
-      const transformPosOffsetX = transformerPos.x - this.transformerMousedownPos.x
-      const transformPosOffsetY = transformerPos.y - this.transformerMousedownPos.y
-
-      // 磁吸 group loc 偏移
+      // 磁吸偏移
       this.groupImmediateLocOffset = {
-        x: this.render.toStageValue(transformPosOffsetX),
-        y: this.render.toStageValue(transformPosOffsetY)
+        x: this.render.toStageValue(transformerPos.x - this.transformerMousedownPos.x),
+        y: this.render.toStageValue(transformerPos.y - this.transformerMousedownPos.y)
       }
 
       return pos
