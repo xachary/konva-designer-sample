@@ -22,6 +22,10 @@
 
 ![1](https://github.com/xachary/konva-designer-sample/assets/16830398/cfb91af0-a2f8-4fdf-90e9-fd742d4194d5)
 
+![1](https://github.com/xachary/konva-designer-sample/assets/16830398/c524d9f0-c865-4ea4-a63b-4070bbec7d32)
+
+![3](https://github.com/xachary/konva-designer-sample/assets/16830398/61c34bb4-c0ec-48e6-8b97-359465dffe4a)
+
 ## 功能点
 
 - 无限画布（√）
@@ -33,13 +37,16 @@
 - 把素材从左侧面板拖入设计区域（√）
 - 鼠标、键盘移动节点（√）
 - 鼠标、键盘单选、多选节点（√）
+- 放大缩小所选的“磁贴效果”（基于网格）（√）
+- 拖动所选的“磁贴效果”（基于网格）（√）
 
 ## 更多功能
 
 > _如果 Star 能超过 50 个（望多多支持），将很快更新_
 
-- 放大缩小所选的“磁贴效果”（基于网格）
-- 拖动所选的“磁贴效果”（基于网格）
+- 实时预览窗
+- 导出、导入
 - 节点层次单个、批量调整
 - 键盘复制、粘贴
+- 对齐效果
 - 等等。。。
