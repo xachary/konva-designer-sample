@@ -282,7 +282,7 @@ export class SelectionHandlers implements Types.Handler {
     }
   }
 
-  // 吸附逻辑（左上角）
+  // 磁吸逻辑
   attract = (newPos: Konva.Vector2d) => {
     // stage 状态
     const stageState = this.render.getStageState()
