@@ -322,7 +322,7 @@ export class SelectionHandlers implements Types.Handler {
         { type: 'leftX', value: logicDiffLeftX },
         { type: 'rightX', value: logicDiffRightX }
       ].sort((a, b) => a.value - b.value)) {
-        if (diff.value > this.render.bgSize / 10 && diff.value < this.render.bgSize / 5) {
+        if (diff.value < 5) {
           if (diff.type === 'leftX') {
             newPosX = this.render.toBoardValue(logicClosestLeftX) + stageState.x
           } else if (diff.type === 'rightX') {
@@ -337,7 +337,7 @@ export class SelectionHandlers implements Types.Handler {
         { type: 'topY', value: logicDiffTopY },
         { type: 'bottomY', value: logicDiffBottomY }
       ].sort((a, b) => a.value - b.value)) {
-        if (diff.value > this.render.bgSize / 10 && diff.value < this.render.bgSize / 5) {
+        if (diff.value < 5) {
           if (diff.type === 'topY') {
             newPosY = this.render.toBoardValue(logicClosestTopY) + stageState.y
           } else if (diff.type === 'bottomY') {
@@ -377,13 +377,13 @@ export class SelectionHandlers implements Types.Handler {
           const logicNumX = Math.round(logicX / this.render.bgSize) // x单元格个数
           const logicClosestX = logicNumX * this.render.bgSize // x磁贴目标坐标
           const logicDiffX = Math.abs(logicX - logicClosestX) // x磁贴偏移量
-          const snappedX = /-(left|right)$/.test(anchor) && logicDiffX < this.render.bgSize / 5 // x磁贴阈值
+          const snappedX = /-(left|right)$/.test(anchor) && logicDiffX < 5 // x磁贴阈值
 
           const logicY = this.render.toStageValue(newPos.y - stageState.y) // y坐标
           const logicNumY = Math.round(logicY / this.render.bgSize) // y单元格个数
           const logicClosestY = logicNumY * this.render.bgSize // y磁贴目标坐标
           const logicDiffY = Math.abs(logicY - logicClosestY) // y磁贴偏移量
-          const snappedY = /^(top|bottom)-/.test(anchor) && logicDiffY < this.render.bgSize / 5 // y磁贴阈值
+          const snappedY = /^(top|bottom)-/.test(anchor) && logicDiffY < 5 // y磁贴阈值
 
           if (snappedX && !snappedY) {
             // x磁贴
