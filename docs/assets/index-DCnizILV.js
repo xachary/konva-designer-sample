@@ -23828,7 +23828,8 @@ class DragOutsideHandlers {
                 const group = new Konva.Group({
                   id: nanoid(),
                   width: image.width(),
-                  height: image.height()
+                  height: image.height(),
+                  name: "asset"
                 });
                 this.render.layer.add(group);
                 image.setAttrs({
@@ -23864,8 +23865,6 @@ class SelectionHandlers {
     __publicField(this, "selecting", false);
     // 拖动前的位置
     __publicField(this, "transformerMousedownPos", { x: 0, y: 0 });
-    // 拖动偏移
-    __publicField(this, "groupImmediateLocOffset", { x: 0, y: 0 });
     __publicField(this, "handlers", {
       // 选择相关
       stage: {
@@ -23957,7 +23956,7 @@ class SelectionHandlers {
           const anchor = this.render.transformer.getActiveAnchor();
           if (!anchor) {
             if (e.evt.ctrlKey) {
-              if (this.render.selectionTool.selectingNodesArea) {
+              if (this.render.selectionTool.selectingNodes.length > 0) {
                 const pos = this.render.stage.getPointerPosition();
                 if (pos) {
                   const keeps = [];
@@ -24002,7 +24001,7 @@ class SelectionHandlers {
                 }
               }
             } else {
-              if (this.render.selectionTool.selectingNodesArea) {
+              if (this.render.selectionTool.selectingNodes.length > 0) {
                 this.reset();
               }
             }
@@ -24015,48 +24014,133 @@ class SelectionHandlers {
         },
         //
         dragstart: () => {
-          var _a, _b;
-          (_b = this.render.selectionTool.selectingNodesArea) == null ? void 0 : _b.setAttrs({
-            areaMousedownPos: (_a = this.render.selectionTool.selectingNodesArea) == null ? void 0 : _a.position()
-          });
         },
         // 拖动
         dragmove: () => {
-          this.selectingNodesPositionByOffset(this.groupImmediateLocOffset);
+          const pos = this.render.transformer.position();
+          const { pos: transformerPos, isAttract } = this.attract(pos);
+          if (isAttract) {
+            this.selectingNodesPositionByOffset({
+              x: this.render.toStageValue(transformerPos.x - this.transformerMousedownPos.x),
+              y: this.render.toStageValue(transformerPos.y - this.transformerMousedownPos.y)
+            });
+          }
         },
         dragend: () => {
-          this.selectingNodesPositionByOffset(this.groupImmediateLocOffset);
           this.reset();
         }
       }
     });
+    // 磁吸逻辑
+    __publicField(this, "attract", (newPos) => {
+      const stageState = this.render.getStageState();
+      const width = this.render.transformer.width();
+      const height = this.render.transformer.height();
+      let newPosX = newPos.x;
+      let newPosY = newPos.y;
+      let isAttract = false;
+      if (this.render.config.attractBg) {
+        const logicLeftX = this.render.toStageValue(newPos.x - stageState.x);
+        const logicNumLeftX = Math.round(logicLeftX / this.render.bgSize);
+        const logicClosestLeftX = logicNumLeftX * this.render.bgSize;
+        const logicDiffLeftX = Math.abs(logicLeftX - logicClosestLeftX);
+        const logicRightX = this.render.toStageValue(newPos.x + width - stageState.x);
+        const logicNumRightX = Math.round(logicRightX / this.render.bgSize);
+        const logicClosestRightX = logicNumRightX * this.render.bgSize;
+        const logicDiffRightX = Math.abs(logicRightX - logicClosestRightX);
+        const logicTopY = this.render.toStageValue(newPos.y - stageState.y);
+        const logicNumTopY = Math.round(logicTopY / this.render.bgSize);
+        const logicClosestTopY = logicNumTopY * this.render.bgSize;
+        const logicDiffTopY = Math.abs(logicTopY - logicClosestTopY);
+        const logicBottomY = this.render.toStageValue(newPos.y + height - stageState.y);
+        const logicNumBottomY = Math.round(logicBottomY / this.render.bgSize);
+        const logicClosestBottomY = logicNumBottomY * this.render.bgSize;
+        const logicDiffBottomY = Math.abs(logicBottomY - logicClosestBottomY);
+        for (const diff of [
+          { type: "leftX", value: logicDiffLeftX },
+          { type: "rightX", value: logicDiffRightX }
+        ].sort((a, b) => a.value - b.value)) {
+          if (diff.value < 5) {
+            if (diff.type === "leftX") {
+              newPosX = this.render.toBoardValue(logicClosestLeftX) + stageState.x;
+            } else if (diff.type === "rightX") {
+              newPosX = this.render.toBoardValue(logicClosestRightX) + stageState.x - width;
+            }
+            isAttract = true;
+            break;
+          }
+        }
+        for (const diff of [
+          { type: "topY", value: logicDiffTopY },
+          { type: "bottomY", value: logicDiffBottomY }
+        ].sort((a, b) => a.value - b.value)) {
+          if (diff.value < 5) {
+            if (diff.type === "topY") {
+              newPosY = this.render.toBoardValue(logicClosestTopY) + stageState.y;
+            } else if (diff.type === "bottomY") {
+              newPosY = this.render.toBoardValue(logicClosestBottomY) + stageState.y - height;
+            }
+            isAttract = true;
+            break;
+          }
+        }
+      }
+      return {
+        pos: {
+          x: newPosX,
+          y: newPosY
+        },
+        isAttract
+      };
+    });
     // transformer config
     __publicField(this, "transformerConfig", {
-      // 拖动中
-      dragBoundFunc: (pos) => {
-        const transformPosOffsetX = pos.x - this.transformerMousedownPos.x;
-        const transformPosOffsetY = pos.y - this.transformerMousedownPos.y;
-        this.groupImmediateLocOffset = {
-          x: this.render.toStageValue(transformPosOffsetX),
-          y: this.render.toStageValue(transformPosOffsetY)
-        };
-        return pos;
+      // 变换中
+      anchorDragBoundFunc: (oldPos, newPos) => {
+        if (this.render.config.attractResize) {
+          const anchor = this.render.transformer.getActiveAnchor();
+          if (anchor && anchor !== "rotater") {
+            const stageState = this.render.getStageState();
+            const logicX = this.render.toStageValue(newPos.x - stageState.x);
+            const logicNumX = Math.round(logicX / this.render.bgSize);
+            const logicClosestX = logicNumX * this.render.bgSize;
+            const logicDiffX = Math.abs(logicX - logicClosestX);
+            const snappedX = /-(left|right)$/.test(anchor) && logicDiffX < 5;
+            const logicY = this.render.toStageValue(newPos.y - stageState.y);
+            const logicNumY = Math.round(logicY / this.render.bgSize);
+            const logicClosestY = logicNumY * this.render.bgSize;
+            const logicDiffY = Math.abs(logicY - logicClosestY);
+            const snappedY = /^(top|bottom)-/.test(anchor) && logicDiffY < 5;
+            if (snappedX && !snappedY) {
+              return {
+                x: this.render.toBoardValue(logicClosestX) + stageState.x,
+                y: oldPos.y
+              };
+            } else if (snappedY && !snappedX) {
+              return {
+                x: oldPos.x,
+                y: this.render.toBoardValue(logicClosestY) + stageState.y
+              };
+            } else if (snappedX && snappedY) {
+              return {
+                x: this.render.toBoardValue(logicClosestX) + stageState.x,
+                y: this.render.toBoardValue(logicClosestY) + stageState.y
+              };
+            }
+          }
+        }
+        return newPos;
       }
     });
     this.render = render;
   }
-  // 通过偏移量（selectingNodesArea）移动【目标节点】
+  // 通过偏移量移动【目标节点】
   selectingNodesPositionByOffset(offset) {
     for (const node of this.render.selectionTool.selectingNodes) {
       const x = node.attrs.nodeMousedownPos.x + offset.x;
       const y = node.attrs.nodeMousedownPos.y + offset.y;
       node.x(x);
       node.y(y);
-    }
-    const area = this.render.selectionTool.selectingNodesArea;
-    if (area) {
-      area.x(area.attrs.areaMousedownPos.x + offset.x);
-      area.y(area.attrs.areaMousedownPos.y + offset.y);
     }
   }
   // 重置【目标节点】的 nodeMousedownPos
@@ -24070,21 +24154,10 @@ class SelectionHandlers {
   transformerStateReset() {
     this.transformerMousedownPos = this.render.transformer.position();
   }
-  // 重置 selectingNodesArea 状态
-  selectingNodesAreaReset() {
-    var _a;
-    (_a = this.render.selectionTool.selectingNodesArea) == null ? void 0 : _a.setAttrs({
-      areaMousedownPos: {
-        x: 0,
-        y: 0
-      }
-    });
-  }
   // 重置
   reset() {
     this.transformerStateReset();
     this.selectingNodesPositionReset();
-    this.selectingNodesAreaReset();
   }
 }
 __publicField(SelectionHandlers, "name", "Selection");
@@ -24099,16 +24172,12 @@ class KeyMoveHandlers {
           if (!e.ctrlKey) {
             if (Object.values(MoveKey).map((o) => o.toString()).includes(e.code)) {
               if (e.code === MoveKey.上) {
-                this.render.selectionTool.selectingNodesAreaMove({ x: 0, y: -this.speed });
                 this.render.selectionTool.selectingNodesMove({ x: 0, y: -this.speed });
               } else if (e.code === MoveKey.左) {
-                this.render.selectionTool.selectingNodesAreaMove({ x: -this.speed, y: 0 });
                 this.render.selectionTool.selectingNodesMove({ x: -this.speed, y: 0 });
               } else if (e.code === MoveKey.右) {
-                this.render.selectionTool.selectingNodesAreaMove({ x: this.speed, y: 0 });
                 this.render.selectionTool.selectingNodesMove({ x: this.speed, y: 0 });
               } else if (e.code === MoveKey.下) {
-                this.render.selectionTool.selectingNodesAreaMove({ x: 0, y: this.speed });
                 this.render.selectionTool.selectingNodesMove({ x: 0, y: this.speed });
               }
               if (this.speed < this.speedMax) {
@@ -24180,16 +24249,11 @@ class SelectionTool {
     __publicField(this, "render");
     // 【被选中的】
     __publicField(this, "selectingNodes", []);
-    // 代替【被选中的】进行整体移动、放大缩小、旋转动作
-    __publicField(this, "selectingNodesArea", null);
     this.render = render;
   }
   // 清空已选
   selectingClear() {
-    var _a;
     this.render.transformer.nodes([]);
-    (_a = this.selectingNodesArea) == null ? void 0 : _a.remove();
-    this.selectingNodesArea = null;
     for (const node of this.selectingNodes.sort(
       (a, b) => a.attrs.lastZIndex - b.attrs.lastZIndex
     )) {
@@ -24213,11 +24277,6 @@ class SelectionTool {
   select(nodes) {
     this.selectingClear();
     if (nodes.length > 0) {
-      this.selectingNodesArea = new Konva.Group({
-        visible: false,
-        // opacity: 0.2,
-        listening: false
-      });
       const maxZIndex = Math.max(
         ...this.render.layer.getChildren((node) => {
           return !this.render.ignore(node);
@@ -24234,8 +24293,6 @@ class SelectionTool {
         });
       }
       for (const node of nodes.sort((a, b) => a.zIndex() - b.zIndex())) {
-        const copy = node.clone();
-        this.selectingNodesArea.add(copy);
         node.setAttrs({
           listening: false,
           opacity: node.opacity() * 0.8,
@@ -24243,15 +24300,8 @@ class SelectionTool {
         });
       }
       this.selectingNodes = nodes;
-      this.render.groupTransformer.add(this.selectingNodesArea);
-      this.render.transformer.nodes([...this.selectingNodes, this.selectingNodesArea]);
+      this.render.transformer.nodes(this.selectingNodes);
     }
-  }
-  // 更新已选位置
-  selectingNodesAreaMove(offset) {
-    var _a, _b;
-    (_a = this.selectingNodesArea) == null ? void 0 : _a.x(this.selectingNodesArea.x() + offset.x);
-    (_b = this.selectingNodesArea) == null ? void 0 : _b.y(this.selectingNodesArea.y() + offset.y);
   }
   // 更新节点位置
   selectingNodesMove(offset) {
@@ -24403,8 +24453,8 @@ class Render {
         }
       });
     }
-    ((_a = this.handlers[SelectionHandlers.name].transformerConfig) == null ? void 0 : _a.dragBoundFunc) && this.transformer.dragBoundFunc(
-      this.handlers[SelectionHandlers.name].transformerConfig.dragBoundFunc
+    ((_a = this.handlers[SelectionHandlers.name].transformerConfig) == null ? void 0 : _a.anchorDragBoundFunc) && this.transformer.anchorDragBoundFunc(
+      this.handlers[SelectionHandlers.name].transformerConfig.anchorDragBoundFunc
     );
   }
   // 获取 stage 状态
@@ -24435,7 +24485,7 @@ class Render {
     return node.name() === BgDraw.name || node.name() === RulerDraw.name || node.name() === RefLineDraw.name;
   }
 }
-const _withScopeId = (n) => (pushScopeId("data-v-f7a418cb"), n = n(), popScopeId(), n);
+const _withScopeId = (n) => (pushScopeId("data-v-535cfb9b"), n = n(), popScopeId(), n);
 const _hoisted_1 = { class: "page" };
 const _hoisted_2 = /* @__PURE__ */ _withScopeId(() => /* @__PURE__ */ createBaseVNode("header", null, null, -1));
 const _hoisted_3 = ["onDragstart"];
@@ -24486,7 +24536,9 @@ const _sfc_main = /* @__PURE__ */ defineComponent({
                 //
                 showBg: true,
                 showRuler: true,
-                showRefLine: true
+                showRefLine: true,
+                attractResize: true,
+                attractBg: true
               });
             }
             render.resize(width, height);
@@ -24616,5 +24668,5 @@ const _export_sfc = (sfc, props) => {
   }
   return target;
 };
-const App = /* @__PURE__ */ _export_sfc(_sfc_main, [["__scopeId", "data-v-f7a418cb"]]);
+const App = /* @__PURE__ */ _export_sfc(_sfc_main, [["__scopeId", "data-v-535cfb9b"]]);
 createApp(App).mount("#app");
