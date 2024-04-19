@@ -12,53 +12,24 @@ export class ContextmenuDraw extends Types.BaseDraw implements Types.Draw {
   option: ContextmenuDrawOption
 
   state: {
-    target: Konva.Node | null
-    mousedown: boolean
-    trigger: boolean
-    lastPos: Konva.Vector2d | null
-    right: boolean
-  }
-
-  on: {
-    positionZoomReset: () => void
-    positionReset: () => void
-    remove: (nodes: Konva.Node[]) => void
-    copy: (nodes: Konva.Node[]) => Konva.Node[]
-    top: (nodes: Konva.Node[]) => void
-    up: (nodes: Konva.Node[]) => void
-    down: (nodes: Konva.Node[]) => void
-    bottom: (nodes: Konva.Node[]) => void
-  } = {
-    positionZoomReset: () => {},
-    positionReset: () => {},
-    remove: () => {},
-    copy: () => [],
-    top: () => {},
-    up: () => {},
-    down: () => {},
-    bottom: () => {}
+    target: Konva.Node | null // 右键目标节点（或空白处）
+    menuIsMousedown: boolean // 菜单被鼠标按下状态
+    lastPos: Konva.Vector2d | null // 记录鼠标按下位置（用于判断按下和释放的时候是不是同一位置）
+    right: boolean // 鼠标按下的是否是右键
   }
 
   constructor(render: Types.Render, layer: Konva.Layer, option: ContextmenuDrawOption) {
     super(render, layer)
 
     this.option = option
-    this.state = { target: null, mousedown: false, trigger: false, lastPos: null, right: false }
+    this.state = { target: null, menuIsMousedown: false, lastPos: null, right: false }
   }
 
   override draw() {
     this.clear()
 
     if (this.state.target) {
-      // stage 状态
-      const stageState = this.render.getStageState()
-
-      const group = new Konva.Group({
-        name: 'contextmenu',
-        width: stageState.width,
-        height: stageState.height,
-      })
-
+      // 菜单数组
       const menus: Array<{
         name: string
         action: (e: Konva.KonvaEventObject<MouseEvent>) => void
@@ -79,6 +50,8 @@ export class ContextmenuDraw extends Types.BaseDraw implements Types.Draw {
           }
         })
       } else {
+        // 未选择：真实节点，即素材的容器 group 
+        // 已选择：transformer
         const target = this.state.target.parent
 
         // 目标
@@ -132,11 +105,24 @@ export class ContextmenuDraw extends Types.BaseDraw implements Types.Draw {
         })
       }
 
+      // stage 状态
+      const stageState = this.render.getStageState()
+
+      // 绘制右键菜单
+      const group = new Konva.Group({
+        name: 'contextmenu',
+        width: stageState.width,
+        height: stageState.height
+      })
+
       let top = 0
+      // 菜单每项高度
       const lineHeight = 30
+
       const pos = this.render.stage.getPointerPosition()
       if (pos) {
         for (const menu of menus) {
+          // 框
           const rect = new Konva.Rect({
             x: this.render.toStageValue(pos.x - stageState.x),
             y: this.render.toStageValue(pos.y + top - stageState.y),
@@ -147,6 +133,7 @@ export class ContextmenuDraw extends Types.BaseDraw implements Types.Draw {
             strokeWidth: this.render.toStageValue(1),
             name: 'contextmenu'
           })
+          // 标题
           const text = new Konva.Text({
             x: this.render.toStageValue(pos.x - stageState.x),
             y: this.render.toStageValue(pos.y + top - stageState.y),
@@ -162,16 +149,16 @@ export class ContextmenuDraw extends Types.BaseDraw implements Types.Draw {
           })
           group.add(rect)
           group.add(text)
-          let mousedowning = false
+
+          // 菜单事件
           rect.on('click', (e) => {
             if (e.evt.button === Types.MouseButton.左键) {
+              // 触发事件
               menu.action(e)
 
-              // 重置
+              // 移除菜单
               this.group.removeChildren()
               this.state.target = null
-
-              // this.state.trigger = false;
             }
 
             e.evt.preventDefault()
@@ -179,8 +166,8 @@ export class ContextmenuDraw extends Types.BaseDraw implements Types.Draw {
           })
           rect.on('mousedown', (e) => {
             if (e.evt.button === Types.MouseButton.左键) {
-              mousedowning = true
-              this.state.mousedown = true
+              this.state.menuIsMousedown = true
+              // 按下效果
               rect.fill('#dfdfdf')
             }
 
@@ -189,25 +176,23 @@ export class ContextmenuDraw extends Types.BaseDraw implements Types.Draw {
           })
           rect.on('mouseup', (e) => {
             if (e.evt.button === Types.MouseButton.左键) {
-              mousedowning = false
-              this.state.mousedown = false
+              this.state.menuIsMousedown = false
             }
           })
           rect.on('mouseenter', (e) => {
-            if (mousedowning) {
+            if (this.state.menuIsMousedown) {
               rect.fill('#dfdfdf')
             } else {
+              // hover in
               rect.fill('#efefef')
             }
-
-            // this.state.trigger = true;
 
             e.evt.preventDefault()
             e.evt.stopPropagation()
           })
           rect.on('mouseout', () => {
+            // hover out
             rect.fill('#fff')
-            // this.state.trigger = false;
           })
           rect.on('contextmenu', (e) => {
             e.evt.preventDefault()
@@ -218,28 +203,29 @@ export class ContextmenuDraw extends Types.BaseDraw implements Types.Draw {
         }
       }
 
-      // this.state.trigger = false;
-
       this.group.add(group)
     }
   }
 
-  // eslint-disable-next-line
   handlers = {
     stage: {
       mousedown: (e: Konva.KonvaEventObject<GlobalEventHandlersEventMap['mousedown']>) => {
         this.state.lastPos = this.render.stage.getPointerPosition()
+
         if (e.evt.button === Types.MouseButton.左键) {
-          if (!this.state.mousedown) {
+          if (!this.state.menuIsMousedown) {
+            // 没有按下菜单，清除菜单
             this.state.target = null
             this.draw()
           }
         } else if (e.evt.button === Types.MouseButton.右键) {
+          // 右键按下
           this.state.right = true
         }
       },
       mousemove: () => {
         if (this.state.target && this.state.right) {
+          // 拖动画布时（右键），清除菜单
           this.state.target = null
           this.draw()
         }
@@ -250,17 +236,17 @@ export class ContextmenuDraw extends Types.BaseDraw implements Types.Draw {
       contextmenu: (e: Konva.KonvaEventObject<GlobalEventHandlersEventMap['contextmenu']>) => {
         const pos = this.render.stage.getPointerPosition()
         if (pos && this.state.lastPos) {
-          if (!this.state.trigger) {
-            if (pos.x === this.state.lastPos.x || pos.y === this.state.lastPos.y) {
-              this.state.target = e.target
-            } else {
-              this.state.target = null
-            }
-            this.draw()
+          // 右键目标
+          if (pos.x === this.state.lastPos.x || pos.y === this.state.lastPos.y) {
+            this.state.target = e.target
+          } else {
+            this.state.target = null
           }
+          this.draw()
         }
       },
       wheel: () => {
+        // 画布缩放时，清除菜单
         this.state.target = null
         this.draw()
       }
