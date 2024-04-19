@@ -88,3 +88,9 @@ export enum MoveKey {
   右 = 'ArrowRight',
   下 = 'ArrowDown'
 }
+
+export enum ShutcutKey {
+  删除 = 'Delete',
+  C = 'KeyC',
+  V = 'KeyV',
+}

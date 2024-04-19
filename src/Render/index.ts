@@ -29,6 +29,15 @@ export class Render {
   // 选择工具
   selectionTool: Tools.SelectionTool
 
+  // 复制工具
+  copyTool: Tools.CopyTool
+
+  // 定位工具
+  positionTool: Tools.PositionTool;
+
+  // 层级工具
+  zIndexTool: Tools.ZIndexTool;
+
   // 多选器层
   groupTransformer: Konva.Group = new Konva.Group()
 
@@ -80,12 +89,24 @@ export class Render {
     this.draws[Draws.RefLineDraw.name] = new Draws.RefLineDraw(this, this.layerCover, {
       padding: this.rulerSize
     })
+    this.draws[Draws.ContextmenuDraw.name] = new Draws.ContextmenuDraw(this, this.layerCover, {
+      ignore: this.ignore.bind(this)
+    })
 
     // 素材工具
     this.assetTool = new Tools.AssetTool(this)
 
     // 选择工具
     this.selectionTool = new Tools.SelectionTool(this)
+
+    // 复制工具
+    this.copyTool = new Tools.CopyTool(this)
+
+    // 定位工具
+    this.positionTool = new Tools.PositionTool(this);
+
+    // 定位工具
+    this.zIndexTool = new Tools.ZIndexTool(this);
 
     // 事件处理
     this.handlers[Handlers.DragHandlers.name] = new Handlers.DragHandlers(this)
@@ -94,6 +115,7 @@ export class Render {
     this.handlers[Draws.RefLineDraw.name] = this.draws[Draws.RefLineDraw.name]
     this.handlers[Handlers.SelectionHandlers.name] = new Handlers.SelectionHandlers(this)
     this.handlers[Handlers.KeyMoveHandlers.name] = new Handlers.KeyMoveHandlers(this)
+    this.handlers[Handlers.ShutcutHandlers.name] = new Handlers.ShutcutHandlers(this);
 
     // 初始化
     this.init()
@@ -109,6 +131,7 @@ export class Render {
     this.stage.add(this.layerCover)
     this.draws[Draws.RulerDraw.name].init()
     this.draws[Draws.RefLineDraw.name].init()
+    this.draws[Draws.ContextmenuDraw.name].init()
 
     // 事件绑定
     this.eventBind()
@@ -125,6 +148,18 @@ export class Render {
     this.draws[Draws.BgDraw.name].draw()
     // 更新比例尺
     this.draws[Draws.RulerDraw.name].draw()
+  }
+
+  // 移除元素
+  remove(nodes: Konva.Node[]) {
+    for (const node of nodes) {
+      if (node instanceof Konva.Transformer) {
+        this.remove(this.selectionTool.selectingNodes);
+        this.selectionTool.selectingClear();
+      } else {
+        node.remove();
+      }
+    }
   }
 
   // 事件绑定
@@ -228,7 +263,8 @@ export class Render {
     return (
       node.name() === Draws.BgDraw.name ||
       node.name() === Draws.RulerDraw.name ||
-      node.name() === Draws.RefLineDraw.name
+      node.name() === Draws.RefLineDraw.name ||
+      node.name() === Draws.ContextmenuDraw.name
     )
   }
 }
