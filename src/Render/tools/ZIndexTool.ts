@@ -13,7 +13,7 @@ export class ZIndexTool {
   getNodes(nodes: Konva.Node[]) {
     const targets: Konva.Node[] = []
     for (const node of nodes) {
-      if (node.parent instanceof Konva.Transformer) {
+      if (node instanceof Konva.Transformer) {
         // 已选择的节点
         targets.push(...this.render.selectionTool.selectingNodes)
       } else {
