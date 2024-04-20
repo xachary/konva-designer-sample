@@ -26,6 +26,15 @@
 
 ![3](https://github.com/xachary/konva-designer-sample/assets/16830398/61c34bb4-c0ec-48e6-8b97-359465dffe4a)
 
+![1](https://github.com/xachary/konva-designer-sample/assets/16830398/c72d4efb-cbd0-40ce-b50c-9a4ddc772be5)
+
+![2](https://github.com/xachary/konva-designer-sample/assets/16830398/84507b25-080a-45be-a43f-789be6c4ee50)
+
+![4](https://github.com/xachary/konva-designer-sample/assets/16830398/0c701f67-f711-4a09-ab39-c0c586fa2467)
+
+![4](https://github.com/xachary/konva-designer-sample/assets/16830398/a24cdc9f-2b2f-4b20-b7cc-d46e18548600)
+
+
 ## 功能点
 
 - 无限画布（√）
@@ -39,6 +48,10 @@
 - 鼠标、键盘单选、多选节点（√）
 - 放大缩小所选的“磁贴效果”（基于网格）（√）
 - 拖动所选的“磁贴效果”（基于网格）（√）
+- 复制、粘贴、删除（√）
+- 画布归位（√）
+- 层次调整（√）
+- 右键菜单（√）
 
 ## 更多功能
 
@@ -46,7 +59,5 @@
 
 - 实时预览窗
 - 导出、导入
-- 节点层次单个、批量调整
-- 键盘复制、粘贴
 - 对齐效果
 - 等等。。。
