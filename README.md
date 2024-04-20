@@ -30,7 +30,7 @@
 
 ![2](https://github.com/xachary/konva-designer-sample/assets/16830398/84507b25-080a-45be-a43f-789be6c4ee50)
 
-![4](https://github.com/xachary/konva-designer-sample/assets/16830398/0c701f67-f711-4a09-ab39-c0c586fa2467)
+![3](https://github.com/xachary/konva-designer-sample/assets/16830398/eee36c5a-85cc-49e2-b946-678fee4c6c40)
 
 ![4](https://github.com/xachary/konva-designer-sample/assets/16830398/a24cdc9f-2b2f-4b20-b7cc-d46e18548600)
 
