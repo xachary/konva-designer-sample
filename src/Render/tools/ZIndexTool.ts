@@ -79,23 +79,39 @@ export class ZIndexTool {
 
     const sorted = this.getNodes(nodes).sort((a, b) => b.zIndex() - a.zIndex())
 
-    this.render.selectionTool.selectingNodes.length > 0 && this.updateSelectingZIndex(sorted)
-
     // 上移
     let lastNode: Konva.Node | null = null
-    for (const node of sorted) {
-      if (
-        node.attrs.lastZIndex < maxZIndex &&
-        (lastNode === null || node.attrs.lastZIndex < lastNode.attrs.lastZIndex - 1)
-      ) {
-        node.setAttrs({
-          lastZIndex: node.attrs.lastZIndex + 1
-        })
-      }
-      lastNode = node
-    }
 
-    this.render.selectionTool.selectingNodes.length > 0 && this.resetSelectingZIndex(sorted)
+    if (this.render.selectionTool.selectingNodes.length > 0) {
+      this.updateSelectingZIndex(sorted)
+
+      for (const node of sorted) {
+        if (
+          node.attrs.lastZIndex < maxZIndex &&
+          (lastNode === null || node.attrs.lastZIndex < lastNode.attrs.lastZIndex - 1)
+        ) {
+          node.setAttrs({
+            lastZIndex: node.attrs.lastZIndex + 1
+          })
+        }
+        lastNode = node
+      }
+
+      this.resetSelectingZIndex(sorted)
+    } else {
+      // 直接调整
+      for (const node of sorted) {
+        if (
+          node.zIndex() < maxZIndex &&
+          (lastNode === null || node.zIndex() < lastNode.zIndex() - 1)
+        ) {
+          node.zIndex(node.zIndex() + 1)
+        }
+        lastNode = node
+      }
+
+      this.updateLastZindex(sorted)
+    }
   }
 
   // 下移
@@ -105,23 +121,39 @@ export class ZIndexTool {
 
     const sorted = this.getNodes(nodes).sort((a, b) => a.zIndex() - b.zIndex())
 
-    this.render.selectionTool.selectingNodes.length > 0 && this.updateSelectingZIndex(sorted)
-
     // 下移
     let lastNode: Konva.Node | null = null
-    for (const node of sorted) {
-      if (
-        node.attrs.lastZIndex > minZIndex &&
-        (lastNode === null || node.attrs.lastZIndex > lastNode.attrs.lastZIndex + 1)
-      ) {
-        node.setAttrs({
-          lastZIndex: node.attrs.lastZIndex - 1
-        })
-      }
-      lastNode = node
-    }
 
-    this.render.selectionTool.selectingNodes.length > 0 && this.resetSelectingZIndex(sorted)
+    if (this.render.selectionTool.selectingNodes.length > 0) {
+      this.updateSelectingZIndex(sorted)
+
+      for (const node of sorted) {
+        if (
+          node.attrs.lastZIndex > minZIndex &&
+          (lastNode === null || node.attrs.lastZIndex > lastNode.attrs.lastZIndex + 1)
+        ) {
+          node.setAttrs({
+            lastZIndex: node.attrs.lastZIndex - 1
+          })
+        }
+        lastNode = node
+      }
+
+      this.resetSelectingZIndex(sorted)
+    } else {
+      // 直接调整
+      for (const node of sorted) {
+        if (
+          node.zIndex() > minZIndex &&
+          (lastNode === null || node.zIndex() > lastNode.zIndex() + 1)
+        ) {
+          node.zIndex(node.zIndex() - 1)
+        }
+        lastNode = node
+      }
+
+      this.updateLastZindex(sorted)
+    }
   }
 
   // 置顶

@@ -20,7 +20,6 @@ export class ShutcutHandlers implements Types.Handler {
           }
         } else if (e.code === Types.ShutcutKey.删除) {
           this.render.remove(this.render.selectionTool.selectingNodes)
-          this.render.selectionTool.selectingClear()
         }
       }
     }

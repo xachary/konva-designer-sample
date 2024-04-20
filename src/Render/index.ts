@@ -33,10 +33,10 @@ export class Render {
   copyTool: Tools.CopyTool
 
   // 定位工具
-  positionTool: Tools.PositionTool;
+  positionTool: Tools.PositionTool
 
   // 层级工具
-  zIndexTool: Tools.ZIndexTool;
+  zIndexTool: Tools.ZIndexTool
 
   // 多选器层
   groupTransformer: Konva.Group = new Konva.Group()
@@ -103,10 +103,10 @@ export class Render {
     this.copyTool = new Tools.CopyTool(this)
 
     // 定位工具
-    this.positionTool = new Tools.PositionTool(this);
+    this.positionTool = new Tools.PositionTool(this)
 
     // 定位工具
-    this.zIndexTool = new Tools.ZIndexTool(this);
+    this.zIndexTool = new Tools.ZIndexTool(this)
 
     // 事件处理
     this.handlers[Handlers.DragHandlers.name] = new Handlers.DragHandlers(this)
@@ -115,7 +115,7 @@ export class Render {
     this.handlers[Draws.RefLineDraw.name] = this.draws[Draws.RefLineDraw.name]
     this.handlers[Handlers.SelectionHandlers.name] = new Handlers.SelectionHandlers(this)
     this.handlers[Handlers.KeyMoveHandlers.name] = new Handlers.KeyMoveHandlers(this)
-    this.handlers[Handlers.ShutcutHandlers.name] = new Handlers.ShutcutHandlers(this);
+    this.handlers[Handlers.ShutcutHandlers.name] = new Handlers.ShutcutHandlers(this)
 
     // 初始化
     this.init()
@@ -154,10 +154,13 @@ export class Render {
   remove(nodes: Konva.Node[]) {
     for (const node of nodes) {
       if (node instanceof Konva.Transformer) {
-        this.remove(this.selectionTool.selectingNodes);
-        this.selectionTool.selectingClear();
+        // 移除已选择的节点
+        this.remove(this.selectionTool.selectingNodes)
+        // 清除选择
+        this.selectionTool.selectingClear()
       } else {
-        node.remove();
+        // 移除未选择的节点
+        node.remove()
       }
     }
   }

@@ -50,7 +50,7 @@ export class ContextmenuDraw extends Types.BaseDraw implements Types.Draw {
           }
         })
       } else {
-        // 未选择：真实节点，即素材的容器 group 
+        // 未选择：真实节点，即素材的容器 group
         // 已选择：transformer
         const target = this.state.target.parent
 
@@ -72,15 +72,7 @@ export class ContextmenuDraw extends Types.BaseDraw implements Types.Draw {
           }
         })
         menus.push({
-          name: '置顶',
-          action: () => {
-            if (target) {
-              this.render.zIndexTool.top([target])
-            }
-          }
-        })
-        menus.push({
-          name: '上一层',
+          name: '上移',
           action: () => {
             if (target) {
               this.render.zIndexTool.up([target])
@@ -88,10 +80,18 @@ export class ContextmenuDraw extends Types.BaseDraw implements Types.Draw {
           }
         })
         menus.push({
-          name: '下一层',
+          name: '下移',
           action: () => {
             if (target) {
               this.render.zIndexTool.down([target])
+            }
+          }
+        })
+        menus.push({
+          name: '置顶',
+          action: () => {
+            if (target) {
+              this.render.zIndexTool.top([target])
             }
           }
         })
