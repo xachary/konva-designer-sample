@@ -17287,6 +17287,12 @@ var MoveKey = /* @__PURE__ */ ((MoveKey2) => {
   MoveKey2["下"] = "ArrowDown";
   return MoveKey2;
 })(MoveKey || {});
+var ShutcutKey = /* @__PURE__ */ ((ShutcutKey2) => {
+  ShutcutKey2["删除"] = "Delete";
+  ShutcutKey2["C"] = "KeyC";
+  ShutcutKey2["V"] = "KeyV";
+  return ShutcutKey2;
+})(ShutcutKey || {});
 var freeGlobal = typeof global == "object" && global && global.Object === Object && global;
 var freeSelf = typeof self == "object" && self && self.Object === Object && self;
 var root = freeGlobal || freeSelf || Function("return this")();
@@ -23707,6 +23713,203 @@ class RefLineDraw extends BaseDraw {
   }
 }
 __publicField(RefLineDraw, "name", "refLine");
+class ContextmenuDraw extends BaseDraw {
+  constructor(render, layer, option) {
+    super(render, layer);
+    __publicField(this, "option");
+    __publicField(this, "state");
+    __publicField(this, "handlers", {
+      stage: {
+        mousedown: (e) => {
+          this.state.lastPos = this.render.stage.getPointerPosition();
+          if (e.evt.button === MouseButton.左键) {
+            if (!this.state.menuIsMousedown) {
+              this.state.target = null;
+              this.draw();
+            }
+          } else if (e.evt.button === MouseButton.右键) {
+            this.state.right = true;
+          }
+        },
+        mousemove: () => {
+          if (this.state.target && this.state.right) {
+            this.state.target = null;
+            this.draw();
+          }
+        },
+        mouseup: () => {
+          this.state.right = false;
+        },
+        contextmenu: (e) => {
+          const pos = this.render.stage.getPointerPosition();
+          if (pos && this.state.lastPos) {
+            if (pos.x === this.state.lastPos.x || pos.y === this.state.lastPos.y) {
+              this.state.target = e.target;
+            } else {
+              this.state.target = null;
+            }
+            this.draw();
+          }
+        },
+        wheel: () => {
+          this.state.target = null;
+          this.draw();
+        }
+      }
+    });
+    this.option = option;
+    this.state = { target: null, menuIsMousedown: false, lastPos: null, right: false };
+  }
+  draw() {
+    this.clear();
+    if (this.state.target) {
+      const menus = [];
+      if (this.state.target === this.render.stage) {
+        menus.push({
+          name: "恢复位置",
+          action: () => {
+            this.render.positionTool.positionReset();
+          }
+        });
+        menus.push({
+          name: "恢复大小位置",
+          action: () => {
+            this.render.positionTool.positionZoomReset();
+          }
+        });
+      } else {
+        const target = this.state.target.parent;
+        menus.push({
+          name: "复制",
+          action: () => {
+            if (target) {
+              this.render.copyTool.copy([target]);
+            }
+          }
+        });
+        menus.push({
+          name: "删除",
+          action: () => {
+            if (target) {
+              this.render.remove([target]);
+            }
+          }
+        });
+        menus.push({
+          name: "上移",
+          action: () => {
+            if (target) {
+              this.render.zIndexTool.up([target]);
+            }
+          }
+        });
+        menus.push({
+          name: "下移",
+          action: () => {
+            if (target) {
+              this.render.zIndexTool.down([target]);
+            }
+          }
+        });
+        menus.push({
+          name: "置顶",
+          action: () => {
+            if (target) {
+              this.render.zIndexTool.top([target]);
+            }
+          }
+        });
+        menus.push({
+          name: "置底",
+          action: () => {
+            if (target) {
+              this.render.zIndexTool.bottom([target]);
+            }
+          }
+        });
+      }
+      const stageState = this.render.getStageState();
+      const group = new Konva.Group({
+        name: "contextmenu",
+        width: stageState.width,
+        height: stageState.height
+      });
+      let top = 0;
+      const lineHeight = 30;
+      const pos = this.render.stage.getPointerPosition();
+      if (pos) {
+        for (const menu of menus) {
+          const rect = new Konva.Rect({
+            x: this.render.toStageValue(pos.x - stageState.x),
+            y: this.render.toStageValue(pos.y + top - stageState.y),
+            width: this.render.toStageValue(100),
+            height: this.render.toStageValue(lineHeight),
+            fill: "#fff",
+            stroke: "#999",
+            strokeWidth: this.render.toStageValue(1),
+            name: "contextmenu"
+          });
+          const text = new Konva.Text({
+            x: this.render.toStageValue(pos.x - stageState.x),
+            y: this.render.toStageValue(pos.y + top - stageState.y),
+            text: menu.name,
+            name: "contextmenu",
+            listening: false,
+            fontSize: this.render.toStageValue(16),
+            fill: "#333",
+            width: this.render.toStageValue(100),
+            height: this.render.toStageValue(lineHeight),
+            align: "center",
+            verticalAlign: "middle"
+          });
+          group.add(rect);
+          group.add(text);
+          rect.on("click", (e) => {
+            if (e.evt.button === MouseButton.左键) {
+              menu.action(e);
+              this.group.removeChildren();
+              this.state.target = null;
+            }
+            e.evt.preventDefault();
+            e.evt.stopPropagation();
+          });
+          rect.on("mousedown", (e) => {
+            if (e.evt.button === MouseButton.左键) {
+              this.state.menuIsMousedown = true;
+              rect.fill("#dfdfdf");
+            }
+            e.evt.preventDefault();
+            e.evt.stopPropagation();
+          });
+          rect.on("mouseup", (e) => {
+            if (e.evt.button === MouseButton.左键) {
+              this.state.menuIsMousedown = false;
+            }
+          });
+          rect.on("mouseenter", (e) => {
+            if (this.state.menuIsMousedown) {
+              rect.fill("#dfdfdf");
+            } else {
+              rect.fill("#efefef");
+            }
+            e.evt.preventDefault();
+            e.evt.stopPropagation();
+          });
+          rect.on("mouseout", () => {
+            rect.fill("#fff");
+          });
+          rect.on("contextmenu", (e) => {
+            e.evt.preventDefault();
+            e.evt.stopPropagation();
+          });
+          top += lineHeight - 1;
+        }
+      }
+      this.group.add(group);
+    }
+  }
+}
+__publicField(ContextmenuDraw, "name", "contextmenu");
 class DragHandlers {
   constructor(render) {
     __publicField(this, "render");
@@ -24195,6 +24398,28 @@ class KeyMoveHandlers {
   }
 }
 __publicField(KeyMoveHandlers, "name", "KeyMove");
+class ShutcutHandlers {
+  constructor(render) {
+    __publicField(this, "render");
+    __publicField(this, "handlers", {
+      dom: {
+        keydown: (e) => {
+          if (e.ctrlKey) {
+            if (e.code === ShutcutKey.C) {
+              this.render.copyTool.pasteStart();
+            } else if (e.code === ShutcutKey.V) {
+              this.render.copyTool.pasteEnd();
+            }
+          } else if (e.code === ShutcutKey.删除) {
+            this.render.remove(this.render.selectionTool.selectingNodes);
+          }
+        }
+      }
+    });
+    this.render = render;
+  }
+}
+__publicField(ShutcutHandlers, "name", "Shutcut");
 const gifler = window.gifler;
 class AssetTool {
   constructor(render) {
@@ -24312,6 +24537,240 @@ class SelectionTool {
   }
 }
 __publicField(SelectionTool, "name", "SelectionTool");
+class CopyTool {
+  constructor(render) {
+    __publicField(this, "render");
+    // 复制暂存
+    __publicField(this, "pasteCache", []);
+    // 粘贴次数（用于定义新节点的偏移距离）
+    __publicField(this, "pasteCount", 1);
+    this.render = render;
+  }
+  // 复制
+  pasteStart() {
+    this.pasteCache = this.render.selectionTool.selectingNodes.map((o) => {
+      const copy = o.clone();
+      copy.setAttrs({
+        listening: true,
+        opacity: copy.attrs.lastOpacity ?? 1
+      });
+      copy.setAttrs({
+        nodeMousedownPos: void 0,
+        lastOpacity: void 0,
+        lastZIndex: void 0,
+        selectingZIndex: void 0
+      });
+      return copy;
+    });
+    this.pasteCount = 1;
+  }
+  // 粘贴
+  pasteEnd() {
+    if (this.pasteCache.length > 0) {
+      this.render.selectionTool.selectingClear();
+      this.copy(this.pasteCache);
+      this.pasteCount++;
+    }
+  }
+  /**
+   * 复制粘贴
+   * @param nodes 节点数组
+   * @param skip 跳过检查
+   * @returns 复制的元素
+   */
+  copy(nodes) {
+    const arr = [];
+    for (const node of nodes) {
+      if (node instanceof Konva.Transformer) {
+        const backup = [...this.render.selectionTool.selectingNodes];
+        this.render.selectionTool.selectingClear();
+        this.copy(backup);
+      } else {
+        const copy = node.clone();
+        copy.setAttrs({
+          x: copy.x() + this.render.toStageValue(this.render.bgSize) * this.pasteCount,
+          y: copy.y() + this.render.toStageValue(this.render.bgSize) * this.pasteCount
+        });
+        this.render.layer.add(copy);
+        this.render.selectionTool.select([...this.render.selectionTool.selectingNodes, copy]);
+      }
+    }
+    return arr;
+  }
+}
+__publicField(CopyTool, "name", "CopyTool");
+class PositionTool {
+  constructor(render) {
+    __publicField(this, "render");
+    this.render = render;
+  }
+  // 恢复位置大小
+  positionZoomReset() {
+    this.render.stage.setAttrs({
+      scale: { x: 1, y: 1 }
+    });
+    this.positionReset();
+  }
+  // 恢复位置
+  positionReset() {
+    this.render.stage.setAttrs({
+      x: this.render.rulerSize,
+      y: this.render.rulerSize
+    });
+    this.render.draws[BgDraw.name].draw();
+    this.render.draws[RulerDraw.name].draw();
+    this.render.draws[RefLineDraw.name].draw();
+  }
+}
+__publicField(PositionTool, "name", "PositionTool");
+class ZIndexTool {
+  constructor(render) {
+    __publicField(this, "render");
+    this.render = render;
+  }
+  // 获取移动节点
+  getNodes(nodes) {
+    const targets = [];
+    for (const node of nodes) {
+      if (node instanceof Konva.Transformer) {
+        targets.push(...this.render.selectionTool.selectingNodes);
+      } else {
+        targets.push(node);
+      }
+    }
+    return targets;
+  }
+  // 最大 zIndex
+  getMaxZIndex() {
+    return Math.max(
+      ...this.render.layer.getChildren((node) => {
+        return !this.render.ignore(node);
+      }).map((o) => o.zIndex())
+    );
+  }
+  // 最小 zIndex
+  getMinZIndex() {
+    return Math.min(
+      ...this.render.layer.getChildren((node) => {
+        return !this.render.ignore(node);
+      }).map((o) => o.zIndex())
+    );
+  }
+  // 记录选择期间的 zIndex
+  updateSelectingZIndex(nodes) {
+    for (const node of nodes) {
+      node.setAttrs({
+        selectingZIndex: node.zIndex()
+      });
+    }
+  }
+  // 恢复选择期间的 zIndex
+  resetSelectingZIndex(nodes) {
+    nodes.sort((a, b) => a.zIndex() - b.zIndex());
+    for (const node of nodes) {
+      node.zIndex(node.attrs.selectingZIndex);
+    }
+  }
+  // 更新 zIndex 缓存
+  updateLastZindex(nodes) {
+    for (const node of nodes) {
+      node.setAttrs({
+        lastZIndex: node.zIndex()
+      });
+    }
+  }
+  // 上移
+  up(nodes) {
+    const maxZIndex = this.getMaxZIndex();
+    const sorted = this.getNodes(nodes).sort((a, b) => b.zIndex() - a.zIndex());
+    let lastNode = null;
+    if (this.render.selectionTool.selectingNodes.length > 0) {
+      this.updateSelectingZIndex(sorted);
+      for (const node of sorted) {
+        if (node.attrs.lastZIndex < maxZIndex && (lastNode === null || node.attrs.lastZIndex < lastNode.attrs.lastZIndex - 1)) {
+          node.setAttrs({
+            lastZIndex: node.attrs.lastZIndex + 1
+          });
+        }
+        lastNode = node;
+      }
+      this.resetSelectingZIndex(sorted);
+    } else {
+      for (const node of sorted) {
+        if (node.zIndex() < maxZIndex && (lastNode === null || node.zIndex() < lastNode.zIndex() - 1)) {
+          node.zIndex(node.zIndex() + 1);
+        }
+        lastNode = node;
+      }
+      this.updateLastZindex(sorted);
+    }
+  }
+  // 下移
+  down(nodes) {
+    const minZIndex = this.getMinZIndex();
+    const sorted = this.getNodes(nodes).sort((a, b) => a.zIndex() - b.zIndex());
+    let lastNode = null;
+    if (this.render.selectionTool.selectingNodes.length > 0) {
+      this.updateSelectingZIndex(sorted);
+      for (const node of sorted) {
+        if (node.attrs.lastZIndex > minZIndex && (lastNode === null || node.attrs.lastZIndex > lastNode.attrs.lastZIndex + 1)) {
+          node.setAttrs({
+            lastZIndex: node.attrs.lastZIndex - 1
+          });
+        }
+        lastNode = node;
+      }
+      this.resetSelectingZIndex(sorted);
+    } else {
+      for (const node of sorted) {
+        if (node.zIndex() > minZIndex && (lastNode === null || node.zIndex() > lastNode.zIndex() + 1)) {
+          node.zIndex(node.zIndex() - 1);
+        }
+        lastNode = node;
+      }
+      this.updateLastZindex(sorted);
+    }
+  }
+  // 置顶
+  top(nodes) {
+    let maxZIndex = this.getMaxZIndex();
+    const sorted = this.getNodes(nodes).sort((a, b) => b.zIndex() - a.zIndex());
+    if (this.render.selectionTool.selectingNodes.length > 0) {
+      this.updateSelectingZIndex(sorted);
+      for (const node of sorted) {
+        node.setAttrs({
+          lastZIndex: maxZIndex--
+        });
+      }
+      this.resetSelectingZIndex(sorted);
+    } else {
+      for (const node of sorted) {
+        node.zIndex(maxZIndex);
+      }
+      this.updateLastZindex(sorted);
+    }
+  }
+  // 置底
+  bottom(nodes) {
+    let minZIndex = this.getMinZIndex();
+    const sorted = this.getNodes(nodes).sort((a, b) => a.zIndex() - b.zIndex());
+    if (this.render.selectionTool.selectingNodes.length > 0) {
+      this.updateSelectingZIndex(sorted);
+      for (const node of sorted) {
+        node.setAttrs({
+          lastZIndex: minZIndex++
+        });
+      }
+      this.resetSelectingZIndex(sorted);
+    } else {
+      for (const node of sorted) {
+        node.zIndex(minZIndex);
+      }
+      this.updateLastZindex(sorted);
+    }
+  }
+}
+__publicField(ZIndexTool, "name", "ZIndexTool");
 class Render {
   constructor(stageEle, config) {
     __publicField(this, "stage");
@@ -24329,6 +24788,12 @@ class Render {
     __publicField(this, "assetTool");
     // 选择工具
     __publicField(this, "selectionTool");
+    // 复制工具
+    __publicField(this, "copyTool");
+    // 定位工具
+    __publicField(this, "positionTool");
+    // 层级工具
+    __publicField(this, "zIndexTool");
     // 多选器层
     __publicField(this, "groupTransformer", new Konva.Group());
     // 多选器
@@ -24369,14 +24834,21 @@ class Render {
     this.draws[RefLineDraw.name] = new RefLineDraw(this, this.layerCover, {
       padding: this.rulerSize
     });
+    this.draws[ContextmenuDraw.name] = new ContextmenuDraw(this, this.layerCover, {
+      ignore: this.ignore.bind(this)
+    });
     this.assetTool = new AssetTool(this);
     this.selectionTool = new SelectionTool(this);
+    this.copyTool = new CopyTool(this);
+    this.positionTool = new PositionTool(this);
+    this.zIndexTool = new ZIndexTool(this);
     this.handlers[DragHandlers.name] = new DragHandlers(this);
     this.handlers[ZoomHandlers.name] = new ZoomHandlers(this);
     this.handlers[DragOutsideHandlers.name] = new DragOutsideHandlers(this);
     this.handlers[RefLineDraw.name] = this.draws[RefLineDraw.name];
     this.handlers[SelectionHandlers.name] = new SelectionHandlers(this);
     this.handlers[KeyMoveHandlers.name] = new KeyMoveHandlers(this);
+    this.handlers[ShutcutHandlers.name] = new ShutcutHandlers(this);
     this.init();
   }
   // 初始化
@@ -24387,6 +24859,7 @@ class Render {
     this.stage.add(this.layerCover);
     this.draws[RulerDraw.name].init();
     this.draws[RefLineDraw.name].init();
+    this.draws[ContextmenuDraw.name].init();
     this.eventBind();
   }
   // 更新 stage 尺寸
@@ -24397,6 +24870,17 @@ class Render {
     });
     this.draws[BgDraw.name].draw();
     this.draws[RulerDraw.name].draw();
+  }
+  // 移除元素
+  remove(nodes) {
+    for (const node of nodes) {
+      if (node instanceof Konva.Transformer) {
+        this.remove(this.selectionTool.selectingNodes);
+        this.selectionTool.selectingClear();
+      } else {
+        node.remove();
+      }
+    }
   }
   // 事件绑定
   eventBind() {
@@ -24482,10 +24966,10 @@ class Render {
   }
   // 忽略各 draw 的根 group
   ignoreDraw(node) {
-    return node.name() === BgDraw.name || node.name() === RulerDraw.name || node.name() === RefLineDraw.name;
+    return node.name() === BgDraw.name || node.name() === RulerDraw.name || node.name() === RefLineDraw.name || node.name() === ContextmenuDraw.name;
   }
 }
-const _withScopeId = (n) => (pushScopeId("data-v-535cfb9b"), n = n(), popScopeId(), n);
+const _withScopeId = (n) => (pushScopeId("data-v-aa8b7f37"), n = n(), popScopeId(), n);
 const _hoisted_1 = { class: "page" };
 const _hoisted_2 = /* @__PURE__ */ _withScopeId(() => /* @__PURE__ */ createBaseVNode("header", null, null, -1));
 const _hoisted_3 = ["onDragstart"];
@@ -24668,5 +25152,5 @@ const _export_sfc = (sfc, props) => {
   }
   return target;
 };
-const App = /* @__PURE__ */ _export_sfc(_sfc_main, [["__scopeId", "data-v-535cfb9b"]]);
+const App = /* @__PURE__ */ _export_sfc(_sfc_main, [["__scopeId", "data-v-aa8b7f37"]]);
 createApp(App).mount("#app");
