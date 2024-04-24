@@ -34,6 +34,7 @@
 
 ![4](https://github.com/xachary/konva-designer-sample/assets/16830398/a24cdc9f-2b2f-4b20-b7cc-d46e18548600)
 
+![1](https://github.com/xachary/konva-designer-sample/assets/16830398/5afff9d4-920b-42ff-aebb-85af5a243dce)
 
 ## 功能点
 
