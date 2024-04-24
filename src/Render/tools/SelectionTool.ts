@@ -18,6 +18,11 @@ export class SelectionTool {
     // 清空选择
     this.render.transformer.nodes([])
 
+    const change =
+      this.selectingNodes.findIndex(
+        (o) => o.attrs.lastZIndex !== void 0 && o.zIndex() !== o.attrs.lastZIndex
+      ) > -1
+
     // 恢复透明度、层次、可交互
     for (const node of this.selectingNodes.sort(
       (a, b) => a.attrs.lastZIndex - b.attrs.lastZIndex
@@ -40,6 +45,11 @@ export class SelectionTool {
 
     // 清空选择节点
     this.selectingNodes = []
+
+    if (change) {
+      // 更新历史
+      this.render.updateHistory()
+    }
   }
 
   // 选择节点

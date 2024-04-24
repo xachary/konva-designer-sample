@@ -111,6 +111,9 @@ export class ZIndexTool {
       }
 
       this.updateLastZindex(sorted)
+
+      // 更新历史
+      this.render.updateHistory()
     }
   }
 
@@ -153,6 +156,9 @@ export class ZIndexTool {
       }
 
       this.updateLastZindex(sorted)
+
+      // 更新历史
+      this.render.updateHistory()
     }
   }
 
@@ -183,6 +189,9 @@ export class ZIndexTool {
       }
 
       this.updateLastZindex(sorted)
+
+      // 更新历史
+      this.render.updateHistory()
     }
   }
 
@@ -213,6 +222,9 @@ export class ZIndexTool {
       }
 
       this.updateLastZindex(sorted)
+
+      // 更新历史
+      this.render.updateHistory()
     }
   }
 }

@@ -1,3 +1,5 @@
+import _ from 'lodash-es'
+//
 import Konva from 'konva'
 //
 import * as Types from './types'
@@ -38,6 +40,9 @@ export class Render {
   // 层级工具
   zIndexTool: Tools.ZIndexTool
 
+  // 导入导出
+  importExportTool: Tools.ImportExportTool
+
   // 多选器层
   groupTransformer: Konva.Group = new Konva.Group()
 
@@ -62,6 +67,9 @@ export class Render {
   // 参数
   bgSize = 20
   rulerSize = 40
+
+  history: string[] = []
+  historyIndex = -1
 
   constructor(stageEle: HTMLDivElement, config: Types.RenderConfig) {
     this.config = config
@@ -108,6 +116,9 @@ export class Render {
     // 定位工具
     this.zIndexTool = new Tools.ZIndexTool(this)
 
+    // 导入导出
+    this.importExportTool = new Tools.ImportExportTool(this)
+
     // 事件处理
     this.handlers[Handlers.DragHandlers.name] = new Handlers.DragHandlers(this)
     this.handlers[Handlers.ZoomHandlers.name] = new Handlers.ZoomHandlers(this)
@@ -135,6 +146,9 @@ export class Render {
 
     // 事件绑定
     this.eventBind()
+
+    // 更新历史
+    this.updateHistory()
   }
 
   // 更新 stage 尺寸
@@ -163,6 +177,39 @@ export class Render {
         node.remove()
       }
     }
+
+    if (nodes.length > 0) {
+      // 更新历史
+      this.updateHistory()
+    }
+  }
+
+  prevHistory() {
+    const record = this.history[this.historyIndex - 1]
+    if (record) {
+      this.importExportTool.restore(record, true)
+      this.historyIndex--
+      // 历史变化事件
+      this.config.on?.historyChange?.(_.clone(this.history), this.historyIndex)
+    }
+  }
+
+  nextHistory() {
+    const record = this.history[this.historyIndex + 1]
+    if (record) {
+      this.importExportTool.restore(record, true)
+      this.historyIndex++
+      // 历史变化事件
+      this.config.on?.historyChange?.(_.clone(this.history), this.historyIndex)
+    }
+  }
+
+  updateHistory() {
+    this.history.splice(this.historyIndex + 1)
+    this.history.push(this.importExportTool.save())
+    this.historyIndex = this.history.length - 1
+    // 历史变化事件
+    this.config.on?.historyChange?.(_.clone(this.history), this.historyIndex)
   }
 
   // 事件绑定

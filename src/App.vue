@@ -57,6 +57,22 @@ const resizer = (() => {
   }
 })()
 
+// 历史记录
+const history = ref<string[]>([])
+const historyIndex = ref(-1)
+
+function onPrev() {
+  if (render) {
+    render.prevHistory()
+  }
+}
+
+function onNext() {
+  if (render) {
+    render.nextHistory()
+  }
+}
+
 function init() {
   if (boardElement.value && stageElement.value) {
     resizer.init(boardElement.value, {
@@ -71,7 +87,14 @@ function init() {
             showRuler: true,
             showRefLine: true,
             attractResize: true,
-            attractBg: true
+            attractBg: true,
+            //
+            on: {
+              historyChange: (records: string[], index: number) => {
+                history.value = records
+                historyIndex.value = index
+              }
+            }
           })
         }
         render.resize(width, height)
@@ -103,11 +126,66 @@ function onDragstart(e: GlobalEventHandlersEventMap['dragstart'], item: Types.As
     e.dataTransfer.setData('type', item.url.match(/([^./]+)\.([^./]+)$/)?.[2] ?? '')
   }
 }
+
+// 保持 json 文件
+function onSave() {
+  if (render) {
+    const a = document.createElement('a')
+    const event = new MouseEvent('click')
+    a.download = 'data.json'
+    a.href = window.URL.createObjectURL(new Blob([render.importExportTool.save()]))
+    a.dispatchEvent(event)
+    a.remove()
+  }
+}
+
+// 从 json 文件恢复
+function onRestore() {
+  if (render) {
+    const input = document.createElement('input')
+    input.type = 'file'
+    const event = new MouseEvent('click')
+    input.dispatchEvent(event)
+    input.remove()
+    input.onchange = () => {
+      const files = input.files
+      if (files) {
+        let reader = new FileReader()
+        reader.onload = function () {
+          // 读取为 json 文本
+          render!.importExportTool.restore(this.result!.toString())
+        }
+        reader.readAsText(files[0])
+      }
+    }
+  }
+}
+
+// 另存为图片
+function onSavePNG() {
+  if (render) {
+    // 3倍尺寸、白色背景
+    const url = render.importExportTool.getImage(3, '#ffffff')
+
+    const a = document.createElement('a')
+    const event = new MouseEvent('click')
+    a.download = 'image'
+    a.href = url
+    a.dispatchEvent(event)
+    a.remove()
+  }
+}
 </script>
 
 <template>
   <div class="page">
-    <header></header>
+    <header>
+      <button @click="onRestore">导入</button>
+      <button @click="onSave">导出</button>
+      <button @click="onSavePNG">另存为图片</button>
+      <button @click="onPrev" :disabled="historyIndex <= 0">上一步</button>
+      <button @click="onNext" :disabled="historyIndex >= history.length - 1">下一步</button>
+    </header>
     <section>
       <header>
         <ul>
@@ -143,6 +221,14 @@ function onDragstart(e: GlobalEventHandlersEventMap['dragstart'], item: Types.As
   }
   & > header {
     box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    display: flex;
+    padding: 12px;
+    align-items: center;
+    & > button {
+      & + button {
+        margin-left: 12px;
+      }
+    }
   }
   & > footer {
     box-shadow: 0 -1px 2px 0 rgba(0, 0, 0, 0.05);

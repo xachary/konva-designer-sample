@@ -255,6 +255,9 @@ export class SelectionHandlers implements Types.Handler {
 
         // 重置状态
         this.reset()
+
+        // 更新历史
+        this.render.updateHistory()
       },
       //
       dragstart: () => {
@@ -278,6 +281,9 @@ export class SelectionHandlers implements Types.Handler {
 
         // 重置状态
         this.reset()
+
+        // 更新历史
+        this.render.updateHistory()
       }
     }
   }

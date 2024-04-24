@@ -64,6 +64,9 @@ export class DragOutsideHandlers implements Types.Handler {
                 x,
                 y
               })
+
+              // 更新历史
+              this.render.updateHistory()
             })
           }
         }

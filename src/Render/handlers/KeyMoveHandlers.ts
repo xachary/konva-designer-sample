@@ -1,3 +1,5 @@
+import _ from 'lodash-es'
+//
 import { Render } from '../index'
 import * as Types from '../types'
 
@@ -11,6 +13,11 @@ export class KeyMoveHandlers implements Types.Handler {
 
   speed = 1
   speedMax = 20
+
+  change = _.debounce(() => {
+    // 更新历史
+    this.render.updateHistory()
+  }, 200)
 
   handlers = {
     dom: {
@@ -34,6 +41,8 @@ export class KeyMoveHandlers implements Types.Handler {
             if (this.speed < this.speedMax) {
               this.speed++
             }
+
+            this.change()
           }
         }
       },

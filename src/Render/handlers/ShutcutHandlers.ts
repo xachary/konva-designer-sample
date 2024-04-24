@@ -17,6 +17,12 @@ export class ShutcutHandlers implements Types.Handler {
             this.render.copyTool.pasteStart()
           } else if (e.code === Types.ShutcutKey.V) {
             this.render.copyTool.pasteEnd()
+          } else if (e.code === Types.ShutcutKey.Z) {
+            if (e.shiftKey) {
+              this.render.nextHistory()
+            } else {
+              this.render.prevHistory()
+            }
           }
         } else if (e.code === Types.ShutcutKey.删除) {
           this.render.remove(this.render.selectionTool.selectingNodes)

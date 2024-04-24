@@ -13,6 +13,9 @@ export interface RenderConfig {
   attractResize?: boolean
   attractBg?: boolean
   //
+  on?: {
+    historyChange?: (history: string[], historyIndex: number) => void
+  }
 }
 
 export interface Handler {
@@ -93,4 +96,5 @@ export enum ShutcutKey {
   删除 = 'Delete',
   C = 'KeyC',
   V = 'KeyV',
+  Z = 'KeyZ'
 }
