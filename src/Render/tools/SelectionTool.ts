@@ -1,6 +1,8 @@
 import Konva from 'konva'
 //
 import { Render } from '../index'
+//
+import * as Draws from '../draws'
 
 export class SelectionTool {
   static readonly name = 'SelectionTool'
@@ -49,6 +51,8 @@ export class SelectionTool {
     if (change) {
       // 更新历史
       this.render.updateHistory()
+      // 更新预览
+      this.render.draws[Draws.PreviewDraw.name].draw()
     }
   }
 

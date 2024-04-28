@@ -67,6 +67,7 @@ export class Render {
   // 参数
   bgSize = 20
   rulerSize = 40
+  previewSize = 0.2 // 预览框大小（比例）
 
   history: string[] = []
   historyIndex = -1
@@ -98,7 +99,10 @@ export class Render {
       padding: this.rulerSize
     })
     this.draws[Draws.ContextmenuDraw.name] = new Draws.ContextmenuDraw(this, this.layerCover, {
-      ignore: this.ignore.bind(this)
+      //
+    })
+    this.draws[Draws.PreviewDraw.name] = new Draws.PreviewDraw(this, this.layerCover, {
+      size: this.previewSize
     })
 
     // 素材工具
@@ -143,6 +147,7 @@ export class Render {
     this.draws[Draws.RulerDraw.name].init()
     this.draws[Draws.RefLineDraw.name].init()
     this.draws[Draws.ContextmenuDraw.name].init()
+    this.draws[Draws.PreviewDraw.name].init()
 
     // 事件绑定
     this.eventBind()
@@ -162,6 +167,8 @@ export class Render {
     this.draws[Draws.BgDraw.name].draw()
     // 更新比例尺
     this.draws[Draws.RulerDraw.name].draw()
+    // 更新预览
+    this.draws[Draws.PreviewDraw.name].draw()
   }
 
   // 移除元素
@@ -181,6 +188,8 @@ export class Render {
     if (nodes.length > 0) {
       // 更新历史
       this.updateHistory()
+      // 更新预览
+      this.draws[Draws.PreviewDraw.name].draw()
     }
   }
 
@@ -314,7 +323,8 @@ export class Render {
       node.name() === Draws.BgDraw.name ||
       node.name() === Draws.RulerDraw.name ||
       node.name() === Draws.RefLineDraw.name ||
-      node.name() === Draws.ContextmenuDraw.name
+      node.name() === Draws.ContextmenuDraw.name ||
+      node.name() === Draws.PreviewDraw.name
     )
   }
 }

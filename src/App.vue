@@ -88,6 +88,7 @@ function init() {
             showRefLine: true,
             attractResize: true,
             attractBg: true,
+            showPreview: true,
             //
             on: {
               historyChange: (records: string[], index: number) => {
