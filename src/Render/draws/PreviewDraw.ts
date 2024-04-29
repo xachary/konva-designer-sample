@@ -106,12 +106,12 @@ export class PreviewDraw extends Types.BaseDraw implements Types.Draw {
         if (pos) {
           const pWidth = group.width() * this.option.size
           const pHeight = group.height() * this.option.size
-          const pOffsetX =
-            group.width() * this.option.size - (stageState.width - pos.x - previewMargin)
-          const pOfsetY =
-            group.height() * this.option.size - (stageState.height - pos.y - previewMargin)
-          const offsetX = (group.width() * pOffsetX) / pWidth
-          const offsetY = (group.height() * pOfsetY) / pHeight
+
+          const pOffsetX = pWidth - (stageState.width - pos.x - previewMargin)
+          const pOffsetY = pHeight - (stageState.height - pos.y - previewMargin)
+
+          const offsetX = pOffsetX / this.option.size
+          const offsetY = pOffsetY / this.option.size
 
           // 点击预览框，点击位置作为画布中心
           this.render.positionTool.updateCenter(offsetX, offsetY)

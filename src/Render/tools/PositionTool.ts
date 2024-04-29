@@ -46,39 +46,25 @@ export class PositionTool {
       return !this.render.ignore(node)
     })
 
-    // 计算节点占用的区域
+    // 计算节点占用的区域（计算起点即可）
     let minX = 0
-    let maxX = this.render.layer.width()
     let minY = 0
-    let maxY = this.render.layer.height()
     for (const node of nodes) {
       const x = node.x()
       const y = node.y()
-      const width = node.width()
-      const height = node.height()
 
       if (x < minX) {
         minX = x
       }
-      if (x + width > maxX) {
-        maxX = x + width
-      }
       if (y < minY) {
         minY = y
       }
-      if (y + height > maxY) {
-        maxY = y + height
-      }
     }
-
-    // “指向位置”相对于“区域起点”的距离
-    const rx = x + minX
-    const ry = y + minY
 
     // 居中画布
     this.render.stage.setAttrs({
-      x: stageState.width / 2 - this.render.toBoardValue(rx),
-      y: stageState.height / 2 - this.render.toBoardValue(ry)
+      x: stageState.width / 2 - this.render.toBoardValue(minX) - this.render.toBoardValue(x),
+      y: stageState.height / 2 - this.render.toBoardValue(minY) - this.render.toBoardValue(y)
     })
 
     // 更新背景
