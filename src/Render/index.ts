@@ -269,7 +269,7 @@ export class Render {
       })
     }
 
-    for (const event of ['mousedown', 'transformend', 'dragstart', 'dragmove', 'dragend']) {
+    for (const event of ['mousedown', 'transform', 'transformend', 'dragstart', 'dragmove', 'dragend']) {
       this.transformer.on(event, (e) => {
         e?.evt?.preventDefault()
 

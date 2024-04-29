@@ -77,8 +77,8 @@ export class PositionTool {
 
     // 居中画布
     this.render.stage.setAttrs({
-      x: stageState.width / 2 - rx * stageState.scale,
-      y: stageState.height / 2 - ry * stageState.scale
+      x: stageState.width / 2 - this.render.toBoardValue(rx),
+      y: stageState.height / 2 - this.render.toBoardValue(ry)
     })
 
     // 更新背景

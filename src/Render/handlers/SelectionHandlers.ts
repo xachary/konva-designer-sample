@@ -252,6 +252,10 @@ export class SelectionHandlers implements Types.Handler {
           this.reset()
         }
       },
+      transform: () => {
+        // 更新预览
+        this.render.draws[Draws.PreviewDraw.name].draw()
+      },
       transformend: () => {
         // 变换结束
 
