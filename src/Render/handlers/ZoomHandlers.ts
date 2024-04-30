@@ -53,6 +53,8 @@ export class ZoomHandlers implements Types.Handler {
             this.render.draws[Draws.BgDraw.name].draw()
             // 更新比例尺
             this.render.draws[Draws.RulerDraw.name].draw()
+            // 更新预览
+            this.render.draws[Draws.PreviewDraw.name].draw()
           }
         }
       }

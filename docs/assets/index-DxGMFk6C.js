@@ -23911,6 +23911,221 @@ class ContextmenuDraw extends BaseDraw {
   }
 }
 __publicField(ContextmenuDraw, "name", "contextmenu");
+class PreviewDraw extends BaseDraw {
+  constructor(render, layer, option) {
+    super(render, layer);
+    __publicField(this, "option");
+    __publicField(this, "state", {
+      moving: false
+      // 正在预览框内部拖动
+    });
+    this.option = option;
+  }
+  draw() {
+    if (this.render.config.showPreview) {
+      this.clear();
+      const stageState = this.render.getStageState();
+      const previewMargin = 20;
+      const group = new Konva.Group({
+        name: "preview",
+        scale: {
+          x: this.render.toStageValue(this.option.size),
+          y: this.render.toStageValue(this.option.size)
+        },
+        width: stageState.width,
+        height: stageState.height
+      });
+      const main = this.render.stage.find("#main")[0];
+      const nodes = main.getChildren((node) => {
+        return !this.render.ignore(node);
+      });
+      let minX = 0;
+      let maxX = group.width();
+      let minY = 0;
+      let maxY = group.height();
+      for (const node of nodes) {
+        const x = node.x();
+        const y = node.y();
+        const width = node.width();
+        const height = node.height();
+        if (x < minX) {
+          minX = x;
+        }
+        if (x + width > maxX) {
+          maxX = x + width;
+        }
+        if (y < minY) {
+          minY = y;
+        }
+        if (y + height > maxY) {
+          maxY = y + height;
+        }
+      }
+      group.setAttrs({
+        x: this.render.toStageValue(
+          -stageState.x + stageState.width - maxX * this.option.size - previewMargin
+        ),
+        y: this.render.toStageValue(
+          -stageState.y + stageState.height - maxY * this.option.size - previewMargin
+        ),
+        width: maxX - minX,
+        height: maxY - minY
+      });
+      const bg = new Konva.Rect({
+        name: this.constructor.name,
+        x: minX,
+        y: minY,
+        width: group.width(),
+        height: group.height(),
+        stroke: "#666",
+        strokeWidth: this.render.toStageValue(1),
+        fill: "#eee"
+      });
+      const move = () => {
+        this.state.moving = true;
+        const pos = this.render.stage.getPointerPosition();
+        if (pos) {
+          const pWidth = group.width() * this.option.size;
+          const pHeight = group.height() * this.option.size;
+          const pOffsetX = pWidth - (stageState.width - pos.x - previewMargin);
+          const pOffsetY = pHeight - (stageState.height - pos.y - previewMargin);
+          const offsetX = pOffsetX / this.option.size;
+          const offsetY = pOffsetY / this.option.size;
+          this.render.positionTool.updateCenter(offsetX, offsetY);
+        }
+      };
+      bg.on("mousedown", (e) => {
+        if (e.evt.button === MouseButton.左键) {
+          move();
+        }
+        e.evt.preventDefault();
+      });
+      bg.on("mousemove", (e) => {
+        if (this.state.moving) {
+          move();
+        }
+        e.evt.preventDefault();
+      });
+      bg.on("mouseup", () => {
+        this.state.moving = false;
+      });
+      group.add(bg);
+      group.add(
+        new Konva.Rect({
+          name: this.constructor.name,
+          x: 0,
+          y: 0,
+          width: stageState.width,
+          height: stageState.height,
+          stroke: "rgba(255,0,0,0.2)",
+          strokeWidth: 1 / this.option.size,
+          listening: false
+        })
+      );
+      for (const node of nodes) {
+        const copy = node.clone();
+        copy.listening(false);
+        copy.name(this.constructor.name);
+        group.add(copy);
+      }
+      if (stageState.scale > 1) {
+        let x1 = this.render.toStageValue(-stageState.x + this.render.rulerSize);
+        let y1 = this.render.toStageValue(-stageState.y + this.render.rulerSize);
+        x1 = x1 > minX ? x1 : minX;
+        x1 = x1 < maxX ? x1 : maxX;
+        y1 = y1 > minY ? y1 : minY;
+        y1 = y1 < maxY ? y1 : maxY;
+        let x2 = this.render.toStageValue(-stageState.x + this.render.rulerSize) + this.render.toStageValue(stageState.width);
+        let y2 = this.render.toStageValue(-stageState.y + this.render.rulerSize) + this.render.toStageValue(stageState.height);
+        x2 = x2 > minX ? x2 : minX;
+        x2 = x2 < maxX ? x2 : maxX;
+        y2 = y2 > minY ? y2 : minY;
+        y2 = y2 < maxY ? y2 : maxY;
+        let points = [];
+        if (x1 > minX && x1 < maxX && x2 > minX && x2 < maxX && y1 > minY && y1 < maxY && y2 > minY && y2 < maxY) {
+          points = [
+            [x1, y1],
+            [x2, y1],
+            [x2, y2],
+            [x1, y2],
+            [x1, y1]
+          ];
+        }
+        if (x1 > minX && x1 < maxX && x2 > minX && x2 < maxX && y1 === minY && y1 < maxY && y2 > minY && y2 < maxY) {
+          points = [
+            [x2, y1],
+            [x2, y2],
+            [x1, y2],
+            [x1, y1]
+          ];
+        }
+        if (x1 > minX && x1 < maxX && x2 > minX && x2 < maxX && y1 > minY && y1 < maxY && y2 > minY && y2 === maxY) {
+          points = [
+            [x1, y2],
+            [x1, y1],
+            [x2, y1],
+            [x2, y2]
+          ];
+        }
+        if (x1 === minX && x1 < maxX && x2 > minX && x2 < maxX && y1 > minY && y1 < maxY && y2 > minY && y2 < maxY) {
+          points = [
+            [x1, y1],
+            [x2, y1],
+            [x2, y2],
+            [x1, y2]
+          ];
+        }
+        if (x1 > minX && x1 < maxX && x2 > minX && x2 === maxX && y1 > minY && y1 < maxY && y2 > minY && y2 < maxY) {
+          points = [
+            [x2, y1],
+            [x1, y1],
+            [x1, y2],
+            [x2, y2]
+          ];
+        }
+        if (x1 === minX && x1 < maxX && x2 > minX && x2 < maxX && y1 === minY && y1 < maxY && y2 > minY && y2 < maxY) {
+          points = [
+            [x2, y1],
+            [x2, y2],
+            [x1, y2]
+          ];
+        }
+        if (x1 > minX && x1 < maxX && x2 > minX && x2 === maxX && y1 === minY && y1 < maxY && y2 > minY && y2 < maxY) {
+          points = [
+            [x2, y2],
+            [x1, y2],
+            [x1, y1]
+          ];
+        }
+        if (x1 === minX && x1 < maxX && x2 > minX && x2 < maxX && y1 > minY && y1 < maxY && y2 > minY && y2 === maxY) {
+          points = [
+            [x1, y1],
+            [x2, y1],
+            [x2, y2]
+          ];
+        }
+        if (x1 > minX && x1 < maxX && x2 > minX && x2 === maxX && y1 > minY && y1 < maxY && y2 > minY && y2 === maxY) {
+          points = [
+            [x2, y1],
+            [x1, y1],
+            [x1, y2]
+          ];
+        }
+        group.add(
+          new Konva.Line({
+            name: this.constructor.name,
+            points: lodash.flatten(points),
+            stroke: "blue",
+            strokeWidth: 1 / this.option.size,
+            listening: false
+          })
+        );
+      }
+      this.group.add(group);
+    }
+  }
+}
+__publicField(PreviewDraw, "name", "preview");
 class DragHandlers {
   constructor(render) {
     __publicField(this, "render");
@@ -23950,6 +24165,7 @@ class DragHandlers {
               });
               this.render.draws[BgDraw.name].draw();
               this.render.draws[RulerDraw.name].draw();
+              this.render.draws[PreviewDraw.name].draw();
             }
           }
         }
@@ -23988,6 +24204,7 @@ class ZoomHandlers {
               });
               this.render.draws[BgDraw.name].draw();
               this.render.draws[RulerDraw.name].draw();
+              this.render.draws[PreviewDraw.name].draw();
             }
           }
         }
@@ -24048,6 +24265,7 @@ class DragOutsideHandlers {
                   y
                 });
                 this.render.updateHistory();
+                this.render.draws[PreviewDraw.name].draw();
               });
             }
           }
@@ -24214,9 +24432,13 @@ class SelectionHandlers {
             this.reset();
           }
         },
+        transform: () => {
+          this.render.draws[PreviewDraw.name].draw();
+        },
         transformend: () => {
           this.reset();
           this.render.updateHistory();
+          this.render.draws[PreviewDraw.name].draw();
         },
         //
         dragstart: () => {
@@ -24230,11 +24452,13 @@ class SelectionHandlers {
               x: this.render.toStageValue(transformerPos.x - this.transformerMousedownPos.x),
               y: this.render.toStageValue(transformerPos.y - this.transformerMousedownPos.y)
             });
+            this.render.draws[PreviewDraw.name].draw();
           }
         },
         dragend: () => {
           this.reset();
           this.render.updateHistory();
+          this.render.draws[PreviewDraw.name].draw();
         }
       }
     });
@@ -24394,6 +24618,7 @@ class KeyMoveHandlers {
                 this.speed++;
               }
               this.change();
+              this.render.draws[PreviewDraw.name].draw();
             }
           }
         },
@@ -24463,6 +24688,7 @@ class AssetTool {
         canvas.height = frame.height;
         ctx.drawImage(frame.buffer, 0, 0);
         this.render.layer.draw();
+        this.render.draws[PreviewDraw.name].draw();
         resolve(
           new Konva.Image({
             image: canvas,
@@ -24516,6 +24742,7 @@ class SelectionTool {
     this.selectingNodes = [];
     if (change) {
       this.render.updateHistory();
+      this.render.draws[PreviewDraw.name].draw();
     }
   }
   // 选择节点
@@ -24616,6 +24843,7 @@ class CopyTool {
       }
     }
     this.render.updateHistory();
+    this.render.draws[PreviewDraw.name].draw();
     return arr;
   }
 }
@@ -24641,6 +24869,34 @@ class PositionTool {
     this.render.draws[BgDraw.name].draw();
     this.render.draws[RulerDraw.name].draw();
     this.render.draws[RefLineDraw.name].draw();
+    this.render.draws[PreviewDraw.name].draw();
+  }
+  // 更新中心位置
+  updateCenter(x = 0, y = 0) {
+    const stageState = this.render.getStageState();
+    const nodes = this.render.layer.getChildren((node) => {
+      return !this.render.ignore(node);
+    });
+    let minX = 0;
+    let minY = 0;
+    for (const node of nodes) {
+      const x2 = node.x();
+      const y2 = node.y();
+      if (x2 < minX) {
+        minX = x2;
+      }
+      if (y2 < minY) {
+        minY = y2;
+      }
+    }
+    this.render.stage.setAttrs({
+      x: stageState.width / 2 - this.render.toBoardValue(minX) - this.render.toBoardValue(x),
+      y: stageState.height / 2 - this.render.toBoardValue(minY) - this.render.toBoardValue(y)
+    });
+    this.render.draws[BgDraw.name].draw();
+    this.render.draws[RulerDraw.name].draw();
+    this.render.draws[RefLineDraw.name].draw();
+    this.render.draws[PreviewDraw.name].draw();
   }
 }
 __publicField(PositionTool, "name", "PositionTool");
@@ -24725,6 +24981,7 @@ class ZIndexTool {
       }
       this.updateLastZindex(sorted);
       this.render.updateHistory();
+      this.render.draws[PreviewDraw.name].draw();
     }
   }
   // 下移
@@ -24752,6 +25009,7 @@ class ZIndexTool {
       }
       this.updateLastZindex(sorted);
       this.render.updateHistory();
+      this.render.draws[PreviewDraw.name].draw();
     }
   }
   // 置顶
@@ -24772,6 +25030,7 @@ class ZIndexTool {
       }
       this.updateLastZindex(sorted);
       this.render.updateHistory();
+      this.render.draws[PreviewDraw.name].draw();
     }
   }
   // 置底
@@ -24792,6 +25051,7 @@ class ZIndexTool {
       }
       this.updateLastZindex(sorted);
       this.render.updateHistory();
+      this.render.draws[PreviewDraw.name].draw();
     }
   }
 }
@@ -24907,6 +25167,7 @@ class ImportExportTool {
       if (!silent) {
         this.render.updateHistory();
       }
+      this.render.draws[PreviewDraw.name].draw();
     } catch (e) {
       console.error(e);
     }
@@ -24979,6 +25240,8 @@ class Render {
     // 参数
     __publicField(this, "bgSize", 20);
     __publicField(this, "rulerSize", 40);
+    __publicField(this, "previewSize", 0.2);
+    // 预览框大小（比例）
     __publicField(this, "history", []);
     __publicField(this, "historyIndex", -1);
     this.config = config;
@@ -25002,7 +25265,10 @@ class Render {
       padding: this.rulerSize
     });
     this.draws[ContextmenuDraw.name] = new ContextmenuDraw(this, this.layerCover, {
-      ignore: this.ignore.bind(this)
+      //
+    });
+    this.draws[PreviewDraw.name] = new PreviewDraw(this, this.layerCover, {
+      size: this.previewSize
     });
     this.assetTool = new AssetTool(this);
     this.selectionTool = new SelectionTool(this);
@@ -25028,6 +25294,7 @@ class Render {
     this.draws[RulerDraw.name].init();
     this.draws[RefLineDraw.name].init();
     this.draws[ContextmenuDraw.name].init();
+    this.draws[PreviewDraw.name].init();
     this.eventBind();
     this.updateHistory();
   }
@@ -25039,6 +25306,7 @@ class Render {
     });
     this.draws[BgDraw.name].draw();
     this.draws[RulerDraw.name].draw();
+    this.draws[PreviewDraw.name].draw();
   }
   // 移除元素
   remove(nodes) {
@@ -25052,6 +25320,7 @@ class Render {
     }
     if (nodes.length > 0) {
       this.updateHistory();
+      this.draws[PreviewDraw.name].draw();
     }
   }
   prevHistory() {
@@ -25122,7 +25391,7 @@ class Render {
         }
       });
     }
-    for (const event of ["mousedown", "transformend", "dragstart", "dragmove", "dragend"]) {
+    for (const event of ["mousedown", "transform", "transformend", "dragstart", "dragmove", "dragend"]) {
       this.transformer.on(event, (e) => {
         var _a2, _b, _c, _d, _e, _f, _g;
         (_a2 = e == null ? void 0 : e.evt) == null ? void 0 : _a2.preventDefault();
@@ -25163,10 +25432,10 @@ class Render {
   }
   // 忽略各 draw 的根 group
   ignoreDraw(node) {
-    return node.name() === BgDraw.name || node.name() === RulerDraw.name || node.name() === RefLineDraw.name || node.name() === ContextmenuDraw.name;
+    return node.name() === BgDraw.name || node.name() === RulerDraw.name || node.name() === RefLineDraw.name || node.name() === ContextmenuDraw.name || node.name() === PreviewDraw.name;
   }
 }
-const _withScopeId = (n) => (pushScopeId("data-v-142cf8f3"), n = n(), popScopeId(), n);
+const _withScopeId = (n) => (pushScopeId("data-v-96779ca7"), n = n(), popScopeId(), n);
 const _hoisted_1 = { class: "page" };
 const _hoisted_2 = ["disabled"];
 const _hoisted_3 = ["disabled"];
@@ -25233,6 +25502,7 @@ const _sfc_main = /* @__PURE__ */ defineComponent({
                 showRefLine: true,
                 attractResize: true,
                 attractBg: true,
+                showPreview: true,
                 //
                 on: {
                   historyChange: (records, index) => {
@@ -25421,5 +25691,5 @@ const _export_sfc = (sfc, props) => {
   }
   return target;
 };
-const App = /* @__PURE__ */ _export_sfc(_sfc_main, [["__scopeId", "data-v-142cf8f3"]]);
+const App = /* @__PURE__ */ _export_sfc(_sfc_main, [["__scopeId", "data-v-96779ca7"]]);
 createApp(App).mount("#app");

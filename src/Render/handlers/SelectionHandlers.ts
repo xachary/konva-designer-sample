@@ -2,6 +2,8 @@ import Konva from 'konva'
 //
 import { Render } from '../index'
 import * as Types from '../types'
+//
+import * as Draws from '../draws'
 
 export class SelectionHandlers implements Types.Handler {
   static readonly name = 'Selection'
@@ -250,6 +252,10 @@ export class SelectionHandlers implements Types.Handler {
           this.reset()
         }
       },
+      transform: () => {
+        // 更新预览
+        this.render.draws[Draws.PreviewDraw.name].draw()
+      },
       transformend: () => {
         // 变换结束
 
@@ -258,6 +264,8 @@ export class SelectionHandlers implements Types.Handler {
 
         // 更新历史
         this.render.updateHistory()
+        // 更新预览
+        this.render.draws[Draws.PreviewDraw.name].draw()
       },
       //
       dragstart: () => {
@@ -274,6 +282,9 @@ export class SelectionHandlers implements Types.Handler {
             x: this.render.toStageValue(transformerPos.x - this.transformerMousedownPos.x),
             y: this.render.toStageValue(transformerPos.y - this.transformerMousedownPos.y)
           })
+
+          // 更新预览
+          this.render.draws[Draws.PreviewDraw.name].draw()
         }
       },
       dragend: () => {
@@ -284,6 +295,8 @@ export class SelectionHandlers implements Types.Handler {
 
         // 更新历史
         this.render.updateHistory()
+        // 更新预览
+        this.render.draws[Draws.PreviewDraw.name].draw()
       }
     }
   }

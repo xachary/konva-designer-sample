@@ -1,9 +1,8 @@
-import _ from 'lodash-es'
 import Konva from 'konva'
 import * as Types from '../types'
 
 export interface ContextmenuDrawOption {
-  ignore: (node: any) => boolean
+  //
 }
 
 export class ContextmenuDraw extends Types.BaseDraw implements Types.Draw {
