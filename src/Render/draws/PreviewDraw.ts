@@ -151,6 +151,16 @@ export class PreviewDraw extends Types.BaseDraw implements Types.Draw {
         })
       )
 
+      // 复制提取的节点，用作预览
+      for (const node of nodes) {
+        const copy = node.clone()
+        // 不可交互
+        copy.listening(false)
+        // 设置名称用于 ignore
+        copy.name(this.constructor.name)
+        group.add(copy)
+      }
+
       // 放大的时候，显示当前可视区域提示框
       if (stageState.scale > 1) {
         // 画布可视区域起点坐标（左上）
@@ -358,16 +368,6 @@ export class PreviewDraw extends Types.BaseDraw implements Types.Draw {
             listening: false
           })
         )
-      }
-
-      // 复制提取的节点，用作预览
-      for (const node of nodes) {
-        const copy = node.clone()
-        // 不可交互
-        copy.listening(false)
-        // 设置名称用于 ignore
-        copy.name(this.constructor.name)
-        group.add(copy)
       }
 
       this.group.add(group)
