@@ -34,7 +34,14 @@
 
 ![4](https://github.com/xachary/konva-designer-sample/assets/16830398/a24cdc9f-2b2f-4b20-b7cc-d46e18548600)
 
-![1](https://github.com/xachary/konva-designer-sample/assets/16830398/5afff9d4-920b-42ff-aebb-85af5a243dce)
+![1](https://github.com/xachary/konva-designer-sample/assets/16830398/e93e769a-b048-4cde-8aed-a39b38eef844)
+
+![2](https://github.com/xachary/konva-designer-sample/assets/16830398/8054f610-c109-4bfc-9e73-95ac25f6df90)
+
+![3](https://github.com/xachary/konva-designer-sample/assets/16830398/6a679cb9-b3c9-48d5-9a48-cdd4e4fdf9ba)
+
+![5](https://github.com/xachary/konva-designer-sample/assets/16830398/729b4054-6583-4c22-99ff-730f88a9ba68)
+
 
 ## 功能点
 
@@ -53,12 +60,12 @@
 - 画布归位（√）
 - 层次调整（√）
 - 右键菜单（√）
+- 导出、导入（√）
+- 实时预览窗（√）
 
 ## 更多功能
 
 > _如果 Star 能超过 50 个（望多多支持），将很快更新_
 
-- 实时预览窗
-- 导出、导入
 - 对齐效果
 - 等等。。。
