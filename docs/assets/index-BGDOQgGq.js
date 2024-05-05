@@ -23438,13 +23438,16 @@ class BgDraw extends BaseDraw {
           dash: [this.render.toStageValue(6), this.render.toStageValue(6)]
         })
       );
-      for (let x = startX; x < lenX + startX + 1; x++) {
+      for (let x = startX; x < lenX + startX + 2; x++) {
         group.add(
           new Konva.Line({
             name: this.constructor.name,
             points: lodash.flatten([
-              [cellSize * x, this.render.toStageValue(-stageState.y)],
-              [cellSize * x, this.render.toStageValue(stageState.height - stageState.y)]
+              [cellSize * x, this.render.toStageValue(-stageState.y + this.render.rulerSize)],
+              [
+                cellSize * x,
+                this.render.toStageValue(stageState.height - stageState.y + this.render.rulerSize)
+              ]
             ]),
             stroke: "#ddd",
             strokeWidth: this.render.toStageValue(1),
@@ -23452,13 +23455,16 @@ class BgDraw extends BaseDraw {
           })
         );
       }
-      for (let y = startY; y < lenY + startY + 1; y++) {
+      for (let y = startY; y < lenY + startY + 2; y++) {
         group.add(
           new Konva.Line({
             name: this.constructor.name,
             points: lodash.flatten([
-              [this.render.toStageValue(-stageState.x), cellSize * y],
-              [this.render.toStageValue(stageState.width - stageState.x), cellSize * y]
+              [this.render.toStageValue(-stageState.x + this.render.rulerSize), cellSize * y],
+              [
+                this.render.toStageValue(stageState.width - stageState.x + this.render.rulerSize),
+                cellSize * y
+              ]
             ]),
             stroke: "#ddd",
             strokeWidth: this.render.toStageValue(1),
@@ -23496,14 +23502,18 @@ class RulerDraw extends BaseDraw {
       const groupTop = new Konva.Group({
         x: this.render.toStageValue(-stageState.x + this.option.size),
         y: this.render.toStageValue(-stageState.y),
-        width: this.render.toStageValue(stageState.width - this.option.size),
+        width: this.render.toStageValue(
+          stageState.width - this.option.size + this.render.rulerSize
+        ),
         height: this.render.toStageValue(this.option.size)
       });
       const groupLeft = new Konva.Group({
         x: this.render.toStageValue(-stageState.x),
         y: this.render.toStageValue(-stageState.y + this.option.size),
         width: this.render.toStageValue(this.option.size),
-        height: this.render.toStageValue(stageState.height - this.option.size)
+        height: this.render.toStageValue(
+          stageState.height - this.option.size + this.render.rulerSize
+        )
       });
       {
         groupTop.add(
@@ -23678,7 +23688,7 @@ class RefLineDraw extends BaseDraw {
                   this.render.toStageValue(pos.y - stageState.y)
                 ],
                 [
-                  this.render.toStageValue(stageState.width - stageState.x),
+                  this.render.toStageValue(stageState.width - stageState.x + this.render.rulerSize),
                   this.render.toStageValue(pos.y - stageState.y)
                 ]
               ]),
@@ -23699,7 +23709,7 @@ class RefLineDraw extends BaseDraw {
                 ],
                 [
                   this.render.toStageValue(pos.x - stageState.x),
-                  this.render.toStageValue(stageState.height - stageState.y)
+                  this.render.toStageValue(stageState.height - stageState.y + this.render.rulerSize)
                 ]
               ]),
               stroke: "rgba(255,0,0,0.2)",
@@ -24889,8 +24899,8 @@ class PositionTool {
       }
     }
     this.render.stage.setAttrs({
-      x: stageState.width / 2 - this.render.toBoardValue(minX) - this.render.toBoardValue(x),
-      y: stageState.height / 2 - this.render.toBoardValue(minY) - this.render.toBoardValue(y)
+      x: stageState.width / 2 - this.render.toBoardValue(minX) - this.render.toBoardValue(x) + this.render.rulerSize,
+      y: stageState.height / 2 - this.render.toBoardValue(minY) - this.render.toBoardValue(y) + this.render.rulerSize
     });
     this.render.draws[BgDraw.name].draw();
     this.render.draws[RulerDraw.name].draw();
@@ -25071,9 +25081,9 @@ class ImportExportTool {
     layer.add(...nodes);
     nodes = layer.getChildren();
     let minX = 0;
-    let maxX = copy.width();
+    let maxX = copy.width() - this.render.rulerSize;
     let minY = 0;
-    let maxY = copy.height();
+    let maxY = copy.height() - this.render.rulerSize;
     for (const node of nodes) {
       const x = node.x();
       const y = node.y();
@@ -25238,12 +25248,15 @@ class Render {
     __publicField(this, "handlers", {});
     // 参数
     __publicField(this, "bgSize", 20);
-    __publicField(this, "rulerSize", 40);
+    __publicField(this, "rulerSize", 0);
     __publicField(this, "previewSize", 0.2);
     // 预览框大小（比例）
     __publicField(this, "history", []);
     __publicField(this, "historyIndex", -1);
     this.config = config;
+    if (this.config.showRuler) {
+      this.rulerSize = 40;
+    }
     this.stage = new Konva.Stage({
       container: stageEle,
       x: this.rulerSize,
@@ -25390,7 +25403,14 @@ class Render {
         }
       });
     }
-    for (const event of ["mousedown", "transform", "transformend", "dragstart", "dragmove", "dragend"]) {
+    for (const event of [
+      "mousedown",
+      "transform",
+      "transformend",
+      "dragstart",
+      "dragmove",
+      "dragend"
+    ]) {
       this.transformer.on(event, (e) => {
         var _a2, _b, _c, _d, _e, _f, _g;
         (_a2 = e == null ? void 0 : e.evt) == null ? void 0 : _a2.preventDefault();
@@ -25409,8 +25429,8 @@ class Render {
   // 获取 stage 状态
   getStageState() {
     return {
-      width: this.stage.width(),
-      height: this.stage.height(),
+      width: this.stage.width() - this.rulerSize,
+      height: this.stage.height() - this.rulerSize,
       scale: this.stage.scaleX(),
       x: this.stage.x(),
       y: this.stage.y()
