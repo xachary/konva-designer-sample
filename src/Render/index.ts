@@ -66,7 +66,7 @@ export class Render {
 
   // 参数
   bgSize = 20
-  rulerSize = 40
+  rulerSize = 0
   previewSize = 0.2 // 预览框大小（比例）
 
   history: string[] = []
@@ -74,6 +74,10 @@ export class Render {
 
   constructor(stageEle: HTMLDivElement, config: Types.RenderConfig) {
     this.config = config
+
+    if (this.config.showRuler) {
+      this.rulerSize = 40
+    }
 
     this.stage = new Konva.Stage({
       container: stageEle,
@@ -269,7 +273,14 @@ export class Render {
       })
     }
 
-    for (const event of ['mousedown', 'transform', 'transformend', 'dragstart', 'dragmove', 'dragend']) {
+    for (const event of [
+      'mousedown',
+      'transform',
+      'transformend',
+      'dragstart',
+      'dragmove',
+      'dragend'
+    ]) {
       this.transformer.on(event, (e) => {
         e?.evt?.preventDefault()
 
@@ -292,8 +303,8 @@ export class Render {
   // 获取 stage 状态
   getStageState() {
     return {
-      width: this.stage.width(),
-      height: this.stage.height(),
+      width: this.stage.width() - this.rulerSize,
+      height: this.stage.height() - this.rulerSize,
       scale: this.stage.scaleX(),
       x: this.stage.x(),
       y: this.stage.y()

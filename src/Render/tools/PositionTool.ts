@@ -63,8 +63,16 @@ export class PositionTool {
 
     // 居中画布
     this.render.stage.setAttrs({
-      x: stageState.width / 2 - this.render.toBoardValue(minX) - this.render.toBoardValue(x),
-      y: stageState.height / 2 - this.render.toBoardValue(minY) - this.render.toBoardValue(y)
+      x:
+        stageState.width / 2 -
+        this.render.toBoardValue(minX) -
+        this.render.toBoardValue(x) +
+        this.render.rulerSize,
+      y:
+        stageState.height / 2 -
+        this.render.toBoardValue(minY) -
+        this.render.toBoardValue(y) +
+        this.render.rulerSize
     })
 
     // 更新背景

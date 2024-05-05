@@ -50,7 +50,9 @@ export class RulerDraw extends Types.BaseDraw implements Types.Draw {
       const groupTop = new Konva.Group({
         x: this.render.toStageValue(-stageState.x + this.option.size),
         y: this.render.toStageValue(-stageState.y),
-        width: this.render.toStageValue(stageState.width - this.option.size),
+        width: this.render.toStageValue(
+          stageState.width - this.option.size + this.render.rulerSize
+        ),
         height: this.render.toStageValue(this.option.size)
       })
 
@@ -59,7 +61,9 @@ export class RulerDraw extends Types.BaseDraw implements Types.Draw {
         x: this.render.toStageValue(-stageState.x),
         y: this.render.toStageValue(-stageState.y + this.option.size),
         width: this.render.toStageValue(this.option.size),
-        height: this.render.toStageValue(stageState.height - this.option.size)
+        height: this.render.toStageValue(
+          stageState.height - this.option.size + this.render.rulerSize
+        )
       })
 
       {

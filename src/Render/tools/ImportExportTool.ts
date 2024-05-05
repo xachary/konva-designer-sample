@@ -32,9 +32,9 @@ export class ImportExportTool {
 
     // 计算节点占用的区域
     let minX = 0
-    let maxX = copy.width()
+    let maxX = copy.width() - this.render.rulerSize
     let minY = 0
-    let maxY = copy.height()
+    let maxY = copy.height() - this.render.rulerSize
     for (const node of nodes) {
       const x = node.x()
       const y = node.y()

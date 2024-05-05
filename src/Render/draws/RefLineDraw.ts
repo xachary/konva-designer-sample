@@ -42,7 +42,7 @@ export class RefLineDraw extends Types.BaseDraw implements Types.Draw, Types.Han
                   this.render.toStageValue(pos.y - stageState.y)
                 ],
                 [
-                  this.render.toStageValue(stageState.width - stageState.x),
+                  this.render.toStageValue(stageState.width - stageState.x + this.render.rulerSize),
                   this.render.toStageValue(pos.y - stageState.y)
                 ]
               ]),
@@ -65,7 +65,7 @@ export class RefLineDraw extends Types.BaseDraw implements Types.Draw, Types.Han
                 ],
                 [
                   this.render.toStageValue(pos.x - stageState.x),
-                  this.render.toStageValue(stageState.height - stageState.y)
+                  this.render.toStageValue(stageState.height - stageState.y + this.render.rulerSize)
                 ]
               ]),
               stroke: 'rgba(255,0,0,0.2)',

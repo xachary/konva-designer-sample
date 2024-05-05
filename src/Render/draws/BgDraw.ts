@@ -56,13 +56,16 @@ export class BgDraw extends Types.BaseDraw implements Types.Draw {
       )
 
       // 竖线
-      for (let x = startX; x < lenX + startX + 1; x++) {
+      for (let x = startX; x < lenX + startX + 2; x++) {
         group.add(
           new Konva.Line({
             name: this.constructor.name,
             points: _.flatten([
-              [cellSize * x, this.render.toStageValue(-stageState.y)],
-              [cellSize * x, this.render.toStageValue(stageState.height - stageState.y)]
+              [cellSize * x, this.render.toStageValue(-stageState.y + this.render.rulerSize)],
+              [
+                cellSize * x,
+                this.render.toStageValue(stageState.height - stageState.y + this.render.rulerSize)
+              ]
             ]),
             stroke: '#ddd',
             strokeWidth: this.render.toStageValue(1),
@@ -72,13 +75,16 @@ export class BgDraw extends Types.BaseDraw implements Types.Draw {
       }
 
       // 横线
-      for (let y = startY; y < lenY + startY + 1; y++) {
+      for (let y = startY; y < lenY + startY + 2; y++) {
         group.add(
           new Konva.Line({
             name: this.constructor.name,
             points: _.flatten([
-              [this.render.toStageValue(-stageState.x), cellSize * y],
-              [this.render.toStageValue(stageState.width - stageState.x), cellSize * y]
+              [this.render.toStageValue(-stageState.x + this.render.rulerSize), cellSize * y],
+              [
+                this.render.toStageValue(stageState.width - stageState.x + this.render.rulerSize),
+                cellSize * y
+              ]
             ]),
             stroke: '#ddd',
             strokeWidth: this.render.toStageValue(1),
