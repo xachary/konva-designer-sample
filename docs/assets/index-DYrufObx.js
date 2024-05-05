@@ -24732,7 +24732,7 @@ class SelectionTool {
     const change = this.selectingNodes.findIndex(
       (o) => o.attrs.lastZIndex !== void 0 && o.zIndex() !== o.attrs.lastZIndex
     ) > -1;
-    for (const node of this.selectingNodes.sort(
+    for (const node of [...this.selectingNodes].sort(
       (a, b) => a.attrs.lastZIndex - b.attrs.lastZIndex
     )) {
       node.setAttrs({
