@@ -25173,6 +25173,8 @@ class ImportExportTool {
       const nodes = main.getChildren();
       await this.restoreImage(nodes);
       this.render.layer.add(...nodes);
+      this.render.selectionTool.select(this.render.layer.getChildren());
+      this.render.selectionTool.selectingClear();
       if (!silent) {
         this.render.updateHistory();
       }
