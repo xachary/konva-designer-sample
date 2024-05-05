@@ -24001,7 +24001,10 @@ class PreviewDraw extends BaseDraw {
           const pOffsetY = pHeight - (stageState.height - pos.y - previewMargin);
           const offsetX = pOffsetX / this.option.size;
           const offsetY = pOffsetY / this.option.size;
-          this.render.positionTool.updateCenter(offsetX, offsetY);
+          this.render.positionTool.updateCenter(
+            offsetX - this.render.rulerSize / this.option.size,
+            offsetY - this.render.rulerSize / this.option.size
+          );
         }
       };
       bg.on("mousedown", (e) => {
