@@ -26,7 +26,7 @@ export class SelectionTool {
       ) > -1
 
     // 恢复透明度、层次、可交互
-    for (const node of this.selectingNodes.sort(
+    for (const node of [...this.selectingNodes].sort(
       (a, b) => a.attrs.lastZIndex - b.attrs.lastZIndex
     )) {
       node.setAttrs({
