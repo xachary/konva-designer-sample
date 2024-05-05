@@ -160,6 +160,12 @@ export class ImportExportTool {
       // 往 main layer 插入新节点
       this.render.layer.add(...nodes)
 
+      // Bug: 恢复 JSON 时候，如果存在已经被放大缩小点元素，点击选择无效
+      // 可能是 Konva 的 bug
+      this.render.selectionTool.select(this.render.layer.getChildren())
+      // 清空选择
+      this.render.selectionTool.selectingClear()
+
       // 上一步、下一步 无需更新 history 记录
       if (!silent) {
         // 更新历史
