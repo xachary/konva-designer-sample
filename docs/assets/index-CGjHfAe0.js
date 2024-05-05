@@ -24741,7 +24741,6 @@ class SelectionTool {
     }
     this.selectingNodes = [];
     if (change) {
-      this.render.updateHistory();
       this.render.draws[PreviewDraw.name].draw();
     }
   }
