@@ -77,10 +77,18 @@ export class PreviewDraw extends Types.BaseDraw implements Types.Draw {
       // 根据占用的区域调整预览框的大小
       group.setAttrs({
         x: this.render.toStageValue(
-          -stageState.x + stageState.width - maxX * this.option.size - previewMargin
+          -stageState.x +
+            this.render.rulerSize +
+            stageState.width -
+            maxX * this.option.size -
+            previewMargin
         ),
         y: this.render.toStageValue(
-          -stageState.y + stageState.height - maxY * this.option.size - previewMargin
+          -stageState.y +
+            this.render.rulerSize +
+            stageState.height -
+            maxY * this.option.size -
+            previewMargin
         ),
         width: maxX - minX,
         height: maxY - minY
