@@ -122,7 +122,10 @@ export class PreviewDraw extends Types.BaseDraw implements Types.Draw {
           const offsetY = pOffsetY / this.option.size
 
           // 点击预览框，点击位置作为画布中心
-          this.render.positionTool.updateCenter(offsetX, offsetY)
+          this.render.positionTool.updateCenter(
+            offsetX - this.render.rulerSize / this.option.size,
+            offsetY - this.render.rulerSize / this.option.size
+          )
         }
       }
 
