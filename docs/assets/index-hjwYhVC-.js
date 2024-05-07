@@ -24500,12 +24500,21 @@ class SelectionHandlers {
         const logicNumBottomY = Math.round(logicBottomY / this.render.bgSize);
         const logicClosestBottomY = logicNumBottomY * this.render.bgSize;
         const logicDiffBottomY = Math.abs(logicBottomY - logicClosestBottomY);
+        const logicStageRightX = stageState.width;
+        const logicDiffStageRightX = Math.abs(logicRightX - logicStageRightX);
+        const logicStageBottomY = stageState.height;
+        const logicDiffStageBottomY = Math.abs(logicBottomY - logicStageBottomY);
         for (const diff of [
           { type: "leftX", value: logicDiffLeftX },
-          { type: "rightX", value: logicDiffRightX }
+          { type: "rightX", value: logicDiffRightX },
+          { type: "stageRightX", value: logicDiffStageRightX }
         ].sort((a, b) => a.value - b.value)) {
           if (diff.value < 5) {
-            if (diff.type === "leftX") {
+            if (diff.type === "stageRightX") {
+              console.log(1, newPosX);
+              newPosX = this.render.toBoardValue(logicStageRightX) + stageState.x - width;
+              console.log(2, newPosX);
+            } else if (diff.type === "leftX") {
               newPosX = this.render.toBoardValue(logicClosestLeftX) + stageState.x;
             } else if (diff.type === "rightX") {
               newPosX = this.render.toBoardValue(logicClosestRightX) + stageState.x - width;
@@ -24516,10 +24525,13 @@ class SelectionHandlers {
         }
         for (const diff of [
           { type: "topY", value: logicDiffTopY },
-          { type: "bottomY", value: logicDiffBottomY }
+          { type: "bottomY", value: logicDiffBottomY },
+          { type: "stageBottomY", value: logicDiffStageBottomY }
         ].sort((a, b) => a.value - b.value)) {
           if (diff.value < 5) {
-            if (diff.type === "topY") {
+            if (diff.type === "stageBottomY") {
+              newPosY = this.render.toBoardValue(logicStageBottomY) + stageState.y - height;
+            } else if (diff.type === "topY") {
               newPosY = this.render.toBoardValue(logicClosestTopY) + stageState.y;
             } else if (diff.type === "bottomY") {
               newPosY = this.render.toBoardValue(logicClosestBottomY) + stageState.y - height;
@@ -25068,6 +25080,732 @@ class ZIndexTool {
   }
 }
 __publicField(ZIndexTool, "name", "ZIndexTool");
+var canvas2svg = { exports: {} };
+/*!!
+ *  Canvas 2 Svg v1.0.15
+ *  A low level canvas to SVG converter. Uses a mock canvas context to build an SVG document.
+ *
+ *  Licensed under the MIT license:
+ *  http://www.opensource.org/licenses/mit-license.php
+ *
+ *  Author:
+ *  Kerry Liu
+ *
+ *  Copyright (c) 2014 Gliffy Inc.
+ */
+(function(module2) {
+  (function() {
+    var STYLES, ctx, CanvasGradient, CanvasPattern, namedEntities;
+    function format(str, args) {
+      var keys2 = Object.keys(args), i;
+      for (i = 0; i < keys2.length; i++) {
+        str = str.replace(new RegExp("\\{" + keys2[i] + "\\}", "gi"), args[keys2[i]]);
+      }
+      return str;
+    }
+    function randomString(holder) {
+      var chars, randomstring, i;
+      if (!holder) {
+        throw new Error("cannot create a random attribute name for an undefined object");
+      }
+      chars = "ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz";
+      randomstring = "";
+      do {
+        randomstring = "";
+        for (i = 0; i < 12; i++) {
+          randomstring += chars[Math.floor(Math.random() * chars.length)];
+        }
+      } while (holder[randomstring]);
+      return randomstring;
+    }
+    function createNamedToNumberedLookup(items, radix) {
+      var i, entity, lookup = {}, base10;
+      items = items.split(",");
+      radix = radix || 10;
+      for (i = 0; i < items.length; i += 2) {
+        entity = "&" + items[i + 1] + ";";
+        base10 = parseInt(items[i], radix);
+        lookup[entity] = "&#" + base10 + ";";
+      }
+      lookup["\\xa0"] = "&#160;";
+      return lookup;
+    }
+    function getTextAnchor(textAlign) {
+      var mapping = { "left": "start", "right": "end", "center": "middle", "start": "start", "end": "end" };
+      return mapping[textAlign] || mapping.start;
+    }
+    function getDominantBaseline(textBaseline) {
+      var mapping = { "alphabetic": "alphabetic", "hanging": "hanging", "top": "text-before-edge", "bottom": "text-after-edge", "middle": "central" };
+      return mapping[textBaseline] || mapping.alphabetic;
+    }
+    namedEntities = createNamedToNumberedLookup(
+      "50,nbsp,51,iexcl,52,cent,53,pound,54,curren,55,yen,56,brvbar,57,sect,58,uml,59,copy,5a,ordf,5b,laquo,5c,not,5d,shy,5e,reg,5f,macr,5g,deg,5h,plusmn,5i,sup2,5j,sup3,5k,acute,5l,micro,5m,para,5n,middot,5o,cedil,5p,sup1,5q,ordm,5r,raquo,5s,frac14,5t,frac12,5u,frac34,5v,iquest,60,Agrave,61,Aacute,62,Acirc,63,Atilde,64,Auml,65,Aring,66,AElig,67,Ccedil,68,Egrave,69,Eacute,6a,Ecirc,6b,Euml,6c,Igrave,6d,Iacute,6e,Icirc,6f,Iuml,6g,ETH,6h,Ntilde,6i,Ograve,6j,Oacute,6k,Ocirc,6l,Otilde,6m,Ouml,6n,times,6o,Oslash,6p,Ugrave,6q,Uacute,6r,Ucirc,6s,Uuml,6t,Yacute,6u,THORN,6v,szlig,70,agrave,71,aacute,72,acirc,73,atilde,74,auml,75,aring,76,aelig,77,ccedil,78,egrave,79,eacute,7a,ecirc,7b,euml,7c,igrave,7d,iacute,7e,icirc,7f,iuml,7g,eth,7h,ntilde,7i,ograve,7j,oacute,7k,ocirc,7l,otilde,7m,ouml,7n,divide,7o,oslash,7p,ugrave,7q,uacute,7r,ucirc,7s,uuml,7t,yacute,7u,thorn,7v,yuml,ci,fnof,sh,Alpha,si,Beta,sj,Gamma,sk,Delta,sl,Epsilon,sm,Zeta,sn,Eta,so,Theta,sp,Iota,sq,Kappa,sr,Lambda,ss,Mu,st,Nu,su,Xi,sv,Omicron,t0,Pi,t1,Rho,t3,Sigma,t4,Tau,t5,Upsilon,t6,Phi,t7,Chi,t8,Psi,t9,Omega,th,alpha,ti,beta,tj,gamma,tk,delta,tl,epsilon,tm,zeta,tn,eta,to,theta,tp,iota,tq,kappa,tr,lambda,ts,mu,tt,nu,tu,xi,tv,omicron,u0,pi,u1,rho,u2,sigmaf,u3,sigma,u4,tau,u5,upsilon,u6,phi,u7,chi,u8,psi,u9,omega,uh,thetasym,ui,upsih,um,piv,812,bull,816,hellip,81i,prime,81j,Prime,81u,oline,824,frasl,88o,weierp,88h,image,88s,real,892,trade,89l,alefsym,8cg,larr,8ch,uarr,8ci,rarr,8cj,darr,8ck,harr,8dl,crarr,8eg,lArr,8eh,uArr,8ei,rArr,8ej,dArr,8ek,hArr,8g0,forall,8g2,part,8g3,exist,8g5,empty,8g7,nabla,8g8,isin,8g9,notin,8gb,ni,8gf,prod,8gh,sum,8gi,minus,8gn,lowast,8gq,radic,8gt,prop,8gu,infin,8h0,ang,8h7,and,8h8,or,8h9,cap,8ha,cup,8hb,int,8hk,there4,8hs,sim,8i5,cong,8i8,asymp,8j0,ne,8j1,equiv,8j4,le,8j5,ge,8k2,sub,8k3,sup,8k4,nsub,8k6,sube,8k7,supe,8kl,oplus,8kn,otimes,8l5,perp,8m5,sdot,8o8,lceil,8o9,rceil,8oa,lfloor,8ob,rfloor,8p9,lang,8pa,rang,9ea,loz,9j0,spades,9j3,clubs,9j5,hearts,9j6,diams,ai,OElig,aj,oelig,b0,Scaron,b1,scaron,bo,Yuml,m6,circ,ms,tilde,802,ensp,803,emsp,809,thinsp,80c,zwnj,80d,zwj,80e,lrm,80f,rlm,80j,ndash,80k,mdash,80o,lsquo,80p,rsquo,80q,sbquo,80s,ldquo,80t,rdquo,80u,bdquo,810,dagger,811,Dagger,81g,permil,81p,lsaquo,81q,rsaquo,85c,euro",
+      32
+    );
+    STYLES = {
+      "strokeStyle": {
+        svgAttr: "stroke",
+        //corresponding svg attribute
+        canvas: "#000000",
+        //canvas default
+        svg: "none",
+        //svg default
+        apply: "stroke"
+        //apply on stroke() or fill()
+      },
+      "fillStyle": {
+        svgAttr: "fill",
+        canvas: "#000000",
+        svg: null,
+        //svg default is black, but we need to special case this to handle canvas stroke without fill
+        apply: "fill"
+      },
+      "lineCap": {
+        svgAttr: "stroke-linecap",
+        canvas: "butt",
+        svg: "butt",
+        apply: "stroke"
+      },
+      "lineJoin": {
+        svgAttr: "stroke-linejoin",
+        canvas: "miter",
+        svg: "miter",
+        apply: "stroke"
+      },
+      "miterLimit": {
+        svgAttr: "stroke-miterlimit",
+        canvas: 10,
+        svg: 4,
+        apply: "stroke"
+      },
+      "lineWidth": {
+        svgAttr: "stroke-width",
+        canvas: 1,
+        svg: 1,
+        apply: "stroke"
+      },
+      "globalAlpha": {
+        svgAttr: "opacity",
+        canvas: 1,
+        svg: 1,
+        apply: "fill stroke"
+      },
+      "font": {
+        //font converts to multiple svg attributes, there is custom logic for this
+        canvas: "10px sans-serif"
+      },
+      "shadowColor": {
+        canvas: "#000000"
+      },
+      "shadowOffsetX": {
+        canvas: 0
+      },
+      "shadowOffsetY": {
+        canvas: 0
+      },
+      "shadowBlur": {
+        canvas: 0
+      },
+      "textAlign": {
+        canvas: "start"
+      },
+      "textBaseline": {
+        canvas: "alphabetic"
+      }
+    };
+    CanvasGradient = function(gradientNode, ctx2) {
+      this.__root = gradientNode;
+      this.__ctx = ctx2;
+    };
+    CanvasGradient.prototype.addColorStop = function(offset, color) {
+      var stop = this.__ctx.__createElement("stop"), regex, matches2;
+      stop.setAttribute("offset", offset);
+      if (color.indexOf("rgba") !== -1) {
+        regex = /rgba\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d?\.?\d*)\s*\)/gi;
+        matches2 = regex.exec(color);
+        stop.setAttribute("stop-color", format("rgb({r},{g},{b})", { r: matches2[1], g: matches2[2], b: matches2[3] }));
+        stop.setAttribute("stop-opacity", matches2[4]);
+      } else {
+        stop.setAttribute("stop-color", color);
+      }
+      this.__root.appendChild(stop);
+    };
+    CanvasPattern = function(pattern, ctx2) {
+      this.__root = pattern;
+      this.__ctx = ctx2;
+    };
+    ctx = function(o) {
+      var defaultOptions = { width: 500, height: 500, enableMirroring: false }, options;
+      if (arguments.length > 1) {
+        options = defaultOptions;
+        options.width = arguments[0];
+        options.height = arguments[1];
+      } else if (!o) {
+        options = defaultOptions;
+      } else {
+        options = o;
+      }
+      if (!(this instanceof ctx)) {
+        return new ctx(options);
+      }
+      this.width = options.width || defaultOptions.width;
+      this.height = options.height || defaultOptions.height;
+      this.enableMirroring = options.enableMirroring !== void 0 ? options.enableMirroring : defaultOptions.enableMirroring;
+      this.canvas = this;
+      this.__document = options.document || document;
+      this.__canvas = this.__document.createElement("canvas");
+      this.__ctx = this.__canvas.getContext("2d");
+      this.__setDefaultStyles();
+      this.__stack = [this.__getStyleState()];
+      this.__groupStack = [];
+      this.__root = this.__document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      this.__root.setAttribute("version", 1.1);
+      this.__root.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+      this.__root.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:xlink", "http://www.w3.org/1999/xlink");
+      this.__root.setAttribute("width", this.width);
+      this.__root.setAttribute("height", this.height);
+      this.__ids = {};
+      this.__defs = this.__document.createElementNS("http://www.w3.org/2000/svg", "defs");
+      this.__root.appendChild(this.__defs);
+      this.__currentElement = this.__document.createElementNS("http://www.w3.org/2000/svg", "g");
+      this.__root.appendChild(this.__currentElement);
+    };
+    ctx.prototype.__createElement = function(elementName, properties, resetFill) {
+      if (typeof properties === "undefined") {
+        properties = {};
+      }
+      var element = this.__document.createElementNS("http://www.w3.org/2000/svg", elementName), keys2 = Object.keys(properties), i, key;
+      if (resetFill) {
+        element.setAttribute("fill", "none");
+        element.setAttribute("stroke", "none");
+      }
+      for (i = 0; i < keys2.length; i++) {
+        key = keys2[i];
+        element.setAttribute(key, properties[key]);
+      }
+      return element;
+    };
+    ctx.prototype.__setDefaultStyles = function() {
+      var keys2 = Object.keys(STYLES), i, key;
+      for (i = 0; i < keys2.length; i++) {
+        key = keys2[i];
+        this[key] = STYLES[key].canvas;
+      }
+    };
+    ctx.prototype.__applyStyleState = function(styleState) {
+      var keys2 = Object.keys(styleState), i, key;
+      for (i = 0; i < keys2.length; i++) {
+        key = keys2[i];
+        this[key] = styleState[key];
+      }
+    };
+    ctx.prototype.__getStyleState = function() {
+      var i, styleState = {}, keys2 = Object.keys(STYLES), key;
+      for (i = 0; i < keys2.length; i++) {
+        key = keys2[i];
+        styleState[key] = this[key];
+      }
+      return styleState;
+    };
+    ctx.prototype.__applyStyleToCurrentElement = function(type) {
+      var keys2 = Object.keys(STYLES), i, style, value, id, regex, matches2;
+      for (i = 0; i < keys2.length; i++) {
+        style = STYLES[keys2[i]];
+        value = this[keys2[i]];
+        if (style.apply) {
+          if (style.apply.indexOf("fill") !== -1 && value instanceof CanvasPattern) {
+            if (value.__ctx) {
+              while (value.__ctx.__defs.childNodes.length) {
+                id = value.__ctx.__defs.childNodes[0].getAttribute("id");
+                this.__ids[id] = id;
+                this.__defs.appendChild(value.__ctx.__defs.childNodes[0]);
+              }
+            }
+            this.__currentElement.setAttribute("fill", format("url(#{id})", { id: value.__root.getAttribute("id") }));
+          } else if (style.apply.indexOf("fill") !== -1 && value instanceof CanvasGradient) {
+            this.__currentElement.setAttribute("fill", format("url(#{id})", { id: value.__root.getAttribute("id") }));
+          } else if (style.apply.indexOf(type) !== -1 && style.svg !== value) {
+            if ((style.svgAttr === "stroke" || style.svgAttr === "fill") && value.indexOf("rgba") !== -1) {
+              regex = /rgba\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d?\.?\d*)\s*\)/gi;
+              matches2 = regex.exec(value);
+              this.__currentElement.setAttribute(style.svgAttr, format("rgb({r},{g},{b})", { r: matches2[1], g: matches2[2], b: matches2[3] }));
+              this.__currentElement.setAttribute(style.svgAttr + "-opacity", matches2[4]);
+            } else {
+              this.__currentElement.setAttribute(style.svgAttr, value);
+            }
+          }
+        }
+      }
+    };
+    ctx.prototype.__closestGroupOrSvg = function(node) {
+      node = node || this.__currentElement;
+      if (node.nodeName === "g" || node.nodeName === "svg") {
+        return node;
+      } else {
+        return this.__closestGroupOrSvg(node.parentNode);
+      }
+    };
+    ctx.prototype.getSerializedSvg = function(fixNamedEntities) {
+      var serialized = new XMLSerializer().serializeToString(this.__root), keys2, i, key, value, regexp, xmlns;
+      xmlns = /xmlns="http:\/\/www\.w3\.org\/2000\/svg".+xmlns="http:\/\/www\.w3\.org\/2000\/svg/gi;
+      if (xmlns.test(serialized)) {
+        serialized = serialized.replace('xmlns="http://www.w3.org/2000/svg', 'xmlns:xlink="http://www.w3.org/1999/xlink');
+      }
+      if (fixNamedEntities) {
+        keys2 = Object.keys(namedEntities);
+        for (i = 0; i < keys2.length; i++) {
+          key = keys2[i];
+          value = namedEntities[key];
+          regexp = new RegExp(key, "gi");
+          if (regexp.test(serialized)) {
+            serialized = serialized.replace(regexp, value);
+          }
+        }
+      }
+      return serialized;
+    };
+    ctx.prototype.getSvg = function() {
+      return this.__root;
+    };
+    ctx.prototype.save = function() {
+      var group = this.__createElement("g"), parent2 = this.__closestGroupOrSvg();
+      this.__groupStack.push(parent2);
+      parent2.appendChild(group);
+      this.__currentElement = group;
+      this.__stack.push(this.__getStyleState());
+    };
+    ctx.prototype.restore = function() {
+      this.__currentElement = this.__groupStack.pop();
+      var state = this.__stack.pop();
+      this.__applyStyleState(state);
+    };
+    ctx.prototype.__addTransform = function(t) {
+      var parent2 = this.__closestGroupOrSvg();
+      if (parent2.childNodes.length > 0) {
+        var group = this.__createElement("g");
+        parent2.appendChild(group);
+        this.__currentElement = group;
+      }
+      var transform2 = this.__currentElement.getAttribute("transform");
+      if (transform2) {
+        transform2 += " ";
+      } else {
+        transform2 = "";
+      }
+      transform2 += t;
+      this.__currentElement.setAttribute("transform", transform2);
+    };
+    ctx.prototype.scale = function(x, y) {
+      if (y === void 0) {
+        y = x;
+      }
+      this.__addTransform(format("scale({x},{y})", { x, y }));
+    };
+    ctx.prototype.rotate = function(angle) {
+      var degrees = angle * 180 / Math.PI;
+      this.__addTransform(format("rotate({angle},{cx},{cy})", { angle: degrees, cx: 0, cy: 0 }));
+    };
+    ctx.prototype.translate = function(x, y) {
+      this.__addTransform(format("translate({x},{y})", { x, y }));
+    };
+    ctx.prototype.transform = function(a, b, c, d, e, f) {
+      this.__addTransform(format("matrix({a},{b},{c},{d},{e},{f})", { a, b, c, d, e, f }));
+    };
+    ctx.prototype.beginPath = function() {
+      var path, parent2;
+      this.__currentDefaultPath = "";
+      this.__currentPosition = {};
+      path = this.__createElement("path", {}, true);
+      parent2 = this.__closestGroupOrSvg();
+      parent2.appendChild(path);
+      this.__currentElement = path;
+    };
+    ctx.prototype.__applyCurrentDefaultPath = function() {
+      if (this.__currentElement.nodeName === "path") {
+        var d = this.__currentDefaultPath;
+        this.__currentElement.setAttribute("d", d);
+      } else {
+        throw new Error("Attempted to apply path command to node " + this.__currentElement.nodeName);
+      }
+    };
+    ctx.prototype.__addPathCommand = function(command) {
+      this.__currentDefaultPath += " ";
+      this.__currentDefaultPath += command;
+    };
+    ctx.prototype.moveTo = function(x, y) {
+      if (this.__currentElement.nodeName !== "path") {
+        this.beginPath();
+      }
+      this.__currentPosition = { x, y };
+      this.__addPathCommand(format("M {x} {y}", { x, y }));
+    };
+    ctx.prototype.closePath = function() {
+      this.__addPathCommand("Z");
+    };
+    ctx.prototype.lineTo = function(x, y) {
+      this.__currentPosition = { x, y };
+      if (this.__currentDefaultPath.indexOf("M") > -1) {
+        this.__addPathCommand(format("L {x} {y}", { x, y }));
+      } else {
+        this.__addPathCommand(format("M {x} {y}", { x, y }));
+      }
+    };
+    ctx.prototype.bezierCurveTo = function(cp1x, cp1y, cp2x, cp2y, x, y) {
+      this.__currentPosition = { x, y };
+      this.__addPathCommand(format(
+        "C {cp1x} {cp1y} {cp2x} {cp2y} {x} {y}",
+        { cp1x, cp1y, cp2x, cp2y, x, y }
+      ));
+    };
+    ctx.prototype.quadraticCurveTo = function(cpx, cpy, x, y) {
+      this.__currentPosition = { x, y };
+      this.__addPathCommand(format("Q {cpx} {cpy} {x} {y}", { cpx, cpy, x, y }));
+    };
+    var normalize = function(vector) {
+      var len = Math.sqrt(vector[0] * vector[0] + vector[1] * vector[1]);
+      return [vector[0] / len, vector[1] / len];
+    };
+    ctx.prototype.arcTo = function(x1, y1, x2, y2, radius) {
+      var x0 = this.__currentPosition && this.__currentPosition.x;
+      var y0 = this.__currentPosition && this.__currentPosition.y;
+      if (typeof x0 == "undefined" || typeof y0 == "undefined") {
+        return;
+      }
+      if (radius < 0) {
+        throw new Error("IndexSizeError: The radius provided (" + radius + ") is negative.");
+      }
+      if (x0 === x1 && y0 === y1 || x1 === x2 && y1 === y2 || radius === 0) {
+        this.lineTo(x1, y1);
+        return;
+      }
+      var unit_vec_p1_p0 = normalize([x0 - x1, y0 - y1]);
+      var unit_vec_p1_p2 = normalize([x2 - x1, y2 - y1]);
+      if (unit_vec_p1_p0[0] * unit_vec_p1_p2[1] === unit_vec_p1_p0[1] * unit_vec_p1_p2[0]) {
+        this.lineTo(x1, y1);
+        return;
+      }
+      var cos = unit_vec_p1_p0[0] * unit_vec_p1_p2[0] + unit_vec_p1_p0[1] * unit_vec_p1_p2[1];
+      var theta = Math.acos(Math.abs(cos));
+      var unit_vec_p1_origin = normalize([
+        unit_vec_p1_p0[0] + unit_vec_p1_p2[0],
+        unit_vec_p1_p0[1] + unit_vec_p1_p2[1]
+      ]);
+      var len_p1_origin = radius / Math.sin(theta / 2);
+      var x = x1 + len_p1_origin * unit_vec_p1_origin[0];
+      var y = y1 + len_p1_origin * unit_vec_p1_origin[1];
+      var unit_vec_origin_start_tangent = [
+        -unit_vec_p1_p0[1],
+        unit_vec_p1_p0[0]
+      ];
+      var unit_vec_origin_end_tangent = [
+        unit_vec_p1_p2[1],
+        -unit_vec_p1_p2[0]
+      ];
+      var getAngle = function(vector) {
+        var x3 = vector[0];
+        var y3 = vector[1];
+        if (y3 >= 0) {
+          return Math.acos(x3);
+        } else {
+          return -Math.acos(x3);
+        }
+      };
+      var startAngle = getAngle(unit_vec_origin_start_tangent);
+      var endAngle = getAngle(unit_vec_origin_end_tangent);
+      this.lineTo(
+        x + unit_vec_origin_start_tangent[0] * radius,
+        y + unit_vec_origin_start_tangent[1] * radius
+      );
+      this.arc(x, y, radius, startAngle, endAngle);
+    };
+    ctx.prototype.stroke = function() {
+      if (this.__currentElement.nodeName === "path") {
+        this.__currentElement.setAttribute("paint-order", "fill stroke markers");
+      }
+      this.__applyCurrentDefaultPath();
+      this.__applyStyleToCurrentElement("stroke");
+    };
+    ctx.prototype.fill = function() {
+      if (this.__currentElement.nodeName === "path") {
+        this.__currentElement.setAttribute("paint-order", "stroke fill markers");
+      }
+      this.__applyCurrentDefaultPath();
+      this.__applyStyleToCurrentElement("fill");
+    };
+    ctx.prototype.rect = function(x, y, width, height) {
+      if (this.__currentElement.nodeName !== "path") {
+        this.beginPath();
+      }
+      this.moveTo(x, y);
+      this.lineTo(x + width, y);
+      this.lineTo(x + width, y + height);
+      this.lineTo(x, y + height);
+      this.lineTo(x, y);
+      this.closePath();
+    };
+    ctx.prototype.fillRect = function(x, y, width, height) {
+      var rect, parent2;
+      rect = this.__createElement("rect", {
+        x,
+        y,
+        width,
+        height
+      }, true);
+      parent2 = this.__closestGroupOrSvg();
+      parent2.appendChild(rect);
+      this.__currentElement = rect;
+      this.__applyStyleToCurrentElement("fill");
+    };
+    ctx.prototype.strokeRect = function(x, y, width, height) {
+      var rect, parent2;
+      rect = this.__createElement("rect", {
+        x,
+        y,
+        width,
+        height
+      }, true);
+      parent2 = this.__closestGroupOrSvg();
+      parent2.appendChild(rect);
+      this.__currentElement = rect;
+      this.__applyStyleToCurrentElement("stroke");
+    };
+    ctx.prototype.clearRect = function(x, y, width, height) {
+      var rect, parent2 = this.__closestGroupOrSvg();
+      rect = this.__createElement("rect", {
+        x,
+        y,
+        width,
+        height,
+        fill: "#FFFFFF"
+      }, true);
+      parent2.appendChild(rect);
+    };
+    ctx.prototype.createLinearGradient = function(x1, y1, x2, y2) {
+      var grad = this.__createElement("linearGradient", {
+        id: randomString(this.__ids),
+        x1: x1 + "px",
+        x2: x2 + "px",
+        y1: y1 + "px",
+        y2: y2 + "px",
+        "gradientUnits": "userSpaceOnUse"
+      }, false);
+      this.__defs.appendChild(grad);
+      return new CanvasGradient(grad, this);
+    };
+    ctx.prototype.createRadialGradient = function(x0, y0, r0, x1, y1, r1) {
+      var grad = this.__createElement("radialGradient", {
+        id: randomString(this.__ids),
+        cx: x1 + "px",
+        cy: y1 + "px",
+        r: r1 + "px",
+        fx: x0 + "px",
+        fy: y0 + "px",
+        "gradientUnits": "userSpaceOnUse"
+      }, false);
+      this.__defs.appendChild(grad);
+      return new CanvasGradient(grad, this);
+    };
+    ctx.prototype.__parseFont = function() {
+      var regex = /^\s*(?=(?:(?:[-a-z]+\s*){0,2}(italic|oblique))?)(?=(?:(?:[-a-z]+\s*){0,2}(small-caps))?)(?=(?:(?:[-a-z]+\s*){0,2}(bold(?:er)?|lighter|[1-9]00))?)(?:(?:normal|\1|\2|\3)\s*){0,3}((?:xx?-)?(?:small|large)|medium|smaller|larger|[.\d]+(?:\%|in|[cem]m|ex|p[ctx]))(?:\s*\/\s*(normal|[.\d]+(?:\%|in|[cem]m|ex|p[ctx])))?\s*([-,\"\sa-z]+?)\s*$/i;
+      var fontPart = regex.exec(this.font);
+      var data = {
+        style: fontPart[1] || "normal",
+        size: fontPart[4] || "10px",
+        family: fontPart[6] || "sans-serif",
+        weight: fontPart[3] || "normal",
+        decoration: fontPart[2] || "normal",
+        href: null
+      };
+      if (this.__fontUnderline === "underline") {
+        data.decoration = "underline";
+      }
+      if (this.__fontHref) {
+        data.href = this.__fontHref;
+      }
+      return data;
+    };
+    ctx.prototype.__wrapTextLink = function(font, element) {
+      if (font.href) {
+        var a = this.__createElement("a");
+        a.setAttributeNS("http://www.w3.org/1999/xlink", "xlink:href", font.href);
+        a.appendChild(element);
+        return a;
+      }
+      return element;
+    };
+    ctx.prototype.__applyText = function(text, x, y, action) {
+      var font = this.__parseFont(), parent2 = this.__closestGroupOrSvg(), textElement = this.__createElement("text", {
+        "font-family": font.family,
+        "font-size": font.size,
+        "font-style": font.style,
+        "font-weight": font.weight,
+        "text-decoration": font.decoration,
+        "x": x,
+        "y": y,
+        "text-anchor": getTextAnchor(this.textAlign),
+        "dominant-baseline": getDominantBaseline(this.textBaseline)
+      }, true);
+      textElement.appendChild(this.__document.createTextNode(text));
+      this.__currentElement = textElement;
+      this.__applyStyleToCurrentElement(action);
+      parent2.appendChild(this.__wrapTextLink(font, textElement));
+    };
+    ctx.prototype.fillText = function(text, x, y) {
+      this.__applyText(text, x, y, "fill");
+    };
+    ctx.prototype.strokeText = function(text, x, y) {
+      this.__applyText(text, x, y, "stroke");
+    };
+    ctx.prototype.measureText = function(text) {
+      this.__ctx.font = this.font;
+      return this.__ctx.measureText(text);
+    };
+    ctx.prototype.arc = function(x, y, radius, startAngle, endAngle, counterClockwise) {
+      if (startAngle === endAngle) {
+        return;
+      }
+      startAngle = startAngle % (2 * Math.PI);
+      endAngle = endAngle % (2 * Math.PI);
+      if (startAngle === endAngle) {
+        endAngle = (endAngle + 2 * Math.PI - 1e-3 * (counterClockwise ? -1 : 1)) % (2 * Math.PI);
+      }
+      var endX = x + radius * Math.cos(endAngle), endY = y + radius * Math.sin(endAngle), startX = x + radius * Math.cos(startAngle), startY = y + radius * Math.sin(startAngle), sweepFlag = counterClockwise ? 0 : 1, largeArcFlag = 0, diff = endAngle - startAngle;
+      if (diff < 0) {
+        diff += 2 * Math.PI;
+      }
+      if (counterClockwise) {
+        largeArcFlag = diff > Math.PI ? 0 : 1;
+      } else {
+        largeArcFlag = diff > Math.PI ? 1 : 0;
+      }
+      this.lineTo(startX, startY);
+      this.__addPathCommand(format(
+        "A {rx} {ry} {xAxisRotation} {largeArcFlag} {sweepFlag} {endX} {endY}",
+        { rx: radius, ry: radius, xAxisRotation: 0, largeArcFlag, sweepFlag, endX, endY }
+      ));
+      this.__currentPosition = { x: endX, y: endY };
+    };
+    ctx.prototype.clip = function() {
+      var group = this.__closestGroupOrSvg(), clipPath = this.__createElement("clipPath"), id = randomString(this.__ids), newGroup = this.__createElement("g");
+      group.removeChild(this.__currentElement);
+      clipPath.setAttribute("id", id);
+      clipPath.appendChild(this.__currentElement);
+      this.__defs.appendChild(clipPath);
+      group.setAttribute("clip-path", format("url(#{id})", { id }));
+      group.appendChild(newGroup);
+      this.__currentElement = newGroup;
+    };
+    ctx.prototype.drawImage = function() {
+      var args = Array.prototype.slice.call(arguments), image = args[0], dx, dy, dw, dh, sx = 0, sy = 0, sw, sh, parent2, svg, defs, group, currentElement, svgImage, canvas, context, id;
+      if (args.length === 3) {
+        dx = args[1];
+        dy = args[2];
+        sw = image.width;
+        sh = image.height;
+        dw = sw;
+        dh = sh;
+      } else if (args.length === 5) {
+        dx = args[1];
+        dy = args[2];
+        dw = args[3];
+        dh = args[4];
+        sw = image.width;
+        sh = image.height;
+      } else if (args.length === 9) {
+        sx = args[1];
+        sy = args[2];
+        sw = args[3];
+        sh = args[4];
+        dx = args[5];
+        dy = args[6];
+        dw = args[7];
+        dh = args[8];
+      } else {
+        throw new Error("Inavlid number of arguments passed to drawImage: " + arguments.length);
+      }
+      parent2 = this.__closestGroupOrSvg();
+      currentElement = this.__currentElement;
+      if (image instanceof ctx) {
+        svg = image.getSvg();
+        defs = svg.childNodes[0];
+        while (defs.childNodes.length) {
+          id = defs.childNodes[0].getAttribute("id");
+          this.__ids[id] = id;
+          this.__defs.appendChild(defs.childNodes[0]);
+        }
+        group = svg.childNodes[1];
+        parent2.appendChild(group);
+        this.__currentElement = group;
+        this.translate(dx, dy);
+        this.__currentElement = currentElement;
+      } else if (image.nodeName === "CANVAS" || image.nodeName === "IMG") {
+        svgImage = this.__createElement("image");
+        svgImage.setAttribute("width", dw);
+        svgImage.setAttribute("height", dh);
+        svgImage.setAttribute("preserveAspectRatio", "none");
+        if (sx || sy || sw !== image.width || sh !== image.height) {
+          canvas = this.__document.createElement("canvas");
+          canvas.width = dw;
+          canvas.height = dh;
+          context = canvas.getContext("2d");
+          context.drawImage(image, sx, sy, sw, sh, 0, 0, dw, dh);
+          image = canvas;
+        }
+        svgImage.setAttributeNS(
+          "http://www.w3.org/1999/xlink",
+          "xlink:href",
+          image.nodeName === "CANVAS" ? image.toDataURL() : image.getAttribute("src")
+        );
+        parent2.appendChild(svgImage);
+        this.__currentElement = svgImage;
+        this.translate(dx, dy);
+        this.__currentElement = currentElement;
+      }
+    };
+    ctx.prototype.createPattern = function(image, repetition) {
+      var pattern = this.__document.createElementNS("http://www.w3.org/2000/svg", "pattern"), id = randomString(this.__ids), img;
+      pattern.setAttribute("id", id);
+      pattern.setAttribute("width", image.width);
+      pattern.setAttribute("height", image.height);
+      if (image.nodeName === "CANVAS" || image.nodeName === "IMG") {
+        img = this.__document.createElementNS("http://www.w3.org/2000/svg", "image");
+        img.setAttribute("width", image.width);
+        img.setAttribute("height", image.height);
+        img.setAttributeNS(
+          "http://www.w3.org/1999/xlink",
+          "xlink:href",
+          image.nodeName === "CANVAS" ? image.toDataURL() : image.getAttribute("src")
+        );
+        pattern.appendChild(img);
+        this.__defs.appendChild(pattern);
+      } else if (image instanceof ctx) {
+        pattern.appendChild(image.__root.childNodes[1]);
+        this.__defs.appendChild(pattern);
+      }
+      return new CanvasPattern(pattern, this);
+    };
+    ctx.prototype.drawFocusRing = function() {
+    };
+    ctx.prototype.createImageData = function() {
+    };
+    ctx.prototype.getImageData = function() {
+    };
+    ctx.prototype.putImageData = function() {
+    };
+    ctx.prototype.globalCompositeOperation = function() {
+    };
+    ctx.prototype.setTransform = function() {
+    };
+    if (typeof window === "object") {
+      window.C2S = ctx;
+    }
+    {
+      module2.exports = ctx;
+    }
+  })();
+})(canvas2svg);
+var canvas2svgExports = canvas2svg.exports;
+const C2S = /* @__PURE__ */ getDefaultExportFromCjs(canvas2svgExports);
 class ImportExportTool {
   constructor(render) {
     __publicField(this, "render");
@@ -25206,6 +25944,89 @@ class ImportExportTool {
     copy.add(bgLayer);
     copy.add(children[0], ...children.slice(1));
     return copy.toDataURL({ pixelRatio });
+  }
+  // blob to base64 url
+  blobToBase64(blob, type) {
+    return new Promise((resolve) => {
+      const file = new File([blob], "image", { type });
+      const fileReader = new FileReader();
+      fileReader.readAsDataURL(file);
+      fileReader.onload = function() {
+        resolve(this.result ?? "");
+      };
+    });
+  }
+  // 替换 svg blob: 链接
+  parseSvgImage(urls) {
+    return new Promise((resolve) => {
+      if (urls.length > 0) {
+        Promise.all(urls.map((o) => fetch(o))).then((rs) => {
+          Promise.all(rs.map((o) => o.text())).then((xmls) => {
+            resolve(xmls);
+          });
+        });
+      } else {
+        resolve([]);
+      }
+    });
+  }
+  // 替换其他 image 链接
+  parseOtherImage(urls) {
+    return new Promise((resolve) => {
+      if (urls.length > 0) {
+        Promise.all(urls.map((o) => fetch(o))).then((rs) => {
+          Promise.all(rs.map((o) => o.blob())).then((bs) => {
+            Promise.all(bs.map((o) => this.blobToBase64(o, "image/*"))).then((urls2) => {
+              resolve(urls2);
+            });
+          });
+        });
+      } else {
+        resolve([]);
+      }
+    });
+  }
+  // 替换 image 链接
+  parseImage(xml) {
+    return new Promise((resolve) => {
+      const svgs = xml.match(new RegExp('(?<=xlink:href=")blob:https?:\\/\\/[^"]+(?=")', "g")) ?? [];
+      const imgs = xml.match(new RegExp('(?<=xlink:href=")(?<!blob:)[^"]+(?=")', "g")) ?? [];
+      Promise.all([this.parseSvgImage(svgs), this.parseOtherImage(imgs)]).then(
+        ([svgXmls, imgUrls]) => {
+          svgs.forEach((svg, idx) => {
+            var _a;
+            xml = xml.replace(
+              new RegExp(`<image[^><]* xlink:href="${svg}"[^><]*/>`),
+              ((_a = svgXmls[idx].match(/<svg[^><]*>.*<\/svg>/)) == null ? void 0 : _a[0]) ?? ""
+              // 仅保留 svg 结构
+            );
+          });
+          imgs.forEach((img, idx) => {
+            xml = xml.replace(`"${img}"`, `"${imgUrls[idx]}"`);
+          });
+          resolve(xml);
+        }
+      );
+    });
+  }
+  // 获取Svg
+  async getSvg() {
+    const copy = this.getView();
+    const main = copy.children[0];
+    const ctx = main.canvas.context._context;
+    if (ctx) {
+      const c2s = new C2S({ ctx, ...main.size() });
+      main.canvas.context._context = c2s;
+      main.draw();
+      const rawSvg = c2s.getSerializedSvg();
+      console.log(rawSvg);
+      const svg = await this.parseImage(rawSvg);
+      console.log(svg);
+      return svg;
+    }
+    return Promise.resolve(
+      `<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="0" height="0"></svg>`
+    );
   }
 }
 __publicField(ImportExportTool, "name", "ImportExportTool");
@@ -25459,7 +26280,7 @@ class Render {
     return node.name() === BgDraw.name || node.name() === RulerDraw.name || node.name() === RefLineDraw.name || node.name() === ContextmenuDraw.name || node.name() === PreviewDraw.name;
   }
 }
-const _withScopeId = (n) => (pushScopeId("data-v-96779ca7"), n = n(), popScopeId(), n);
+const _withScopeId = (n) => (pushScopeId("data-v-d556f2cc"), n = n(), popScopeId(), n);
 const _hoisted_1 = { class: "page" };
 const _hoisted_2 = ["disabled"];
 const _hoisted_3 = ["disabled"];
@@ -25660,12 +26481,24 @@ const _sfc_main = /* @__PURE__ */ defineComponent({
         a.remove();
       }
     }
+    async function onSaveSvg() {
+      if (render) {
+        const svg = await render.importExportTool.getSvg();
+        const a = document.createElement("a");
+        const event = new MouseEvent("click");
+        a.download = "image.svg";
+        a.href = window.URL.createObjectURL(new Blob([svg]));
+        a.dispatchEvent(event);
+        a.remove();
+      }
+    }
     return (_ctx, _cache) => {
       return openBlock(), createElementBlock("div", _hoisted_1, [
         createBaseVNode("header", null, [
           createBaseVNode("button", { onClick: onRestore }, "导入"),
           createBaseVNode("button", { onClick: onSave }, "导出"),
           createBaseVNode("button", { onClick: onSavePNG }, "另存为图片"),
+          createBaseVNode("button", { onClick: onSaveSvg }, "另存为Svg"),
           createBaseVNode("button", {
             onClick: onPrev,
             disabled: historyIndex.value <= 0
@@ -25715,5 +26548,5 @@ const _export_sfc = (sfc, props) => {
   }
   return target;
 };
-const App = /* @__PURE__ */ _export_sfc(_sfc_main, [["__scopeId", "data-v-96779ca7"]]);
+const App = /* @__PURE__ */ _export_sfc(_sfc_main, [["__scopeId", "data-v-d556f2cc"]]);
 createApp(App).mount("#app");
