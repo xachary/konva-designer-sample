@@ -89,6 +89,7 @@ function init() {
             attractResize: true,
             attractBg: true,
             showPreview: true,
+            attractNode: true,
             //
             on: {
               historyChange: (records: string[], index: number) => {

@@ -13,6 +13,7 @@ export interface RenderConfig {
   showPreview?: boolean
   attractResize?: boolean
   attractBg?: boolean
+  attractNode?: boolean
   //
   on?: {
     historyChange?: (history: string[], historyIndex: number) => void
