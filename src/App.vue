@@ -176,6 +176,21 @@ function onSavePNG() {
     a.remove()
   }
 }
+
+// 另存为Svg
+async function onSaveSvg() {
+  if (render) {
+    // 3倍尺寸、白色背景
+    const svg = await render.importExportTool.getSvg()
+
+    const a = document.createElement('a')
+    const event = new MouseEvent('click')
+    a.download = 'image.svg'
+    a.href = window.URL.createObjectURL(new Blob([svg]))
+    a.dispatchEvent(event)
+    a.remove()
+  }
+}
 </script>
 
 <template>
@@ -184,6 +199,7 @@ function onSavePNG() {
       <button @click="onRestore">导入</button>
       <button @click="onSave">导出</button>
       <button @click="onSavePNG">另存为图片</button>
+      <button @click="onSaveSvg">另存为Svg</button>
       <button @click="onPrev" :disabled="historyIndex <= 0">上一步</button>
       <button @click="onNext" :disabled="historyIndex >= history.length - 1">下一步</button>
     </header>

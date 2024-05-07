@@ -1,4 +1,5 @@
 import Konva from 'konva'
+import C2S from 'canvas2svg'
 //
 import { Render } from '../index'
 //
@@ -210,5 +211,75 @@ export class ImportExportTool {
 
     // 通过 stage api 导出图片
     return copy.toDataURL({ pixelRatio })
+  }
+
+  // svg blob to base64 url
+  svgBlobToBase64(blob: Blob): Promise<string> {
+    return new Promise((resolve) => {
+      const file = new File([blob], 'image.svg', { type: 'image/svg+xml' })
+      const fileReader = new FileReader()
+      fileReader.readAsDataURL(file)
+      fileReader.onload = function () {
+        resolve((this.result as string) ?? '')
+      }
+    })
+  }
+
+  // 替换 image blob: 链接
+  parseSvgImage(xml: string): Promise<string> {
+    return new Promise((resolve) => {
+      // 找出 blob:http 图片链接（目前发现只有 svg 是）
+      const svgs = xml.match(/(?<=xlink:href=")blob:https?:\/\/[^"]+(?=")/g)
+
+      if (svgs) {
+        Promise.all(svgs.map((o) => fetch(o))).then((rs: Response[]) => {
+          // fetch
+          Promise.all(rs.map((o) => o.blob())).then((bs: Blob[]) => {
+            // blob
+            Promise.all(bs.map((o) => this.svgBlobToBase64(o))).then((urls: string[]) => {
+              // base64
+              svgs.forEach((svg, idx) => {
+                // 替换
+                xml = xml.replace(svg, urls[idx])
+              })
+
+              resolve(xml)
+            })
+          })
+        })
+      } else {
+        return resolve(xml)
+      }
+    })
+  }
+
+  // 获取Svg
+  async getSvg() {
+    // 获取可视节点和 layer
+    const copy = this.getView()
+    // 获取 main layer
+    const main = copy.children[0] as Konva.Layer
+    // 获取 layer 的 canvas context
+    const ctx = main.canvas.context._context
+
+    if (ctx) {
+      // 创建 canvas2svg
+      const c2s = new C2S({ ctx, ...main.size() })
+      // 替换 layer 的 canvas context
+      main.canvas.context._context = c2s
+      // 重绘
+      main.draw()
+
+      // 获得 svg
+      const rawSvg = c2s.getSerializedSvg()
+      // 替换 image blob: 链接
+      const svg = await this.parseSvgImage(rawSvg)
+
+      // 输出 svg
+      return svg
+    }
+    return Promise.resolve(
+      `<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="200" height="720"></svg>`
+    )
   }
 }
