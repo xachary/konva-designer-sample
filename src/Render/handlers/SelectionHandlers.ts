@@ -335,14 +335,25 @@ export class SelectionHandlers implements Types.Handler {
       const logicClosestBottomY = logicNumBottomY * this.render.bgSize // y磁贴目标坐标
       const logicDiffBottomY = Math.abs(logicBottomY - logicClosestBottomY) // y磁贴偏移量
 
+      // stage 逻辑边界磁贴
+      const logicStageRightX = stageState.width
+      const logicDiffStageRightX = Math.abs(logicRightX - logicStageRightX)
+      const logicStageBottomY = stageState.height
+      const logicDiffStageBottomY = Math.abs(logicBottomY - logicStageBottomY)
+
       // 距离近优先
 
       for (const diff of [
         { type: 'leftX', value: logicDiffLeftX },
-        { type: 'rightX', value: logicDiffRightX }
+        { type: 'rightX', value: logicDiffRightX },
+        { type: 'stageRightX', value: logicDiffStageRightX }
       ].sort((a, b) => a.value - b.value)) {
         if (diff.value < 5) {
-          if (diff.type === 'leftX') {
+          if (diff.type === 'stageRightX') {
+            console.log(1,newPosX)
+            newPosX = this.render.toBoardValue(logicStageRightX) + stageState.x - width
+            console.log(2,newPosX)
+          } else if (diff.type === 'leftX') {
             newPosX = this.render.toBoardValue(logicClosestLeftX) + stageState.x
           } else if (diff.type === 'rightX') {
             newPosX = this.render.toBoardValue(logicClosestRightX) + stageState.x - width
@@ -354,10 +365,13 @@ export class SelectionHandlers implements Types.Handler {
 
       for (const diff of [
         { type: 'topY', value: logicDiffTopY },
-        { type: 'bottomY', value: logicDiffBottomY }
+        { type: 'bottomY', value: logicDiffBottomY },
+        { type: 'stageBottomY', value: logicDiffStageBottomY }
       ].sort((a, b) => a.value - b.value)) {
         if (diff.value < 5) {
-          if (diff.type === 'topY') {
+          if (diff.type === 'stageBottomY') {
+            newPosY = this.render.toBoardValue(logicStageBottomY) + stageState.y - height
+          } else if (diff.type === 'topY') {
             newPosY = this.render.toBoardValue(logicClosestTopY) + stageState.y
           } else if (diff.type === 'bottomY') {
             newPosY = this.render.toBoardValue(logicClosestBottomY) + stageState.y - height
