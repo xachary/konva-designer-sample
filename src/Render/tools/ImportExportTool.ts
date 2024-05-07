@@ -213,10 +213,10 @@ export class ImportExportTool {
     return copy.toDataURL({ pixelRatio })
   }
 
-  // svg blob to base64 url
-  svgBlobToBase64(blob: Blob): Promise<string> {
+  // blob to base64 url
+  blobToBase64(blob: Blob, type: string): Promise<string> {
     return new Promise((resolve) => {
-      const file = new File([blob], 'image.svg', { type: 'image/svg+xml' })
+      const file = new File([blob], 'image', { type })
       const fileReader = new FileReader()
       fileReader.readAsDataURL(file)
       fileReader.onload = function () {
@@ -225,31 +225,76 @@ export class ImportExportTool {
     })
   }
 
-  // 替换 image blob: 链接
-  parseSvgImage(xml: string): Promise<string> {
+  // 替换 svg blob: 链接
+  parseSvgImage(urls: string[]): Promise<string[]> {
     return new Promise((resolve) => {
-      // 找出 blob:http 图片链接（目前发现只有 svg 是）
-      const svgs = xml.match(/(?<=xlink:href=")blob:https?:\/\/[^"]+(?=")/g)
-
-      if (svgs) {
-        Promise.all(svgs.map((o) => fetch(o))).then((rs: Response[]) => {
+      if (urls.length > 0) {
+        Promise.all(urls.map((o) => fetch(o))).then((rs: Response[]) => {
           // fetch
+
+          // 替换为 svg 嵌套
+          Promise.all(rs.map((o) => o.text())).then((xmls: string[]) => {
+            // svg xml
+            resolve(xmls)
+          })
+        })
+      } else {
+        resolve([])
+      }
+    })
+  }
+
+  // 替换其他 image 链接
+  parseOtherImage(urls: string[]): Promise<string[]> {
+    return new Promise((resolve) => {
+      if (urls.length > 0) {
+        Promise.all(urls.map((o) => fetch(o))).then((rs: Response[]) => {
+          // fetch
+
+          // 替换为 base64 url image
           Promise.all(rs.map((o) => o.blob())).then((bs: Blob[]) => {
             // blob
-            Promise.all(bs.map((o) => this.svgBlobToBase64(o))).then((urls: string[]) => {
+            Promise.all(bs.map((o) => this.blobToBase64(o, 'image/*'))).then((urls: string[]) => {
               // base64
-              svgs.forEach((svg, idx) => {
-                // 替换
-                xml = xml.replace(svg, urls[idx])
-              })
-
-              resolve(xml)
+              resolve(urls)
             })
           })
         })
       } else {
-        return resolve(xml)
+        resolve([])
       }
+    })
+  }
+
+  // 替换 image 链接
+  parseImage(xml: string): Promise<string> {
+    return new Promise((resolve) => {
+      // 找出 blob:http 图片链接（目前发现只有 svg 是）
+      const svgs = xml.match(/(?<=xlink:href=")blob:https?:\/\/[^"]+(?=")/g) ?? []
+      // 其他图片转为 base64
+      const imgs = xml.match(/(?<=xlink:href=")(?<!blob:)[^"]+(?=")/g) ?? []
+
+      Promise.all([this.parseSvgImage(svgs), this.parseOtherImage(imgs)]).then(
+        ([svgXmls, imgUrls]) => {
+          // svg xml
+          svgs.forEach((svg, idx) => {
+            // 替换
+            xml = xml.replace(
+              new RegExp(`<image[^><]* xlink:href="${svg}"[^><]*/>`),
+              svgXmls[idx].match(/<svg[^><]*>.*<\/svg>/)?.[0] ?? '' // 仅保留 svg 结构
+            )
+          })
+
+          // base64
+          imgs.forEach((img, idx) => {
+            // 替换
+            xml = xml.replace(`"${img}"`, `"${imgUrls[idx]}"`)
+          })
+
+          // 替换完成
+          resolve(xml)
+        }
+      )
     })
   }
 
@@ -272,14 +317,16 @@ export class ImportExportTool {
 
       // 获得 svg
       const rawSvg = c2s.getSerializedSvg()
-      // 替换 image blob: 链接
-      const svg = await this.parseSvgImage(rawSvg)
+      console.log(rawSvg)
+      // 替换 image 链接
+      const svg = await this.parseImage(rawSvg)
+      console.log(svg)
 
       // 输出 svg
       return svg
     }
     return Promise.resolve(
-      `<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="200" height="720"></svg>`
+      `<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="0" height="0"></svg>`
     )
   }
 }
