@@ -42,6 +42,11 @@
 
 ![5](https://github.com/xachary/konva-designer-sample/assets/16830398/729b4054-6583-4c22-99ff-730f88a9ba68)
 
+![1](https://github.com/xachary/konva-designer-sample/assets/16830398/ad9035d1-2899-4f9a-8502-ddeb3233075d)
+
+![2](https://github.com/xachary/konva-designer-sample/assets/16830398/b77fd89d-8b92-45f2-802a-066839ebc502)
+
+![3](https://github.com/xachary/konva-designer-sample/assets/16830398/f84b1926-58ea-4770-a9f3-7623cf47af99)
 
 ## 功能点
 
@@ -68,4 +73,5 @@
 > _如果 Star 能超过 50 个（望多多支持），将很快更新_
 
 - 对齐效果
+- 连接线
 - 等等。。。
