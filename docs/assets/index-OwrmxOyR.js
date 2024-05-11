@@ -24301,6 +24301,8 @@ class SelectionHandlers {
     __publicField(this, "selecting", false);
     // 拖动前的位置
     __publicField(this, "transformerMousedownPos", { x: 0, y: 0 });
+    // 对齐线
+    __publicField(this, "alignLines", []);
     __publicField(this, "handlers", {
       // 选择相关
       stage: {
@@ -24477,67 +24479,232 @@ class SelectionHandlers {
     });
     // 磁吸逻辑
     __publicField(this, "attract", (newPos) => {
+      this.alignLinesClear();
       const stageState = this.render.getStageState();
       const width = this.render.transformer.width();
       const height = this.render.transformer.height();
       let newPosX = newPos.x;
       let newPosY = newPos.y;
       let isAttract = false;
-      if (this.render.config.attractBg) {
-        const logicLeftX = this.render.toStageValue(newPos.x - stageState.x);
-        const logicNumLeftX = Math.round(logicLeftX / this.render.bgSize);
-        const logicClosestLeftX = logicNumLeftX * this.render.bgSize;
-        const logicDiffLeftX = Math.abs(logicLeftX - logicClosestLeftX);
-        const logicRightX = this.render.toStageValue(newPos.x + width - stageState.x);
-        const logicNumRightX = Math.round(logicRightX / this.render.bgSize);
-        const logicClosestRightX = logicNumRightX * this.render.bgSize;
-        const logicDiffRightX = Math.abs(logicRightX - logicClosestRightX);
-        const logicTopY = this.render.toStageValue(newPos.y - stageState.y);
-        const logicNumTopY = Math.round(logicTopY / this.render.bgSize);
-        const logicClosestTopY = logicNumTopY * this.render.bgSize;
-        const logicDiffTopY = Math.abs(logicTopY - logicClosestTopY);
-        const logicBottomY = this.render.toStageValue(newPos.y + height - stageState.y);
-        const logicNumBottomY = Math.round(logicBottomY / this.render.bgSize);
-        const logicClosestBottomY = logicNumBottomY * this.render.bgSize;
-        const logicDiffBottomY = Math.abs(logicBottomY - logicClosestBottomY);
-        const logicStageRightX = stageState.width;
-        const logicDiffStageRightX = Math.abs(logicRightX - logicStageRightX);
-        const logicStageBottomY = stageState.height;
-        const logicDiffStageBottomY = Math.abs(logicBottomY - logicStageBottomY);
-        for (const diff of [
-          { type: "leftX", value: logicDiffLeftX },
-          { type: "rightX", value: logicDiffRightX },
-          { type: "stageRightX", value: logicDiffStageRightX }
-        ].sort((a, b) => a.value - b.value)) {
-          if (diff.value < 5) {
-            if (diff.type === "stageRightX") {
-              console.log(1, newPosX);
-              newPosX = this.render.toBoardValue(logicStageRightX) + stageState.x - width;
-              console.log(2, newPosX);
-            } else if (diff.type === "leftX") {
-              newPosX = this.render.toBoardValue(logicClosestLeftX) + stageState.x;
-            } else if (diff.type === "rightX") {
-              newPosX = this.render.toBoardValue(logicClosestRightX) + stageState.x - width;
+      let pairX = null;
+      let pairY = null;
+      if (this.render.config.attractNode) {
+        const sortX = [];
+        const sortY = [];
+        sortX.push(
+          {
+            value: this.render.toStageValue(newPos.x - stageState.x)
+            // 左
+          },
+          {
+            value: this.render.toStageValue(newPos.x - stageState.x + width / 2)
+            // 垂直中
+          },
+          {
+            value: this.render.toStageValue(newPos.x - stageState.x + width)
+            // 右
+          }
+        );
+        sortY.push(
+          {
+            value: this.render.toStageValue(newPos.y - stageState.y)
+            // 上
+          },
+          {
+            value: this.render.toStageValue(newPos.y - stageState.y + height / 2)
+            // 水平中
+          },
+          {
+            value: this.render.toStageValue(newPos.y - stageState.y + height)
+            // 下
+          }
+        );
+        const targetIds = this.render.selectionTool.selectingNodes.map((o) => o._id);
+        const otherNodes = this.render.layer.getChildren((node) => !targetIds.includes(node._id));
+        for (const node of otherNodes) {
+          sortX.push(
+            {
+              id: node._id,
+              value: node.x()
+              // 左
+            },
+            {
+              id: node._id,
+              value: node.x() + node.width() / 2
+              // 垂直中
+            },
+            {
+              id: node._id,
+              value: node.x() + node.width()
+              // 右
             }
-            isAttract = true;
-            break;
+          );
+          sortY.push(
+            {
+              id: node._id,
+              value: node.y()
+              // 上
+            },
+            {
+              id: node._id,
+              value: node.y() + node.height() / 2
+              // 水平中
+            },
+            {
+              id: node._id,
+              value: node.y() + node.height()
+              // 下
+            }
+          );
+        }
+        sortX.sort((a, b) => a.value - b.value);
+        sortY.sort((a, b) => a.value - b.value);
+        let XMin = Infinity;
+        let pairXMin = [];
+        let YMin = Infinity;
+        let pairYMin = [];
+        for (let i = 0; i < sortX.length - 1; i++) {
+          if (sortX[i].id === void 0 && sortX[i + 1].id !== void 0 || sortX[i].id !== void 0 && sortX[i + 1].id === void 0) {
+            const offset = Math.abs(sortX[i].value - sortX[i + 1].value);
+            if (offset < XMin) {
+              XMin = offset;
+              pairXMin = [[sortX[i], sortX[i + 1]]];
+            } else if (offset === XMin) {
+              pairXMin.push([sortX[i], sortX[i + 1]]);
+            }
           }
         }
-        for (const diff of [
-          { type: "topY", value: logicDiffTopY },
-          { type: "bottomY", value: logicDiffBottomY },
-          { type: "stageBottomY", value: logicDiffStageBottomY }
-        ].sort((a, b) => a.value - b.value)) {
-          if (diff.value < 5) {
-            if (diff.type === "stageBottomY") {
-              newPosY = this.render.toBoardValue(logicStageBottomY) + stageState.y - height;
-            } else if (diff.type === "topY") {
-              newPosY = this.render.toBoardValue(logicClosestTopY) + stageState.y;
-            } else if (diff.type === "bottomY") {
-              newPosY = this.render.toBoardValue(logicClosestBottomY) + stageState.y - height;
+        for (let i = 0; i < sortY.length - 1; i++) {
+          if (sortY[i].id === void 0 && sortY[i + 1].id !== void 0 || sortY[i].id !== void 0 && sortY[i + 1].id === void 0) {
+            const offset = Math.abs(sortY[i].value - sortY[i + 1].value);
+            if (offset < YMin) {
+              YMin = offset;
+              pairYMin = [[sortY[i], sortY[i + 1]]];
+            } else if (offset === YMin) {
+              pairYMin.push([sortY[i], sortY[i + 1]]);
             }
+          }
+        }
+        if (pairXMin[0]) {
+          if (Math.abs(pairXMin[0][0].value - pairXMin[0][1].value) < this.render.bgSize / 2) {
+            pairX = pairXMin[0];
+          }
+        }
+        if (pairYMin[0]) {
+          if (Math.abs(pairYMin[0][0].value - pairYMin[0][1].value) < this.render.bgSize / 2) {
+            pairY = pairYMin[0];
+          }
+        }
+        if ((pairX == null ? void 0 : pairX.length) === 2) {
+          for (const pair of pairXMin) {
+            const other2 = pair.find((o) => o.id !== void 0);
+            if (other2) {
+              const line = new Konva.Line({
+                points: lodash.flatten([
+                  [other2.value, this.render.toStageValue(-stageState.y)],
+                  [other2.value, this.render.toStageValue(this.render.stage.height() - stageState.y)]
+                ]),
+                stroke: "blue",
+                strokeWidth: this.render.toStageValue(1),
+                dash: [4, 4],
+                listening: false
+              });
+              this.alignLines.push(line);
+              this.render.layerCover.add(line);
+            }
+          }
+          const target = pairX.find((o) => o.id === void 0);
+          const other = pairX.find((o) => o.id !== void 0);
+          if (target && other) {
+            newPosX = newPosX - this.render.toBoardValue(target.value - other.value);
             isAttract = true;
-            break;
+          }
+        }
+        if ((pairY == null ? void 0 : pairY.length) === 2) {
+          for (const pair of pairYMin) {
+            const other2 = pair.find((o) => o.id !== void 0);
+            if (other2) {
+              const line = new Konva.Line({
+                points: lodash.flatten([
+                  [this.render.toStageValue(-stageState.x), other2.value],
+                  [this.render.toStageValue(this.render.stage.width() - stageState.x), other2.value]
+                ]),
+                stroke: "blue",
+                strokeWidth: this.render.toStageValue(1),
+                dash: [4, 4],
+                listening: false
+              });
+              this.alignLines.push(line);
+              this.render.layerCover.add(line);
+            }
+          }
+          const target = pairY.find((o) => o.id === void 0);
+          const other = pairY.find((o) => o.id !== void 0);
+          if (target && other) {
+            newPosY = newPosY - this.render.toBoardValue(target.value - other.value);
+            isAttract = true;
+          }
+        }
+      }
+      if (this.render.config.attractBg) {
+        if (pairX === null) {
+          const logicLeftX = this.render.toStageValue(newPos.x - stageState.x);
+          const logicNumLeftX = Math.round(logicLeftX / this.render.bgSize);
+          const logicClosestLeftX = logicNumLeftX * this.render.bgSize;
+          const logicDiffLeftX = Math.abs(logicLeftX - logicClosestLeftX);
+          const logicRightX = this.render.toStageValue(newPos.x + width - stageState.x);
+          const logicNumRightX = Math.round(logicRightX / this.render.bgSize);
+          const logicClosestRightX = logicNumRightX * this.render.bgSize;
+          const logicDiffRightX = Math.abs(logicRightX - logicClosestRightX);
+          const logicStageRightX = stageState.width;
+          const logicDiffStageRightX = Math.abs(logicRightX - logicStageRightX);
+          for (const diff of [
+            { type: "leftX", value: logicDiffLeftX },
+            { type: "rightX", value: logicDiffRightX },
+            { type: "stageRightX", value: logicDiffStageRightX }
+          ].sort((a, b) => a.value - b.value)) {
+            if (diff.value < 5) {
+              if (diff.type === "stageRightX") {
+                console.log(1, newPosX);
+                newPosX = this.render.toBoardValue(logicStageRightX) + stageState.x - width;
+                console.log(2, newPosX);
+              } else if (diff.type === "leftX") {
+                newPosX = this.render.toBoardValue(logicClosestLeftX) + stageState.x;
+              } else if (diff.type === "rightX") {
+                newPosX = this.render.toBoardValue(logicClosestRightX) + stageState.x - width;
+              }
+              isAttract = true;
+              break;
+            }
+          }
+        }
+        if (pairY === null) {
+          const logicTopY = this.render.toStageValue(newPos.y - stageState.y);
+          const logicNumTopY = Math.round(logicTopY / this.render.bgSize);
+          const logicClosestTopY = logicNumTopY * this.render.bgSize;
+          const logicDiffTopY = Math.abs(logicTopY - logicClosestTopY);
+          const logicBottomY = this.render.toStageValue(newPos.y + height - stageState.y);
+          const logicNumBottomY = Math.round(logicBottomY / this.render.bgSize);
+          const logicClosestBottomY = logicNumBottomY * this.render.bgSize;
+          const logicDiffBottomY = Math.abs(logicBottomY - logicClosestBottomY);
+          const logicStageBottomY = stageState.height;
+          const logicDiffStageBottomY = Math.abs(logicBottomY - logicStageBottomY);
+          for (const diff of [
+            { type: "topY", value: logicDiffTopY },
+            { type: "bottomY", value: logicDiffBottomY },
+            { type: "stageBottomY", value: logicDiffStageBottomY }
+          ].sort((a, b) => a.value - b.value)) {
+            if (diff.value < 5) {
+              if (diff.type === "stageBottomY") {
+                newPosY = this.render.toBoardValue(logicStageBottomY) + stageState.y - height;
+              } else if (diff.type === "topY") {
+                newPosY = this.render.toBoardValue(logicClosestTopY) + stageState.y;
+              } else if (diff.type === "bottomY") {
+                newPosY = this.render.toBoardValue(logicClosestBottomY) + stageState.y - height;
+              }
+              isAttract = true;
+              break;
+            }
           }
         }
       }
@@ -24590,6 +24757,13 @@ class SelectionHandlers {
     });
     this.render = render;
   }
+  // 对齐线清除
+  alignLinesClear() {
+    for (const line of this.alignLines) {
+      line.remove();
+    }
+    this.alignLines = [];
+  }
   // 通过偏移量移动【目标节点】
   selectingNodesPositionByOffset(offset) {
     for (const node of this.render.selectionTool.selectingNodes) {
@@ -24612,6 +24786,7 @@ class SelectionHandlers {
   }
   // 重置
   reset() {
+    this.alignLinesClear();
     this.transformerStateReset();
     this.selectingNodesPositionReset();
   }
@@ -26280,7 +26455,7 @@ class Render {
     return node.name() === BgDraw.name || node.name() === RulerDraw.name || node.name() === RefLineDraw.name || node.name() === ContextmenuDraw.name || node.name() === PreviewDraw.name;
   }
 }
-const _withScopeId = (n) => (pushScopeId("data-v-d556f2cc"), n = n(), popScopeId(), n);
+const _withScopeId = (n) => (pushScopeId("data-v-fb782ae1"), n = n(), popScopeId(), n);
 const _hoisted_1 = { class: "page" };
 const _hoisted_2 = ["disabled"];
 const _hoisted_3 = ["disabled"];
@@ -26348,6 +26523,7 @@ const _sfc_main = /* @__PURE__ */ defineComponent({
                 attractResize: true,
                 attractBg: true,
                 showPreview: true,
+                attractNode: true,
                 //
                 on: {
                   historyChange: (records, index) => {
@@ -26548,5 +26724,5 @@ const _export_sfc = (sfc, props) => {
   }
   return target;
 };
-const App = /* @__PURE__ */ _export_sfc(_sfc_main, [["__scopeId", "data-v-d556f2cc"]]);
+const App = /* @__PURE__ */ _export_sfc(_sfc_main, [["__scopeId", "data-v-fb782ae1"]]);
 createApp(App).mount("#app");
