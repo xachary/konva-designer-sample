@@ -48,6 +48,8 @@
 
 ![3](https://github.com/xachary/konva-designer-sample/assets/16830398/f84b1926-58ea-4770-a9f3-7623cf47af99)
 
+![17f9d43d5b5a450288dcd834416ec412](https://github.com/xachary/konva-designer-sample/assets/16830398/cc8d89b2-9e94-4b2f-a7fb-ec9b9db5aeed)
+
 ## 功能点
 
 - 无限画布（√）
