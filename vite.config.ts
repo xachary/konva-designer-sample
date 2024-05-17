@@ -16,5 +16,8 @@ export default defineConfig({
     minify: false,
     assetsInlineLimit: 0
   },
-  base: './'
+  base: './',
+  server: {
+    host: true
+  }
 })
