@@ -319,6 +319,48 @@ export class SelectionHandlers implements Types.Handler {
         this.render.updateHistory()
         // 更新预览
         this.render.draws[Draws.PreviewDraw.name].draw()
+      },
+      // 子节点 hover
+      mousemove: () => {
+        const pos = this.render.stage.getPointerPosition()
+        if (pos) {
+          // 获取所有图形
+          const shapes = this.render.transformer.nodes()
+
+          // 隐藏 hover 框
+          for (const shape of shapes) {
+            if (shape instanceof Konva.Group) {
+              shape.findOne('#hoverRect')?.visible(false)
+            }
+          }
+
+          // 多选
+          if (shapes.length > 1) {
+            // zIndex 倒序（大的优先）
+            shapes.sort((a, b) => b.zIndex() - a.zIndex())
+
+            // 提取重叠目标
+            const selected = shapes.find((shape) =>
+              // 关键 api
+              Konva.Util.haveIntersection({ ...pos, width: 1, height: 1 }, shape.getClientRect())
+            )
+
+            // 显示 hover 框
+            if (selected) {
+              if (selected instanceof Konva.Group) {
+                selected.findOne('#hoverRect')?.visible(true)
+              }
+            }
+          }
+        }
+      },
+      mouseleave: () => {
+        // 隐藏 hover 框
+        for (const shape of this.render.transformer.nodes()) {
+          if (shape instanceof Konva.Group) {
+            shape.findOne('#hoverRect')?.visible(false)
+          }
+        }
       }
     }
   }

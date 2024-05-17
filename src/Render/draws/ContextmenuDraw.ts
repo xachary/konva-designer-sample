@@ -102,6 +102,62 @@ export class ContextmenuDraw extends Types.BaseDraw implements Types.Draw {
             }
           }
         })
+        if (target instanceof Konva.Transformer) {
+          const pos = this.render.stage.getPointerPosition()
+
+          if (pos) {
+            // 获取所有图形
+            const shapes = target.nodes()
+            if (shapes.length > 1) {
+              // zIndex 倒序（大的优先）
+              shapes.sort((a, b) => b.zIndex() - a.zIndex())
+
+              // 提取重叠目标
+              const selected = shapes.find((shape) =>
+                // 关键 api
+                Konva.Util.haveIntersection({ ...pos, width: 1, height: 1 }, shape.getClientRect())
+              )
+
+              // 对齐菜单
+              menus.push({
+                name: '垂直居中' + (selected ? '于目标' : ''),
+                action: () => {
+                  //
+                }
+              })
+              menus.push({
+                name: '左对齐' + (selected ? '于目标' : ''),
+                action: () => {
+                  //
+                }
+              })
+              menus.push({
+                name: '右对齐' + (selected ? '于目标' : ''),
+                action: () => {
+                  //
+                }
+              })
+              menus.push({
+                name: '水平居中' + (selected ? '于目标' : ''),
+                action: () => {
+                  //
+                }
+              })
+              menus.push({
+                name: '上对齐' + (selected ? '于目标' : ''),
+                action: () => {
+                  //
+                }
+              })
+              menus.push({
+                name: '下对齐' + (selected ? '于目标' : ''),
+                action: () => {
+                  //
+                }
+              })
+            }
+          }
+        }
       }
 
       // stage 状态
@@ -125,7 +181,7 @@ export class ContextmenuDraw extends Types.BaseDraw implements Types.Draw {
           const rect = new Konva.Rect({
             x: this.render.toStageValue(pos.x - stageState.x),
             y: this.render.toStageValue(pos.y + top - stageState.y),
-            width: this.render.toStageValue(100),
+            width: this.render.toStageValue(150),
             height: this.render.toStageValue(lineHeight),
             fill: '#fff',
             stroke: '#999',
@@ -141,7 +197,7 @@ export class ContextmenuDraw extends Types.BaseDraw implements Types.Draw {
             listening: false,
             fontSize: this.render.toStageValue(16),
             fill: '#333',
-            width: this.render.toStageValue(100),
+            width: this.render.toStageValue(150),
             height: this.render.toStageValue(lineHeight),
             align: 'center',
             verticalAlign: 'middle'

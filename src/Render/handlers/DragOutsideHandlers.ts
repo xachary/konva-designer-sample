@@ -65,6 +65,21 @@ export class DragOutsideHandlers implements Types.Handler {
                 y
               })
 
+              // hover 框（多选时才显示）
+              group.add(
+                new Konva.Rect({
+                  id: 'hoverRect',
+                  width: image.width(),
+                  height: image.height(),
+                  fill: 'rgba(0,255,0,0.3)',
+                  visible: false
+                })
+              )
+              // 隐藏 hover 框
+              group.on('mouseleave', () => {
+                group.findOne('#hoverRect')?.visible(false)
+              })
+
               // 更新历史
               this.render.updateHistory()
               // 更新预览

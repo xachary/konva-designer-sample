@@ -279,7 +279,9 @@ export class Render {
       'transformend',
       'dragstart',
       'dragmove',
-      'dragend'
+      'dragend',
+      'mousemove',
+      'mouseleave'
     ]) {
       this.transformer.on(event, (e) => {
         e?.evt?.preventDefault()
@@ -325,7 +327,7 @@ export class Render {
   ignore(node: Konva.Node) {
     // 素材有各自根 group
     const isGroup = node instanceof Konva.Group
-    return !isGroup || node.id() === 'selectRect' || this.ignoreDraw(node)
+    return !isGroup || node.id() === 'selectRect' || node.id() === 'hoverRect' || this.ignoreDraw(node)
   }
 
   // 忽略各 draw 的根 group
