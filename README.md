@@ -50,6 +50,10 @@
 
 ![17f9d43d5b5a450288dcd834416ec412](https://github.com/xachary/konva-designer-sample/assets/16830398/cc8d89b2-9e94-4b2f-a7fb-ec9b9db5aeed)
 
+![chrome_Gw4M1vdxYN](https://github.com/xachary/konva-designer-sample/assets/16830398/a520b866-9e87-4ffb-abc6-8822366ec1cf)
+
+![chrome_R45lPum9dU](https://github.com/xachary/konva-designer-sample/assets/16830398/d38b8e41-6628-4ec7-82b7-35af43f3abc1)
+
 ## 功能点
 
 - 无限画布（√）
