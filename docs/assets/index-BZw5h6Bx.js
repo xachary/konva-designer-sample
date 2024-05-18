@@ -23408,6 +23408,15 @@ var ShutcutKey = /* @__PURE__ */ ((ShutcutKey2) => {
   ShutcutKey2["Z"] = "KeyZ";
   return ShutcutKey2;
 })(ShutcutKey || {});
+var AlignType = /* @__PURE__ */ ((AlignType2) => {
+  AlignType2["垂直居中"] = "Middle";
+  AlignType2["左对齐"] = "Left";
+  AlignType2["右对齐"] = "Right";
+  AlignType2["水平居中"] = "Center";
+  AlignType2["上对齐"] = "Top";
+  AlignType2["下对齐"] = "Bottom";
+  return AlignType2;
+})(AlignType || {});
 class BgDraw extends BaseDraw {
   constructor(render, layer, option) {
     super(render, layer);
@@ -23838,6 +23847,57 @@ class ContextmenuDraw extends BaseDraw {
             }
           }
         });
+        if (target instanceof Konva.Transformer) {
+          const pos2 = this.render.stage.getPointerPosition();
+          if (pos2) {
+            const shapes = target.nodes();
+            if (shapes.length > 1) {
+              shapes.sort((a, b) => b.zIndex() - a.zIndex());
+              const selected = shapes.find(
+                (shape) => (
+                  // 关键 api
+                  Konva.Util.haveIntersection({ ...pos2, width: 1, height: 1 }, shape.getClientRect())
+                )
+              );
+              menus.push({
+                name: "垂直居中" + (selected ? "于目标" : ""),
+                action: () => {
+                  this.render.alignTool.align(AlignType.垂直居中, selected);
+                }
+              });
+              menus.push({
+                name: "左对齐" + (selected ? "于目标" : ""),
+                action: () => {
+                  this.render.alignTool.align(AlignType.左对齐, selected);
+                }
+              });
+              menus.push({
+                name: "右对齐" + (selected ? "于目标" : ""),
+                action: () => {
+                  this.render.alignTool.align(AlignType.右对齐, selected);
+                }
+              });
+              menus.push({
+                name: "水平居中" + (selected ? "于目标" : ""),
+                action: () => {
+                  this.render.alignTool.align(AlignType.水平居中, selected);
+                }
+              });
+              menus.push({
+                name: "上对齐" + (selected ? "于目标" : ""),
+                action: () => {
+                  this.render.alignTool.align(AlignType.上对齐, selected);
+                }
+              });
+              menus.push({
+                name: "下对齐" + (selected ? "于目标" : ""),
+                action: () => {
+                  this.render.alignTool.align(AlignType.下对齐, selected);
+                }
+              });
+            }
+          }
+        }
       }
       const stageState = this.render.getStageState();
       const group = new Konva.Group({
@@ -23853,7 +23913,7 @@ class ContextmenuDraw extends BaseDraw {
           const rect = new Konva.Rect({
             x: this.render.toStageValue(pos.x - stageState.x),
             y: this.render.toStageValue(pos.y + top - stageState.y),
-            width: this.render.toStageValue(100),
+            width: this.render.toStageValue(150),
             height: this.render.toStageValue(lineHeight),
             fill: "#fff",
             stroke: "#999",
@@ -23868,7 +23928,7 @@ class ContextmenuDraw extends BaseDraw {
             listening: false,
             fontSize: this.render.toStageValue(16),
             fill: "#333",
-            width: this.render.toStageValue(100),
+            width: this.render.toStageValue(150),
             height: this.render.toStageValue(lineHeight),
             align: "center",
             verticalAlign: "middle"
@@ -24277,6 +24337,19 @@ class DragOutsideHandlers {
                   x,
                   y
                 });
+                group.add(
+                  new Konva.Rect({
+                    id: "hoverRect",
+                    width: image.width(),
+                    height: image.height(),
+                    fill: "rgba(0,255,0,0.3)",
+                    visible: false
+                  })
+                );
+                group.on("mouseleave", () => {
+                  var _a2;
+                  (_a2 = group.findOne("#hoverRect")) == null ? void 0 : _a2.visible(false);
+                });
                 this.render.updateHistory();
                 this.render.draws[PreviewDraw.name].draw();
               });
@@ -24474,6 +24547,41 @@ class SelectionHandlers {
           this.reset();
           this.render.updateHistory();
           this.render.draws[PreviewDraw.name].draw();
+        },
+        // 子节点 hover
+        mousemove: () => {
+          var _a, _b;
+          const pos = this.render.stage.getPointerPosition();
+          if (pos) {
+            const shapes = this.render.transformer.nodes();
+            for (const shape of shapes) {
+              if (shape instanceof Konva.Group) {
+                (_a = shape.findOne("#hoverRect")) == null ? void 0 : _a.visible(false);
+              }
+            }
+            if (shapes.length > 1) {
+              shapes.sort((a, b) => b.zIndex() - a.zIndex());
+              const selected = shapes.find(
+                (shape) => (
+                  // 关键 api
+                  Konva.Util.haveIntersection({ ...pos, width: 1, height: 1 }, shape.getClientRect())
+                )
+              );
+              if (selected) {
+                if (selected instanceof Konva.Group) {
+                  (_b = selected.findOne("#hoverRect")) == null ? void 0 : _b.visible(true);
+                }
+              }
+            }
+          }
+        },
+        mouseleave: () => {
+          var _a;
+          for (const shape of this.render.transformer.nodes()) {
+            if (shape instanceof Konva.Group) {
+              (_a = shape.findOne("#hoverRect")) == null ? void 0 : _a.visible(false);
+            }
+          }
         }
       }
     });
@@ -24918,6 +25026,10 @@ class SelectionTool {
   }
   // 清空已选
   selectingClear() {
+    var _a, _b;
+    if (this.selectingNodes.length > 0) {
+      (_b = (_a = this.render.config.on) == null ? void 0 : _a.selectionChange) == null ? void 0 : _b.call(_a, []);
+    }
     this.render.transformer.nodes([]);
     const change = this.selectingNodes.findIndex(
       (o) => o.attrs.lastZIndex !== void 0 && o.zIndex() !== o.attrs.lastZIndex
@@ -24946,6 +25058,10 @@ class SelectionTool {
   }
   // 选择节点
   select(nodes) {
+    var _a, _b;
+    if (nodes.length !== this.selectingNodes.length) {
+      (_b = (_a = this.render.config.on) == null ? void 0 : _a.selectionChange) == null ? void 0 : _b.call(_a, nodes);
+    }
     this.selectingClear();
     if (nodes.length > 0) {
       const maxZIndex = Math.max(
@@ -26205,6 +26321,79 @@ class ImportExportTool {
   }
 }
 __publicField(ImportExportTool, "name", "ImportExportTool");
+class AlignTool {
+  constructor(render) {
+    __publicField(this, "render");
+    this.render = render;
+  }
+  // 对齐参考点
+  getAlignPoints(target) {
+    let width = 0, height = 0, x = 0, y = 0;
+    if (target instanceof Konva.Transformer) {
+      [width, height] = [
+        this.render.toStageValue(target.width()),
+        this.render.toStageValue(target.height())
+      ];
+      [x, y] = [
+        this.render.toStageValue(target.x()) - this.render.rulerSize,
+        this.render.toStageValue(target.y()) - this.render.rulerSize
+      ];
+    } else if (target !== void 0) {
+      [width, height] = [target.width(), target.height()];
+      [x, y] = [target.x(), target.y()];
+    } else {
+      return this.getAlignPoints(this.render.transformer);
+    }
+    return {
+      [AlignType.垂直居中]: x + width / 2,
+      [AlignType.左对齐]: x,
+      [AlignType.右对齐]: x + width,
+      [AlignType.水平居中]: y + height / 2,
+      [AlignType.上对齐]: y,
+      [AlignType.下对齐]: y + height
+    };
+  }
+  align(type, target) {
+    const points = this.getAlignPoints(target);
+    const point = points[type];
+    const nodes = this.render.transformer.nodes().filter((node) => node !== target);
+    switch (type) {
+      case AlignType.垂直居中:
+        for (const node of nodes) {
+          node.x(point - node.width() / 2);
+        }
+        break;
+      case AlignType.水平居中:
+        for (const node of nodes) {
+          node.y(point - node.height() / 2);
+        }
+        break;
+      case AlignType.左对齐:
+        for (const node of nodes) {
+          node.x(point);
+        }
+        break;
+      case AlignType.右对齐:
+        for (const node of nodes) {
+          node.x(point - node.width());
+        }
+        break;
+      case AlignType.上对齐:
+        for (const node of nodes) {
+          node.y(point);
+        }
+        break;
+      case AlignType.下对齐:
+        for (const node of nodes) {
+          node.y(point - node.height());
+        }
+        break;
+    }
+    this.render.updateHistory();
+    this.render.draws[PreviewDraw.name].draw();
+  }
+}
+__publicField(AlignTool, "name", "AlignTool");
 class Render {
   constructor(stageEle, config) {
     __publicField(this, "stage");
@@ -26230,6 +26419,8 @@ class Render {
     __publicField(this, "zIndexTool");
     // 导入导出
     __publicField(this, "importExportTool");
+    // 对齐工具
+    __publicField(this, "alignTool");
     // 多选器层
     __publicField(this, "groupTransformer", new Konva.Group());
     // 多选器
@@ -26289,6 +26480,7 @@ class Render {
     this.positionTool = new PositionTool(this);
     this.zIndexTool = new ZIndexTool(this);
     this.importExportTool = new ImportExportTool(this);
+    this.alignTool = new AlignTool(this);
     this.handlers[DragHandlers.name] = new DragHandlers(this);
     this.handlers[ZoomHandlers.name] = new ZoomHandlers(this);
     this.handlers[DragOutsideHandlers.name] = new DragOutsideHandlers(this);
@@ -26410,7 +26602,9 @@ class Render {
       "transformend",
       "dragstart",
       "dragmove",
-      "dragend"
+      "dragend",
+      "mousemove",
+      "mouseleave"
     ]) {
       this.transformer.on(event, (e) => {
         var _a2, _b, _c, _d, _e, _f, _g;
@@ -26448,21 +26642,27 @@ class Render {
   // 忽略非素材
   ignore(node) {
     const isGroup = node instanceof Konva.Group;
-    return !isGroup || node.id() === "selectRect" || this.ignoreDraw(node);
+    return !isGroup || node.id() === "selectRect" || node.id() === "hoverRect" || this.ignoreDraw(node);
   }
   // 忽略各 draw 的根 group
   ignoreDraw(node) {
     return node.name() === BgDraw.name || node.name() === RulerDraw.name || node.name() === RefLineDraw.name || node.name() === ContextmenuDraw.name || node.name() === PreviewDraw.name;
   }
 }
-const _withScopeId = (n) => (pushScopeId("data-v-fb782ae1"), n = n(), popScopeId(), n);
+const _withScopeId = (n) => (pushScopeId("data-v-d092b8bf"), n = n(), popScopeId(), n);
 const _hoisted_1 = { class: "page" };
 const _hoisted_2 = ["disabled"];
 const _hoisted_3 = ["disabled"];
-const _hoisted_4 = ["onDragstart"];
-const _hoisted_5 = ["src"];
-const _hoisted_6 = /* @__PURE__ */ _withScopeId(() => /* @__PURE__ */ createBaseVNode("footer", null, null, -1));
-const _hoisted_7 = /* @__PURE__ */ _withScopeId(() => /* @__PURE__ */ createBaseVNode("footer", null, null, -1));
+const _hoisted_4 = ["disabled"];
+const _hoisted_5 = ["disabled"];
+const _hoisted_6 = ["disabled"];
+const _hoisted_7 = ["disabled"];
+const _hoisted_8 = ["disabled"];
+const _hoisted_9 = ["disabled"];
+const _hoisted_10 = ["onDragstart"];
+const _hoisted_11 = ["src"];
+const _hoisted_12 = /* @__PURE__ */ _withScopeId(() => /* @__PURE__ */ createBaseVNode("footer", null, null, -1));
+const _hoisted_13 = /* @__PURE__ */ _withScopeId(() => /* @__PURE__ */ createBaseVNode("footer", null, null, -1));
 const _sfc_main = /* @__PURE__ */ defineComponent({
   __name: "App",
   setup(__props) {
@@ -26529,6 +26729,9 @@ const _sfc_main = /* @__PURE__ */ defineComponent({
                   historyChange: (records, index) => {
                     history.value = records;
                     historyIndex.value = index;
+                  },
+                  selectionChange: (nodes) => {
+                    selection.value = nodes;
                   }
                 }
               });
@@ -26668,6 +26871,11 @@ const _sfc_main = /* @__PURE__ */ defineComponent({
         a.remove();
       }
     }
+    const selection = ref([]);
+    const noAlign = computed(() => selection.value.length <= 1);
+    function onAlign(type) {
+      render == null ? void 0 : render.alignTool.align(type);
+    }
     return (_ctx, _cache) => {
       return openBlock(), createElementBlock("div", _hoisted_1, [
         createBaseVNode("header", null, [
@@ -26682,7 +26890,31 @@ const _sfc_main = /* @__PURE__ */ defineComponent({
           createBaseVNode("button", {
             onClick: onNext,
             disabled: historyIndex.value >= history.value.length - 1
-          }, "下一步", 8, _hoisted_3)
+          }, "下一步", 8, _hoisted_3),
+          createBaseVNode("button", {
+            onClick: _cache[0] || (_cache[0] = ($event) => onAlign(AlignType.垂直居中)),
+            disabled: noAlign.value
+          }, "垂直居中", 8, _hoisted_4),
+          createBaseVNode("button", {
+            onClick: _cache[1] || (_cache[1] = ($event) => onAlign(AlignType.左对齐)),
+            disabled: noAlign.value
+          }, "左对齐", 8, _hoisted_5),
+          createBaseVNode("button", {
+            onClick: _cache[2] || (_cache[2] = ($event) => onAlign(AlignType.右对齐)),
+            disabled: noAlign.value
+          }, "右对齐", 8, _hoisted_6),
+          createBaseVNode("button", {
+            onClick: _cache[3] || (_cache[3] = ($event) => onAlign(AlignType.水平居中)),
+            disabled: noAlign.value
+          }, "水平居中", 8, _hoisted_7),
+          createBaseVNode("button", {
+            onClick: _cache[4] || (_cache[4] = ($event) => onAlign(AlignType.上对齐)),
+            disabled: noAlign.value
+          }, "上对齐", 8, _hoisted_8),
+          createBaseVNode("button", {
+            onClick: _cache[5] || (_cache[5] = ($event) => onAlign(AlignType.下对齐)),
+            disabled: noAlign.value
+          }, "下对齐", 8, _hoisted_9)
         ]),
         createBaseVNode("section", null, [
           createBaseVNode("header", null, [
@@ -26696,8 +26928,8 @@ const _sfc_main = /* @__PURE__ */ defineComponent({
                   createBaseVNode("img", {
                     src: item.url,
                     style: { "object-fit": "contain", "width": "100%", "height": "100%" }
-                  }, null, 8, _hoisted_5)
-                ], 40, _hoisted_4);
+                  }, null, 8, _hoisted_11)
+                ], 40, _hoisted_10);
               }), 128))
             ])
           ]),
@@ -26710,9 +26942,9 @@ const _sfc_main = /* @__PURE__ */ defineComponent({
               ref: stageElement
             }, null, 512)
           ], 512),
-          _hoisted_6
+          _hoisted_12
         ]),
-        _hoisted_7
+        _hoisted_13
       ]);
     };
   }
@@ -26724,5 +26956,5 @@ const _export_sfc = (sfc, props) => {
   }
   return target;
 };
-const App = /* @__PURE__ */ _export_sfc(_sfc_main, [["__scopeId", "data-v-fb782ae1"]]);
+const App = /* @__PURE__ */ _export_sfc(_sfc_main, [["__scopeId", "data-v-d092b8bf"]]);
 createApp(App).mount("#app");
