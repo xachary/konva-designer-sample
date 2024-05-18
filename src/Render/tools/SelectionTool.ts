@@ -17,6 +17,10 @@ export class SelectionTool {
 
   // 清空已选
   selectingClear() {
+    // 选择变化了
+    if (this.selectingNodes.length > 0) {
+      this.render.config.on?.selectionChange?.([])
+    }
     // 清空选择
     this.render.transformer.nodes([])
 
@@ -56,6 +60,10 @@ export class SelectionTool {
 
   // 选择节点
   select(nodes: Konva.Node[]) {
+    // 选择变化了
+    if (nodes.length !== this.selectingNodes.length) {
+      this.render.config.on?.selectionChange?.(nodes)
+    }
     // 选之前，清一下
     this.selectingClear()
 

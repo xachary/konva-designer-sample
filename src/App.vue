@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, type Ref, onMounted, computed } from 'vue'
 
 import { Render } from './Render'
 
 import * as Types from './Render/types'
+import type Konva from 'konva'
 
 // 容器
 const boardElement = ref<HTMLDivElement>()
@@ -95,6 +96,9 @@ function init() {
               historyChange: (records: string[], index: number) => {
                 history.value = records
                 historyIndex.value = index
+              },
+              selectionChange: (nodes: Konva.Node[]) => {
+                selection.value = nodes
               }
             }
           })
@@ -192,6 +196,15 @@ async function onSaveSvg() {
     a.remove()
   }
 }
+
+// 选择项
+const selection: Ref<Konva.Node[]> = ref([])
+// 是否可以进行对齐
+const noAlign = computed(() => selection.value.length <= 1)
+// 对齐方法
+function onAlign(type: Types.AlignType) {
+  render?.alignTool.align(type)
+}
 </script>
 
 <template>
@@ -203,6 +216,12 @@ async function onSaveSvg() {
       <button @click="onSaveSvg">另存为Svg</button>
       <button @click="onPrev" :disabled="historyIndex <= 0">上一步</button>
       <button @click="onNext" :disabled="historyIndex >= history.length - 1">下一步</button>
+      <button @click="onAlign(Types.AlignType.垂直居中)" :disabled="noAlign">垂直居中</button>
+      <button @click="onAlign(Types.AlignType.左对齐)" :disabled="noAlign">左对齐</button>
+      <button @click="onAlign(Types.AlignType.右对齐)" :disabled="noAlign">右对齐</button>
+      <button @click="onAlign(Types.AlignType.水平居中)" :disabled="noAlign">水平居中</button>
+      <button @click="onAlign(Types.AlignType.上对齐)" :disabled="noAlign">上对齐</button>
+      <button @click="onAlign(Types.AlignType.下对齐)" :disabled="noAlign">下对齐</button>
     </header>
     <section>
       <header>

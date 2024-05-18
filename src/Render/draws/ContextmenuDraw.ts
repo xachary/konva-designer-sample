@@ -122,37 +122,37 @@ export class ContextmenuDraw extends Types.BaseDraw implements Types.Draw {
               menus.push({
                 name: '垂直居中' + (selected ? '于目标' : ''),
                 action: () => {
-                  //
+                  this.render.alignTool.align(Types.AlignType.垂直居中, selected)
                 }
               })
               menus.push({
                 name: '左对齐' + (selected ? '于目标' : ''),
                 action: () => {
-                  //
+                  this.render.alignTool.align(Types.AlignType.左对齐, selected)
                 }
               })
               menus.push({
                 name: '右对齐' + (selected ? '于目标' : ''),
                 action: () => {
-                  //
+                  this.render.alignTool.align(Types.AlignType.右对齐, selected)
                 }
               })
               menus.push({
                 name: '水平居中' + (selected ? '于目标' : ''),
                 action: () => {
-                  //
+                  this.render.alignTool.align(Types.AlignType.水平居中, selected)
                 }
               })
               menus.push({
                 name: '上对齐' + (selected ? '于目标' : ''),
                 action: () => {
-                  //
+                  this.render.alignTool.align(Types.AlignType.上对齐, selected)
                 }
               })
               menus.push({
                 name: '下对齐' + (selected ? '于目标' : ''),
                 action: () => {
-                  //
+                  this.render.alignTool.align(Types.AlignType.下对齐, selected)
                 }
               })
             }

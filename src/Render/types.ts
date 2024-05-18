@@ -17,6 +17,7 @@ export interface RenderConfig {
   //
   on?: {
     historyChange?: (history: string[], historyIndex: number) => void
+    selectionChange?: (selection: Konva.Node[]) => void
   }
 }
 
@@ -99,4 +100,13 @@ export enum ShutcutKey {
   C = 'KeyC',
   V = 'KeyV',
   Z = 'KeyZ'
+}
+
+export enum AlignType {
+  垂直居中 = 'Middle',
+  左对齐 = 'Left',
+  右对齐 = 'Right',
+  水平居中 = 'Center',
+  上对齐 = 'Top',
+  下对齐 = 'Bottom'
 }

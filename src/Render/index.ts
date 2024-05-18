@@ -43,6 +43,9 @@ export class Render {
   // 导入导出
   importExportTool: Tools.ImportExportTool
 
+  // 对齐工具
+  alignTool: Tools.AlignTool
+
   // 多选器层
   groupTransformer: Konva.Group = new Konva.Group()
 
@@ -126,6 +129,9 @@ export class Render {
 
     // 导入导出
     this.importExportTool = new Tools.ImportExportTool(this)
+
+    // 对齐工具
+    this.alignTool = new Tools.AlignTool(this)
 
     // 事件处理
     this.handlers[Handlers.DragHandlers.name] = new Handlers.DragHandlers(this)
@@ -327,7 +333,9 @@ export class Render {
   ignore(node: Konva.Node) {
     // 素材有各自根 group
     const isGroup = node instanceof Konva.Group
-    return !isGroup || node.id() === 'selectRect' || node.id() === 'hoverRect' || this.ignoreDraw(node)
+    return (
+      !isGroup || node.id() === 'selectRect' || node.id() === 'hoverRect' || this.ignoreDraw(node)
+    )
   }
 
   // 忽略各 draw 的根 group
