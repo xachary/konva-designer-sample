@@ -20,6 +20,9 @@ export class AlignTool {
       y = 0
 
     if (target instanceof Konva.Transformer) {
+      // stage 状态
+      const stageState = this.render.getStageState()
+
       // 选择器
       // 转为 逻辑觉尺寸
       ;[width, height] = [
@@ -27,8 +30,8 @@ export class AlignTool {
         this.render.toStageValue(target.height())
       ]
       ;[x, y] = [
-        this.render.toStageValue(target.x()) - this.render.rulerSize,
-        this.render.toStageValue(target.y()) - this.render.rulerSize
+        this.render.toStageValue(target.x() - stageState.x),
+        this.render.toStageValue(target.y() - stageState.y)
       ]
     } else if (target !== void 0) {
       // 节点
