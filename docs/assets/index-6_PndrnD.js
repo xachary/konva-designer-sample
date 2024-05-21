@@ -26330,13 +26330,14 @@ class AlignTool {
   getAlignPoints(target) {
     let width = 0, height = 0, x = 0, y = 0;
     if (target instanceof Konva.Transformer) {
+      const stageState = this.render.getStageState();
       [width, height] = [
         this.render.toStageValue(target.width()),
         this.render.toStageValue(target.height())
       ];
       [x, y] = [
-        this.render.toStageValue(target.x()) - this.render.rulerSize,
-        this.render.toStageValue(target.y()) - this.render.rulerSize
+        this.render.toStageValue(target.x() - stageState.x),
+        this.render.toStageValue(target.y() - stageState.y)
       ];
     } else if (target !== void 0) {
       [width, height] = [target.width(), target.height()];
