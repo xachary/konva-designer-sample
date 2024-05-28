@@ -46,6 +46,9 @@ export class Render {
   // 对齐工具
   alignTool: Tools.AlignTool
 
+  // 连线工具
+  linkTool: Tools.LinkTool
+
   // 多选器层
   groupTransformer: Konva.Group = new Konva.Group()
 
@@ -71,6 +74,7 @@ export class Render {
   bgSize = 20
   rulerSize = 0
   previewSize = 0.2 // 预览框大小（比例）
+  pointSize = 6
 
   history: string[] = []
   historyIndex = -1
@@ -111,6 +115,9 @@ export class Render {
     this.draws[Draws.PreviewDraw.name] = new Draws.PreviewDraw(this, this.layerCover, {
       size: this.previewSize
     })
+    this.draws[Draws.LinkDraw.name] = new Draws.LinkDraw(this, this.layer, {
+      //
+    })
 
     // 素材工具
     this.assetTool = new Tools.AssetTool(this)
@@ -133,6 +140,9 @@ export class Render {
     // 对齐工具
     this.alignTool = new Tools.AlignTool(this)
 
+    // 对齐工具
+    this.linkTool = new Tools.LinkTool(this)
+
     // 事件处理
     this.handlers[Handlers.DragHandlers.name] = new Handlers.DragHandlers(this)
     this.handlers[Handlers.ZoomHandlers.name] = new Handlers.ZoomHandlers(this)
@@ -141,6 +151,7 @@ export class Render {
     this.handlers[Handlers.SelectionHandlers.name] = new Handlers.SelectionHandlers(this)
     this.handlers[Handlers.KeyMoveHandlers.name] = new Handlers.KeyMoveHandlers(this)
     this.handlers[Handlers.ShutcutHandlers.name] = new Handlers.ShutcutHandlers(this)
+    this.handlers[Handlers.LinkHandlers.name] = new Handlers.LinkHandlers(this)
 
     // 初始化
     this.init()
@@ -175,6 +186,8 @@ export class Render {
 
     // 更新背景
     this.draws[Draws.BgDraw.name].draw()
+    // 更新连线
+    this.draws[Draws.LinkDraw.name].draw()
     // 更新比例尺
     this.draws[Draws.RulerDraw.name].draw()
     // 更新预览
@@ -198,6 +211,8 @@ export class Render {
     if (nodes.length > 0) {
       // 更新历史
       this.updateHistory()
+      // 更新连线
+      this.draws[Draws.LinkDraw.name].draw()
       // 更新预览
       this.draws[Draws.PreviewDraw.name].draw()
     }
@@ -347,5 +362,10 @@ export class Render {
       node.name() === Draws.ContextmenuDraw.name ||
       node.name() === Draws.PreviewDraw.name
     )
+  }
+
+  // 忽略各 draw 的根 group
+  ignoreLink(node: Konva.Node) {
+    return node.name() === 'point' || node.name() === 'link-point' || node.name() === 'link-group'
   }
 }

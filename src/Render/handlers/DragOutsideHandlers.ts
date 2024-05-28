@@ -6,6 +6,8 @@ import * as Types from '../types'
 //
 import * as Draws from '../draws'
 
+import { LinkPointEventBind } from '../LinkPointHandlers'
+
 export class DragOutsideHandlers implements Types.Handler {
   static readonly name = 'DragOutside'
 
@@ -64,6 +66,38 @@ export class DragOutsideHandlers implements Types.Handler {
                 x,
                 y
               })
+
+              const points = [
+                { x: group.width() / 2 - this.render.pointSize, y: -this.render.pointSize },
+                {
+                  x: group.width() / 2 - this.render.pointSize,
+                  y: group.height() - this.render.pointSize
+                },
+                { y: group.height() / 2 - this.render.pointSize, x: -this.render.pointSize },
+                {
+                  y: group.height() / 2 - this.render.pointSize,
+                  x: group.width() - this.render.pointSize
+                }
+              ]
+
+              // 默认连接点
+              for (const point of points) {
+                const node = new Konva.Circle({
+                  id: nanoid(),
+                  x: this.render.pointSize + point.x,
+                  y: this.render.pointSize + point.y,
+                  radius: this.render.toStageValue(this.render.pointSize),
+                  stroke: 'rgba(255,0,0,0.5)',
+                  strokeWidth: this.render.toStageValue(1),
+                  name: 'point',
+                  perfectDrawEnabled: false,
+
+                  groupId: group.id(),
+                  visible: false
+                })
+                LinkPointEventBind(this.render, group, node)
+                group.add(node)
+              }
 
               // hover 框（多选时才显示）
               group.add(

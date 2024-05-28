@@ -4,3 +4,4 @@ export { DragOutsideHandlers } from './DragOutsideHandlers'
 export { SelectionHandlers } from './SelectionHandlers'
 export { KeyMoveHandlers } from './KeyMoveHandlers'
 export { ShutcutHandlers } from './ShutcutHandlers';
+export { LinkHandlers } from './LinkHandlers';

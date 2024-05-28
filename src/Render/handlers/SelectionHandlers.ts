@@ -5,6 +5,8 @@ import { Render } from '../index'
 import * as Types from '../types'
 //
 import * as Draws from '../draws'
+//
+import { LinkPointCircleUpdateAll } from '../LinkPointHandlers'
 
 interface SortItem {
   id?: number // 有 id 就是其他节点，否则就是 选择目标
@@ -108,7 +110,7 @@ export class SelectionHandlers implements Types.Handler {
           }
         } else if (parent instanceof Konva.Transformer) {
           // transformer 点击事件交给 transformer 自己的 handler
-        } else if (parent instanceof Konva.Group) {
+        } else if (parent instanceof Konva.Group && e.target.name() !== 'point') {
           if (e.evt.button === Types.MouseButton.左键) {
             if (!this.render.ignore(parent) && !this.render.ignoreDraw(e.target)) {
               if (e.evt.ctrlKey) {
@@ -165,7 +167,7 @@ export class SelectionHandlers implements Types.Handler {
 
           // 获取所有图形
           const shapes = this.render.layer.getChildren((node) => {
-            return !this.render.ignore(node)
+            return !this.render.ignore(node) && !this.render.ignoreLink(node)
           })
 
           // 提取重叠部分
@@ -275,11 +277,17 @@ export class SelectionHandlers implements Types.Handler {
         }
       },
       transform: () => {
+        // 调整连接点（还要计算 group 本身 scale）
+        LinkPointCircleUpdateAll(this.render)
+
         // 更新预览
         this.render.draws[Draws.PreviewDraw.name].draw()
       },
       transformend: () => {
         // 变换结束
+
+        // 调整连接点（还要计算 group 本身 scale）
+        LinkPointCircleUpdateAll(this.render)
 
         // 重置状态
         this.reset()
@@ -308,6 +316,13 @@ export class SelectionHandlers implements Types.Handler {
           // 更新预览
           this.render.draws[Draws.PreviewDraw.name].draw()
         }
+
+        // 调整连接点（还要计算 group 本身 scale）
+        LinkPointCircleUpdateAll(this.render)
+        // 更新连线
+        this.render.draws[Draws.LinkDraw.name].draw()
+        // 更新预览
+        this.render.draws[Draws.PreviewDraw.name].draw()
       },
       dragend: () => {
         // 拖动结束
@@ -317,6 +332,8 @@ export class SelectionHandlers implements Types.Handler {
 
         // 更新历史
         this.render.updateHistory()
+        // 更新连线
+        this.render.draws[Draws.LinkDraw.name].draw()
         // 更新预览
         this.render.draws[Draws.PreviewDraw.name].draw()
       },

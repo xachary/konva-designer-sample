@@ -48,6 +48,18 @@ export class ContextmenuDraw extends Types.BaseDraw implements Types.Draw {
             this.render.positionTool.positionZoomReset()
           }
         })
+      } else if (this.state.target.name() === 'link') {
+        menus.push({
+          name: '删除',
+          action: () => {
+            const target = this.state.target?.parent
+
+            if (target) {
+              this.render.linkTool.remove(target)
+              this.render.remove([target])
+            }
+          }
+        })
       } else {
         // 未选择：真实节点，即素材的容器 group
         // 已选择：transformer

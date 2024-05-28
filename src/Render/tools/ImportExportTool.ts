@@ -4,6 +4,8 @@ import C2S from 'canvas2svg'
 import { Render } from '../index'
 //
 import * as Draws from '../draws'
+//
+import { LinkPointEventBind } from '../LinkPointHandlers'
 
 export class ImportExportTool {
   static readonly name = 'ImportExportTool'
@@ -155,6 +157,52 @@ export class ImportExportTool {
       const main = stage.getChildren()[0]
       const nodes = main.getChildren()
 
+      const linkDrawState = (this.render.draws[Draws.LinkDraw.name] as Draws.LinkDraw).state
+
+      linkDrawState.linkGroupNode = null
+      linkDrawState.linkFrom = {
+        group: null,
+        circle: null
+      }
+      linkDrawState.linkTo = {
+        group: null,
+        circle: null
+      }
+      linkDrawState.linkPairs = []
+      linkDrawState.linkPoint = {
+        pair: null,
+        pointCircle: null,
+        link: null,
+        pointGroup: null,
+        point: null
+      }
+
+      for (const group of nodes.filter((o: Konva.Node) => o.name() === 'link-group')) {
+        const link = group.getChildren().find((o: Konva.Node) => o.name() === 'link')
+
+        linkDrawState.linkPairs.push({
+          from: {
+            groupId: group.attrs.fromGroupId,
+            circleId: group.attrs.fromcircleId
+          },
+          to: {
+            groupId: group.attrs.toGroupId,
+            circleId: group.attrs.tocircleId
+          },
+          points: link.attrs.pairPoints,
+          selected: false
+        })
+      }
+
+      for (const group of nodes.filter(
+        (o: Konva.Node) => o.name() !== 'link-group' && o.name() !== 'Link'
+      )) {
+        const points = group.getChildren((o: Konva.Node) => o instanceof Konva.Circle)
+        for (const node of points) {
+          LinkPointEventBind(this.render, group, node)
+        }
+      }
+
       // 恢复节点图片素材
       await this.restoreImage(nodes)
 
@@ -172,6 +220,14 @@ export class ImportExportTool {
         // 更新历史
         this.render.updateHistory()
       }
+
+      // 隐藏连接点
+      this.render.layer.find('.point').forEach((node) => {
+        node.visible(false)
+      })
+
+      // 更新连线
+      this.render.draws[Draws.LinkDraw.name].draw()
 
       // 更新预览
       this.render.draws[Draws.PreviewDraw.name].draw()

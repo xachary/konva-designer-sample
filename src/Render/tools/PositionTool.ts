@@ -28,6 +28,8 @@ export class PositionTool {
 
     // 更新背景
     this.render.draws[Draws.BgDraw.name].draw()
+    // 更新连线
+    this.render.draws[Draws.LinkDraw.name].draw();
     // 更新比例尺
     this.render.draws[Draws.RulerDraw.name].draw()
     // 更新参考线
@@ -77,6 +79,8 @@ export class PositionTool {
 
     // 更新背景
     this.render.draws[Draws.BgDraw.name].draw()
+    // 更新连线
+    this.render.draws[Draws.LinkDraw.name].draw();
     // 更新比例尺
     this.render.draws[Draws.RulerDraw.name].draw()
     // 更新参考线

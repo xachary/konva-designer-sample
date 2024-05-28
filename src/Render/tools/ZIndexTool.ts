@@ -116,6 +116,8 @@ export class ZIndexTool {
 
       // 更新历史
       this.render.updateHistory()
+      // 更新连线
+      this.render.draws[Draws.LinkDraw.name].draw()
       // 更新预览
       this.render.draws[Draws.PreviewDraw.name].draw()
     }
@@ -163,6 +165,8 @@ export class ZIndexTool {
 
       // 更新历史
       this.render.updateHistory()
+      // 更新连线
+      this.render.draws[Draws.LinkDraw.name].draw()
       // 更新预览
       this.render.draws[Draws.PreviewDraw.name].draw()
     }
@@ -198,6 +202,8 @@ export class ZIndexTool {
 
       // 更新历史
       this.render.updateHistory()
+      // 更新连线
+      this.render.draws[Draws.LinkDraw.name].draw()
       // 更新预览
       this.render.draws[Draws.PreviewDraw.name].draw()
     }
@@ -233,6 +239,8 @@ export class ZIndexTool {
 
       // 更新历史
       this.render.updateHistory()
+      // 更新连线
+      this.render.draws[Draws.LinkDraw.name].draw()
       // 更新预览
       this.render.draws[Draws.PreviewDraw.name].draw()
     }
