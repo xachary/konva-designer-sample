@@ -294,6 +294,7 @@ export function LinkPointCircleUpdateAll(render: Render) {
 
 export function LinkPointUpdate(render: Render) {
   const linkDrawState = (render.draws[Draws.LinkDraw.name] as Draws.LinkDraw).state
+  const stageState = render.getStageState()
 
   const pos = render.stage.getPointerPosition()
 
@@ -301,8 +302,8 @@ export function LinkPointUpdate(render: Render) {
     const { pair, pointCircle, link, pointGroup, point } = linkDrawState.linkPoint
 
     if (pair && pointCircle && link && pointGroup && point) {
-      const x = render.toStageValue(pos.x - render.getStageState().x)
-      const y = render.toStageValue(pos.y - render.getStageState().y)
+      const x = render.toStageValue(pos.x - stageState.x)
+      const y = render.toStageValue(pos.y - stageState.y)
 
       pointCircle.setAttrs({
         x,
@@ -312,6 +313,66 @@ export function LinkPointUpdate(render: Render) {
       point.pos = {
         x,
         y
+      }
+
+      // 磁贴（基于网格）
+      if (render.config.attractBg) {
+        // stage 状态
+
+        const logicLeftX = point.pos.x // x坐标
+        const logicNumLeftX = Math.round(logicLeftX / render.bgSize) // x单元格个数
+        const logicClosestLeftX = logicNumLeftX * render.bgSize // x磁贴目标坐标
+        const logicDiffLeftX = Math.abs(logicLeftX - logicClosestLeftX) // x磁贴偏移量
+
+        const logicRightX = point.pos.x // x坐标
+        const logicNumRightX = Math.round(logicRightX / render.bgSize) // x单元格个数
+        const logicClosestRightX = logicNumRightX * render.bgSize // x磁贴目标坐标
+        const logicDiffRightX = Math.abs(logicRightX - logicClosestRightX) // x磁贴偏移量
+
+        // 距离近优先
+        for (const diff of [
+          { type: 'leftX', value: logicDiffLeftX },
+          { type: 'rightX', value: logicDiffRightX }
+        ].sort((a, b) => a.value - b.value)) {
+          if (diff.value < 5) {
+            if (diff.type === 'leftX') {
+              point.pos.x = logicClosestLeftX 
+            } else if (diff.type === 'rightX') {
+              point.pos.x = logicClosestRightX
+            }
+            break
+          }
+        }
+
+        const logicTopY = point.pos.y // y坐标
+        const logicNumTopY = Math.round(logicTopY / render.bgSize) // y单元格个数
+        const logicClosestTopY = logicNumTopY * render.bgSize // y磁贴目标坐标
+        const logicDiffTopY = Math.abs(logicTopY - logicClosestTopY) // y磁贴偏移量
+
+        const logicBottomY = point.pos.y // y坐标
+        const logicNumBottomY = Math.round(logicBottomY / render.bgSize) // y单元格个数
+        const logicClosestBottomY = logicNumBottomY * render.bgSize // y磁贴目标坐标
+        const logicDiffBottomY = Math.abs(logicBottomY - logicClosestBottomY) // y磁贴偏移量
+
+        // 距离近优先
+        for (const diff of [
+          { type: 'topY', value: logicDiffTopY },
+          { type: 'bottomY', value: logicDiffBottomY }
+        ].sort((a, b) => a.value - b.value)) {
+          if (diff.value < 5) {
+            if (diff.type === 'topY') {
+              point.pos.y = logicClosestTopY
+            } else if (diff.type === 'bottomY') {
+              point.pos.y = logicClosestBottomY
+            }
+            break
+          }
+        }
+
+        pointCircle.setAttrs({
+          x: point.pos.x,
+          y: point.pos.y
+        })
       }
 
       LinkPointCircleUpdate(pointGroup, link, pair)
