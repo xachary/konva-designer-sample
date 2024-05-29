@@ -3,6 +3,9 @@ import Konva from 'konva'
 import { Render } from '../index'
 //
 import * as Draws from '../draws'
+import { nanoid } from 'nanoid'
+
+// import { nanoid } from 'nanoid'
 
 export class CopyTool {
   static readonly name = 'CopyTool'
@@ -54,7 +57,9 @@ export class CopyTool {
    * @returns 复制的元素
    */
   copy(nodes: Konva.Node[]) {
-    const arr: Konva.Node[] = []
+    // const linkDrawState = (this.render.draws[Draws.LinkDraw.name] as Draws.LinkDraw).state
+
+    const clones: Konva.Group[] = []
 
     for (const node of nodes) {
       if (node instanceof Konva.Transformer) {
@@ -63,27 +68,46 @@ export class CopyTool {
         this.render.selectionTool.selectingClear()
         this.copy(backup)
       } else {
-        // 复制未选择
-        const copy = node.clone()
-        // 使新节点产生偏移
-        copy.setAttrs({
-          x: copy.x() + this.render.toStageValue(this.render.bgSize) * this.pasteCount,
-          y: copy.y() + this.render.toStageValue(this.render.bgSize) * this.pasteCount
-        })
-        // 插入新节点
-        this.render.layer.add(copy)
-        // 选中复制内容
-        this.render.selectionTool.select([...this.render.selectionTool.selectingNodes, copy])
+        // 复制未选择（先记录，后处理）
+        clones.push(node.clone())
       }
     }
+
+    // 处理克隆节点
+    for (const copy of clones) {
+      // 原id
+      const prototypeId = copy.id()
+      // 新id
+      copy.id(nanoid())
+      copy.find('.point').forEach((p) => {
+        p.id(nanoid())
+        p.setAttrs({
+          groupId: copy.id(),
+          prototypeId // 记录原id
+        })
+      })
+
+      // 给克隆节点恢复 linkDrawState 的 linkPairs、linkPoint
+      // TODO: src\Render\handlers\LinkHandlers.ts:94
+      // TODO: src\Render\draws\LinkDraw.ts:146
+
+      // 使新节点产生偏移
+      copy.setAttrs({
+        x: copy.x() + this.render.toStageValue(this.render.bgSize) * this.pasteCount,
+        y: copy.y() + this.render.toStageValue(this.render.bgSize) * this.pasteCount
+      })
+    }
+
+    // 插入新节点
+    this.render.layer.add(...clones)
+    // 选中复制内容
+    this.render.selectionTool.select(clones)
 
     // 更新历史
     this.render.updateHistory()
     // 更新连线
-    this.render.draws[Draws.LinkDraw.name].draw();
+    this.render.draws[Draws.LinkDraw.name].draw()
     // 更新预览
     this.render.draws[Draws.PreviewDraw.name].draw()
-
-    return arr
   }
 }
