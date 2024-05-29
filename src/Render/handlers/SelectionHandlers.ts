@@ -110,7 +110,11 @@ export class SelectionHandlers implements Types.Handler {
           }
         } else if (parent instanceof Konva.Transformer) {
           // transformer 点击事件交给 transformer 自己的 handler
-        } else if (parent instanceof Konva.Group && e.target.name() !== 'point') {
+        } else if (
+          parent instanceof Konva.Group &&
+          e.target.name() !== 'point' &&
+          e.target.name() !== 'link-point'
+        ) {
           if (e.evt.button === Types.MouseButton.左键) {
             if (!this.render.ignore(parent) && !this.render.ignoreDraw(e.target)) {
               if (e.evt.ctrlKey) {
