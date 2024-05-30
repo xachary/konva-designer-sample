@@ -7,8 +7,12 @@ import * as Draws from './draws'
 //
 import type { LinkDrawState, LinkDrawPair, LinkDrawPairPoint } from './draws/LinkDraw'
 
-export function LinkPointEventBind(render: Render, group: Konva.Group, node: Konva.Circle) {
+export function LinkGroupEventBind(render: Render, group: Konva.Group) {
   const linkDrawState = (render.draws[Draws.LinkDraw.name] as Draws.LinkDraw).state
+
+  // 避免复制重复绑定
+  group.off('mouseenter')
+  group.off('mouseleave')
 
   group.on('mouseenter', () => {
     const points = group.find('.point')
@@ -24,6 +28,16 @@ export function LinkPointEventBind(render: Render, group: Konva.Group, node: Kon
       }
     }
   })
+}
+
+export function LinkPointEventBind(render: Render, group: Konva.Group, node: Konva.Circle) {
+  const linkDrawState = (render.draws[Draws.LinkDraw.name] as Draws.LinkDraw).state
+
+  node.off('mousedown')
+  node.off('mouseup')
+  node.off('mouseenter')
+  node.off('mouseleave')
+
   node.on('mousedown', (e) => {
     e.evt.preventDefault()
 
@@ -336,7 +350,7 @@ export function LinkPointUpdate(render: Render) {
         ].sort((a, b) => a.value - b.value)) {
           if (diff.value < 5) {
             if (diff.type === 'leftX') {
-              point.pos.x = logicClosestLeftX 
+              point.pos.x = logicClosestLeftX
             } else if (diff.type === 'rightX') {
               point.pos.x = logicClosestRightX
             }

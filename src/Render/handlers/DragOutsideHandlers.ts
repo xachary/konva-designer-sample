@@ -6,7 +6,7 @@ import * as Types from '../types'
 //
 import * as Draws from '../draws'
 
-import { LinkPointEventBind } from '../LinkPointHandlers'
+import { LinkGroupEventBind, LinkPointEventBind } from '../LinkPointHandlers'
 
 export class DragOutsideHandlers implements Types.Handler {
   static readonly name = 'DragOutside'
@@ -80,6 +80,9 @@ export class DragOutsideHandlers implements Types.Handler {
                 }
               ]
 
+              // 绑定连接线所需事件
+              LinkGroupEventBind(this.render, group)
+
               // 默认连接点
               for (const point of points) {
                 const node = new Konva.Circle({
@@ -95,6 +98,7 @@ export class DragOutsideHandlers implements Types.Handler {
                   groupId: group.id(),
                   visible: false
                 })
+                // 绑定连接线所需事件
                 LinkPointEventBind(this.render, group, node)
                 group.add(node)
               }

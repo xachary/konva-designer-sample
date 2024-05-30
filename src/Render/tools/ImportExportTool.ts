@@ -5,7 +5,7 @@ import { Render } from '../index'
 //
 import * as Draws from '../draws'
 //
-import { LinkPointEventBind } from '../LinkPointHandlers'
+import { LinkGroupEventBind, LinkPointEventBind } from '../LinkPointHandlers'
 
 export class ImportExportTool {
   static readonly name = 'ImportExportTool'
@@ -198,7 +198,12 @@ export class ImportExportTool {
         (o: Konva.Node) => o.name() !== 'link-group' && o.name() !== 'Link'
       )) {
         const points = group.getChildren((o: Konva.Node) => o instanceof Konva.Circle)
+
+        // 绑定连接线所需事件
+        LinkGroupEventBind(this.render, group)
+
         for (const node of points) {
+          // 绑定连接线所需事件
           LinkPointEventBind(this.render, group, node)
         }
       }
