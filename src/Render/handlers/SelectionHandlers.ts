@@ -284,6 +284,8 @@ export class SelectionHandlers implements Types.Handler {
         // 调整连接点（还要计算 group 本身 scale）
         LinkPointCircleUpdateAll(this.render)
 
+        // 更新连线
+        this.render.draws[Draws.LinkDraw.name].draw()
         // 更新预览
         this.render.draws[Draws.PreviewDraw.name].draw()
       },

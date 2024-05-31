@@ -103,6 +103,9 @@ export class Render {
     this.draws[Draws.BgDraw.name] = new Draws.BgDraw(this, this.layerFloor, {
       size: this.bgSize
     })
+    this.draws[Draws.LinkDraw.name] = new Draws.LinkDraw(this, this.layerCover, {
+      //
+    })
     this.draws[Draws.RulerDraw.name] = new Draws.RulerDraw(this, this.layerCover, {
       size: this.rulerSize
     })
@@ -114,9 +117,6 @@ export class Render {
     })
     this.draws[Draws.PreviewDraw.name] = new Draws.PreviewDraw(this, this.layerCover, {
       size: this.previewSize
-    })
-    this.draws[Draws.LinkDraw.name] = new Draws.LinkDraw(this, this.layer, {
-      //
     })
 
     // 素材工具
@@ -165,6 +165,7 @@ export class Render {
     this.stage.add(this.layer)
 
     this.stage.add(this.layerCover)
+    this.draws[Draws.LinkDraw.name].init()
     this.draws[Draws.RulerDraw.name].init()
     this.draws[Draws.RefLineDraw.name].init()
     this.draws[Draws.ContextmenuDraw.name].init()

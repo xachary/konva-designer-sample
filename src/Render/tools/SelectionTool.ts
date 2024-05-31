@@ -52,20 +52,20 @@ export class SelectionTool {
     // 清空选择节点
     this.selectingNodes = []
 
-    // 显示、调整连接点（还要计算 group 本身 scale）
-    const groups = this.render.layer.getChildren()
-    for (const g of groups) {
-      const points = (g as Konva.Group).find('.point')
-      for (const point of points) {
-        point.setAttrs({
-          visible: true,
-          scale: {
-            x: this.render.toStageValue(1) / g.scaleX(),
-            y: this.render.toStageValue(1) / g.scaleY()
-          }
-        })
-      }
-    }
+    // // 显示、调整连接点（还要计算 group 本身 scale）
+    // const groups = this.render.layer.getChildren()
+    // for (const g of groups) {
+    //   const points = (g as Konva.Group).find('.point')
+    //   for (const point of points) {
+    //     point.setAttrs({
+    //       visible: true,
+    //       scale: {
+    //         x: this.render.toStageValue(1) / g.scaleX(),
+    //         y: this.render.toStageValue(1) / g.scaleY()
+    //       }
+    //     })
+    //   }
+    // }
 
     if (change) {
       // 更新预览

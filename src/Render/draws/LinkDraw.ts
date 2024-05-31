@@ -1,10 +1,12 @@
 import _ from 'lodash-es'
 import Konva from 'konva'
-import { nanoid } from 'nanoid'
+// import { nanoid } from 'nanoid'
 //
 import * as Types from '../types'
 
-import { LinkPointCircleEventBind } from '../LinkPointHandlers'
+// import { LinkPointCircleEventBind } from '../LinkPointHandlers'
+
+// import * as Draws from './index'
 
 export interface LinkDrawOption {
   //
@@ -52,6 +54,12 @@ export interface LinkDrawState {
     pointGroup: Konva.Group | null
     point: LinkDrawPairPoint | null
   }
+  //
+  linkingLine: {
+    group: Konva.Group
+    circle: Konva.Circle
+    line: Konva.Line
+  } | null
 }
 
 export const LinkDrawParams = {
@@ -81,7 +89,9 @@ export class LinkDraw extends Types.BaseDraw implements Types.Draw {
       link: null,
       pointGroup: null,
       point: null
-    }
+    },
+    //
+    linkingLine: null
   }
 
   on = {}
@@ -94,128 +104,150 @@ export class LinkDraw extends Types.BaseDraw implements Types.Draw {
     this.group.name(this.constructor.name)
   }
 
-  override clear() {
-    for (const linkGroupNode of this.layer.getChildren().filter((o) => o.name() === 'link-group')) {
-      linkGroupNode.remove()
-    }
-  }
-
   override draw() {
     this.clear()
 
-    const nodes = this.layer.getChildren()
+    const points = this.render.layer.find('.point')
 
-    for (const pair of this.state.linkPairs) {
-      const fromGroup = nodes.find((o) => o.id() === pair.from.groupId) as Konva.Group
-      const toGroup = nodes.find((o) => o.id() === pair.to.groupId) as Konva.Group
+    for (const point of points) {
+      const pairs = Array.isArray(point.getAttrs().pairs) ? point.getAttrs().pairs : []
+      for (const pair of pairs) {
+        if (pair.type === 'from') {
+          const fromPoint = this.render.layer.findOne(`#${pair.from.pointId}`) as Konva.Circle
+          const toPoint = this.render.layer.findOne(`#${pair.to.pointId}`) as Konva.Circle
 
-      if (fromGroup && toGroup) {
-        const fromCircle = fromGroup.getChildren(
-          (o) => o instanceof Konva.Circle && o.id() === pair.from.circleId
-        )[0] as Konva.Circle
-        const toCircle = toGroup.getChildren(
-          (o) => o instanceof Konva.Circle && o.id() === pair.to.circleId
-        )[0] as Konva.Circle
-
-        if (fromCircle && toCircle) {
-          const linkGroupNode = new Konva.Group({
-            name: 'link-group',
-            fromGroupId: pair.from.groupId,
-            fromcircleId: pair.from.circleId,
-            toGroupId: pair.to.groupId,
-            tocircleId: pair.to.circleId
-          })
-          const from = [
-            fromGroup.x() + fromCircle.x() * fromGroup.scaleX(),
-            fromGroup.y() + fromCircle.y() * fromGroup.scaleY()
-          ]
-          const to = [
-            toGroup.x() + toCircle.x() * toGroup.scaleX(),
-            toGroup.y() + toCircle.y() * toGroup.scaleY()
-          ]
-
-          if (!pair.points) {
-            pair.points = [
-              {
-                pos: {
-                  x: from[0] + (to[0] - from[0]) / 2,
-                  y: from[1] + (to[1] - from[1]) / 2
-                },
-                changed: false,
-                active: false,
-                id: nanoid()
-              }
-            ]
-          }
-
-          const link = new Konva.Line({
-            name: 'link',
-            points: _.flatten([
-              from,
-              ...pair.points.filter((o) => o.active).map((o) => [o.pos.x, o.pos.y]),
-              to
-            ]),
-            stroke: 'blue',
-            strokeWidth: 2,
-            pairPoints: pair.points,
-            dash: pair.selected ? [4, 4] : []
-          })
-          linkGroupNode.add(link)
-
-          for (const point of pair.points) {
-            const node = new Konva.Circle({
-              x: point.pos.x,
-              y: point.pos.y,
-              radius: this.render.toStageValue(LinkDrawParams.pointSize),
-              stroke: point.changed ? 'rgba(0,0,0,0.5)' : 'rgba(0,0,255,0.5)',
-              strokeWidth: this.render.toStageValue(1),
-              name: 'link-point',
-              perfectDrawEnabled: false,
-              visible: false,
-              id: point.id
+          this.group.add(
+            new Konva.Line({
+              name: 'link-line',
+              points: _.flatten([
+                [fromPoint.absolutePosition().x - this.render.rulerSize, fromPoint.absolutePosition().y - this.render.rulerSize],
+                [toPoint.absolutePosition().x - this.render.rulerSize, toPoint.absolutePosition().y - this.render.rulerSize]
+              ]),
+              stroke: 'red',
+              strokeWidth: 2
             })
-
-            LinkPointCircleEventBind(node, this.state, pair, link, linkGroupNode, point)
-
-            linkGroupNode.add(node)
-          }
-
-          linkGroupNode.on('mouseenter', (e) => {
-            e.evt.preventDefault()
-
-            const points = linkGroupNode.find('.link-point')
-            for (const point of points) {
-              point.visible(true)
-            }
-          })
-          linkGroupNode.on('mouseleave', (e) => {
-            e.evt.preventDefault()
-
-            if (!this.state.linkPoint.pointCircle) {
-              const points = linkGroupNode.find('.link-point')
-              for (const point of points) {
-                point.visible(false)
-              }
-            }
-          })
-
-          link.on('mousedown', (e) => {
-            if (e.evt.button === Types.MouseButton.左键) {
-              this.render.linkTool.updateSelection(pair)
-            }
-          })
-
-          link.on('mouseenter', (e) => {
-            document.body.style.cursor = 'pointer'
-          })
-
-          link.on('mouseleave', (e) => {
-            document.body.style.cursor = 'default'
-          })
-
-          this.layer.add(linkGroupNode)
+          )
         }
       }
     }
+
+    // const linkDrawState = (this.render.draws[Draws.LinkDraw.name] as Draws.LinkDraw).state
+
+    // const pos = this.render.stage.getPointerPosition()
+
+    // const nodes = this.layer.getChildren()
+
+    // for (const pair of this.state.linkPairs) {
+    //   const fromGroup = nodes.find((o) => o.id() === pair.from.groupId) as Konva.Group
+    //   const toGroup = nodes.find((o) => o.id() === pair.to.groupId) as Konva.Group
+
+    //   if (fromGroup && toGroup) {
+    //     const fromCircle = fromGroup.getChildren(
+    //       (o) => o instanceof Konva.Circle && o.id() === pair.from.circleId
+    //     )[0] as Konva.Circle
+    //     const toCircle = toGroup.getChildren(
+    //       (o) => o instanceof Konva.Circle && o.id() === pair.to.circleId
+    //     )[0] as Konva.Circle
+
+    //     if (fromCircle && toCircle) {
+    //       const linkGroupNode = new Konva.Group({
+    //         name: 'link-group',
+    //         fromGroupId: pair.from.groupId,
+    //         fromcircleId: pair.from.circleId,
+    //         toGroupId: pair.to.groupId,
+    //         tocircleId: pair.to.circleId
+    //       })
+    //       const from = [
+    //         fromGroup.x() + fromCircle.x() * fromGroup.scaleX(),
+    //         fromGroup.y() + fromCircle.y() * fromGroup.scaleY()
+    //       ]
+    //       const to = [
+    //         toGroup.x() + toCircle.x() * toGroup.scaleX(),
+    //         toGroup.y() + toCircle.y() * toGroup.scaleY()
+    //       ]
+
+    //       if (!pair.points) {
+    //         pair.points = [
+    //           {
+    //             pos: {
+    //               x: from[0] + (to[0] - from[0]) / 2,
+    //               y: from[1] + (to[1] - from[1]) / 2
+    //             },
+    //             changed: false,
+    //             active: false,
+    //             id: nanoid()
+    //           }
+    //         ]
+    //       }
+
+    //       const link = new Konva.Line({
+    //         name: 'link',
+    //         points: _.flatten([
+    //           from,
+    //           ...pair.points.filter((o) => o.active).map((o) => [o.pos.x, o.pos.y]),
+    //           to
+    //         ]),
+    //         stroke: 'blue',
+    //         strokeWidth: 2,
+    //         pairPoints: pair.points,
+    //         dash: pair.selected ? [4, 4] : []
+    //       })
+    //       linkGroupNode.add(link)
+
+    //       for (const point of pair.points) {
+    //         const node = new Konva.Circle({
+    //           x: point.pos.x,
+    //           y: point.pos.y,
+    //           radius: this.render.toStageValue(LinkDrawParams.pointSize),
+    //           stroke: point.changed ? 'rgba(0,0,0,0.5)' : 'rgba(0,0,255,0.5)',
+    //           strokeWidth: this.render.toStageValue(1),
+    //           name: 'link-point',
+    //           perfectDrawEnabled: false,
+    //           visible: false,
+    //           id: point.id
+    //         })
+
+    //         LinkPointCircleEventBind(node, this.state, pair, link, linkGroupNode, point)
+
+    //         linkGroupNode.add(node)
+    //       }
+
+    //       linkGroupNode.on('mouseenter', (e) => {
+    //         e.evt.preventDefault()
+
+    //         const points = linkGroupNode.find('.link-point')
+    //         for (const point of points) {
+    //           point.visible(true)
+    //         }
+    //       })
+    //       linkGroupNode.on('mouseleave', (e) => {
+    //         e.evt.preventDefault()
+
+    //         if (!this.state.linkPoint.pointCircle) {
+    //           const points = linkGroupNode.find('.link-point')
+    //           for (const point of points) {
+    //             point.visible(false)
+    //           }
+    //         }
+    //       })
+
+    //       link.on('mousedown', (e) => {
+    //         if (e.evt.button === Types.MouseButton.左键) {
+    //           this.render.linkTool.updateSelection(pair)
+    //         }
+    //       })
+
+    //       link.on('mouseenter', (e) => {
+    //         document.body.style.cursor = 'pointer'
+    //       })
+
+    //       link.on('mouseleave', (e) => {
+    //         document.body.style.cursor = 'default'
+    //       })
+
+    //       this.layer.add(linkGroupNode)
+    //     }
+    //   }
+    // }
   }
 }

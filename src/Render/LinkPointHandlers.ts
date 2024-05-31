@@ -31,6 +31,7 @@ export function LinkGroupEventBind(render: Render, group: Konva.Group) {
 }
 
 export function LinkPointEventBind(render: Render, group: Konva.Group, node: Konva.Circle) {
+  const draw = render.draws[Draws.LinkDraw.name] as Draws.LinkDraw
   const linkDrawState = (render.draws[Draws.LinkDraw.name] as Draws.LinkDraw).state
 
   node.off('mousedown')
@@ -43,39 +44,65 @@ export function LinkPointEventBind(render: Render, group: Konva.Group, node: Kon
 
     render.selectionTool.selectingClear()
 
-    linkDrawState.linkFrom.group = null
-    linkDrawState.linkFrom.circle = null
-    linkDrawState.linkTo.group = null
-    linkDrawState.linkTo.circle = null
+    // render.layer.find('.point').forEach((o) => o.visible(true))
 
-    linkDrawState.linkGroupNode?.remove()
-    linkDrawState.linkGroupNode = null
+    const pos = render.stage.getPointerPosition()
 
-    let linkGroupNode: Konva.Group | null = null
-    let link: Konva.Line | null = null
+    if (pos) {
+      // stage 状态
+      const stageState = render.getStageState()
 
-    linkGroupNode = new Konva.Group({
-      name: 'link-group-current',
-      groupId: group.id(),
-      circleId: node.id()
-    })
-    link = new Konva.Line({
-      name: 'link-current',
-      points: _.flatten([[group.x() + node.x(), group.y() + node.y()]]),
-      stroke: 'red',
-      strokeWidth: 2,
-      listening: false
-    })
+      // 连接线 画
+      linkDrawState.linkingLine = {
+        group: group,
+        circle: node,
+        line: new Konva.Line({
+          name: 'linking-line',
+          points: _.flatten([
+            [node.absolutePosition().x - render.rulerSize, node.absolutePosition().y - render.rulerSize],
+            [render.toStageValue(pos.x - stageState.x), render.toStageValue(pos.y - stageState.y)]
+          ]),
+          stroke: 'blue',
+          strokeWidth: 1
+        })
+      }
 
-    linkDrawState.linkFrom.group = group
-    linkDrawState.linkFrom.circle = node
-
-    if (linkGroupNode && link) {
-      linkGroupNode.add(link)
-      linkDrawState.linkGroupNode = linkGroupNode
-
-      render.layer.add(linkGroupNode)
+      draw.layer.add(linkDrawState.linkingLine.line)
     }
+
+    // linkDrawState.linkFrom.group = null
+    // linkDrawState.linkFrom.circle = null
+    // linkDrawState.linkTo.group = null
+    // linkDrawState.linkTo.circle = null
+
+    // linkDrawState.linkGroupNode?.remove()
+    // linkDrawState.linkGroupNode = null
+
+    // let linkGroupNode: Konva.Group | null = null
+    // let link: Konva.Line | null = null
+
+    // linkGroupNode = new Konva.Group({
+    //   name: 'link-group-current',
+    //   groupId: group.id(),
+    //   circleId: node.id()
+    // })
+    // link = new Konva.Line({
+    //   name: 'link-current',
+    //   points: _.flatten([[group.x() + node.x(), group.y() + node.y()]]),
+    //   stroke: 'red',
+    //   strokeWidth: 2,
+    //   listening: false
+    // })
+
+    // linkDrawState.linkFrom.group = group
+    // linkDrawState.linkFrom.circle = node
+
+    // if (linkGroupNode && link) {
+    //   linkGroupNode.add(link)
+    //   linkDrawState.linkGroupNode = linkGroupNode
+
+    //   render.layer.add(linkGroupNode)
+    // }
 
     // 更新连线
     render.draws[Draws.LinkDraw.name].draw()
@@ -85,30 +112,55 @@ export function LinkPointEventBind(render: Render, group: Konva.Group, node: Kon
   node.on('mouseup', (e) => {
     e.evt.preventDefault()
 
-    if (
-      linkDrawState.linkFrom.group &&
-      linkDrawState.linkFrom.circle &&
-      linkDrawState.linkTo.group &&
-      linkDrawState.linkTo.circle
-    ) {
-      const pair = linkDrawState.linkPairs.find(
-        (o) =>
-          o.from.circleId === linkDrawState.linkFrom.circle!.id() &&
-          o.to.circleId === linkDrawState.linkTo.circle!.id()
-      )
-      if (!pair) {
-        linkDrawState.linkPairs.push({
-          from: {
-            groupId: linkDrawState.linkFrom.group!.id(),
-            circleId: linkDrawState.linkFrom.circle!.id()
-          },
-          to: {
-            groupId: linkDrawState.linkTo.group!.id(),
-            circleId: linkDrawState.linkTo.circle!.id()
-          },
-          points: null,
-          selected: false
-        })
+    if (linkDrawState.linkingLine) {
+      const line = linkDrawState.linkingLine
+      // 不同连接点
+      if (line.circle !== node) {
+        // 记录起点、终点
+        const fromPairs = Array.isArray(line.circle.getAttrs().pairs)
+          ? line.circle.getAttrs().pairs
+          : []
+
+        if (!fromPairs.find((o: any) => o.type === 'from' && o.from.pointId === line.circle.id())) {
+          linkDrawState.linkingLine.circle.setAttrs({
+            pairs: [
+              ...fromPairs,
+              {
+                type: 'from',
+                from: {
+                  groupId: linkDrawState.linkingLine.group.id(),
+                  pointId: linkDrawState.linkingLine.circle.id()
+                },
+                to: {
+                  groupId: group.id(),
+                  pointId: node.id()
+                }
+              }
+            ]
+          })
+        }
+
+        const toPairs = Array.isArray(node.getAttrs().pairs) ? node.getAttrs().pairs : []
+
+        if (!toPairs.find((o: any) => o.type === 'to' && o.to.pointId === node.id())) {
+          node.setAttrs({
+            pairs: [
+              ...toPairs,
+              {
+                type: 'to',
+                from: {
+                  groupId: linkDrawState.linkingLine.group.id(),
+                  pointId: linkDrawState.linkingLine.circle.id()
+                },
+                to: {
+                  groupId: group.id(),
+                  pointId: node.id()
+                }
+              }
+            ]
+          })
+        }
+
         // 更新连线
         render.draws[Draws.LinkDraw.name].draw()
         // 更新预览
@@ -116,13 +168,63 @@ export function LinkPointEventBind(render: Render, group: Konva.Group, node: Kon
       }
     }
 
-    linkDrawState.linkFrom.group = null
-    linkDrawState.linkFrom.circle = null
-    linkDrawState.linkTo.group = null
-    linkDrawState.linkTo.circle = null
+    // const pos = render.stage.getPointerPosition()
 
-    linkDrawState.linkGroupNode?.remove()
-    linkDrawState.linkGroupNode = null
+    // if (pos) {
+    //   const points = render.layer.find('.point')
+    //   for (const point of points) {
+    //     if (
+    //       point instanceof Konva.Circle &&
+    //       Konva.Util.haveIntersection(point.getClientRect(), {
+    //         ...pos,
+    //         width: 1,
+    //         height: 1
+    //       })
+    //     ) {
+    //       linkDrawState.linkingEndPoint = point
+    //       break
+    //     }
+    //   }
+    // }
+
+    // if (
+    //   linkDrawState.linkFrom.group &&
+    //   linkDrawState.linkFrom.circle &&
+    //   linkDrawState.linkTo.group &&
+    //   linkDrawState.linkTo.circle
+    // ) {
+    //   const pair = linkDrawState.linkPairs.find(
+    //     (o) =>
+    //       o.from.circleId === linkDrawState.linkFrom.circle!.id() &&
+    //       o.to.circleId === linkDrawState.linkTo.circle!.id()
+    //   )
+    //   if (!pair) {
+    //     linkDrawState.linkPairs.push({
+    //       from: {
+    //         groupId: linkDrawState.linkFrom.group!.id(),
+    //         circleId: linkDrawState.linkFrom.circle!.id()
+    //       },
+    //       to: {
+    //         groupId: linkDrawState.linkTo.group!.id(),
+    //         circleId: linkDrawState.linkTo.circle!.id()
+    //       },
+    //       points: null,
+    //       selected: false
+    //     })
+    //     // 更新连线
+    //     render.draws[Draws.LinkDraw.name].draw()
+    //     // 更新预览
+    //     render.draws[Draws.PreviewDraw.name].draw()
+    //   }
+    // }
+
+    // linkDrawState.linkFrom.group = null
+    // linkDrawState.linkFrom.circle = null
+    // linkDrawState.linkTo.group = null
+    // linkDrawState.linkTo.circle = null
+
+    // linkDrawState.linkGroupNode?.remove()
+    // linkDrawState.linkGroupNode = null
   })
   node.on('mouseenter', (e) => {
     document.body.style.cursor = 'pointer'
