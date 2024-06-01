@@ -127,6 +127,7 @@ export class CopyTool {
       for (const point of points) {
         for (const pair of point.pairs) {
           // id 换新
+          pair.id = nanoid()
           pair.from.groupId = groupIdChanges[pair.from.groupId]
           pair.from.pointId = pointIdChanges[pair.from.pointId]
           pair.to.groupId = groupIdChanges[pair.to.groupId]

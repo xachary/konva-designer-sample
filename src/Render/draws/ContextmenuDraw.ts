@@ -48,6 +48,14 @@ export class ContextmenuDraw extends Types.BaseDraw implements Types.Draw {
             this.render.positionTool.positionZoomReset()
           }
         })
+      } else if (this.state.target.name() === 'link-line') {
+        menus.push({
+          name: '删除',
+          action: () => {
+            // 删除 连接线
+            this.render.linkTool.remove(this.state.target as Konva.Line)
+          }
+        })
       } else {
         // 未选择：真实节点，即素材的容器 group
         // 已选择：transformer

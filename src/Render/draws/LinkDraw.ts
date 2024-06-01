@@ -3,12 +3,14 @@ import Konva from 'konva'
 //
 import * as Types from '../types'
 import * as Draws from '../draws'
+import { nanoid } from 'nanoid'
 
 export interface LinkDrawOption {
   size: number
 }
 
 export interface LinkDrawPair {
+  id: string
   type: 'from' | 'to'
   from: {
     groupId: string
@@ -86,23 +88,37 @@ export class LinkDraw extends Types.BaseDraw implements Types.Draw {
           const toAnchor = this.render.layer.findOne(`#${toPoint.id}`)
 
           if (fromAnchor && toAnchor) {
-            this.group.add(
-              new Konva.Line({
-                name: 'link-line',
-                points: _.flatten([
-                  [
-                    this.render.toStageValue(fromAnchor.absolutePosition().x - stageState.x),
-                    this.render.toStageValue(fromAnchor.absolutePosition().y - stageState.y)
-                  ],
-                  [
-                    this.render.toStageValue(toAnchor.absolutePosition().x - stageState.x),
-                    this.render.toStageValue(toAnchor.absolutePosition().y - stageState.y)
-                  ]
-                ]),
-                stroke: 'red',
-                strokeWidth: 2
-              })
-            )
+            const line = new Konva.Line({
+              name: 'link-line',
+              // 用于删除连接线
+              groupId: fromGroup.id(),
+              pointId: fromPoint.id,
+              pairId: pair.id,
+              //
+              points: _.flatten([
+                [
+                  this.render.toStageValue(fromAnchor.absolutePosition().x - stageState.x),
+                  this.render.toStageValue(fromAnchor.absolutePosition().y - stageState.y)
+                ],
+                [
+                  this.render.toStageValue(toAnchor.absolutePosition().x - stageState.x),
+                  this.render.toStageValue(toAnchor.absolutePosition().y - stageState.y)
+                ]
+              ]),
+              stroke: 'red',
+              strokeWidth: 2
+            })
+            this.group.add(line)
+
+            // 连接线 hover 效果
+            line.on('mouseenter', () => {
+              line.stroke('rgba(255,0,0,0.6)')
+              document.body.style.cursor = 'pointer'
+            })
+            line.on('mouseleave', () => {
+              line.stroke('red')
+              document.body.style.cursor = 'default'
+            })
           }
         }
       }
@@ -193,24 +209,8 @@ export class LinkDraw extends Types.BaseDraw implements Types.Draw {
                         fromPoint.pairs = [
                           ...fromPoint.pairs,
                           {
+                            id: nanoid(),
                             type: 'from',
-                            from: {
-                              groupId: line.group.id(),
-                              pointId: line.circle.id()
-                            },
-                            to: {
-                              groupId: circle.getAttr('groupId'),
-                              pointId: circle.id()
-                            }
-                          }
-                        ]
-                      }
-
-                      if (Array.isArray(toPoint.pairs)) {
-                        toPoint.pairs = [
-                          ...toPoint.pairs,
-                          {
-                            type: 'to',
                             from: {
                               groupId: line.group.id(),
                               pointId: line.circle.id()
