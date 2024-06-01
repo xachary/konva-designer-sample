@@ -17,7 +17,7 @@ export class Render {
   // 辅助层 - 底层
   layerFloor: Konva.Layer = new Konva.Layer()
   // 辅助层 - 顶层
-  layerCover: Konva.Layer = new Konva.Layer()
+  layerCover: Konva.Layer = new Konva.Layer({ id: 'cover' })
 
   // 配置
   config: Types.RenderConfig
@@ -104,7 +104,7 @@ export class Render {
       size: this.bgSize
     })
     this.draws[Draws.LinkDraw.name] = new Draws.LinkDraw(this, this.layerCover, {
-      //
+      size: this.pointSize
     })
     this.draws[Draws.RulerDraw.name] = new Draws.RulerDraw(this, this.layerCover, {
       size: this.rulerSize
@@ -350,7 +350,11 @@ export class Render {
     // 素材有各自根 group
     const isGroup = node instanceof Konva.Group
     return (
-      !isGroup || node.id() === 'selectRect' || node.id() === 'hoverRect' || this.ignoreDraw(node)
+      !isGroup ||
+      node.id() === 'selectRect' ||
+      node.id() === 'hoverRect' ||
+      this.ignoreDraw(node) ||
+      this.ignoreLink(node)
     )
   }
 
@@ -361,12 +365,18 @@ export class Render {
       node.name() === Draws.RulerDraw.name ||
       node.name() === Draws.RefLineDraw.name ||
       node.name() === Draws.ContextmenuDraw.name ||
-      node.name() === Draws.PreviewDraw.name
+      node.name() === Draws.PreviewDraw.name ||
+      node.name() === Draws.LinkDraw.name
     )
   }
 
   // 忽略各 draw 的根 group
   ignoreLink(node: Konva.Node) {
-    return node.name() === 'point' || node.name() === 'link-point' || node.name() === 'link-group'
+    return (
+      node.name() === 'link-anchor' ||
+      node.name() === 'linking-line' ||
+      node.name() === 'link-point' ||
+      node.name() === 'link-line'
+    )
   }
 }

@@ -1,69 +1,44 @@
 import _ from 'lodash-es'
 import Konva from 'konva'
-// import { nanoid } from 'nanoid'
 //
 import * as Types from '../types'
-
-// import { LinkPointCircleEventBind } from '../LinkPointHandlers'
-
-// import * as Draws from './index'
+import * as Draws from '../draws'
 
 export interface LinkDrawOption {
-  //
-}
-
-export interface LinkDrawPairPoint {
-  pos: {
-    x: number
-    y: number
-  }
-  changed: boolean
-  active: boolean
-  id: string
+  size: number
 }
 
 export interface LinkDrawPair {
+  type: 'from' | 'to'
   from: {
     groupId: string
-    circleId: string
+    pointId: string
+    pointAbsX: number
+    pointAbsY: number
   }
   to: {
     groupId: string
-    circleId: string
+    pointId: string
+    pointAbsX: number
+    pointAbsY: number
   }
-  points: Array<LinkDrawPairPoint> | null
-  selected: boolean
+}
+
+export interface LinkDrawPoint {
+  id: string
+  groupId: string
+  visible: boolean
+  pairs: LinkDrawPair[]
+  x: number
+  y: number
 }
 
 export interface LinkDrawState {
-  linkGroupNode: Konva.Group | null
-  linkFrom: {
-    group: Konva.Group | null
-    circle: Konva.Circle | null
-  }
-  linkTo: {
-    group: Konva.Group | null
-    circle: Konva.Circle | null
-  }
-  //
-  linkPairs: Array<LinkDrawPair>
-  linkPoint: {
-    pair: LinkDrawPair | null
-    pointCircle: Konva.Circle | null
-    link: Konva.Line | null
-    pointGroup: Konva.Group | null
-    point: LinkDrawPairPoint | null
-  }
-  //
   linkingLine: {
     group: Konva.Group
     circle: Konva.Circle
     line: Konva.Line
   } | null
-}
-
-export const LinkDrawParams = {
-  pointSize: 6
 }
 
 export class LinkDraw extends Types.BaseDraw implements Types.Draw {
@@ -72,25 +47,6 @@ export class LinkDraw extends Types.BaseDraw implements Types.Draw {
   option: LinkDrawOption
 
   state: LinkDrawState = {
-    linkGroupNode: null,
-    linkFrom: {
-      group: null,
-      circle: null
-    },
-    linkTo: {
-      group: null,
-      circle: null
-    },
-    //
-    linkPairs: [],
-    linkPoint: {
-      pair: null,
-      pointCircle: null,
-      link: null,
-      pointGroup: null,
-      point: null
-    },
-    //
     linkingLine: null
   }
 
@@ -107,147 +63,197 @@ export class LinkDraw extends Types.BaseDraw implements Types.Draw {
   override draw() {
     this.clear()
 
-    const points = this.render.layer.find('.point')
+    // stage 状态
+    const stageState = this.render.getStageState()
 
-    for (const point of points) {
-      const pairs = Array.isArray(point.getAttrs().pairs) ? point.getAttrs().pairs : []
-      for (const pair of pairs) {
-        if (pair.type === 'from') {
-          const fromPoint = this.render.layer.findOne(`#${pair.from.pointId}`) as Konva.Circle
-          const toPoint = this.render.layer.findOne(`#${pair.to.pointId}`) as Konva.Circle
+    const groups = this.render.layer.find('.asset') as Konva.Group[]
 
-          this.group.add(
-            new Konva.Line({
-              name: 'link-line',
-              points: _.flatten([
-                [fromPoint.absolutePosition().x - this.render.rulerSize, fromPoint.absolutePosition().y - this.render.rulerSize],
-                [toPoint.absolutePosition().x - this.render.rulerSize, toPoint.absolutePosition().y - this.render.rulerSize]
-              ]),
-              stroke: 'red',
-              strokeWidth: 2
-            })
-          )
+    const points = groups.reduce((ps, group) => {
+      return ps.concat(Array.isArray(group.getAttr('points')) ? group.getAttr('points') : [])
+    }, [] as LinkDrawPoint[])
+
+    const pairs = points.reduce((ps, point) => {
+      return ps.concat(point.pairs ? point.pairs : [])
+    }, [] as LinkDrawPair[])
+
+    // 连接线
+    for (const pair of pairs) {
+      if (pair.type === 'from') {
+        const fromGroup = groups.find((o) => o.id() === pair.from.groupId)
+        const fromPoint = points.find((o) => o.id === pair.from.pointId)
+
+        const toGroup = groups.find((o) => o.id() === pair.to.groupId)
+        const toPoint = points.find((o) => o.id === pair.to.pointId)
+
+        if (fromGroup && toGroup && fromPoint && toPoint) {
+          const fromAnchor = this.render.layer.findOne(`#${fromPoint.id}`)
+          const toAnchor = this.render.layer.findOne(`#${toPoint.id}`)
+
+          if (fromAnchor && toAnchor) {
+            this.group.add(
+              new Konva.Line({
+                name: 'link-line',
+                points: _.flatten([
+                  [
+                    this.render.toStageValue(fromAnchor.absolutePosition().x - stageState.x),
+                    this.render.toStageValue(fromAnchor.absolutePosition().y - stageState.y)
+                  ],
+                  [
+                    this.render.toStageValue(toAnchor.absolutePosition().x - stageState.x),
+                    this.render.toStageValue(toAnchor.absolutePosition().y - stageState.y)
+                  ]
+                ]),
+                stroke: 'red',
+                strokeWidth: 2
+              })
+            )
+          }
         }
       }
     }
 
-    // const linkDrawState = (this.render.draws[Draws.LinkDraw.name] as Draws.LinkDraw).state
+    // 连接点
+    for (const point of points) {
+      const group = groups.find((o) => o.id() === point.groupId)
 
-    // const pos = this.render.stage.getPointerPosition()
+      if (group) {
+        const anchor = this.render.layer.findOne(`#${point.id}`)
 
-    // const nodes = this.layer.getChildren()
+        if (anchor) {
+          const circle = new Konva.Circle({
+            id: point.id,
+            groupId: group.id(),
+            x: this.render.toStageValue(anchor.absolutePosition().x - stageState.x),
+            y: this.render.toStageValue(anchor.absolutePosition().y - stageState.y),
+            radius: this.render.toStageValue(this.option.size),
+            stroke: 'rgba(255,0,0,0.2)',
+            strokeWidth: this.render.toStageValue(1),
+            name: 'link-point',
+            opacity: point.visible ? 1 : 0
+          })
 
-    // for (const pair of this.state.linkPairs) {
-    //   const fromGroup = nodes.find((o) => o.id() === pair.from.groupId) as Konva.Group
-    //   const toGroup = nodes.find((o) => o.id() === pair.to.groupId) as Konva.Group
+          circle.on('mouseenter', () => {
+            circle.stroke('rgba(255,0,0,0.5)')
+            circle.opacity(1)
+            document.body.style.cursor = 'pointer'
+          })
+          circle.on('mouseleave', () => {
+            circle.stroke('rgba(255,0,0,0.2)')
+            circle.opacity(0)
+            document.body.style.cursor = 'default'
+          })
 
-    //   if (fromGroup && toGroup) {
-    //     const fromCircle = fromGroup.getChildren(
-    //       (o) => o instanceof Konva.Circle && o.id() === pair.from.circleId
-    //     )[0] as Konva.Circle
-    //     const toCircle = toGroup.getChildren(
-    //       (o) => o instanceof Konva.Circle && o.id() === pair.to.circleId
-    //     )[0] as Konva.Circle
+          circle.on('mousedown', () => {
+            this.render.selectionTool.selectingClear()
 
-    //     if (fromCircle && toCircle) {
-    //       const linkGroupNode = new Konva.Group({
-    //         name: 'link-group',
-    //         fromGroupId: pair.from.groupId,
-    //         fromcircleId: pair.from.circleId,
-    //         toGroupId: pair.to.groupId,
-    //         tocircleId: pair.to.circleId
-    //       })
-    //       const from = [
-    //         fromGroup.x() + fromCircle.x() * fromGroup.scaleX(),
-    //         fromGroup.y() + fromCircle.y() * fromGroup.scaleY()
-    //       ]
-    //       const to = [
-    //         toGroup.x() + toCircle.x() * toGroup.scaleX(),
-    //         toGroup.y() + toCircle.y() * toGroup.scaleY()
-    //       ]
+            const pos = this.render.stage.getPointerPosition()
 
-    //       if (!pair.points) {
-    //         pair.points = [
-    //           {
-    //             pos: {
-    //               x: from[0] + (to[0] - from[0]) / 2,
-    //               y: from[1] + (to[1] - from[1]) / 2
-    //             },
-    //             changed: false,
-    //             active: false,
-    //             id: nanoid()
-    //           }
-    //         ]
-    //       }
+            if (pos) {
+              // 临时 连接线 画
+              this.state.linkingLine = {
+                group: group,
+                circle: circle,
+                line: new Konva.Line({
+                  name: 'linking-line',
+                  points: _.flatten([
+                    [circle.x(), circle.y()],
+                    [
+                      this.render.toStageValue(pos.x - stageState.x),
+                      this.render.toStageValue(pos.y - stageState.y)
+                    ]
+                  ]),
+                  stroke: 'blue',
+                  strokeWidth: 1
+                })
+              }
 
-    //       const link = new Konva.Line({
-    //         name: 'link',
-    //         points: _.flatten([
-    //           from,
-    //           ...pair.points.filter((o) => o.active).map((o) => [o.pos.x, o.pos.y]),
-    //           to
-    //         ]),
-    //         stroke: 'blue',
-    //         strokeWidth: 2,
-    //         pairPoints: pair.points,
-    //         dash: pair.selected ? [4, 4] : []
-    //       })
-    //       linkGroupNode.add(link)
+              this.layer.add(this.state.linkingLine.line)
+            }
+          })
 
-    //       for (const point of pair.points) {
-    //         const node = new Konva.Circle({
-    //           x: point.pos.x,
-    //           y: point.pos.y,
-    //           radius: this.render.toStageValue(LinkDrawParams.pointSize),
-    //           stroke: point.changed ? 'rgba(0,0,0,0.5)' : 'rgba(0,0,255,0.5)',
-    //           strokeWidth: this.render.toStageValue(1),
-    //           name: 'link-point',
-    //           perfectDrawEnabled: false,
-    //           visible: false,
-    //           id: point.id
-    //         })
+          circle.on('mouseup', () => {
+            if (this.state.linkingLine) {
+              const line = this.state.linkingLine
+              // 不同连接点
+              if (line.circle.id() !== circle.id()) {
+                const toGroup = groups.find((o) => o.id() === circle.getAttr('groupId'))
 
-    //         LinkPointCircleEventBind(node, this.state, pair, link, linkGroupNode, point)
+                if (toGroup) {
+                  const fromPoints = (
+                    Array.isArray(line.group.getAttr('points')) ? line.group.getAttr('points') : []
+                  ) as LinkDrawPoint[]
 
-    //         linkGroupNode.add(node)
-    //       }
+                  const fromPoint = fromPoints.find((o) => o.id === line.circle.id())
 
-    //       linkGroupNode.on('mouseenter', (e) => {
-    //         e.evt.preventDefault()
+                  if (fromPoint) {
+                    const toPoints = (
+                      Array.isArray(toGroup.getAttr('points')) ? toGroup.getAttr('points') : []
+                    ) as LinkDrawPoint[]
 
-    //         const points = linkGroupNode.find('.link-point')
-    //         for (const point of points) {
-    //           point.visible(true)
-    //         }
-    //       })
-    //       linkGroupNode.on('mouseleave', (e) => {
-    //         e.evt.preventDefault()
+                    const toPoint = toPoints.find((o) => o.id === circle.id())
 
-    //         if (!this.state.linkPoint.pointCircle) {
-    //           const points = linkGroupNode.find('.link-point')
-    //           for (const point of points) {
-    //             point.visible(false)
-    //           }
-    //         }
-    //       })
+                    if (toPoint) {
+                      if (Array.isArray(fromPoint.pairs)) {
+                        fromPoint.pairs = [
+                          ...fromPoint.pairs,
+                          {
+                            type: 'from',
+                            from: {
+                              groupId: line.group.id(),
+                              pointId: line.circle.id(),
+                              pointAbsX: line.circle.absolutePosition().x,
+                              pointAbsY: line.circle.absolutePosition().y
+                            },
+                            to: {
+                              groupId: circle.getAttr('groupId'),
+                              pointId: circle.id(),
+                              pointAbsX: circle.absolutePosition().x,
+                              pointAbsY: circle.absolutePosition().y
+                            }
+                          }
+                        ]
+                      }
 
-    //       link.on('mousedown', (e) => {
-    //         if (e.evt.button === Types.MouseButton.左键) {
-    //           this.render.linkTool.updateSelection(pair)
-    //         }
-    //       })
+                      if (Array.isArray(toPoint.pairs)) {
+                        toPoint.pairs = [
+                          ...toPoint.pairs,
+                          {
+                            type: 'to',
+                            from: {
+                              groupId: line.group.id(),
+                              pointId: line.circle.id(),
+                              pointAbsX: line.circle.absolutePosition().x,
+                              pointAbsY: line.circle.absolutePosition().y
+                            },
+                            to: {
+                              groupId: circle.getAttr('groupId'),
+                              pointId: circle.id(),
+                              pointAbsX: circle.absolutePosition().x,
+                              pointAbsY: circle.absolutePosition().y
+                            }
+                          }
+                        ]
+                      }
 
-    //       link.on('mouseenter', (e) => {
-    //         document.body.style.cursor = 'pointer'
-    //       })
+                      // 更新历史
+                      this.render.updateHistory()
+                      this.draw()
+                      // 更新预览
+                      this.render.draws[Draws.PreviewDraw.name].draw()
+                    }
+                  }
+                }
+              }
 
-    //       link.on('mouseleave', (e) => {
-    //         document.body.style.cursor = 'default'
-    //       })
+              // 临时 连接线 移除
+              this.state.linkingLine?.line.remove()
+              this.state.linkingLine = null
+            }
+          })
 
-    //       this.layer.add(linkGroupNode)
-    //     }
-    //   }
-    // }
+          this.group.add(circle)
+        }
+      }
+    }
   }
 }

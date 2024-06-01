@@ -6,7 +6,6 @@ import * as Draws from '../draws'
 import { nanoid } from 'nanoid'
 
 import type { LinkDrawPair } from '../draws/LinkDraw'
-import { LinkGroupEventBind, LinkPointEventBind } from '../LinkPointHandlers'
 
 // import { nanoid } from 'nanoid'
 
@@ -60,8 +59,6 @@ export class CopyTool {
    * @returns 复制的元素
    */
   copy(nodes: Konva.Node[]) {
-    const linkDrawState = (this.render.draws[Draws.LinkDraw.name] as Draws.LinkDraw).state
-
     const clones: Konva.Group[] = []
 
     for (const node of nodes) {
@@ -88,59 +85,12 @@ export class CopyTool {
       // 节点 新id
       copy.id(nanoid())
 
-      // 重新绑定连接线所需事件
-      LinkGroupEventBind(this.render, copy)
-
-      // 连接点 新id
-      copy.find('.point').forEach((p) => {
-        if (p instanceof Konva.Circle) {
-          p.setAttrs({
-            groupId: copy.id(), // 节点 新id
-            prototypeId: p.id() // 记录 连接点 原id
-          })
-          // 连接点 新id
-          p.id(nanoid())
-
-          // 重新绑定连接线所需事件
-          LinkPointEventBind(this.render, copy, p)
-        }
-      })
-
       // 使新节点产生偏移
       copy.setAttrs({
         x: copy.x() + this.render.toStageValue(this.render.bgSize) * this.pasteCount,
         y: copy.y() + this.render.toStageValue(this.render.bgSize) * this.pasteCount
       })
     }
-
-    // 恢复 连接线 状态
-    const inserts: LinkDrawPair[] = []
-    for (const pair of linkDrawState.linkPairs) {
-      const fromGroup = clones.find((o) => o.attrs.prototypeId === pair.from.groupId)
-      const fromCircle = fromGroup
-        ?.find('.point')
-        .find((o) => o.attrs.prototypeId === pair.from.circleId)
-
-      const toGroup = clones.find((o) => o.attrs.prototypeId === pair.to.groupId)
-      const toCircle = toGroup?.find('.point').find((o) => o.attrs.prototypeId === pair.to.circleId)
-
-      if (fromGroup && fromCircle && toGroup && toCircle && pair.points) {
-        inserts.push({
-          from: {
-            groupId: fromGroup?.id(),
-            circleId: fromCircle?.id()
-          },
-          to: {
-            groupId: toGroup?.id(),
-            circleId: toCircle?.id()
-          },
-          points: pair.points.map((o) => ({ ...o, id: nanoid() })),
-          selected: false
-        })
-      }
-    }
-
-    linkDrawState.linkPairs.push(...inserts)
 
     // 插入新节点
     this.render.layer.add(...clones)

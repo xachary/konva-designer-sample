@@ -4,8 +4,6 @@ import C2S from 'canvas2svg'
 import { Render } from '../index'
 //
 import * as Draws from '../draws'
-//
-import { LinkGroupEventBind, LinkPointEventBind } from '../LinkPointHandlers'
 
 export class ImportExportTool {
   static readonly name = 'ImportExportTool'
@@ -15,18 +13,27 @@ export class ImportExportTool {
     this.render = render
   }
 
-  getView() {
+  getView(withLink: boolean = false) {
     // 复制画布
     const copy = this.render.stage.clone()
     // 提取 main layer 备用
     const main = copy.find('#main')[0] as Konva.Layer
+    const cover = copy.find('#cover')[0] as Konva.Layer
     // 暂时清空所有 layer
     copy.removeChildren()
 
     // 提取节点
     let nodes = main.getChildren((node) => {
-      return !this.render.ignore(node) && !this.render.ignoreDraw(node)
+      return !this.render.ignore(node)
     })
+
+    if (withLink) {
+      nodes = nodes.concat(
+        cover.getChildren((node) => {
+          return node.name() === Draws.LinkDraw.name
+        })
+      )
+    }
 
     // 重新装载节点
     const layer = new Konva.Layer()
@@ -157,57 +164,6 @@ export class ImportExportTool {
       const main = stage.getChildren()[0]
       const nodes = main.getChildren()
 
-      const linkDrawState = (this.render.draws[Draws.LinkDraw.name] as Draws.LinkDraw).state
-
-      linkDrawState.linkGroupNode = null
-      linkDrawState.linkFrom = {
-        group: null,
-        circle: null
-      }
-      linkDrawState.linkTo = {
-        group: null,
-        circle: null
-      }
-      linkDrawState.linkPairs = []
-      linkDrawState.linkPoint = {
-        pair: null,
-        pointCircle: null,
-        link: null,
-        pointGroup: null,
-        point: null
-      }
-
-      for (const group of nodes.filter((o: Konva.Node) => o.name() === 'link-group')) {
-        const link = group.getChildren().find((o: Konva.Node) => o.name() === 'link')
-
-        linkDrawState.linkPairs.push({
-          from: {
-            groupId: group.attrs.fromGroupId,
-            circleId: group.attrs.fromcircleId
-          },
-          to: {
-            groupId: group.attrs.toGroupId,
-            circleId: group.attrs.tocircleId
-          },
-          points: link.attrs.pairPoints,
-          selected: false
-        })
-      }
-
-      for (const group of nodes.filter(
-        (o: Konva.Node) => o.name() !== 'link-group' && o.name() !== 'Link'
-      )) {
-        const points = group.getChildren((o: Konva.Node) => o instanceof Konva.Circle)
-
-        // 绑定连接线所需事件
-        LinkGroupEventBind(this.render, group)
-
-        for (const node of points) {
-          // 绑定连接线所需事件
-          LinkPointEventBind(this.render, group, node)
-        }
-      }
-
       // 恢复节点图片素材
       await this.restoreImage(nodes)
 
@@ -226,14 +182,11 @@ export class ImportExportTool {
         this.render.updateHistory()
       }
 
-      // 隐藏连接点
-      this.render.layer.find('.point').forEach((node) => {
-        node.visible(false)
-      })
+      // 隐藏 连接点
+      this.render.linkTool.pointsVisible(false)
 
       // 更新连线
       this.render.draws[Draws.LinkDraw.name].draw()
-
       // 更新预览
       this.render.draws[Draws.PreviewDraw.name].draw()
     } catch (e) {
@@ -244,7 +197,7 @@ export class ImportExportTool {
   // 获取图片
   getImage(pixelRatio = 1, bgColor?: string) {
     // 获取可视节点和 layer
-    const copy = this.getView()
+    const copy = this.getView(true)
 
     // 背景层
     const bgLayer = new Konva.Layer()
@@ -362,7 +315,7 @@ export class ImportExportTool {
   // 获取Svg
   async getSvg() {
     // 获取可视节点和 layer
-    const copy = this.getView()
+    const copy = this.getView(true)
     // 获取 main layer
     const main = copy.children[0] as Konva.Layer
     // 获取 layer 的 canvas context

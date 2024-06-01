@@ -2,6 +2,7 @@ import _ from 'lodash-es'
 import Konva from 'konva'
 //
 import * as Types from '../types'
+import * as Draws from '../draws'
 
 export interface PreviewDrawOption {
   size: number
@@ -43,12 +44,18 @@ export class PreviewDraw extends Types.BaseDraw implements Types.Draw {
       })
 
       const main = this.render.stage.find('#main')[0] as Konva.Layer
+      const cover = this.render.stage.find('#cover')[0] as Konva.Layer
 
       // 提取节点
-      const nodes = main.getChildren((node) => {
-        return !this.render.ignore(node)
-      })
-
+      const nodes = [
+        ...main.getChildren((node) => {
+          return !this.render.ignore(node)
+        }),
+        // 补充连线
+        ...cover.getChildren((node) => {
+          return node.name() === Draws.LinkDraw.name
+        })
+      ]
       // 计算节点占用的区域
       let minX = 0
       let maxX = group.width()

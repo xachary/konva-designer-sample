@@ -5,8 +5,6 @@ import { Render } from '../index'
 import * as Types from '../types'
 //
 import * as Draws from '../draws'
-//
-import { LinkPointCircleUpdateAll } from '../LinkPointHandlers'
 
 interface SortItem {
   id?: number // 有 id 就是其他节点，否则就是 选择目标
@@ -108,13 +106,23 @@ export class SelectionHandlers implements Types.Handler {
             // 开始选择
             this.selecting = true
           }
+
+          const groups = this.render.layer.getChildren()
+
+          for (const group of groups) {
+            const points = group.getAttr('points') ?? []
+            group.setAttrs({
+              points: points.map((o: any) => ({ ...o, visible: false }))
+            })
+
+            // 更新连线
+            this.render.draws[Draws.LinkDraw.name].draw()
+            // 更新预览
+            this.render.draws[Draws.PreviewDraw.name].draw()
+          }
         } else if (parent instanceof Konva.Transformer) {
           // transformer 点击事件交给 transformer 自己的 handler
-        } else if (
-          parent instanceof Konva.Group &&
-          e.target.name() !== 'point' &&
-          e.target.name() !== 'link-point'
-        ) {
+        } else if (parent instanceof Konva.Group) {
           if (e.evt.button === Types.MouseButton.左键) {
             if (!this.render.ignore(parent) && !this.render.ignoreDraw(e.target)) {
               if (e.evt.ctrlKey) {
@@ -281,9 +289,6 @@ export class SelectionHandlers implements Types.Handler {
         }
       },
       transform: () => {
-        // 调整连接点（还要计算 group 本身 scale）
-        LinkPointCircleUpdateAll(this.render)
-
         // 更新连线
         this.render.draws[Draws.LinkDraw.name].draw()
         // 更新预览
@@ -292,14 +297,13 @@ export class SelectionHandlers implements Types.Handler {
       transformend: () => {
         // 变换结束
 
-        // 调整连接点（还要计算 group 本身 scale）
-        LinkPointCircleUpdateAll(this.render)
-
         // 重置状态
         this.reset()
 
         // 更新历史
         this.render.updateHistory()
+        // 更新连线
+        this.render.draws[Draws.LinkDraw.name].draw()
         // 更新预览
         this.render.draws[Draws.PreviewDraw.name].draw()
       },
@@ -323,8 +327,6 @@ export class SelectionHandlers implements Types.Handler {
           this.render.draws[Draws.PreviewDraw.name].draw()
         }
 
-        // 调整连接点（还要计算 group 本身 scale）
-        LinkPointCircleUpdateAll(this.render)
         // 更新连线
         this.render.draws[Draws.LinkDraw.name].draw()
         // 更新预览

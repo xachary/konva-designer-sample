@@ -6,7 +6,7 @@ import * as Types from '../types'
 //
 import * as Draws from '../draws'
 
-import { LinkGroupEventBind, LinkPointEventBind } from '../LinkPointHandlers'
+import type { LinkDrawPoint } from '../draws/LinkDraw'
 
 export class DragOutsideHandlers implements Types.Handler {
   static readonly name = 'DragOutside'
@@ -68,40 +68,56 @@ export class DragOutsideHandlers implements Types.Handler {
               })
 
               const points = [
-                { x: group.width() / 2 - this.render.pointSize, y: -this.render.pointSize },
+                // 左
+                { x: 0, y: group.height() / 2 },
+                // 右
                 {
-                  x: group.width() / 2 - this.render.pointSize,
-                  y: group.height() - this.render.pointSize
+                  x: group.width(),
+                  y: group.height() / 2
                 },
-                { y: group.height() / 2 - this.render.pointSize, x: -this.render.pointSize },
+                // 上
+                { x: group.width() / 2, y: 0 },
+                // 下
                 {
-                  y: group.height() / 2 - this.render.pointSize,
-                  x: group.width() - this.render.pointSize
+                  x: group.width() / 2,
+                  y: group.height()
                 }
               ]
 
-              // 绑定连接线所需事件
-              LinkGroupEventBind(this.render, group)
+              // 连接点信息
+              group.setAttrs({
+                points: points.map(
+                  (o) =>
+                    ({
+                      ...o,
+                      id: nanoid(),
+                      groupId: group.id(),
+                      visible: true,
+                      pairs: []
+                    }) as LinkDrawPoint
+                )
+              })
 
-              // 默认连接点
-              for (const point of points) {
-                const node = new Konva.Circle({
-                  id: nanoid(),
-                  x: this.render.pointSize + point.x,
-                  y: this.render.pointSize + point.y,
-                  radius: this.render.toStageValue(this.render.pointSize),
-                  stroke: 'rgba(255,0,0,0.5)',
-                  strokeWidth: this.render.toStageValue(1),
-                  name: 'point',
-                  perfectDrawEnabled: false,
-
-                  groupId: group.id(),
-                  visible: false
-                })
-                // 绑定连接线所需事件
-                LinkPointEventBind(this.render, group, node)
-                group.add(node)
+              // 连接点（锚点）
+              for (const point of group.getAttr('points') ?? []) {
+                group.add(
+                  new Konva.Circle({
+                    name: 'link-anchor',
+                    id: point.id,
+                    x: point.x,
+                    y: point.y,
+                    radius: this.render.toStageValue(1),
+                    stroke: 'rgba(0,0,255,1)',
+                    strokeWidth: this.render.toStageValue(2),
+                    visible: false
+                  })
+                )
               }
+
+              group.on('mouseenter', () => {
+                // 显示 连接点
+                this.render.linkTool.pointsVisible(true, group)
+              })
 
               // hover 框（多选时才显示）
               group.add(
@@ -113,8 +129,12 @@ export class DragOutsideHandlers implements Types.Handler {
                   visible: false
                 })
               )
-              // 隐藏 hover 框
+
               group.on('mouseleave', () => {
+                // 隐藏 连接点
+                this.render.linkTool.pointsVisible(false, group)
+
+                // 隐藏 hover 框
                 group.findOne('#hoverRect')?.visible(false)
               })
 
