@@ -1,13 +1,10 @@
+import _ from 'lodash-es'
 import Konva from 'konva'
 //
 import { Render } from '../index'
 //
 import * as Draws from '../draws'
 import { nanoid } from 'nanoid'
-
-import type { LinkDrawPair } from '../draws/LinkDraw'
-
-// import { nanoid } from 'nanoid'
 
 export class CopyTool {
   static readonly name = 'CopyTool'
@@ -76,20 +73,66 @@ export class CopyTool {
     }
 
     // 处理克隆节点
+
+    // 新旧 id 映射
+    const groupIdChanges: { [index: string]: string } = {}
+    const pointIdChanges: { [index: string]: string } = {}
+
+    // 新 id、新事件
     for (const copy of clones) {
-      // 节点 原id
-      const prototypeId = copy.id()
-      copy.setAttrs({
-        prototypeId: prototypeId // 记录 节点 原id
+      const gid = nanoid()
+      groupIdChanges[copy.id()] = gid
+      copy.id(gid)
+
+      const pointsClone = _.cloneDeep(copy.getAttr('points') ?? [])
+      copy.setAttr('points', pointsClone)
+
+      for (const point of pointsClone) {
+        const pid = nanoid()
+        pointIdChanges[point.id] = pid
+
+        const anchor = copy.findOne(`#${point.id}`)
+        anchor?.id(pid)
+
+        point.id = pid
+
+        point.groupId = copy.id()
+        point.visible = false
+      }
+
+      copy.off('mouseenter')
+      copy.on('mouseenter', () => {
+        // 显示 连接点
+        this.render.linkTool.pointsVisible(true, copy)
       })
-      // 节点 新id
-      copy.id(nanoid())
+      copy.off('mouseleave')
+      copy.on('mouseleave', () => {
+        // 隐藏 连接点
+        this.render.linkTool.pointsVisible(false, copy)
+
+        // 隐藏 hover 框
+        copy.findOne('#hoverRect')?.visible(false)
+      })
 
       // 使新节点产生偏移
       copy.setAttrs({
         x: copy.x() + this.render.toStageValue(this.render.bgSize) * this.pasteCount,
         y: copy.y() + this.render.toStageValue(this.render.bgSize) * this.pasteCount
       })
+    }
+
+    // pairs 新 id
+    for (const copy of clones) {
+      const points = copy.getAttr('points') ?? []
+      for (const point of points) {
+        for (const pair of point.pairs) {
+          // id 换新
+          pair.from.groupId = groupIdChanges[pair.from.groupId]
+          pair.from.pointId = pointIdChanges[pair.from.pointId]
+          pair.to.groupId = groupIdChanges[pair.to.groupId]
+          pair.to.pointId = pointIdChanges[pair.to.pointId]
+        }
+      }
     }
 
     // 插入新节点

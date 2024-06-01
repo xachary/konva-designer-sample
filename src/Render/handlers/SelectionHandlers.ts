@@ -107,19 +107,8 @@ export class SelectionHandlers implements Types.Handler {
             this.selecting = true
           }
 
-          const groups = this.render.layer.getChildren()
-
-          for (const group of groups) {
-            const points = group.getAttr('points') ?? []
-            group.setAttrs({
-              points: points.map((o: any) => ({ ...o, visible: false }))
-            })
-
-            // 更新连线
-            this.render.draws[Draws.LinkDraw.name].draw()
-            // 更新预览
-            this.render.draws[Draws.PreviewDraw.name].draw()
-          }
+          // 隐藏连接点
+          this.render.linkTool.pointsVisible(false)
         } else if (parent instanceof Konva.Transformer) {
           // transformer 点击事件交给 transformer 自己的 handler
         } else if (parent instanceof Konva.Group) {

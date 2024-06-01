@@ -13,14 +13,10 @@ export interface LinkDrawPair {
   from: {
     groupId: string
     pointId: string
-    pointAbsX: number
-    pointAbsY: number
   }
   to: {
     groupId: string
     pointId: string
-    pointAbsX: number
-    pointAbsY: number
   }
 }
 
@@ -200,15 +196,11 @@ export class LinkDraw extends Types.BaseDraw implements Types.Draw {
                             type: 'from',
                             from: {
                               groupId: line.group.id(),
-                              pointId: line.circle.id(),
-                              pointAbsX: line.circle.absolutePosition().x,
-                              pointAbsY: line.circle.absolutePosition().y
+                              pointId: line.circle.id()
                             },
                             to: {
                               groupId: circle.getAttr('groupId'),
-                              pointId: circle.id(),
-                              pointAbsX: circle.absolutePosition().x,
-                              pointAbsY: circle.absolutePosition().y
+                              pointId: circle.id()
                             }
                           }
                         ]
@@ -221,15 +213,11 @@ export class LinkDraw extends Types.BaseDraw implements Types.Draw {
                             type: 'to',
                             from: {
                               groupId: line.group.id(),
-                              pointId: line.circle.id(),
-                              pointAbsX: line.circle.absolutePosition().x,
-                              pointAbsY: line.circle.absolutePosition().y
+                              pointId: line.circle.id()
                             },
                             to: {
                               groupId: circle.getAttr('groupId'),
-                              pointId: circle.id(),
-                              pointAbsX: circle.absolutePosition().x,
-                              pointAbsY: circle.absolutePosition().y
+                              pointId: circle.id()
                             }
                           }
                         ]
