@@ -45,7 +45,8 @@ export class SelectionTool {
         nodeMousedownPos: undefined,
         lastOpacity: undefined,
         lastZIndex: undefined,
-        selectingZIndex: undefined
+        selectingZIndex: undefined,
+        selected: false
       })
     }
 
@@ -85,7 +86,9 @@ export class SelectionTool {
         node.setAttrs({
           nodeMousedownPos: node.position(), // 后面用于移动所选
           lastOpacity: node.opacity(), // 选中时，下面会使其变透明，记录原有的透明度
-          lastZIndex: node.zIndex() // 记录原有的层次，后面暂时提升所选节点的层次
+          lastZIndex: node.zIndex(), // 记录原有的层次，后面暂时提升所选节点的层次
+          selectingZIndex: undefined,
+          selected: true // 选择中
         })
 
         // 隐藏 连接点

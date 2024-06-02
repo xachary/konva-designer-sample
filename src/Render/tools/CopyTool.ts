@@ -33,7 +33,8 @@ export class CopyTool {
         nodeMousedownPos: undefined,
         lastOpacity: undefined,
         lastZIndex: undefined,
-        selectingZIndex: undefined
+        selectingZIndex: undefined,
+        selected: false
       })
       return copy
     })

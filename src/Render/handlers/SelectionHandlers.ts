@@ -168,7 +168,7 @@ export class SelectionHandlers implements Types.Handler {
 
           // 获取所有图形
           const shapes = this.render.layer.getChildren((node) => {
-            return !this.render.ignore(node) && !this.render.ignoreLink(node)
+            return !this.render.ignore(node)
           })
 
           // 提取重叠部分

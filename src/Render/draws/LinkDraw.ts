@@ -128,7 +128,8 @@ export class LinkDraw extends Types.BaseDraw implements Types.Draw {
     for (const point of points) {
       const group = groups.find((o) => o.id() === point.groupId)
 
-      if (group) {
+      // 非 选择中
+      if (group && !group.getAttr('selected')) {
         const anchor = this.render.layer.findOne(`#${point.id}`)
 
         if (anchor) {
