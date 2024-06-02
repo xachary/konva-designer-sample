@@ -13,6 +13,11 @@ export class ImportExportTool {
     this.render = render
   }
 
+  /**
+   * 获得显示内容
+   * @param withLink 是否包含线条
+   * @returns
+   */
   getView(withLink: boolean = false) {
     // 复制画布
     const copy = this.render.stage.clone()

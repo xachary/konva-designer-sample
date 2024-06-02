@@ -9,9 +9,9 @@ export interface LinkDrawOption {
   size: number
 }
 
+// 连接对
 export interface LinkDrawPair {
   id: string
-  type: 'from' | 'to'
   from: {
     groupId: string
     pointId: string
@@ -22,6 +22,7 @@ export interface LinkDrawPair {
   }
 }
 
+// 连接点
 export interface LinkDrawPoint {
   id: string
   groupId: string
@@ -31,6 +32,7 @@ export interface LinkDrawPoint {
   y: number
 }
 
+// 连接线（临时）
 export interface LinkDrawState {
   linkingLine: {
     group: Konva.Group
@@ -76,50 +78,48 @@ export class LinkDraw extends Types.BaseDraw implements Types.Draw {
 
     // 连接线
     for (const pair of pairs) {
-      if (pair.type === 'from') {
-        const fromGroup = groups.find((o) => o.id() === pair.from.groupId)
-        const fromPoint = points.find((o) => o.id === pair.from.pointId)
+      const fromGroup = groups.find((o) => o.id() === pair.from.groupId)
+      const fromPoint = points.find((o) => o.id === pair.from.pointId)
 
-        const toGroup = groups.find((o) => o.id() === pair.to.groupId)
-        const toPoint = points.find((o) => o.id === pair.to.pointId)
+      const toGroup = groups.find((o) => o.id() === pair.to.groupId)
+      const toPoint = points.find((o) => o.id === pair.to.pointId)
 
-        if (fromGroup && toGroup && fromPoint && toPoint) {
-          const fromAnchor = this.render.layer.findOne(`#${fromPoint.id}`)
-          const toAnchor = this.render.layer.findOne(`#${toPoint.id}`)
+      if (fromGroup && toGroup && fromPoint && toPoint) {
+        const fromAnchor = this.render.layer.findOne(`#${fromPoint.id}`)
+        const toAnchor = this.render.layer.findOne(`#${toPoint.id}`)
 
-          if (fromAnchor && toAnchor) {
-            const line = new Konva.Line({
-              name: 'link-line',
-              // 用于删除连接线
-              groupId: fromGroup.id(),
-              pointId: fromPoint.id,
-              pairId: pair.id,
-              //
-              points: _.flatten([
-                [
-                  this.render.toStageValue(fromAnchor.absolutePosition().x - stageState.x),
-                  this.render.toStageValue(fromAnchor.absolutePosition().y - stageState.y)
-                ],
-                [
-                  this.render.toStageValue(toAnchor.absolutePosition().x - stageState.x),
-                  this.render.toStageValue(toAnchor.absolutePosition().y - stageState.y)
-                ]
-              ]),
-              stroke: 'red',
-              strokeWidth: 2
-            })
-            this.group.add(line)
+        if (fromAnchor && toAnchor) {
+          const line = new Konva.Line({
+            name: 'link-line',
+            // 用于删除连接线
+            groupId: fromGroup.id(),
+            pointId: fromPoint.id,
+            pairId: pair.id,
+            //
+            points: _.flatten([
+              [
+                this.render.toStageValue(fromAnchor.absolutePosition().x - stageState.x),
+                this.render.toStageValue(fromAnchor.absolutePosition().y - stageState.y)
+              ],
+              [
+                this.render.toStageValue(toAnchor.absolutePosition().x - stageState.x),
+                this.render.toStageValue(toAnchor.absolutePosition().y - stageState.y)
+              ]
+            ]),
+            stroke: 'red',
+            strokeWidth: 2
+          })
+          this.group.add(line)
 
-            // 连接线 hover 效果
-            line.on('mouseenter', () => {
-              line.stroke('rgba(255,0,0,0.6)')
-              document.body.style.cursor = 'pointer'
-            })
-            line.on('mouseleave', () => {
-              line.stroke('red')
-              document.body.style.cursor = 'default'
-            })
-          }
+          // 连接线 hover 效果
+          line.on('mouseenter', () => {
+            line.stroke('rgba(255,0,0,0.6)')
+            document.body.style.cursor = 'pointer'
+          })
+          line.on('mouseleave', () => {
+            line.stroke('red')
+            document.body.style.cursor = 'default'
+          })
         }
       }
     }
@@ -145,6 +145,7 @@ export class LinkDraw extends Types.BaseDraw implements Types.Draw {
             opacity: point.visible ? 1 : 0
           })
 
+          // hover 效果
           circle.on('mouseenter', () => {
             circle.stroke('rgba(255,0,0,0.5)')
             circle.opacity(1)
@@ -211,7 +212,6 @@ export class LinkDraw extends Types.BaseDraw implements Types.Draw {
                           ...fromPoint.pairs,
                           {
                             id: nanoid(),
-                            type: 'from',
                             from: {
                               groupId: line.group.id(),
                               pointId: line.circle.id()
