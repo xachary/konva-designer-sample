@@ -54,6 +54,8 @@
 
 ![chrome_R45lPum9dU](https://github.com/xachary/konva-designer-sample/assets/16830398/d38b8e41-6628-4ec7-82b7-35af43f3abc1)
 
+![1](https://github.com/xachary/konva-designer-sample/assets/16830398/b6bb083d-0725-4371-b5c2-b4495f0b4ada)
+
 ## 功能点
 
 - 无限画布（√）
@@ -73,11 +75,11 @@
 - 右键菜单（√）
 - 导出、导入（√）
 - 实时预览窗（√）
+- 对齐效果（√）
 
 ## 更多功能
 
 > _如果 Star 能超过 50 个（望多多支持），将很快更新_
 
-- 对齐效果
 - 连接线
 - 等等。。。
