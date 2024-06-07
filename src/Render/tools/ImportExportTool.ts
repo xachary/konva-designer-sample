@@ -172,6 +172,22 @@ export class ImportExportTool {
       // 恢复节点图片素材
       await this.restoreImage(nodes)
 
+      for (const node of nodes) {
+        node.off('mouseenter')
+        node.on('mouseenter', () => {
+          // 显示 连接点
+          this.render.linkTool.pointsVisible(true, node)
+        })
+        node.off('mouseleave')
+        node.on('mouseleave', () => {
+          // 隐藏 连接点
+          this.render.linkTool.pointsVisible(false, node)
+
+          // 隐藏 hover 框
+          node.findOne('#hoverRect')?.visible(false)
+        })
+      }
+
       // 往 main layer 插入新节点
       this.render.layer.add(...nodes)
 

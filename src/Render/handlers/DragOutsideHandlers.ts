@@ -92,7 +92,7 @@ export class DragOutsideHandlers implements Types.Handler {
                       ...o,
                       id: nanoid(),
                       groupId: group.id(),
-                      visible: true,
+                      visible: false,
                       pairs: []
                     }) as LinkDrawPoint
                 )
