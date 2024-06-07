@@ -6,6 +6,9 @@ import { Render } from './Render'
 import * as Types from './Render/types'
 import type Konva from 'konva'
 
+// 连接线测试数据
+import linkTestData from './link.json'
+
 // 容器
 const boardElement = ref<HTMLDivElement>()
 // 画布挂载节点
@@ -62,6 +65,9 @@ const resizer = (() => {
 const history = ref<string[]>([])
 const historyIndex = ref(-1)
 
+const debug = ref(false)
+const full = ref(false)
+
 function onPrev() {
   if (render) {
     render.prevHistory()
@@ -99,6 +105,9 @@ function init() {
               },
               selectionChange: (nodes: Konva.Node[]) => {
                 selection.value = nodes
+              },
+              debugChange: (v: boolean) => {
+                debug.value = v
               }
             }
           })
@@ -205,11 +214,24 @@ const noAlign = computed(() => selection.value.length <= 1)
 function onAlign(type: Types.AlignType) {
   render?.alignTool.align(type)
 }
+
+// 测试
+function onDebug() {
+  debug.value = render?.changeDebug(!debug.value) ?? false
+}
+
+function onLinkTest() {
+  render?.importExportTool.restore(JSON.stringify(linkTestData))
+}
+
+function onFull() {
+  full.value = !full.value
+}
 </script>
 
 <template>
   <div class="page">
-    <header>
+    <header :style="{ height: full ? 0 : undefined, padding: full ? 0 : undefined }">
       <button @click="onRestore">导入</button>
       <button @click="onSave">导出</button>
       <button @click="onSavePNG">另存为图片</button>
@@ -224,14 +246,9 @@ function onAlign(type: Types.AlignType) {
       <button @click="onAlign(Types.AlignType.下对齐)" :disabled="noAlign">下对齐</button>
     </header>
     <section>
-      <header>
+      <header :style="{ width: full ? 0 : undefined }">
         <ul>
-          <li
-            v-for="(item, idx) of assetsInfos"
-            :key="idx"
-            draggable="true"
-            @dragstart="onDragstart($event, item)"
-          >
+          <li v-for="(item, idx) of assetsInfos" :key="idx" draggable="true" @dragstart="onDragstart($event, item)">
             <img :src="item.url" style="object-fit: contain; width: 100%; height: 100%" />
           </li>
         </ul>
@@ -239,9 +256,13 @@ function onAlign(type: Types.AlignType) {
       <section ref="boardElement">
         <div ref="stageElement"></div>
       </section>
-      <footer></footer>
+      <footer :style="{ width: full ? 0 : undefined }"></footer>
     </section>
-    <footer></footer>
+    <footer>
+      <button @click="onLinkTest">加载“连接线”测试数据</button>
+      <button @click="onDebug">{{ debug ? '关闭调试' : '开启调试' }}</button>
+      <button @click="onFull">{{ full ? '显示工具栏' : '隐藏工具栏' }}</button>
+    </footer>
   </div>
 </template>
 
@@ -250,45 +271,52 @@ function onAlign(type: Types.AlignType) {
   width: 100%;
   display: flex;
   flex-direction: column;
-  & > header,
-  & > footer {
+
+  &>header,
+  &>footer {
     height: 64px;
     flex-shrink: 0;
     z-index: 2;
   }
-  & > header {
+
+  &>header,
+  &>footer {
     box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
     display: flex;
     padding: 12px;
     align-items: center;
-    & > button {
-      & + button {
+    overflow: hidden;
+
+    &>button {
+      &+button {
         margin-left: 12px;
       }
     }
   }
-  & > footer {
-    box-shadow: 0 -1px 2px 0 rgba(0, 0, 0, 0.05);
-  }
-  & > section {
+
+  &>section {
     z-index: 1;
     height: 0;
     flex-grow: 1;
     display: flex;
-    & > header,
-    & > footer {
+
+    &>header,
+    &>footer {
       width: 300px;
       flex-shrink: 0;
       background-color: #fff;
       z-index: 2;
     }
-    & > header {
+
+    &>header {
       box-shadow: 1px 0 2px 0 rgba(0, 0, 0, 0.05);
       overflow: auto;
-      & > ul {
+
+      &>ul {
         display: flex;
         flex-wrap: wrap;
-        & > li {
+
+        &>li {
           width: 33.33%;
           flex-shrink: 0;
           border: 1px solid #eee;
@@ -296,10 +324,12 @@ function onAlign(type: Types.AlignType) {
         }
       }
     }
-    & > footer {
+
+    &>footer {
       box-shadow: -1px 0 2px 0 rgba(0, 0, 0, 0.05);
     }
-    & > section {
+
+    &>section {
       width: 0;
       flex-grow: 1;
       background-color: rgba(0, 0, 0, 0.05);

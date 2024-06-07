@@ -18,6 +18,7 @@ export interface RenderConfig {
   on?: {
     historyChange?: (history: string[], historyIndex: number) => void
     selectionChange?: (selection: Konva.Node[]) => void
+    debugChange?: (v: boolean) => void
   }
 }
 

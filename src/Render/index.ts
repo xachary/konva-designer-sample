@@ -79,6 +79,22 @@ export class Render {
   history: string[] = []
   historyIndex = -1
 
+  // 调试模式
+  debug = false
+
+  changeDebug(v: boolean) {
+    this.debug = v
+    this.config.on?.debugChange?.(this.debug)
+
+    this.draws[Draws.LinkDraw.name].init()
+    this.draws[Draws.RulerDraw.name].init()
+    this.draws[Draws.RefLineDraw.name].init()
+    this.draws[Draws.ContextmenuDraw.name].init()
+    this.draws[Draws.PreviewDraw.name].init()
+
+    return this.debug
+  }
+
   constructor(stageEle: HTMLDivElement, config: Types.RenderConfig) {
     this.config = config
 
@@ -201,8 +217,6 @@ export class Render {
       if (node instanceof Konva.Transformer) {
         // 移除已选择的节点
         this.remove(this.selectionTool.selectingNodes)
-        // 清除选择
-        this.selectionTool.selectingClear()
       } else {
         // 移除未选择的节点
         node.remove()
@@ -210,6 +224,9 @@ export class Render {
     }
 
     if (nodes.length > 0) {
+      // 清除选择
+      this.selectionTool.selectingClear()
+
       // 更新历史
       this.updateHistory()
       // 更新连线

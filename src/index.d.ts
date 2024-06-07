@@ -1,5 +1,6 @@
 interface Window {
   gifler: any
+  PF: any
 }
 
 module 'canvas2svg' {
