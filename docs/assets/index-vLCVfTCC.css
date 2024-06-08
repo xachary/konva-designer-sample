@@ -107,60 +107,60 @@ ul {
   margin-block: 0;
   padding-inline: 0;
 }
-.page[data-v-d092b8bf] {
+.page[data-v-0fcfb9cc] {
   width: 100%;
   display: flex;
   flex-direction: column;
 }
-.page > header[data-v-d092b8bf],
-.page > footer[data-v-d092b8bf] {
+.page > header[data-v-0fcfb9cc],
+.page > footer[data-v-0fcfb9cc] {
   height: 64px;
   flex-shrink: 0;
   z-index: 2;
 }
-.page > header[data-v-d092b8bf] {
+.page > header[data-v-0fcfb9cc],
+.page > footer[data-v-0fcfb9cc] {
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   display: flex;
   padding: 12px;
   align-items: center;
+  overflow: hidden;
 }
-.page > header > button + button[data-v-d092b8bf] {
+.page > header > button + button[data-v-0fcfb9cc],
+.page > footer > button + button[data-v-0fcfb9cc] {
   margin-left: 12px;
 }
-.page > footer[data-v-d092b8bf] {
-  box-shadow: 0 -1px 2px 0 rgba(0, 0, 0, 0.05);
-}
-.page > section[data-v-d092b8bf] {
+.page > section[data-v-0fcfb9cc] {
   z-index: 1;
   height: 0;
   flex-grow: 1;
   display: flex;
 }
-.page > section > header[data-v-d092b8bf],
-.page > section > footer[data-v-d092b8bf] {
+.page > section > header[data-v-0fcfb9cc],
+.page > section > footer[data-v-0fcfb9cc] {
   width: 300px;
   flex-shrink: 0;
   background-color: #fff;
   z-index: 2;
 }
-.page > section > header[data-v-d092b8bf] {
+.page > section > header[data-v-0fcfb9cc] {
   box-shadow: 1px 0 2px 0 rgba(0, 0, 0, 0.05);
   overflow: auto;
 }
-.page > section > header > ul[data-v-d092b8bf] {
+.page > section > header > ul[data-v-0fcfb9cc] {
   display: flex;
   flex-wrap: wrap;
 }
-.page > section > header > ul > li[data-v-d092b8bf] {
+.page > section > header > ul > li[data-v-0fcfb9cc] {
   width: 33.33%;
   flex-shrink: 0;
   border: 1px solid #eee;
   cursor: move;
 }
-.page > section > footer[data-v-d092b8bf] {
+.page > section > footer[data-v-0fcfb9cc] {
   box-shadow: -1px 0 2px 0 rgba(0, 0, 0, 0.05);
 }
-.page > section > section[data-v-d092b8bf] {
+.page > section > section[data-v-0fcfb9cc] {
   width: 0;
   flex-grow: 1;
   background-color: rgba(0, 0, 0, 0.05);

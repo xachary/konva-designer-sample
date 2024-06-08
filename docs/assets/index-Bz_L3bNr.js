@@ -17,9 +17,9 @@ var __publicField = (obj, key, value) => {
       if (mutation.type !== "childList") {
         continue;
       }
-      for (const node of mutation.addedNodes) {
-        if (node.tagName === "LINK" && node.rel === "modulepreload")
-          processPreload(node);
+      for (const node2 of mutation.addedNodes) {
+        if (node2.tagName === "LINK" && node2.rel === "modulepreload")
+          processPreload(node2);
       }
     }
   }).observe(document, { childList: true, subtree: true });
@@ -190,6 +190,37 @@ const isSpecialBooleanAttr = /* @__PURE__ */ makeMap(specialBooleanAttrs);
 function includeBooleanAttr(value) {
   return !!value || value === "";
 }
+const toDisplayString = (val) => {
+  return isString$1(val) ? val : val == null ? "" : isArray$1(val) || isObject$1(val) && (val.toString === objectToString$1 || !isFunction$1(val.toString)) ? JSON.stringify(val, replacer, 2) : String(val);
+};
+const replacer = (_key, val) => {
+  if (val && val.__v_isRef) {
+    return replacer(_key, val.value);
+  } else if (isMap$2(val)) {
+    return {
+      [`Map(${val.size})`]: [...val.entries()].reduce(
+        (entries, [key, val2], i) => {
+          entries[stringifySymbol(key, i) + " =>"] = val2;
+          return entries;
+        },
+        {}
+      )
+    };
+  } else if (isSet$2(val)) {
+    return {
+      [`Set(${val.size})`]: [...val.values()].map((v) => stringifySymbol(v))
+    };
+  } else if (isSymbol$1(val)) {
+    return stringifySymbol(val);
+  } else if (isObject$1(val) && !isArray$1(val) && !isPlainObject$1(val)) {
+    return String(val);
+  }
+  return val;
+};
+const stringifySymbol = (v, i = "") => {
+  var _a;
+  return isSymbol$1(v) ? `Symbol(${(_a = v.description) != null ? _a : i})` : v;
+};
 /**
 * @vue/reactivity v3.4.21
 * (c) 2018-present Yuxi (Evan) You and Vue contributors
@@ -1552,12 +1583,6 @@ function setCurrentRenderingInstance(instance) {
   currentScopeId = instance && instance.type.__scopeId || null;
   return prev;
 }
-function pushScopeId(id) {
-  currentScopeId = id;
-}
-function popScopeId() {
-  currentScopeId = null;
-}
 function withCtx(fn, ctx = currentRenderingInstance, isNonScopedSlot) {
   if (!ctx)
     return fn;
@@ -1596,7 +1621,7 @@ function renderComponentRoot(instance) {
     props,
     propsOptions: [propsOptions],
     slots,
-    attrs,
+    attrs: attrs2,
     emit: emit2,
     render,
     renderCache,
@@ -1632,7 +1657,7 @@ function renderComponentRoot(instance) {
           ctx
         )
       );
-      fallthroughAttrs = attrs;
+      fallthroughAttrs = attrs2;
     } else {
       const render2 = Component;
       if (false)
@@ -1643,18 +1668,18 @@ function renderComponentRoot(instance) {
           false ? {
             get attrs() {
               markAttrsAccessed();
-              return attrs;
+              return attrs2;
             },
             slots,
             emit: emit2
-          } : { attrs, slots, emit: emit2 }
+          } : { attrs: attrs2, slots, emit: emit2 }
         ) : render2(
           props,
           null
           /* we know it doesn't need it */
         )
       );
-      fallthroughAttrs = Component.props ? attrs : getFunctionalFallthrough(attrs);
+      fallthroughAttrs = Component.props ? attrs2 : getFunctionalFallthrough(attrs2);
     }
   } catch (err) {
     blockStack.length = 0;
@@ -1690,20 +1715,20 @@ function renderComponentRoot(instance) {
   setCurrentRenderingInstance(prev);
   return result2;
 }
-const getFunctionalFallthrough = (attrs) => {
+const getFunctionalFallthrough = (attrs2) => {
   let res;
-  for (const key in attrs) {
+  for (const key in attrs2) {
     if (key === "class" || key === "style" || isOn(key)) {
-      (res || (res = {}))[key] = attrs[key];
+      (res || (res = {}))[key] = attrs2[key];
     }
   }
   return res;
 };
-const filterModelListeners = (attrs, props) => {
+const filterModelListeners = (attrs2, props) => {
   const res = {};
-  for (const key in attrs) {
+  for (const key in attrs2) {
     if (!isModelListener(key) || !(key.slice(9) in props)) {
-      res[key] = attrs[key];
+      res[key] = attrs2[key];
     }
   }
   return res;
@@ -2784,10 +2809,10 @@ function inject(key, defaultValue, treatDefaultAsFactory = false) {
 }
 function initProps(instance, rawProps, isStateful, isSSR = false) {
   const props = {};
-  const attrs = {};
-  def(attrs, InternalObjectKey, 1);
+  const attrs2 = {};
+  def(attrs2, InternalObjectKey, 1);
   instance.propsDefaults = /* @__PURE__ */ Object.create(null);
-  setFullProps(instance, rawProps, props, attrs);
+  setFullProps(instance, rawProps, props, attrs2);
   for (const key in instance.propsOptions[0]) {
     if (!(key in props)) {
       props[key] = void 0;
@@ -2797,17 +2822,17 @@ function initProps(instance, rawProps, isStateful, isSSR = false) {
     instance.props = isSSR ? props : shallowReactive(props);
   } else {
     if (!instance.type.props) {
-      instance.props = attrs;
+      instance.props = attrs2;
     } else {
       instance.props = props;
     }
   }
-  instance.attrs = attrs;
+  instance.attrs = attrs2;
 }
 function updateProps(instance, rawProps, rawPrevProps, optimized) {
   const {
     props,
-    attrs,
+    attrs: attrs2,
     vnode: { patchFlag }
   } = instance;
   const rawCurrentProps = toRaw(props);
@@ -2828,9 +2853,9 @@ function updateProps(instance, rawProps, rawPrevProps, optimized) {
         }
         const value = rawProps[key];
         if (options) {
-          if (hasOwn(attrs, key)) {
-            if (value !== attrs[key]) {
-              attrs[key] = value;
+          if (hasOwn(attrs2, key)) {
+            if (value !== attrs2[key]) {
+              attrs2[key] = value;
               hasAttrsChanged = true;
             }
           } else {
@@ -2845,15 +2870,15 @@ function updateProps(instance, rawProps, rawPrevProps, optimized) {
             );
           }
         } else {
-          if (value !== attrs[key]) {
-            attrs[key] = value;
+          if (value !== attrs2[key]) {
+            attrs2[key] = value;
             hasAttrsChanged = true;
           }
         }
       }
     }
   } else {
-    if (setFullProps(instance, rawProps, props, attrs)) {
+    if (setFullProps(instance, rawProps, props, attrs2)) {
       hasAttrsChanged = true;
     }
     let kebabKey;
@@ -2880,10 +2905,10 @@ function updateProps(instance, rawProps, rawPrevProps, optimized) {
         }
       }
     }
-    if (attrs !== rawCurrentProps) {
-      for (const key in attrs) {
+    if (attrs2 !== rawCurrentProps) {
+      for (const key in attrs2) {
         if (!rawProps || !hasOwn(rawProps, key) && true) {
-          delete attrs[key];
+          delete attrs2[key];
           hasAttrsChanged = true;
         }
       }
@@ -2893,7 +2918,7 @@ function updateProps(instance, rawProps, rawPrevProps, optimized) {
     trigger(instance, "set", "$attrs");
   }
 }
-function setFullProps(instance, rawProps, props, attrs) {
+function setFullProps(instance, rawProps, props, attrs2) {
   const [options, needCastKeys] = instance.propsOptions;
   let hasAttrsChanged = false;
   let rawCastValues;
@@ -2911,8 +2936,8 @@ function setFullProps(instance, rawProps, props, attrs) {
           (rawCastValues || (rawCastValues = {}))[camelKey] = value;
         }
       } else if (!isEmitListener(instance.emitsOptions, key)) {
-        if (!(key in attrs) || value !== attrs[key]) {
-          attrs[key] = value;
+        if (!(key in attrs2) || value !== attrs2[key]) {
+          attrs2[key] = value;
           hasAttrsChanged = true;
         }
       }
@@ -3101,52 +3126,52 @@ const normalizeObjectSlots = (rawSlots, slots, instance) => {
     }
   }
 };
-const normalizeVNodeSlots = (instance, children) => {
-  const normalized = normalizeSlotValue(children);
+const normalizeVNodeSlots = (instance, children2) => {
+  const normalized = normalizeSlotValue(children2);
   instance.slots.default = () => normalized;
 };
-const initSlots = (instance, children) => {
+const initSlots = (instance, children2) => {
   if (instance.vnode.shapeFlag & 32) {
-    const type = children._;
+    const type = children2._;
     if (type) {
-      instance.slots = toRaw(children);
-      def(children, "_", type);
+      instance.slots = toRaw(children2);
+      def(children2, "_", type);
     } else {
       normalizeObjectSlots(
-        children,
+        children2,
         instance.slots = {}
       );
     }
   } else {
     instance.slots = {};
-    if (children) {
-      normalizeVNodeSlots(instance, children);
+    if (children2) {
+      normalizeVNodeSlots(instance, children2);
     }
   }
   def(instance.slots, InternalObjectKey, 1);
 };
-const updateSlots = (instance, children, optimized) => {
+const updateSlots = (instance, children2, optimized) => {
   const { vnode, slots } = instance;
   let needDeletionCheck = true;
   let deletionComparisonTarget = EMPTY_OBJ;
   if (vnode.shapeFlag & 32) {
-    const type = children._;
+    const type = children2._;
     if (type) {
       if (optimized && type === 1) {
         needDeletionCheck = false;
       } else {
-        extend$1(slots, children);
+        extend$1(slots, children2);
         if (!optimized && type === 1) {
           delete slots._;
         }
       }
     } else {
-      needDeletionCheck = !children.$stable;
-      normalizeObjectSlots(children, slots);
+      needDeletionCheck = !children2.$stable;
+      normalizeObjectSlots(children2, slots);
     }
-    deletionComparisonTarget = children;
-  } else if (children) {
-    normalizeVNodeSlots(instance, children);
+    deletionComparisonTarget = children2;
+  } else if (children2) {
+    normalizeVNodeSlots(instance, children2);
     deletionComparisonTarget = { default: 1 };
   }
   if (needDeletionCheck) {
@@ -3527,9 +3552,9 @@ function baseCreateRenderer(options, createHydrationFns) {
       }
     }
   };
-  const mountChildren = (children, container, anchor, parentComponent, parentSuspense, namespace, slotScopeIds, optimized, start = 0) => {
-    for (let i = start; i < children.length; i++) {
-      const child = children[i] = optimized ? cloneIfMounted(children[i]) : normalizeVNode(children[i]);
+  const mountChildren = (children2, container, anchor, parentComponent, parentSuspense, namespace, slotScopeIds, optimized, start = 0) => {
+    for (let i = start; i < children2.length; i++) {
+      const child = children2[i] = optimized ? cloneIfMounted(children2[i]) : normalizeVNode(children2[i]);
       patch(
         null,
         child,
@@ -4291,7 +4316,7 @@ function baseCreateRenderer(options, createHydrationFns) {
     }
   };
   const move = (vnode, container, anchor, moveType, parentSuspense = null) => {
-    const { el, type, transition, children, shapeFlag } = vnode;
+    const { el, type, transition, children: children2, shapeFlag } = vnode;
     if (shapeFlag & 6) {
       move(vnode.component.subTree, container, anchor, moveType);
       return;
@@ -4306,8 +4331,8 @@ function baseCreateRenderer(options, createHydrationFns) {
     }
     if (type === Fragment) {
       hostInsert(el, container, anchor);
-      for (let i = 0; i < children.length; i++) {
-        move(children[i], container, anchor, moveType);
+      for (let i = 0; i < children2.length; i++) {
+        move(children2[i], container, anchor, moveType);
       }
       hostInsert(vnode.anchor, container, anchor);
       return;
@@ -4346,7 +4371,7 @@ function baseCreateRenderer(options, createHydrationFns) {
       type,
       props,
       ref: ref3,
-      children,
+      children: children2,
       dynamicChildren,
       shapeFlag,
       patchFlag,
@@ -4394,7 +4419,7 @@ function baseCreateRenderer(options, createHydrationFns) {
           true
         );
       } else if (type === Fragment && patchFlag & (128 | 256) || !optimized && shapeFlag & 16) {
-        unmountChildren(children, parentComponent, parentSuspense);
+        unmountChildren(children2, parentComponent, parentSuspense);
       }
       if (doRemove) {
         remove2(vnode);
@@ -4469,9 +4494,9 @@ function baseCreateRenderer(options, createHydrationFns) {
       }
     }
   };
-  const unmountChildren = (children, parentComponent, parentSuspense, doRemove = false, optimized = false, start = 0) => {
-    for (let i = start; i < children.length; i++) {
-      unmount(children[i], parentComponent, parentSuspense, doRemove, optimized);
+  const unmountChildren = (children2, parentComponent, parentSuspense, doRemove = false, optimized = false, start = 0) => {
+    for (let i = start; i < children2.length; i++) {
+      unmount(children2[i], parentComponent, parentSuspense, doRemove, optimized);
     }
   };
   const getNextHostNode = (vnode) => {
@@ -4639,12 +4664,12 @@ function setupBlock(vnode) {
   }
   return vnode;
 }
-function createElementBlock(type, props, children, patchFlag, dynamicProps, shapeFlag) {
+function createElementBlock(type, props, children2, patchFlag, dynamicProps, shapeFlag) {
   return setupBlock(
     createBaseVNode(
       type,
       props,
-      children,
+      children2,
       patchFlag,
       dynamicProps,
       shapeFlag,
@@ -4670,7 +4695,7 @@ const normalizeRef = ({
   }
   return ref3 != null ? isString$1(ref3) || isRef(ref3) || isFunction$1(ref3) ? { i: currentRenderingInstance, r: ref3, k: ref_key, f: !!ref_for } : ref3 : null;
 };
-function createBaseVNode(type, props = null, children = null, patchFlag = 0, dynamicProps = null, shapeFlag = type === Fragment ? 0 : 1, isBlockNode = false, needFullChildrenNormalization = false) {
+function createBaseVNode(type, props = null, children2 = null, patchFlag = 0, dynamicProps = null, shapeFlag = type === Fragment ? 0 : 1, isBlockNode = false, needFullChildrenNormalization = false) {
   const vnode = {
     __v_isVNode: true,
     __v_skip: true,
@@ -4680,7 +4705,7 @@ function createBaseVNode(type, props = null, children = null, patchFlag = 0, dyn
     ref: props && normalizeRef(props),
     scopeId: currentScopeId,
     slotScopeIds: null,
-    children,
+    children: children2,
     component: null,
     suspense: null,
     ssContent: null,
@@ -4700,12 +4725,12 @@ function createBaseVNode(type, props = null, children = null, patchFlag = 0, dyn
     ctx: currentRenderingInstance
   };
   if (needFullChildrenNormalization) {
-    normalizeChildren(vnode, children);
+    normalizeChildren(vnode, children2);
     if (shapeFlag & 128) {
       type.normalize(vnode);
     }
-  } else if (children) {
-    vnode.shapeFlag |= isString$1(children) ? 8 : 16;
+  } else if (children2) {
+    vnode.shapeFlag |= isString$1(children2) ? 8 : 16;
   }
   if (isBlockTreeEnabled > 0 && // avoid a block node from tracking itself
   !isBlockNode && // has current parent block
@@ -4721,7 +4746,7 @@ function createBaseVNode(type, props = null, children = null, patchFlag = 0, dyn
   return vnode;
 }
 const createVNode = _createVNode;
-function _createVNode(type, props = null, children = null, patchFlag = 0, dynamicProps = null, isBlockNode = false) {
+function _createVNode(type, props = null, children2 = null, patchFlag = 0, dynamicProps = null, isBlockNode = false) {
   if (!type || type === NULL_DYNAMIC_COMPONENT) {
     type = Comment;
   }
@@ -4732,8 +4757,8 @@ function _createVNode(type, props = null, children = null, patchFlag = 0, dynami
       true
       /* mergeRef: true */
     );
-    if (children) {
-      normalizeChildren(cloned, children);
+    if (children2) {
+      normalizeChildren(cloned, children2);
     }
     if (isBlockTreeEnabled > 0 && !isBlockNode && currentBlock) {
       if (cloned.shapeFlag & 6) {
@@ -4765,7 +4790,7 @@ function _createVNode(type, props = null, children = null, patchFlag = 0, dynami
   return createBaseVNode(
     type,
     props,
-    children,
+    children2,
     patchFlag,
     dynamicProps,
     shapeFlag,
@@ -4779,7 +4804,7 @@ function guardReactiveProps(props) {
   return isProxy(props) || InternalObjectKey in props ? extend$1({}, props) : props;
 }
 function cloneVNode(vnode, extraProps, mergeRef = false) {
-  const { props, ref: ref3, patchFlag, children } = vnode;
+  const { props, ref: ref3, patchFlag, children: children2 } = vnode;
   const mergedProps = extraProps ? mergeProps(props || {}, extraProps) : props;
   const cloned = {
     __v_isVNode: true,
@@ -4795,7 +4820,7 @@ function cloneVNode(vnode, extraProps, mergeRef = false) {
     ) : ref3,
     scopeId: vnode.scopeId,
     slotScopeIds: vnode.slotScopeIds,
-    children,
+    children: children2,
     target: vnode.target,
     targetAnchor: vnode.targetAnchor,
     staticCount: vnode.staticCount,
@@ -4847,16 +4872,16 @@ function normalizeVNode(child) {
 function cloneIfMounted(child) {
   return child.el === null && child.patchFlag !== -1 || child.memo ? child : cloneVNode(child);
 }
-function normalizeChildren(vnode, children) {
+function normalizeChildren(vnode, children2) {
   let type = 0;
   const { shapeFlag } = vnode;
-  if (children == null) {
-    children = null;
-  } else if (isArray$1(children)) {
+  if (children2 == null) {
+    children2 = null;
+  } else if (isArray$1(children2)) {
     type = 16;
-  } else if (typeof children === "object") {
+  } else if (typeof children2 === "object") {
     if (shapeFlag & (1 | 64)) {
-      const slot = children.default;
+      const slot = children2.default;
       if (slot) {
         slot._c && (slot._d = false);
         normalizeChildren(vnode, slot());
@@ -4865,31 +4890,31 @@ function normalizeChildren(vnode, children) {
       return;
     } else {
       type = 32;
-      const slotFlag = children._;
-      if (!slotFlag && !(InternalObjectKey in children)) {
-        children._ctx = currentRenderingInstance;
+      const slotFlag = children2._;
+      if (!slotFlag && !(InternalObjectKey in children2)) {
+        children2._ctx = currentRenderingInstance;
       } else if (slotFlag === 3 && currentRenderingInstance) {
         if (currentRenderingInstance.slots._ === 1) {
-          children._ = 1;
+          children2._ = 1;
         } else {
-          children._ = 2;
+          children2._ = 2;
           vnode.patchFlag |= 1024;
         }
       }
     }
-  } else if (isFunction$1(children)) {
-    children = { default: children, _ctx: currentRenderingInstance };
+  } else if (isFunction$1(children2)) {
+    children2 = { default: children2, _ctx: currentRenderingInstance };
     type = 32;
   } else {
-    children = String(children);
+    children2 = String(children2);
     if (shapeFlag & 64) {
       type = 16;
-      children = [createTextVNode(children)];
+      children2 = [createTextVNode(children2)];
     } else {
       type = 8;
     }
   }
-  vnode.children = children;
+  vnode.children = children2;
   vnode.shapeFlag |= type;
 }
 function mergeProps(...args) {
@@ -5058,10 +5083,10 @@ function isStatefulComponent(instance) {
 let isInSSRComponentSetup = false;
 function setupComponent(instance, isSSR = false) {
   isSSR && setInSSRSetupState(isSSR);
-  const { props, children } = instance.vnode;
+  const { props, children: children2 } = instance.vnode;
   const isStateful = isStatefulComponent(instance);
   initProps(instance, props, isStateful, isSSR);
-  initSlots(instance, children);
+  initSlots(instance, children2);
   const setupResult = isStateful ? setupStatefulComponent(instance, isSSR) : void 0;
   isSSR && setInSSRSetupState(false);
   return setupResult;
@@ -5257,14 +5282,14 @@ const nodeOps = {
   },
   createText: (text) => doc.createTextNode(text),
   createComment: (text) => doc.createComment(text),
-  setText: (node, text) => {
-    node.nodeValue = text;
+  setText: (node2, text) => {
+    node2.nodeValue = text;
   },
   setElementText: (el, text) => {
     el.textContent = text;
   },
-  parentNode: (node) => node.parentNode,
-  nextSibling: (node) => node.nextSibling,
+  parentNode: (node2) => node2.parentNode,
+  nextSibling: (node2) => node2.nextSibling,
   querySelector: (selector) => doc.querySelector(selector),
   setScopeId(el, id) {
     el.setAttribute(id, "");
@@ -6355,7 +6380,7 @@ function wrapperClone(wrapper) {
 }
 var objectProto$o = Object.prototype;
 var hasOwnProperty$l = objectProto$o.hasOwnProperty;
-function lodash(value) {
+function lodash$1(value) {
   if (isObjectLike(value) && !isArray(value) && !(value instanceof LazyWrapper)) {
     if (value instanceof LodashWrapper) {
       return value;
@@ -6366,10 +6391,10 @@ function lodash(value) {
   }
   return new LodashWrapper(value);
 }
-lodash.prototype = baseLodash.prototype;
-lodash.prototype.constructor = lodash;
+lodash$1.prototype = baseLodash.prototype;
+lodash$1.prototype.constructor = lodash$1;
 function isLaziable(func2) {
-  var funcName = getFuncName(func2), other = lodash[funcName];
+  var funcName = getFuncName(func2), other = lodash$1[funcName];
   if (typeof other != "function" || !(funcName in LazyWrapper.prototype)) {
     return false;
   }
@@ -7704,7 +7729,7 @@ function createRound(methodName) {
 var ceil = createRound("ceil");
 const ceil$1 = ceil;
 function chain(value) {
-  var result2 = lodash(value);
+  var result2 = lodash$1(value);
   result2.__chain__ = true;
   return result2;
 }
@@ -11415,7 +11440,7 @@ const seq = {
   at,
   chain,
   commit: wrapperCommit,
-  lodash,
+  lodash: lodash$1,
   next: wrapperNext,
   plant: wrapperPlant,
   reverse: wrapperReverse,
@@ -11460,7 +11485,7 @@ const string = {
   upperFirst: upperFirst$1,
   words
 };
-const util = {
+const util$1 = {
   attempt: attempt$1,
   bindAll: bindAll$1,
   cond,
@@ -11595,323 +11620,323 @@ var mixin = /* @__PURE__ */ function(func2) {
     return func2(object2, source, options);
   };
 }(mixin$1);
-lodash.after = func.after;
-lodash.ary = func.ary;
-lodash.assign = object.assign;
-lodash.assignIn = object.assignIn;
-lodash.assignInWith = object.assignInWith;
-lodash.assignWith = object.assignWith;
-lodash.at = object.at;
-lodash.before = func.before;
-lodash.bind = func.bind;
-lodash.bindAll = util.bindAll;
-lodash.bindKey = func.bindKey;
-lodash.castArray = lang.castArray;
-lodash.chain = seq.chain;
-lodash.chunk = array.chunk;
-lodash.compact = array.compact;
-lodash.concat = array.concat;
-lodash.cond = util.cond;
-lodash.conforms = util.conforms;
-lodash.constant = util.constant;
-lodash.countBy = collection.countBy;
-lodash.create = object.create;
-lodash.curry = func.curry;
-lodash.curryRight = func.curryRight;
-lodash.debounce = func.debounce;
-lodash.defaults = object.defaults;
-lodash.defaultsDeep = object.defaultsDeep;
-lodash.defer = func.defer;
-lodash.delay = func.delay;
-lodash.difference = array.difference;
-lodash.differenceBy = array.differenceBy;
-lodash.differenceWith = array.differenceWith;
-lodash.drop = array.drop;
-lodash.dropRight = array.dropRight;
-lodash.dropRightWhile = array.dropRightWhile;
-lodash.dropWhile = array.dropWhile;
-lodash.fill = array.fill;
-lodash.filter = collection.filter;
-lodash.flatMap = collection.flatMap;
-lodash.flatMapDeep = collection.flatMapDeep;
-lodash.flatMapDepth = collection.flatMapDepth;
-lodash.flatten = array.flatten;
-lodash.flattenDeep = array.flattenDeep;
-lodash.flattenDepth = array.flattenDepth;
-lodash.flip = func.flip;
-lodash.flow = util.flow;
-lodash.flowRight = util.flowRight;
-lodash.fromPairs = array.fromPairs;
-lodash.functions = object.functions;
-lodash.functionsIn = object.functionsIn;
-lodash.groupBy = collection.groupBy;
-lodash.initial = array.initial;
-lodash.intersection = array.intersection;
-lodash.intersectionBy = array.intersectionBy;
-lodash.intersectionWith = array.intersectionWith;
-lodash.invert = object.invert;
-lodash.invertBy = object.invertBy;
-lodash.invokeMap = collection.invokeMap;
-lodash.iteratee = util.iteratee;
-lodash.keyBy = collection.keyBy;
-lodash.keys = keys;
-lodash.keysIn = object.keysIn;
-lodash.map = collection.map;
-lodash.mapKeys = object.mapKeys;
-lodash.mapValues = object.mapValues;
-lodash.matches = util.matches;
-lodash.matchesProperty = util.matchesProperty;
-lodash.memoize = func.memoize;
-lodash.merge = object.merge;
-lodash.mergeWith = object.mergeWith;
-lodash.method = util.method;
-lodash.methodOf = util.methodOf;
-lodash.mixin = mixin;
-lodash.negate = negate;
-lodash.nthArg = util.nthArg;
-lodash.omit = object.omit;
-lodash.omitBy = object.omitBy;
-lodash.once = func.once;
-lodash.orderBy = collection.orderBy;
-lodash.over = util.over;
-lodash.overArgs = func.overArgs;
-lodash.overEvery = util.overEvery;
-lodash.overSome = util.overSome;
-lodash.partial = func.partial;
-lodash.partialRight = func.partialRight;
-lodash.partition = collection.partition;
-lodash.pick = object.pick;
-lodash.pickBy = object.pickBy;
-lodash.property = util.property;
-lodash.propertyOf = util.propertyOf;
-lodash.pull = array.pull;
-lodash.pullAll = array.pullAll;
-lodash.pullAllBy = array.pullAllBy;
-lodash.pullAllWith = array.pullAllWith;
-lodash.pullAt = array.pullAt;
-lodash.range = util.range;
-lodash.rangeRight = util.rangeRight;
-lodash.rearg = func.rearg;
-lodash.reject = collection.reject;
-lodash.remove = array.remove;
-lodash.rest = func.rest;
-lodash.reverse = array.reverse;
-lodash.sampleSize = collection.sampleSize;
-lodash.set = object.set;
-lodash.setWith = object.setWith;
-lodash.shuffle = collection.shuffle;
-lodash.slice = array.slice;
-lodash.sortBy = collection.sortBy;
-lodash.sortedUniq = array.sortedUniq;
-lodash.sortedUniqBy = array.sortedUniqBy;
-lodash.split = string.split;
-lodash.spread = func.spread;
-lodash.tail = array.tail;
-lodash.take = array.take;
-lodash.takeRight = array.takeRight;
-lodash.takeRightWhile = array.takeRightWhile;
-lodash.takeWhile = array.takeWhile;
-lodash.tap = seq.tap;
-lodash.throttle = func.throttle;
-lodash.thru = thru;
-lodash.toArray = lang.toArray;
-lodash.toPairs = object.toPairs;
-lodash.toPairsIn = object.toPairsIn;
-lodash.toPath = util.toPath;
-lodash.toPlainObject = lang.toPlainObject;
-lodash.transform = object.transform;
-lodash.unary = func.unary;
-lodash.union = array.union;
-lodash.unionBy = array.unionBy;
-lodash.unionWith = array.unionWith;
-lodash.uniq = array.uniq;
-lodash.uniqBy = array.uniqBy;
-lodash.uniqWith = array.uniqWith;
-lodash.unset = object.unset;
-lodash.unzip = array.unzip;
-lodash.unzipWith = array.unzipWith;
-lodash.update = object.update;
-lodash.updateWith = object.updateWith;
-lodash.values = object.values;
-lodash.valuesIn = object.valuesIn;
-lodash.without = array.without;
-lodash.words = string.words;
-lodash.wrap = func.wrap;
-lodash.xor = array.xor;
-lodash.xorBy = array.xorBy;
-lodash.xorWith = array.xorWith;
-lodash.zip = array.zip;
-lodash.zipObject = array.zipObject;
-lodash.zipObjectDeep = array.zipObjectDeep;
-lodash.zipWith = array.zipWith;
-lodash.entries = object.toPairs;
-lodash.entriesIn = object.toPairsIn;
-lodash.extend = object.assignIn;
-lodash.extendWith = object.assignInWith;
-mixin(lodash, lodash);
-lodash.add = math.add;
-lodash.attempt = util.attempt;
-lodash.camelCase = string.camelCase;
-lodash.capitalize = string.capitalize;
-lodash.ceil = math.ceil;
-lodash.clamp = number.clamp;
-lodash.clone = lang.clone;
-lodash.cloneDeep = lang.cloneDeep;
-lodash.cloneDeepWith = lang.cloneDeepWith;
-lodash.cloneWith = lang.cloneWith;
-lodash.conformsTo = lang.conformsTo;
-lodash.deburr = string.deburr;
-lodash.defaultTo = util.defaultTo;
-lodash.divide = math.divide;
-lodash.endsWith = string.endsWith;
-lodash.eq = lang.eq;
-lodash.escape = string.escape;
-lodash.escapeRegExp = string.escapeRegExp;
-lodash.every = collection.every;
-lodash.find = collection.find;
-lodash.findIndex = array.findIndex;
-lodash.findKey = object.findKey;
-lodash.findLast = collection.findLast;
-lodash.findLastIndex = array.findLastIndex;
-lodash.findLastKey = object.findLastKey;
-lodash.floor = math.floor;
-lodash.forEach = collection.forEach;
-lodash.forEachRight = collection.forEachRight;
-lodash.forIn = object.forIn;
-lodash.forInRight = object.forInRight;
-lodash.forOwn = object.forOwn;
-lodash.forOwnRight = object.forOwnRight;
-lodash.get = object.get;
-lodash.gt = lang.gt;
-lodash.gte = lang.gte;
-lodash.has = object.has;
-lodash.hasIn = object.hasIn;
-lodash.head = array.head;
-lodash.identity = identity;
-lodash.includes = collection.includes;
-lodash.indexOf = array.indexOf;
-lodash.inRange = number.inRange;
-lodash.invoke = object.invoke;
-lodash.isArguments = lang.isArguments;
-lodash.isArray = isArray;
-lodash.isArrayBuffer = lang.isArrayBuffer;
-lodash.isArrayLike = lang.isArrayLike;
-lodash.isArrayLikeObject = lang.isArrayLikeObject;
-lodash.isBoolean = lang.isBoolean;
-lodash.isBuffer = lang.isBuffer;
-lodash.isDate = lang.isDate;
-lodash.isElement = lang.isElement;
-lodash.isEmpty = lang.isEmpty;
-lodash.isEqual = lang.isEqual;
-lodash.isEqualWith = lang.isEqualWith;
-lodash.isError = lang.isError;
-lodash.isFinite = lang.isFinite;
-lodash.isFunction = lang.isFunction;
-lodash.isInteger = lang.isInteger;
-lodash.isLength = lang.isLength;
-lodash.isMap = lang.isMap;
-lodash.isMatch = lang.isMatch;
-lodash.isMatchWith = lang.isMatchWith;
-lodash.isNaN = lang.isNaN;
-lodash.isNative = lang.isNative;
-lodash.isNil = lang.isNil;
-lodash.isNull = lang.isNull;
-lodash.isNumber = lang.isNumber;
-lodash.isObject = isObject;
-lodash.isObjectLike = lang.isObjectLike;
-lodash.isPlainObject = lang.isPlainObject;
-lodash.isRegExp = lang.isRegExp;
-lodash.isSafeInteger = lang.isSafeInteger;
-lodash.isSet = lang.isSet;
-lodash.isString = lang.isString;
-lodash.isSymbol = lang.isSymbol;
-lodash.isTypedArray = lang.isTypedArray;
-lodash.isUndefined = lang.isUndefined;
-lodash.isWeakMap = lang.isWeakMap;
-lodash.isWeakSet = lang.isWeakSet;
-lodash.join = array.join;
-lodash.kebabCase = string.kebabCase;
-lodash.last = last;
-lodash.lastIndexOf = array.lastIndexOf;
-lodash.lowerCase = string.lowerCase;
-lodash.lowerFirst = string.lowerFirst;
-lodash.lt = lang.lt;
-lodash.lte = lang.lte;
-lodash.max = math.max;
-lodash.maxBy = math.maxBy;
-lodash.mean = math.mean;
-lodash.meanBy = math.meanBy;
-lodash.min = math.min;
-lodash.minBy = math.minBy;
-lodash.stubArray = util.stubArray;
-lodash.stubFalse = util.stubFalse;
-lodash.stubObject = util.stubObject;
-lodash.stubString = util.stubString;
-lodash.stubTrue = util.stubTrue;
-lodash.multiply = math.multiply;
-lodash.nth = array.nth;
-lodash.noop = util.noop;
-lodash.now = date.now;
-lodash.pad = string.pad;
-lodash.padEnd = string.padEnd;
-lodash.padStart = string.padStart;
-lodash.parseInt = string.parseInt;
-lodash.random = number.random;
-lodash.reduce = collection.reduce;
-lodash.reduceRight = collection.reduceRight;
-lodash.repeat = string.repeat;
-lodash.replace = string.replace;
-lodash.result = object.result;
-lodash.round = math.round;
-lodash.sample = collection.sample;
-lodash.size = collection.size;
-lodash.snakeCase = string.snakeCase;
-lodash.some = collection.some;
-lodash.sortedIndex = array.sortedIndex;
-lodash.sortedIndexBy = array.sortedIndexBy;
-lodash.sortedIndexOf = array.sortedIndexOf;
-lodash.sortedLastIndex = array.sortedLastIndex;
-lodash.sortedLastIndexBy = array.sortedLastIndexBy;
-lodash.sortedLastIndexOf = array.sortedLastIndexOf;
-lodash.startCase = string.startCase;
-lodash.startsWith = string.startsWith;
-lodash.subtract = math.subtract;
-lodash.sum = math.sum;
-lodash.sumBy = math.sumBy;
-lodash.template = string.template;
-lodash.times = util.times;
-lodash.toFinite = lang.toFinite;
-lodash.toInteger = toInteger;
-lodash.toLength = lang.toLength;
-lodash.toLower = string.toLower;
-lodash.toNumber = lang.toNumber;
-lodash.toSafeInteger = lang.toSafeInteger;
-lodash.toString = lang.toString;
-lodash.toUpper = string.toUpper;
-lodash.trim = string.trim;
-lodash.trimEnd = string.trimEnd;
-lodash.trimStart = string.trimStart;
-lodash.truncate = string.truncate;
-lodash.unescape = string.unescape;
-lodash.uniqueId = util.uniqueId;
-lodash.upperCase = string.upperCase;
-lodash.upperFirst = string.upperFirst;
-lodash.each = collection.forEach;
-lodash.eachRight = collection.forEachRight;
-lodash.first = array.head;
-mixin(lodash, function() {
+lodash$1.after = func.after;
+lodash$1.ary = func.ary;
+lodash$1.assign = object.assign;
+lodash$1.assignIn = object.assignIn;
+lodash$1.assignInWith = object.assignInWith;
+lodash$1.assignWith = object.assignWith;
+lodash$1.at = object.at;
+lodash$1.before = func.before;
+lodash$1.bind = func.bind;
+lodash$1.bindAll = util$1.bindAll;
+lodash$1.bindKey = func.bindKey;
+lodash$1.castArray = lang.castArray;
+lodash$1.chain = seq.chain;
+lodash$1.chunk = array.chunk;
+lodash$1.compact = array.compact;
+lodash$1.concat = array.concat;
+lodash$1.cond = util$1.cond;
+lodash$1.conforms = util$1.conforms;
+lodash$1.constant = util$1.constant;
+lodash$1.countBy = collection.countBy;
+lodash$1.create = object.create;
+lodash$1.curry = func.curry;
+lodash$1.curryRight = func.curryRight;
+lodash$1.debounce = func.debounce;
+lodash$1.defaults = object.defaults;
+lodash$1.defaultsDeep = object.defaultsDeep;
+lodash$1.defer = func.defer;
+lodash$1.delay = func.delay;
+lodash$1.difference = array.difference;
+lodash$1.differenceBy = array.differenceBy;
+lodash$1.differenceWith = array.differenceWith;
+lodash$1.drop = array.drop;
+lodash$1.dropRight = array.dropRight;
+lodash$1.dropRightWhile = array.dropRightWhile;
+lodash$1.dropWhile = array.dropWhile;
+lodash$1.fill = array.fill;
+lodash$1.filter = collection.filter;
+lodash$1.flatMap = collection.flatMap;
+lodash$1.flatMapDeep = collection.flatMapDeep;
+lodash$1.flatMapDepth = collection.flatMapDepth;
+lodash$1.flatten = array.flatten;
+lodash$1.flattenDeep = array.flattenDeep;
+lodash$1.flattenDepth = array.flattenDepth;
+lodash$1.flip = func.flip;
+lodash$1.flow = util$1.flow;
+lodash$1.flowRight = util$1.flowRight;
+lodash$1.fromPairs = array.fromPairs;
+lodash$1.functions = object.functions;
+lodash$1.functionsIn = object.functionsIn;
+lodash$1.groupBy = collection.groupBy;
+lodash$1.initial = array.initial;
+lodash$1.intersection = array.intersection;
+lodash$1.intersectionBy = array.intersectionBy;
+lodash$1.intersectionWith = array.intersectionWith;
+lodash$1.invert = object.invert;
+lodash$1.invertBy = object.invertBy;
+lodash$1.invokeMap = collection.invokeMap;
+lodash$1.iteratee = util$1.iteratee;
+lodash$1.keyBy = collection.keyBy;
+lodash$1.keys = keys;
+lodash$1.keysIn = object.keysIn;
+lodash$1.map = collection.map;
+lodash$1.mapKeys = object.mapKeys;
+lodash$1.mapValues = object.mapValues;
+lodash$1.matches = util$1.matches;
+lodash$1.matchesProperty = util$1.matchesProperty;
+lodash$1.memoize = func.memoize;
+lodash$1.merge = object.merge;
+lodash$1.mergeWith = object.mergeWith;
+lodash$1.method = util$1.method;
+lodash$1.methodOf = util$1.methodOf;
+lodash$1.mixin = mixin;
+lodash$1.negate = negate;
+lodash$1.nthArg = util$1.nthArg;
+lodash$1.omit = object.omit;
+lodash$1.omitBy = object.omitBy;
+lodash$1.once = func.once;
+lodash$1.orderBy = collection.orderBy;
+lodash$1.over = util$1.over;
+lodash$1.overArgs = func.overArgs;
+lodash$1.overEvery = util$1.overEvery;
+lodash$1.overSome = util$1.overSome;
+lodash$1.partial = func.partial;
+lodash$1.partialRight = func.partialRight;
+lodash$1.partition = collection.partition;
+lodash$1.pick = object.pick;
+lodash$1.pickBy = object.pickBy;
+lodash$1.property = util$1.property;
+lodash$1.propertyOf = util$1.propertyOf;
+lodash$1.pull = array.pull;
+lodash$1.pullAll = array.pullAll;
+lodash$1.pullAllBy = array.pullAllBy;
+lodash$1.pullAllWith = array.pullAllWith;
+lodash$1.pullAt = array.pullAt;
+lodash$1.range = util$1.range;
+lodash$1.rangeRight = util$1.rangeRight;
+lodash$1.rearg = func.rearg;
+lodash$1.reject = collection.reject;
+lodash$1.remove = array.remove;
+lodash$1.rest = func.rest;
+lodash$1.reverse = array.reverse;
+lodash$1.sampleSize = collection.sampleSize;
+lodash$1.set = object.set;
+lodash$1.setWith = object.setWith;
+lodash$1.shuffle = collection.shuffle;
+lodash$1.slice = array.slice;
+lodash$1.sortBy = collection.sortBy;
+lodash$1.sortedUniq = array.sortedUniq;
+lodash$1.sortedUniqBy = array.sortedUniqBy;
+lodash$1.split = string.split;
+lodash$1.spread = func.spread;
+lodash$1.tail = array.tail;
+lodash$1.take = array.take;
+lodash$1.takeRight = array.takeRight;
+lodash$1.takeRightWhile = array.takeRightWhile;
+lodash$1.takeWhile = array.takeWhile;
+lodash$1.tap = seq.tap;
+lodash$1.throttle = func.throttle;
+lodash$1.thru = thru;
+lodash$1.toArray = lang.toArray;
+lodash$1.toPairs = object.toPairs;
+lodash$1.toPairsIn = object.toPairsIn;
+lodash$1.toPath = util$1.toPath;
+lodash$1.toPlainObject = lang.toPlainObject;
+lodash$1.transform = object.transform;
+lodash$1.unary = func.unary;
+lodash$1.union = array.union;
+lodash$1.unionBy = array.unionBy;
+lodash$1.unionWith = array.unionWith;
+lodash$1.uniq = array.uniq;
+lodash$1.uniqBy = array.uniqBy;
+lodash$1.uniqWith = array.uniqWith;
+lodash$1.unset = object.unset;
+lodash$1.unzip = array.unzip;
+lodash$1.unzipWith = array.unzipWith;
+lodash$1.update = object.update;
+lodash$1.updateWith = object.updateWith;
+lodash$1.values = object.values;
+lodash$1.valuesIn = object.valuesIn;
+lodash$1.without = array.without;
+lodash$1.words = string.words;
+lodash$1.wrap = func.wrap;
+lodash$1.xor = array.xor;
+lodash$1.xorBy = array.xorBy;
+lodash$1.xorWith = array.xorWith;
+lodash$1.zip = array.zip;
+lodash$1.zipObject = array.zipObject;
+lodash$1.zipObjectDeep = array.zipObjectDeep;
+lodash$1.zipWith = array.zipWith;
+lodash$1.entries = object.toPairs;
+lodash$1.entriesIn = object.toPairsIn;
+lodash$1.extend = object.assignIn;
+lodash$1.extendWith = object.assignInWith;
+mixin(lodash$1, lodash$1);
+lodash$1.add = math.add;
+lodash$1.attempt = util$1.attempt;
+lodash$1.camelCase = string.camelCase;
+lodash$1.capitalize = string.capitalize;
+lodash$1.ceil = math.ceil;
+lodash$1.clamp = number.clamp;
+lodash$1.clone = lang.clone;
+lodash$1.cloneDeep = lang.cloneDeep;
+lodash$1.cloneDeepWith = lang.cloneDeepWith;
+lodash$1.cloneWith = lang.cloneWith;
+lodash$1.conformsTo = lang.conformsTo;
+lodash$1.deburr = string.deburr;
+lodash$1.defaultTo = util$1.defaultTo;
+lodash$1.divide = math.divide;
+lodash$1.endsWith = string.endsWith;
+lodash$1.eq = lang.eq;
+lodash$1.escape = string.escape;
+lodash$1.escapeRegExp = string.escapeRegExp;
+lodash$1.every = collection.every;
+lodash$1.find = collection.find;
+lodash$1.findIndex = array.findIndex;
+lodash$1.findKey = object.findKey;
+lodash$1.findLast = collection.findLast;
+lodash$1.findLastIndex = array.findLastIndex;
+lodash$1.findLastKey = object.findLastKey;
+lodash$1.floor = math.floor;
+lodash$1.forEach = collection.forEach;
+lodash$1.forEachRight = collection.forEachRight;
+lodash$1.forIn = object.forIn;
+lodash$1.forInRight = object.forInRight;
+lodash$1.forOwn = object.forOwn;
+lodash$1.forOwnRight = object.forOwnRight;
+lodash$1.get = object.get;
+lodash$1.gt = lang.gt;
+lodash$1.gte = lang.gte;
+lodash$1.has = object.has;
+lodash$1.hasIn = object.hasIn;
+lodash$1.head = array.head;
+lodash$1.identity = identity;
+lodash$1.includes = collection.includes;
+lodash$1.indexOf = array.indexOf;
+lodash$1.inRange = number.inRange;
+lodash$1.invoke = object.invoke;
+lodash$1.isArguments = lang.isArguments;
+lodash$1.isArray = isArray;
+lodash$1.isArrayBuffer = lang.isArrayBuffer;
+lodash$1.isArrayLike = lang.isArrayLike;
+lodash$1.isArrayLikeObject = lang.isArrayLikeObject;
+lodash$1.isBoolean = lang.isBoolean;
+lodash$1.isBuffer = lang.isBuffer;
+lodash$1.isDate = lang.isDate;
+lodash$1.isElement = lang.isElement;
+lodash$1.isEmpty = lang.isEmpty;
+lodash$1.isEqual = lang.isEqual;
+lodash$1.isEqualWith = lang.isEqualWith;
+lodash$1.isError = lang.isError;
+lodash$1.isFinite = lang.isFinite;
+lodash$1.isFunction = lang.isFunction;
+lodash$1.isInteger = lang.isInteger;
+lodash$1.isLength = lang.isLength;
+lodash$1.isMap = lang.isMap;
+lodash$1.isMatch = lang.isMatch;
+lodash$1.isMatchWith = lang.isMatchWith;
+lodash$1.isNaN = lang.isNaN;
+lodash$1.isNative = lang.isNative;
+lodash$1.isNil = lang.isNil;
+lodash$1.isNull = lang.isNull;
+lodash$1.isNumber = lang.isNumber;
+lodash$1.isObject = isObject;
+lodash$1.isObjectLike = lang.isObjectLike;
+lodash$1.isPlainObject = lang.isPlainObject;
+lodash$1.isRegExp = lang.isRegExp;
+lodash$1.isSafeInteger = lang.isSafeInteger;
+lodash$1.isSet = lang.isSet;
+lodash$1.isString = lang.isString;
+lodash$1.isSymbol = lang.isSymbol;
+lodash$1.isTypedArray = lang.isTypedArray;
+lodash$1.isUndefined = lang.isUndefined;
+lodash$1.isWeakMap = lang.isWeakMap;
+lodash$1.isWeakSet = lang.isWeakSet;
+lodash$1.join = array.join;
+lodash$1.kebabCase = string.kebabCase;
+lodash$1.last = last;
+lodash$1.lastIndexOf = array.lastIndexOf;
+lodash$1.lowerCase = string.lowerCase;
+lodash$1.lowerFirst = string.lowerFirst;
+lodash$1.lt = lang.lt;
+lodash$1.lte = lang.lte;
+lodash$1.max = math.max;
+lodash$1.maxBy = math.maxBy;
+lodash$1.mean = math.mean;
+lodash$1.meanBy = math.meanBy;
+lodash$1.min = math.min;
+lodash$1.minBy = math.minBy;
+lodash$1.stubArray = util$1.stubArray;
+lodash$1.stubFalse = util$1.stubFalse;
+lodash$1.stubObject = util$1.stubObject;
+lodash$1.stubString = util$1.stubString;
+lodash$1.stubTrue = util$1.stubTrue;
+lodash$1.multiply = math.multiply;
+lodash$1.nth = array.nth;
+lodash$1.noop = util$1.noop;
+lodash$1.now = date.now;
+lodash$1.pad = string.pad;
+lodash$1.padEnd = string.padEnd;
+lodash$1.padStart = string.padStart;
+lodash$1.parseInt = string.parseInt;
+lodash$1.random = number.random;
+lodash$1.reduce = collection.reduce;
+lodash$1.reduceRight = collection.reduceRight;
+lodash$1.repeat = string.repeat;
+lodash$1.replace = string.replace;
+lodash$1.result = object.result;
+lodash$1.round = math.round;
+lodash$1.sample = collection.sample;
+lodash$1.size = collection.size;
+lodash$1.snakeCase = string.snakeCase;
+lodash$1.some = collection.some;
+lodash$1.sortedIndex = array.sortedIndex;
+lodash$1.sortedIndexBy = array.sortedIndexBy;
+lodash$1.sortedIndexOf = array.sortedIndexOf;
+lodash$1.sortedLastIndex = array.sortedLastIndex;
+lodash$1.sortedLastIndexBy = array.sortedLastIndexBy;
+lodash$1.sortedLastIndexOf = array.sortedLastIndexOf;
+lodash$1.startCase = string.startCase;
+lodash$1.startsWith = string.startsWith;
+lodash$1.subtract = math.subtract;
+lodash$1.sum = math.sum;
+lodash$1.sumBy = math.sumBy;
+lodash$1.template = string.template;
+lodash$1.times = util$1.times;
+lodash$1.toFinite = lang.toFinite;
+lodash$1.toInteger = toInteger;
+lodash$1.toLength = lang.toLength;
+lodash$1.toLower = string.toLower;
+lodash$1.toNumber = lang.toNumber;
+lodash$1.toSafeInteger = lang.toSafeInteger;
+lodash$1.toString = lang.toString;
+lodash$1.toUpper = string.toUpper;
+lodash$1.trim = string.trim;
+lodash$1.trimEnd = string.trimEnd;
+lodash$1.trimStart = string.trimStart;
+lodash$1.truncate = string.truncate;
+lodash$1.unescape = string.unescape;
+lodash$1.uniqueId = util$1.uniqueId;
+lodash$1.upperCase = string.upperCase;
+lodash$1.upperFirst = string.upperFirst;
+lodash$1.each = collection.forEach;
+lodash$1.eachRight = collection.forEachRight;
+lodash$1.first = array.head;
+mixin(lodash$1, function() {
   var source = {};
-  baseForOwn(lodash, function(func2, methodName) {
-    if (!hasOwnProperty.call(lodash.prototype, methodName)) {
+  baseForOwn(lodash$1, function(func2, methodName) {
+    if (!hasOwnProperty.call(lodash$1.prototype, methodName)) {
       source[methodName] = func2;
     }
   });
   return source;
 }(), { "chain": false });
-lodash.VERSION = VERSION;
-(lodash.templateSettings = string.templateSettings).imports._ = lodash;
+lodash$1.VERSION = VERSION;
+(lodash$1.templateSettings = string.templateSettings).imports._ = lodash$1;
 arrayEach(["bind", "bindKey", "curry", "curryRight", "partial", "partialRight"], function(methodName) {
-  lodash[methodName].placeholder = lodash;
+  lodash$1[methodName].placeholder = lodash$1;
 });
 arrayEach(["drop", "take"], function(methodName, index) {
   LazyWrapper.prototype[methodName] = function(n) {
@@ -11999,14 +12024,14 @@ LazyWrapper.prototype.toArray = function() {
   return this.take(MAX_ARRAY_LENGTH);
 };
 baseForOwn(LazyWrapper.prototype, function(func2, methodName) {
-  var checkIteratee = /^(?:filter|find|map|reject)|While$/.test(methodName), isTaker = /^(?:head|last)$/.test(methodName), lodashFunc = lodash[isTaker ? "take" + (methodName == "last" ? "Right" : "") : methodName], retUnwrapped = isTaker || /^find/.test(methodName);
+  var checkIteratee = /^(?:filter|find|map|reject)|While$/.test(methodName), isTaker = /^(?:head|last)$/.test(methodName), lodashFunc = lodash$1[isTaker ? "take" + (methodName == "last" ? "Right" : "") : methodName], retUnwrapped = isTaker || /^find/.test(methodName);
   if (!lodashFunc) {
     return;
   }
-  lodash.prototype[methodName] = function() {
+  lodash$1.prototype[methodName] = function() {
     var value = this.__wrapped__, args = isTaker ? [1] : arguments, isLazy = value instanceof LazyWrapper, iteratee2 = args[0], useLazy = isLazy || isArray(value);
     var interceptor = function(value2) {
-      var result3 = lodashFunc.apply(lodash, arrayPush([value2], args));
+      var result3 = lodashFunc.apply(lodash$1, arrayPush([value2], args));
       return isTaker && chainAll ? result3[0] : result3;
     };
     if (useLazy && checkIteratee && typeof iteratee2 == "function" && iteratee2.length != 1) {
@@ -12028,7 +12053,7 @@ baseForOwn(LazyWrapper.prototype, function(func2, methodName) {
 });
 arrayEach(["pop", "push", "shift", "sort", "splice", "unshift"], function(methodName) {
   var func2 = arrayProto[methodName], chainName = /^(?:push|sort|unshift)$/.test(methodName) ? "tap" : "thru", retUnwrapped = /^(?:pop|shift)$/.test(methodName);
-  lodash.prototype[methodName] = function() {
+  lodash$1.prototype[methodName] = function() {
     var args = arguments;
     if (retUnwrapped && !this.__chain__) {
       var value = this.value();
@@ -12040,7 +12065,7 @@ arrayEach(["pop", "push", "shift", "sort", "splice", "unshift"], function(method
   };
 });
 baseForOwn(LazyWrapper.prototype, function(func2, methodName) {
-  var lodashFunc = lodash[methodName];
+  var lodashFunc = lodash$1[methodName];
   if (lodashFunc) {
     var key = lodashFunc.name + "";
     if (!hasOwnProperty.call(realNames, key)) {
@@ -12056,16 +12081,16 @@ realNames[createHybrid(void 0, WRAP_BIND_KEY_FLAG).name] = [{
 LazyWrapper.prototype.clone = lazyClone;
 LazyWrapper.prototype.reverse = lazyReverse;
 LazyWrapper.prototype.value = lazyValue;
-lodash.prototype.at = seq.at;
-lodash.prototype.chain = seq.wrapperChain;
-lodash.prototype.commit = seq.commit;
-lodash.prototype.next = seq.next;
-lodash.prototype.plant = seq.plant;
-lodash.prototype.reverse = seq.reverse;
-lodash.prototype.toJSON = lodash.prototype.valueOf = lodash.prototype.value = seq.value;
-lodash.prototype.first = lodash.prototype.head;
+lodash$1.prototype.at = seq.at;
+lodash$1.prototype.chain = seq.wrapperChain;
+lodash$1.prototype.commit = seq.commit;
+lodash$1.prototype.next = seq.next;
+lodash$1.prototype.plant = seq.plant;
+lodash$1.prototype.reverse = seq.reverse;
+lodash$1.prototype.toJSON = lodash$1.prototype.valueOf = lodash$1.prototype.value = seq.value;
+lodash$1.prototype.first = lodash$1.prototype.head;
 if (symIterator) {
-  lodash.prototype[symIterator] = seq.toIterator;
+  lodash$1.prototype[symIterator] = seq.toIterator;
 }
 var commonjsGlobal = typeof globalThis !== "undefined" ? globalThis : typeof window !== "undefined" ? window : typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : {};
 function getDefaultExportFromCjs(x) {
@@ -12900,7 +12925,7 @@ var Util = {};
     }
   };
 })(Util);
-var Node$1 = {};
+var Node$2 = {};
 var Factory = {};
 var Validators = {};
 Object.defineProperty(Validators, "__esModule", { value: true });
@@ -13528,8 +13553,8 @@ class Context {
       });
     };
   }
-  _applyGlobalCompositeOperation(node) {
-    const op = node.attrs.globalCompositeOperation;
+  _applyGlobalCompositeOperation(node2) {
+    const op = node2.attrs.globalCompositeOperation;
     var def2 = !op || op === "source-over";
     if (!def2) {
       this.setAttr("globalCompositeOperation", op);
@@ -13822,18 +13847,18 @@ var DragAndDrop = {};
     },
     justDragged: false,
     get node() {
-      var node;
+      var node2;
       exports2.DD._dragElements.forEach((elem) => {
-        node = elem.node;
+        node2 = elem.node;
       });
-      return node;
+      return node2;
     },
     _dragElements: /* @__PURE__ */ new Map(),
     _drag(evt) {
       const nodesToFireEvents = [];
       exports2.DD._dragElements.forEach((elem, key) => {
-        const { node } = elem;
-        const stage = node.getStage();
+        const { node: node2 } = elem;
+        const stage = node2.getStage();
         stage.setPointersPositions(evt);
         if (elem.pointerId === void 0) {
           elem.pointerId = Util_12.Util._getFirstPointerId(evt);
@@ -13843,23 +13868,23 @@ var DragAndDrop = {};
           return;
         }
         if (elem.dragStatus !== "dragging") {
-          var dragDistance = node.dragDistance();
+          var dragDistance = node2.dragDistance();
           var distance = Math.max(Math.abs(pos.x - elem.startPointerPos.x), Math.abs(pos.y - elem.startPointerPos.y));
           if (distance < dragDistance) {
             return;
           }
-          node.startDrag({ evt });
-          if (!node.isDragging()) {
+          node2.startDrag({ evt });
+          if (!node2.isDragging()) {
             return;
           }
         }
-        node._setDragPosition(evt, elem);
-        nodesToFireEvents.push(node);
+        node2._setDragPosition(evt, elem);
+        nodesToFireEvents.push(node2);
       });
-      nodesToFireEvents.forEach((node) => {
-        node.fire("dragmove", {
+      nodesToFireEvents.forEach((node2) => {
+        node2.fire("dragmove", {
           type: "dragmove",
-          target: node,
+          target: node2,
           evt
         }, true);
       });
@@ -13867,8 +13892,8 @@ var DragAndDrop = {};
     _endDragBefore(evt) {
       const drawNodes = [];
       exports2.DD._dragElements.forEach((elem) => {
-        const { node } = elem;
-        const stage = node.getStage();
+        const { node: node2 } = elem;
+        const stage = node2.getStage();
         if (evt) {
           stage.setPointersPositions(evt);
         }
@@ -13916,8 +13941,8 @@ var DragAndDrop = {};
     window.addEventListener("touchend", exports2.DD._endDragAfter, false);
   }
 })(DragAndDrop);
-Object.defineProperty(Node$1, "__esModule", { value: true });
-Node$1.Node = void 0;
+Object.defineProperty(Node$2, "__esModule", { value: true });
+Node$2.Node = void 0;
 const Util_1$c = Util;
 const Factory_1$y = Factory;
 const Canvas_1$1 = Canvas$1;
@@ -13937,7 +13962,7 @@ var ABSOLUTE_OPACITY = "absoluteOpacity", ALL_LISTENERS = "allEventListeners", A
   "transformsEnabledChange.konva"
 ].join(SPACE$1);
 let idCounter = 1;
-class Node {
+let Node$1 = class Node {
   constructor(config) {
     this._id = idCounter++;
     this.eventListeners = {};
@@ -14367,11 +14392,11 @@ class Node {
   }
   getAbsoluteZIndex() {
     var depth = this.getDepth(), that = this, index = 0, nodes, len, n, child;
-    function addChildren(children) {
+    function addChildren(children2) {
       nodes = [];
-      len = children.length;
+      len = children2.length;
       for (n = 0; n < len; n++) {
-        child = children[n];
+        child = children2[n];
         index++;
         if (child.nodeType !== SHAPE) {
           nodes = nodes.concat(child.getChildren().slice());
@@ -14618,21 +14643,21 @@ class Node {
     return this;
   }
   toObject() {
-    var attrs = this.getAttrs(), key, val, getter, defaultValue, nonPlainObject;
+    var attrs2 = this.getAttrs(), key, val, getter, defaultValue, nonPlainObject;
     const obj = {
       attrs: {},
       className: this.getClassName()
     };
-    for (key in attrs) {
-      val = attrs[key];
+    for (key in attrs2) {
+      val = attrs2[key];
       nonPlainObject = Util_1$c.Util.isObject(val) && !Util_1$c.Util._isPlainObject(val) && !Util_1$c.Util._isArray(val);
       if (nonPlainObject) {
         continue;
       }
       getter = typeof this[key] === "function" && this[key];
-      delete attrs[key];
+      delete attrs2[key];
       defaultValue = getter ? getter.call(this) : null;
-      attrs[key] = val;
+      attrs2[key] = val;
       if (defaultValue !== val) {
         obj.attrs[key] = val;
       }
@@ -14662,7 +14687,7 @@ class Node {
     }
     return res;
   }
-  isAncestorOf(node) {
+  isAncestorOf(node2) {
     return false;
   }
   findAncestor(selector, includeSelf, stopNode) {
@@ -14732,12 +14757,12 @@ class Node {
     var at2;
     if (top) {
       at2 = new Util_1$c.Transform();
-      this._eachAncestorReverse(function(node) {
-        var transformsEnabled2 = node.transformsEnabled();
+      this._eachAncestorReverse(function(node2) {
+        var transformsEnabled2 = node2.transformsEnabled();
         if (transformsEnabled2 === "all") {
-          at2.multiply(node.getTransform());
+          at2.multiply(node2.getTransform());
         } else if (transformsEnabled2 === "position") {
-          at2.translate(node.x() - node.offsetX(), node.y() - node.offsetY());
+          at2.translate(node2.x() - node2.offsetX(), node2.y() - node2.offsetY());
         }
       }, top);
       return at2;
@@ -14771,10 +14796,10 @@ class Node {
       parent2 = parent2.getParent();
     }
     const transform2 = this.getAbsoluteTransform(top);
-    const attrs = transform2.decompose();
+    const attrs2 = transform2.decompose();
     return {
-      x: attrs.scaleX,
-      y: attrs.scaleY
+      x: attrs2.scaleX,
+      y: attrs2.scaleY
     };
   }
   getAbsoluteRotation() {
@@ -14807,25 +14832,25 @@ class Node {
     return m;
   }
   clone(obj) {
-    var attrs = Util_1$c.Util.cloneObject(this.attrs), key, allListeners, len, n, listener;
+    var attrs2 = Util_1$c.Util.cloneObject(this.attrs), key, allListeners, len, n, listener;
     for (key in obj) {
-      attrs[key] = obj[key];
+      attrs2[key] = obj[key];
     }
-    var node = new this.constructor(attrs);
+    var node2 = new this.constructor(attrs2);
     for (key in this.eventListeners) {
       allListeners = this.eventListeners[key];
       len = allListeners.length;
       for (n = 0; n < len; n++) {
         listener = allListeners[n];
         if (listener.name.indexOf(KONVA) < 0) {
-          if (!node.eventListeners[key]) {
-            node.eventListeners[key] = [];
+          if (!node2.eventListeners[key]) {
+            node2.eventListeners[key] = [];
           }
-          node.eventListeners[key].push(listener);
+          node2.eventListeners[key].push(listener);
         }
       }
     }
-    return node;
+    return node2;
   }
   _toKonvaCanvas(config) {
     config = config || {};
@@ -15201,30 +15226,30 @@ class Node {
     return this._createNode(data, container);
   }
   static _createNode(obj, container) {
-    var className = Node.prototype.getClassName.call(obj), children = obj.children, no, len, n;
+    var className2 = Node.prototype.getClassName.call(obj), children2 = obj.children, no, len, n;
     if (container) {
       obj.attrs.container = container;
     }
-    if (!Global_1$m.Konva[className]) {
-      Util_1$c.Util.warn('Can not find a node with class name "' + className + '". Fallback to "Shape".');
-      className = "Shape";
+    if (!Global_1$m.Konva[className2]) {
+      Util_1$c.Util.warn('Can not find a node with class name "' + className2 + '". Fallback to "Shape".');
+      className2 = "Shape";
     }
-    const Class = Global_1$m.Konva[className];
+    const Class = Global_1$m.Konva[className2];
     no = new Class(obj.attrs);
-    if (children) {
-      len = children.length;
+    if (children2) {
+      len = children2.length;
       for (n = 0; n < len; n++) {
-        no.add(Node._createNode(children[n]));
+        no.add(Node._createNode(children2[n]));
       }
     }
     return no;
   }
-}
-Node$1.Node = Node;
-Node.prototype.nodeType = "Node";
-Node.prototype._attrsAffectingSize = [];
-Node.prototype.eventListeners = {};
-Node.prototype.on.call(Node.prototype, TRANSFORM_CHANGE_STR$1, function() {
+};
+Node$2.Node = Node$1;
+Node$1.prototype.nodeType = "Node";
+Node$1.prototype._attrsAffectingSize = [];
+Node$1.prototype.eventListeners = {};
+Node$1.prototype.on.call(Node$1.prototype, TRANSFORM_CHANGE_STR$1, function() {
   if (this._batchingTransformChange) {
     this._needClearTransformCache = true;
     return;
@@ -15232,50 +15257,50 @@ Node.prototype.on.call(Node.prototype, TRANSFORM_CHANGE_STR$1, function() {
   this._clearCache(TRANSFORM);
   this._clearSelfAndDescendantCache(ABSOLUTE_TRANSFORM);
 });
-Node.prototype.on.call(Node.prototype, "visibleChange.konva", function() {
+Node$1.prototype.on.call(Node$1.prototype, "visibleChange.konva", function() {
   this._clearSelfAndDescendantCache(VISIBLE);
 });
-Node.prototype.on.call(Node.prototype, "listeningChange.konva", function() {
+Node$1.prototype.on.call(Node$1.prototype, "listeningChange.konva", function() {
   this._clearSelfAndDescendantCache(LISTENING);
 });
-Node.prototype.on.call(Node.prototype, "opacityChange.konva", function() {
+Node$1.prototype.on.call(Node$1.prototype, "opacityChange.konva", function() {
   this._clearSelfAndDescendantCache(ABSOLUTE_OPACITY);
 });
 const addGetterSetter = Factory_1$y.Factory.addGetterSetter;
-addGetterSetter(Node, "zIndex");
-addGetterSetter(Node, "absolutePosition");
-addGetterSetter(Node, "position");
-addGetterSetter(Node, "x", 0, (0, Validators_1$x.getNumberValidator)());
-addGetterSetter(Node, "y", 0, (0, Validators_1$x.getNumberValidator)());
-addGetterSetter(Node, "globalCompositeOperation", "source-over", (0, Validators_1$x.getStringValidator)());
-addGetterSetter(Node, "opacity", 1, (0, Validators_1$x.getNumberValidator)());
-addGetterSetter(Node, "name", "", (0, Validators_1$x.getStringValidator)());
-addGetterSetter(Node, "id", "", (0, Validators_1$x.getStringValidator)());
-addGetterSetter(Node, "rotation", 0, (0, Validators_1$x.getNumberValidator)());
-Factory_1$y.Factory.addComponentsGetterSetter(Node, "scale", ["x", "y"]);
-addGetterSetter(Node, "scaleX", 1, (0, Validators_1$x.getNumberValidator)());
-addGetterSetter(Node, "scaleY", 1, (0, Validators_1$x.getNumberValidator)());
-Factory_1$y.Factory.addComponentsGetterSetter(Node, "skew", ["x", "y"]);
-addGetterSetter(Node, "skewX", 0, (0, Validators_1$x.getNumberValidator)());
-addGetterSetter(Node, "skewY", 0, (0, Validators_1$x.getNumberValidator)());
-Factory_1$y.Factory.addComponentsGetterSetter(Node, "offset", ["x", "y"]);
-addGetterSetter(Node, "offsetX", 0, (0, Validators_1$x.getNumberValidator)());
-addGetterSetter(Node, "offsetY", 0, (0, Validators_1$x.getNumberValidator)());
-addGetterSetter(Node, "dragDistance", null, (0, Validators_1$x.getNumberValidator)());
-addGetterSetter(Node, "width", 0, (0, Validators_1$x.getNumberValidator)());
-addGetterSetter(Node, "height", 0, (0, Validators_1$x.getNumberValidator)());
-addGetterSetter(Node, "listening", true, (0, Validators_1$x.getBooleanValidator)());
-addGetterSetter(Node, "preventDefault", true, (0, Validators_1$x.getBooleanValidator)());
-addGetterSetter(Node, "filters", null, function(val) {
+addGetterSetter(Node$1, "zIndex");
+addGetterSetter(Node$1, "absolutePosition");
+addGetterSetter(Node$1, "position");
+addGetterSetter(Node$1, "x", 0, (0, Validators_1$x.getNumberValidator)());
+addGetterSetter(Node$1, "y", 0, (0, Validators_1$x.getNumberValidator)());
+addGetterSetter(Node$1, "globalCompositeOperation", "source-over", (0, Validators_1$x.getStringValidator)());
+addGetterSetter(Node$1, "opacity", 1, (0, Validators_1$x.getNumberValidator)());
+addGetterSetter(Node$1, "name", "", (0, Validators_1$x.getStringValidator)());
+addGetterSetter(Node$1, "id", "", (0, Validators_1$x.getStringValidator)());
+addGetterSetter(Node$1, "rotation", 0, (0, Validators_1$x.getNumberValidator)());
+Factory_1$y.Factory.addComponentsGetterSetter(Node$1, "scale", ["x", "y"]);
+addGetterSetter(Node$1, "scaleX", 1, (0, Validators_1$x.getNumberValidator)());
+addGetterSetter(Node$1, "scaleY", 1, (0, Validators_1$x.getNumberValidator)());
+Factory_1$y.Factory.addComponentsGetterSetter(Node$1, "skew", ["x", "y"]);
+addGetterSetter(Node$1, "skewX", 0, (0, Validators_1$x.getNumberValidator)());
+addGetterSetter(Node$1, "skewY", 0, (0, Validators_1$x.getNumberValidator)());
+Factory_1$y.Factory.addComponentsGetterSetter(Node$1, "offset", ["x", "y"]);
+addGetterSetter(Node$1, "offsetX", 0, (0, Validators_1$x.getNumberValidator)());
+addGetterSetter(Node$1, "offsetY", 0, (0, Validators_1$x.getNumberValidator)());
+addGetterSetter(Node$1, "dragDistance", null, (0, Validators_1$x.getNumberValidator)());
+addGetterSetter(Node$1, "width", 0, (0, Validators_1$x.getNumberValidator)());
+addGetterSetter(Node$1, "height", 0, (0, Validators_1$x.getNumberValidator)());
+addGetterSetter(Node$1, "listening", true, (0, Validators_1$x.getBooleanValidator)());
+addGetterSetter(Node$1, "preventDefault", true, (0, Validators_1$x.getBooleanValidator)());
+addGetterSetter(Node$1, "filters", null, function(val) {
   this._filterUpToDate = false;
   return val;
 });
-addGetterSetter(Node, "visible", true, (0, Validators_1$x.getBooleanValidator)());
-addGetterSetter(Node, "transformsEnabled", "all", (0, Validators_1$x.getStringValidator)());
-addGetterSetter(Node, "size");
-addGetterSetter(Node, "dragBoundFunc");
-addGetterSetter(Node, "draggable", false, (0, Validators_1$x.getBooleanValidator)());
-Factory_1$y.Factory.backCompat(Node, {
+addGetterSetter(Node$1, "visible", true, (0, Validators_1$x.getBooleanValidator)());
+addGetterSetter(Node$1, "transformsEnabled", "all", (0, Validators_1$x.getStringValidator)());
+addGetterSetter(Node$1, "size");
+addGetterSetter(Node$1, "dragBoundFunc");
+addGetterSetter(Node$1, "draggable", false, (0, Validators_1$x.getBooleanValidator)());
+Factory_1$y.Factory.backCompat(Node$1, {
   rotateDeg: "rotate",
   setRotationDeg: "setRotation",
   getRotationDeg: "getRotation"
@@ -15284,7 +15309,7 @@ var Container$1 = {};
 Object.defineProperty(Container$1, "__esModule", { value: true });
 Container$1.Container = void 0;
 const Factory_1$x = Factory;
-const Node_1$h = Node$1;
+const Node_1$h = Node$2;
 const Validators_1$w = Validators;
 class Container extends Node_1$h.Node {
   constructor() {
@@ -15295,9 +15320,9 @@ class Container extends Node_1$h.Node {
     if (!filterFunc) {
       return this.children || [];
     }
-    const children = this.children || [];
+    const children2 = this.children || [];
     var results = [];
-    children.forEach(function(child) {
+    children2.forEach(function(child) {
       if (filterFunc(child)) {
         results.push(child);
       }
@@ -15327,17 +15352,17 @@ class Container extends Node_1$h.Node {
     this._requestDraw();
     return this;
   }
-  add(...children) {
-    if (children.length === 0) {
+  add(...children2) {
+    if (children2.length === 0) {
       return this;
     }
-    if (children.length > 1) {
-      for (var i = 0; i < children.length; i++) {
-        this.add(children[i]);
+    if (children2.length > 1) {
+      for (var i = 0; i < children2.length; i++) {
+        this.add(children2[i]);
       }
       return this;
     }
-    const child = children[0];
+    const child = children2[0];
     if (child.getParent()) {
       child.moveTo(this);
       return this;
@@ -15369,10 +15394,10 @@ class Container extends Node_1$h.Node {
   }
   _generalFind(selector, findOne) {
     var retArr = [];
-    this._descendants((node) => {
-      const valid = node._isMatch(selector);
+    this._descendants((node2) => {
+      const valid = node2._isMatch(selector);
       if (valid) {
-        retArr.push(node);
+        retArr.push(node2);
       }
       if (valid && findOne) {
         return true;
@@ -15383,8 +15408,8 @@ class Container extends Node_1$h.Node {
   }
   _descendants(fn) {
     let shouldStop = false;
-    const children = this.getChildren();
-    for (const child of children) {
+    const children2 = this.getChildren();
+    for (const child of children2) {
       shouldStop = fn(child);
       if (shouldStop) {
         return true;
@@ -15407,8 +15432,8 @@ class Container extends Node_1$h.Node {
     });
     return obj;
   }
-  isAncestorOf(node) {
-    var parent2 = node.getParent();
+  isAncestorOf(node2) {
+    var parent2 = node2.getParent();
     while (parent2) {
       if (parent2._id === this._id) {
         return true;
@@ -15418,11 +15443,11 @@ class Container extends Node_1$h.Node {
     return false;
   }
   clone(obj) {
-    var node = Node_1$h.Node.prototype.clone.call(this, obj);
+    var node2 = Node_1$h.Node.prototype.clone.call(this, obj);
     this.getChildren().forEach(function(no) {
-      node.add(no.clone());
+      node2.add(no.clone());
     });
-    return node;
+    return node2;
   }
   getAllIntersections(pos) {
     var arr = [];
@@ -15439,8 +15464,8 @@ class Container extends Node_1$h.Node {
     if (this.isCached()) {
       return;
     }
-    (_a = this.children) === null || _a === void 0 ? void 0 : _a.forEach(function(node) {
-      node._clearSelfAndDescendantCache(attr);
+    (_a = this.children) === null || _a === void 0 ? void 0 : _a.forEach(function(node2) {
+      node2._clearSelfAndDescendantCache(attr);
     });
   }
   _setChildrenIndices() {
@@ -15733,11 +15758,11 @@ PointerEvents.releaseCapture = releaseCapture;
       return EVENTS_MAP.mouse;
     }
   };
-  function checkNoClip(attrs = {}) {
-    if (attrs.clipFunc || attrs.clipWidth || attrs.clipHeight) {
+  function checkNoClip(attrs2 = {}) {
+    if (attrs2.clipFunc || attrs2.clipWidth || attrs2.clipHeight) {
       Util_12.Util.warn("Stage does not support clipping. Please use clip for Layers or Groups.");
     }
-    return attrs;
+    return attrs2;
   }
   const NO_POINTERS_MESSAGE = `Pointer position is missing and not registered by the stage. Looks like it is outside of the stage container. You can set it manually from event: stage.setPointersPositions(event);`;
   exports2.stages = [];
@@ -15774,8 +15799,8 @@ PointerEvents.releaseCapture = releaseCapture;
     setContainer(container) {
       if (typeof container === STRING) {
         if (container.charAt(0) === ".") {
-          var className = container.slice(1);
-          container = document.getElementsByClassName(className)[0];
+          var className2 = container.slice(1);
+          container = document.getElementsByClassName(className2)[0];
         } else {
           var id;
           if (container.charAt(0) !== "#") {
@@ -16331,7 +16356,7 @@ var Shape = {};
   const Global_12 = Global;
   const Util_12 = Util;
   const Factory_12 = Factory;
-  const Node_12 = Node$1;
+  const Node_12 = Node$2;
   const Validators_12 = Validators;
   const Global_22 = Global;
   const PointerEvents$1 = PointerEvents;
@@ -16829,7 +16854,7 @@ Object.defineProperty(Layer$1, "__esModule", { value: true });
 Layer$1.Layer = void 0;
 const Util_1$b = Util;
 const Container_1$1 = Container$1;
-const Node_1$g = Node$1;
+const Node_1$g = Node$2;
 const Factory_1$w = Factory;
 const Canvas_1 = Canvas$1;
 const Validators_1$v = Validators;
@@ -16919,10 +16944,10 @@ class Layer extends Container_1$1.Container {
     if (Node_1$g.Node.prototype.moveDown.call(this)) {
       var stage = this.getStage();
       if (stage) {
-        var children = stage.children;
+        var children2 = stage.children;
         if (stage.content) {
           stage.content.removeChild(this.getNativeCanvasElement());
-          stage.content.insertBefore(this.getNativeCanvasElement(), children[this.index + 1].getCanvas()._canvas);
+          stage.content.insertBefore(this.getNativeCanvasElement(), children2[this.index + 1].getCanvas()._canvas);
         }
       }
       return true;
@@ -16933,10 +16958,10 @@ class Layer extends Container_1$1.Container {
     if (Node_1$g.Node.prototype.moveToBottom.call(this)) {
       var stage = this.getStage();
       if (stage) {
-        var children = stage.children;
+        var children2 = stage.children;
         if (stage.content) {
           stage.content.removeChild(this.getNativeCanvasElement());
-          stage.content.insertBefore(this.getNativeCanvasElement(), children[1].getCanvas()._canvas);
+          stage.content.insertBefore(this.getNativeCanvasElement(), children2[1].getCanvas()._canvas);
         }
       }
       return true;
@@ -17133,8 +17158,8 @@ const Util_1$a = Util;
 const Layer_1 = Layer$1;
 const Global_1$j = Global;
 class FastLayer extends Layer_1.Layer {
-  constructor(attrs) {
-    super(attrs);
+  constructor(attrs2) {
+    super(attrs2);
     this.listening(false);
     Util_1$a.Util.warn('Konva.Fast layer is deprecated. Please use "new Konva.Layer({ listening: false })" instead.');
   }
@@ -17309,7 +17334,7 @@ var Tween = {};
   exports2.Easings = exports2.Tween = void 0;
   const Util_12 = Util;
   const Animation_12 = Animation$1;
-  const Node_12 = Node$1;
+  const Node_12 = Node$2;
   const Global_12 = Global;
   var blacklist = {
     node: 1,
@@ -17429,7 +17454,7 @@ var Tween = {};
   }
   class Tween2 {
     constructor(config) {
-      var that = this, node = config.node, nodeId = node._id, duration, easing = config.easing || exports2.Easings.Linear, yoyo = !!config.yoyo, key;
+      var that = this, node2 = config.node, nodeId = node2._id, duration, easing = config.easing || exports2.Easings.Linear, yoyo = !!config.yoyo, key;
       if (typeof config.duration === "undefined") {
         duration = 0.3;
       } else if (config.duration === 0) {
@@ -17437,9 +17462,9 @@ var Tween = {};
       } else {
         duration = config.duration;
       }
-      this.node = node;
+      this.node = node2;
       this._id = idCounter2++;
-      var layers = node.getLayer() || (node instanceof Global_12.Konva["Stage"] ? node.getLayers() : null);
+      var layers = node2.getLayer() || (node2 instanceof Global_12.Konva["Stage"] ? node2.getLayers() : null);
       if (!layers) {
         Util_12.Util.error("Tween constructor have `node` that is not in a layer. Please add node into layer first.");
       }
@@ -17470,22 +17495,22 @@ var Tween = {};
       this.onUpdate = config.onUpdate;
     }
     _addAttr(key, end) {
-      var node = this.node, nodeId = node._id, start, diff, tweenId, n, len, trueEnd, trueStart, endRGBA;
+      var node2 = this.node, nodeId = node2._id, start, diff, tweenId, n, len, trueEnd, trueStart, endRGBA;
       tweenId = Tween2.tweens[nodeId][key];
       if (tweenId) {
         delete Tween2.attrs[nodeId][tweenId][key];
       }
-      start = node.getAttr(key);
+      start = node2.getAttr(key);
       if (Util_12.Util._isArray(end)) {
         diff = [];
         len = Math.max(end.length, start.length);
         if (key === "points" && end.length !== start.length) {
           if (end.length > start.length) {
             trueStart = start;
-            start = Util_12.Util._prepareArrayForTween(start, end, node.closed());
+            start = Util_12.Util._prepareArrayForTween(start, end, node2.closed());
           } else {
             trueEnd = end;
-            end = Util_12.Util._prepareArrayForTween(end, start, node.closed());
+            end = Util_12.Util._prepareArrayForTween(end, start, node2.closed());
           }
         }
         if (key.indexOf("fill") === 0) {
@@ -17531,9 +17556,9 @@ var Tween = {};
       Tween2.tweens[nodeId][key] = this._id;
     }
     _tweenFunc(i) {
-      var node = this.node, attrs = Tween2.attrs[node._id][this._id], key, attr, start, diff, newVal, n, len, end;
-      for (key in attrs) {
-        attr = attrs[key];
+      var node2 = this.node, attrs2 = Tween2.attrs[node2._id][this._id], key, attr, start, diff, newVal, n, len, end;
+      for (key in attrs2) {
+        attr = attrs2[key];
         start = attr.start;
         diff = attr.diff;
         end = attr.end;
@@ -17558,7 +17583,7 @@ var Tween = {};
         } else {
           newVal = start + diff * i;
         }
-        node.setAttr(key, newVal);
+        node2.setAttr(key, newVal);
       }
     }
     _addListeners() {
@@ -17572,20 +17597,20 @@ var Tween = {};
         this.anim.stop();
       };
       this.tween.onFinish = () => {
-        var node = this.node;
-        var attrs = Tween2.attrs[node._id][this._id];
-        if (attrs.points && attrs.points.trueEnd) {
-          node.setAttr("points", attrs.points.trueEnd);
+        var node2 = this.node;
+        var attrs2 = Tween2.attrs[node2._id][this._id];
+        if (attrs2.points && attrs2.points.trueEnd) {
+          node2.setAttr("points", attrs2.points.trueEnd);
         }
         if (this.onFinish) {
           this.onFinish.call(this);
         }
       };
       this.tween.onReset = () => {
-        var node = this.node;
-        var attrs = Tween2.attrs[node._id][this._id];
-        if (attrs.points && attrs.points.trueStart) {
-          node.points(attrs.points.trueStart);
+        var node2 = this.node;
+        var attrs2 = Tween2.attrs[node2._id][this._id];
+        if (attrs2.points && attrs2.points.trueStart) {
+          node2.points(attrs2.points.trueStart);
         }
         if (this.onReset) {
           this.onReset();
@@ -17622,9 +17647,9 @@ var Tween = {};
       return this;
     }
     destroy() {
-      var nodeId = this.node._id, thisId = this._id, attrs = Tween2.tweens[nodeId], key;
+      var nodeId = this.node._id, thisId = this._id, attrs2 = Tween2.tweens[nodeId], key;
       this.pause();
-      for (key in attrs) {
+      for (key in attrs2) {
         delete Tween2.tweens[nodeId][key];
       }
       delete Tween2.attrs[nodeId][thisId];
@@ -17776,7 +17801,7 @@ var Tween = {};
   exports2.Konva = void 0;
   const Global_12 = Global;
   const Util_12 = Util;
-  const Node_12 = Node$1;
+  const Node_12 = Node$2;
   const Container_12 = Container$1;
   const Stage_1 = Stage;
   const Layer_12 = Layer$1;
@@ -19621,8 +19646,8 @@ const Shape_1$a = Shape;
 const Global_1$a = Global;
 const Validators_1$p = Validators;
 let Image$1 = class Image2 extends Shape_1$a.Shape {
-  constructor(attrs) {
-    super(attrs);
+  constructor(attrs2) {
+    super(attrs2);
     this.on("imageChange.konva", () => {
       this._setImageLoad();
     });
@@ -20781,7 +20806,7 @@ Object.defineProperty(Transformer$1, "__esModule", { value: true });
 Transformer$1.Transformer = void 0;
 const Util_1$3 = Util;
 const Factory_1$g = Factory;
-const Node_1$f = Node$1;
+const Node_1$f = Node$2;
 const Shape_1$1 = Shape;
 const Rect_1$1 = Rect$1;
 const Group_1 = Group$1;
@@ -20916,13 +20941,13 @@ class Transformer extends Group_1.Group {
       this.update();
     }
   }
-  attachTo(node) {
-    this.setNode(node);
+  attachTo(node2) {
+    this.setNode(node2);
     return this;
   }
-  setNode(node) {
+  setNode(node2) {
     Util_1$3.Util.warn("tr.setNode(shape), tr.node(shape) and tr.attachTo(shape) methods are deprecated. Please use tr.nodes(nodesArray) instead.");
-    return this.setNodes([node]);
+    return this.setNodes([node2]);
   }
   getNode() {
     return this._nodes && this._nodes[0];
@@ -20934,8 +20959,8 @@ class Transformer extends Group_1.Group {
     if (this._nodes && this._nodes.length) {
       this.detach();
     }
-    const filteredNodes = nodes.filter((node) => {
-      if (node.isAncestorOf(this)) {
+    const filteredNodes = nodes.filter((node2) => {
+      if (node2.isAncestorOf(this)) {
         Util_1$3.Util.error("Konva.Transformer cannot be an a child of the node you are trying to attach");
         return false;
       }
@@ -20947,7 +20972,7 @@ class Transformer extends Group_1.Group {
     } else {
       this.rotation(0);
     }
-    this._nodes.forEach((node) => {
+    this._nodes.forEach((node2) => {
       const onChange = () => {
         if (this.nodes().length === 1 && this.useSingleNodeRotation()) {
           this.rotation(this.nodes()[0].getAbsoluteRotation());
@@ -20957,11 +20982,11 @@ class Transformer extends Group_1.Group {
           this.update();
         }
       };
-      const additionalEvents = node._attrsAffectingSize.map((prop) => prop + "Change." + this._getEventNamespace()).join(" ");
-      node.on(additionalEvents, onChange);
-      node.on(TRANSFORM_CHANGE_STR.map((e) => e + `.${this._getEventNamespace()}`).join(" "), onChange);
-      node.on(`absoluteTransformChange.${this._getEventNamespace()}`, onChange);
-      this._proxyDrag(node);
+      const additionalEvents = node2._attrsAffectingSize.map((prop) => prop + "Change." + this._getEventNamespace()).join(" ");
+      node2.on(additionalEvents, onChange);
+      node2.on(TRANSFORM_CHANGE_STR.map((e) => e + `.${this._getEventNamespace()}`).join(" "), onChange);
+      node2.on(`absoluteTransformChange.${this._getEventNamespace()}`, onChange);
+      this._proxyDrag(node2);
     });
     this._resetTransformCache();
     var elementsCreated = !!this.findOne(".top-left");
@@ -20970,23 +20995,23 @@ class Transformer extends Group_1.Group {
     }
     return this;
   }
-  _proxyDrag(node) {
+  _proxyDrag(node2) {
     let lastPos;
-    node.on(`dragstart.${this._getEventNamespace()}`, (e) => {
-      lastPos = node.getAbsolutePosition();
-      if (!this.isDragging() && node !== this.findOne(".back")) {
+    node2.on(`dragstart.${this._getEventNamespace()}`, (e) => {
+      lastPos = node2.getAbsolutePosition();
+      if (!this.isDragging() && node2 !== this.findOne(".back")) {
         this.startDrag(e, false);
       }
     });
-    node.on(`dragmove.${this._getEventNamespace()}`, (e) => {
+    node2.on(`dragmove.${this._getEventNamespace()}`, (e) => {
       if (!lastPos) {
         return;
       }
-      const abs = node.getAbsolutePosition();
+      const abs = node2.getAbsolutePosition();
       const dx = abs.x - lastPos.x;
       const dy = abs.y - lastPos.y;
       this.nodes().forEach((otherNode) => {
-        if (otherNode === node) {
+        if (otherNode === node2) {
           return;
         }
         if (otherNode.isDragging()) {
@@ -21010,8 +21035,8 @@ class Transformer extends Group_1.Group {
   }
   detach() {
     if (this._nodes) {
-      this._nodes.forEach((node) => {
-        node.off("." + this._getEventNamespace());
+      this._nodes.forEach((node2) => {
+        node2.off("." + this._getEventNamespace());
       });
     }
     this._nodes = [];
@@ -21025,17 +21050,17 @@ class Transformer extends Group_1.Group {
   _getNodeRect() {
     return this._getCache(NODES_RECT, this.__getNodeRect);
   }
-  __getNodeShape(node, rot = this.rotation(), relative) {
-    var rect = node.getClientRect({
+  __getNodeShape(node2, rot = this.rotation(), relative) {
+    var rect = node2.getClientRect({
       skipTransform: true,
       skipShadow: true,
       skipStroke: this.ignoreStroke()
     });
-    var absScale = node.getAbsoluteScale(relative);
-    var absPos = node.getAbsolutePosition(relative);
-    var dx = rect.x * absScale.x - node.offsetX() * absScale.x;
-    var dy = rect.y * absScale.y - node.offsetY() * absScale.y;
-    const rotation = (Global_1$1.Konva.getAngle(node.getAbsoluteRotation()) + Math.PI * 2) % (Math.PI * 2);
+    var absScale = node2.getAbsoluteScale(relative);
+    var absPos = node2.getAbsolutePosition(relative);
+    var dx = rect.x * absScale.x - node2.offsetX() * absScale.x;
+    var dy = rect.y * absScale.y - node2.offsetY() * absScale.y;
+    const rotation = (Global_1$1.Konva.getAngle(node2.getAbsoluteRotation()) + Math.PI * 2) % (Math.PI * 2);
     const box = {
       x: absPos.x + dx * Math.cos(rotation) + dy * Math.sin(-rotation),
       y: absPos.y + dy * Math.cos(rotation) + dx * Math.sin(rotation),
@@ -21049,8 +21074,8 @@ class Transformer extends Group_1.Group {
     });
   }
   __getNodeRect() {
-    var node = this.getNode();
-    if (!node) {
+    var node2 = this.getNode();
+    if (!node2) {
       return {
         x: -MAX_SAFE_INTEGER,
         y: -MAX_SAFE_INTEGER,
@@ -21060,8 +21085,8 @@ class Transformer extends Group_1.Group {
       };
     }
     const totalPoints = [];
-    this.nodes().map((node2) => {
-      const box = node2.getClientRect({
+    this.nodes().map((node3) => {
+      const box = node3.getClientRect({
         skipTransform: true,
         skipShadow: true,
         skipStroke: this.ignoreStroke()
@@ -21072,7 +21097,7 @@ class Transformer extends Group_1.Group {
         { x: box.x + box.width, y: box.y + box.height },
         { x: box.x, y: box.y + box.height }
       ];
-      var trans = node2.getAbsoluteTransform();
+      var trans = node3.getAbsoluteTransform();
       points.forEach(function(point) {
         var transformed = trans.point(point);
         totalPoints.push(transformed);
@@ -21199,9 +21224,9 @@ class Transformer extends Group_1.Group {
   }
   _handleMouseDown(e) {
     this._movingAnchorName = e.target.name().split(" ")[0];
-    var attrs = this._getNodeRect();
-    var width = attrs.width;
-    var height = attrs.height;
+    var attrs2 = this._getNodeRect();
+    var width = attrs2.width;
+    var height = attrs2.height;
     var hypotenuse = Math.sqrt(Math.pow(width, 2) + Math.pow(height, 2));
     this.sin = Math.abs(height / hypotenuse);
     this.cos = Math.abs(width / hypotenuse);
@@ -21244,19 +21269,19 @@ class Transformer extends Group_1.Group {
       return;
     }
     if (this._movingAnchorName === "rotater") {
-      var attrs = this._getNodeRect();
-      x = anchorNode.x() - attrs.width / 2;
-      y = -anchorNode.y() + attrs.height / 2;
+      var attrs2 = this._getNodeRect();
+      x = anchorNode.x() - attrs2.width / 2;
+      y = -anchorNode.y() + attrs2.height / 2;
       let delta = Math.atan2(-y, x) + Math.PI / 2;
-      if (attrs.height < 0) {
+      if (attrs2.height < 0) {
         delta -= Math.PI;
       }
       var oldRotation = Global_1$1.Konva.getAngle(this.rotation());
       const newRotation = oldRotation + delta;
       const tol = Global_1$1.Konva.getAngle(this.rotationSnapTolerance());
       const snappedRot = getSnap(this.rotationSnaps(), newRotation, tol);
-      const diff = snappedRot - attrs.rotation;
-      const shape = rotateAroundCenter(attrs, diff);
+      const diff = snappedRot - attrs2.rotation;
+      const shape = rotateAroundCenter(attrs2, diff);
       this._fitNodesInto(shape, e);
       return;
     }
@@ -21401,11 +21426,11 @@ class Transformer extends Group_1.Group {
         window.removeEventListener("mouseup", this._handleMouseUp, true);
         window.removeEventListener("touchend", this._handleMouseUp, true);
       }
-      var node = this.getNode();
+      var node2 = this.getNode();
       activeTransformersCount--;
-      this._fire("transformend", { evt: e, target: node });
+      this._fire("transformend", { evt: e, target: node2 });
       (_a = this.getLayer()) === null || _a === void 0 ? void 0 : _a.batchDraw();
-      if (node) {
+      if (node2) {
         this._nodes.forEach((target) => {
           var _a2;
           target._fire("transformend", { evt: e, target });
@@ -21497,21 +21522,21 @@ class Transformer extends Group_1.Group {
       newTr.scale(newScaleX, newScaleY);
     }
     const delta = newTr.multiply(oldTr.invert());
-    this._nodes.forEach((node) => {
+    this._nodes.forEach((node2) => {
       var _a;
-      const parentTransform = node.getParent().getAbsoluteTransform();
-      const localTransform = node.getTransform().copy();
-      localTransform.translate(node.offsetX(), node.offsetY());
+      const parentTransform = node2.getParent().getAbsoluteTransform();
+      const localTransform = node2.getTransform().copy();
+      localTransform.translate(node2.offsetX(), node2.offsetY());
       const newLocalTransform = new Util_1$3.Transform();
       newLocalTransform.multiply(parentTransform.copy().invert()).multiply(delta).multiply(parentTransform).multiply(localTransform);
-      const attrs = newLocalTransform.decompose();
-      node.setAttrs(attrs);
-      (_a = node.getLayer()) === null || _a === void 0 ? void 0 : _a.batchDraw();
+      const attrs2 = newLocalTransform.decompose();
+      node2.setAttrs(attrs2);
+      (_a = node2.getLayer()) === null || _a === void 0 ? void 0 : _a.batchDraw();
     });
     this.rotation(Util_1$3.Util._getRotation(newAttrs.rotation));
-    this._nodes.forEach((node) => {
-      this._fire("transform", { evt, target: node });
-      node._fire("transform", { evt, target: node });
+    this._nodes.forEach((node2) => {
+      this._fire("transform", { evt, target: node2 });
+      node2._fire("transform", { evt, target: node2 });
     });
     this._resetTransformCache();
     this.update();
@@ -21521,23 +21546,23 @@ class Transformer extends Group_1.Group {
     this._resetTransformCache();
     this.update();
   }
-  _batchChangeChild(selector, attrs) {
+  _batchChangeChild(selector, attrs2) {
     const anchor = this.findOne(selector);
-    anchor.setAttrs(attrs);
+    anchor.setAttrs(attrs2);
   }
   update() {
     var _a;
-    var attrs = this._getNodeRect();
-    this.rotation(Util_1$3.Util._getRotation(attrs.rotation));
-    var width = attrs.width;
-    var height = attrs.height;
+    var attrs2 = this._getNodeRect();
+    this.rotation(Util_1$3.Util._getRotation(attrs2.rotation));
+    var width = attrs2.width;
+    var height = attrs2.height;
     var enabledAnchors = this.enabledAnchors();
     var resizeEnabled = this.resizeEnabled();
     var padding = this.padding();
     var anchorSize = this.anchorSize();
     const anchors = this.find("._anchor");
-    anchors.forEach((node) => {
-      node.setAttrs({
+    anchors.forEach((node2) => {
+      node2.setAttrs({
         width: anchorSize,
         height: anchorSize,
         offsetX: anchorSize / 2,
@@ -21617,8 +21642,8 @@ class Transformer extends Group_1.Group {
     });
     const styleFunc = this.anchorStyleFunc();
     if (styleFunc) {
-      anchors.forEach((node) => {
-        styleFunc(node);
+      anchors.forEach((node2) => {
+        styleFunc(node2);
       });
     }
     (_a = this.getLayer()) === null || _a === void 0 ? void 0 : _a.batchDraw();
@@ -21648,8 +21673,8 @@ class Transformer extends Group_1.Group {
     return Node_1$f.Node.prototype.toObject.call(this);
   }
   clone(obj) {
-    var node = Node_1$f.Node.prototype.clone.call(this, obj);
-    return node;
+    var node2 = Node_1$f.Node.prototype.clone.call(this, obj);
+    return node2;
   }
   getClientRect() {
     if (this.nodes().length > 0) {
@@ -21759,7 +21784,7 @@ var Blur$1 = {};
 Object.defineProperty(Blur$1, "__esModule", { value: true });
 Blur$1.Blur = void 0;
 const Factory_1$e = Factory;
-const Node_1$e = Node$1;
+const Node_1$e = Node$2;
 const Validators_1$e = Validators;
 function BlurStack() {
   this.r = 0;
@@ -22455,7 +22480,7 @@ var Brighten$1 = {};
 Object.defineProperty(Brighten$1, "__esModule", { value: true });
 Brighten$1.Brighten = void 0;
 const Factory_1$d = Factory;
-const Node_1$d = Node$1;
+const Node_1$d = Node$2;
 const Validators_1$d = Validators;
 const Brighten = function(imageData) {
   var brightness = this.brightness() * 255, data = imageData.data, len = data.length, i;
@@ -22471,7 +22496,7 @@ var Contrast$1 = {};
 Object.defineProperty(Contrast$1, "__esModule", { value: true });
 Contrast$1.Contrast = void 0;
 const Factory_1$c = Factory;
-const Node_1$c = Node$1;
+const Node_1$c = Node$2;
 const Validators_1$c = Validators;
 const Contrast = function(imageData) {
   var adjust = Math.pow((this.contrast() + 100) / 100, 2);
@@ -22509,7 +22534,7 @@ var Emboss$1 = {};
 Object.defineProperty(Emboss$1, "__esModule", { value: true });
 Emboss$1.Emboss = void 0;
 const Factory_1$b = Factory;
-const Node_1$b = Node$1;
+const Node_1$b = Node$2;
 const Util_1$2 = Util;
 const Validators_1$b = Validators;
 const Emboss = function(imageData) {
@@ -22613,7 +22638,7 @@ var Enhance$1 = {};
 Object.defineProperty(Enhance$1, "__esModule", { value: true });
 Enhance$1.Enhance = void 0;
 const Factory_1$a = Factory;
-const Node_1$a = Node$1;
+const Node_1$a = Node$2;
 const Validators_1$a = Validators;
 function remap(fromValue, fromMin, fromMax, toMin, toMax) {
   var fromRange = fromMax - fromMin, toRange = toMax - toMin, toValue;
@@ -22709,7 +22734,7 @@ var HSL$1 = {};
 Object.defineProperty(HSL$1, "__esModule", { value: true });
 HSL$1.HSL = void 0;
 const Factory_1$9 = Factory;
-const Node_1$9 = Node$1;
+const Node_1$9 = Node$2;
 const Validators_1$9 = Validators;
 Factory_1$9.Factory.addGetterSetter(Node_1$9.Node, "hue", 0, (0, Validators_1$9.getNumberValidator)(), Factory_1$9.Factory.afterSetFilter);
 Factory_1$9.Factory.addGetterSetter(Node_1$9.Node, "saturation", 0, (0, Validators_1$9.getNumberValidator)(), Factory_1$9.Factory.afterSetFilter);
@@ -22737,7 +22762,7 @@ var HSV$1 = {};
 Object.defineProperty(HSV$1, "__esModule", { value: true });
 HSV$1.HSV = void 0;
 const Factory_1$8 = Factory;
-const Node_1$8 = Node$1;
+const Node_1$8 = Node$2;
 const Validators_1$8 = Validators;
 const HSV = function(imageData) {
   var data = imageData.data, nPixels = data.length, v = Math.pow(2, this.value()), s = Math.pow(2, this.saturation()), h = Math.abs(this.hue() + 360) % 360, i;
@@ -22777,7 +22802,7 @@ var Kaleidoscope$1 = {};
 Object.defineProperty(Kaleidoscope$1, "__esModule", { value: true });
 Kaleidoscope$1.Kaleidoscope = void 0;
 const Factory_1$7 = Factory;
-const Node_1$7 = Node$1;
+const Node_1$7 = Node$2;
 const Util_1$1 = Util;
 const Validators_1$7 = Validators;
 var ToPolar = function(src, dst, opt) {
@@ -22912,7 +22937,7 @@ var Mask$1 = {};
 Object.defineProperty(Mask$1, "__esModule", { value: true });
 Mask$1.Mask = void 0;
 const Factory_1$6 = Factory;
-const Node_1$6 = Node$1;
+const Node_1$6 = Node$2;
 const Validators_1$6 = Validators;
 function pixelAt(idata, x, y) {
   var idx = (y * idata.width + x) * 4;
@@ -23051,7 +23076,7 @@ var Noise$1 = {};
 Object.defineProperty(Noise$1, "__esModule", { value: true });
 Noise$1.Noise = void 0;
 const Factory_1$5 = Factory;
-const Node_1$5 = Node$1;
+const Node_1$5 = Node$2;
 const Validators_1$5 = Validators;
 const Noise = function(imageData) {
   var amount = this.noise() * 255, data = imageData.data, nPixels = data.length, half = amount / 2, i;
@@ -23068,7 +23093,7 @@ Object.defineProperty(Pixelate$1, "__esModule", { value: true });
 Pixelate$1.Pixelate = void 0;
 const Factory_1$4 = Factory;
 const Util_1 = Util;
-const Node_1$4 = Node$1;
+const Node_1$4 = Node$2;
 const Validators_1$4 = Validators;
 const Pixelate = function(imageData) {
   var pixelSize = Math.ceil(this.pixelSize()), width = imageData.width, height = imageData.height, x, y, i, red, green, blue, alpha, nBinsX = Math.ceil(width / pixelSize), nBinsY = Math.ceil(height / pixelSize), xBinStart, xBinEnd, yBinStart, yBinEnd, xBin, yBin, pixelsInBin, data = imageData.data;
@@ -23131,7 +23156,7 @@ var Posterize$1 = {};
 Object.defineProperty(Posterize$1, "__esModule", { value: true });
 Posterize$1.Posterize = void 0;
 const Factory_1$3 = Factory;
-const Node_1$3 = Node$1;
+const Node_1$3 = Node$2;
 const Validators_1$3 = Validators;
 const Posterize = function(imageData) {
   var levels = Math.round(this.levels() * 254) + 1, data = imageData.data, len = data.length, scale = 255 / levels, i;
@@ -23145,7 +23170,7 @@ var RGB$1 = {};
 Object.defineProperty(RGB$1, "__esModule", { value: true });
 RGB$1.RGB = void 0;
 const Factory_1$2 = Factory;
-const Node_1$2 = Node$1;
+const Node_1$2 = Node$2;
 const Validators_1$2 = Validators;
 const RGB = function(imageData) {
   var data = imageData.data, nPixels = data.length, red = this.red(), green = this.green(), blue = this.blue(), i, brightness;
@@ -23183,7 +23208,7 @@ var RGBA$1 = {};
 Object.defineProperty(RGBA$1, "__esModule", { value: true });
 RGBA$1.RGBA = void 0;
 const Factory_1$1 = Factory;
-const Node_1$1 = Node$1;
+const Node_1$1 = Node$2;
 const Validators_1$1 = Validators;
 const RGBA = function(imageData) {
   var data = imageData.data, nPixels = data.length, red = this.red(), green = this.green(), blue = this.blue(), alpha = this.alpha(), i, ia;
@@ -23274,7 +23299,7 @@ var Threshold$1 = {};
 Object.defineProperty(Threshold$1, "__esModule", { value: true });
 Threshold$1.Threshold = void 0;
 const Factory_1 = Factory;
-const Node_1 = Node$1;
+const Node_1 = Node$2;
 const Validators_1 = Validators;
 const Threshold = function(imageData) {
   var level = this.threshold() * 255, data = imageData.data, len = data.length, i;
@@ -23406,6 +23431,8 @@ var ShutcutKey = /* @__PURE__ */ ((ShutcutKey2) => {
   ShutcutKey2["C"] = "KeyC";
   ShutcutKey2["V"] = "KeyV";
   ShutcutKey2["Z"] = "KeyZ";
+  ShutcutKey2["A"] = "KeyA";
+  ShutcutKey2["Esc"] = "Escape";
   return ShutcutKey2;
 })(ShutcutKey || {});
 var AlignType = /* @__PURE__ */ ((AlignType2) => {
@@ -23451,7 +23478,7 @@ class BgDraw extends BaseDraw {
         group.add(
           new Konva.Line({
             name: this.constructor.name,
-            points: lodash.flatten([
+            points: lodash$1.flatten([
               [cellSize * x, this.render.toStageValue(-stageState.y + this.render.rulerSize)],
               [
                 cellSize * x,
@@ -23468,7 +23495,7 @@ class BgDraw extends BaseDraw {
         group.add(
           new Konva.Line({
             name: this.constructor.name,
-            points: lodash.flatten([
+            points: lodash$1.flatten([
               [this.render.toStageValue(-stageState.x + this.render.rulerSize), cellSize * y],
               [
                 this.render.toStageValue(stageState.width - stageState.x + this.render.rulerSize),
@@ -23544,7 +23571,7 @@ class RulerDraw extends BaseDraw {
             groupTop.add(
               new Konva.Line({
                 name: this.constructor.name,
-                points: lodash.flatten([
+                points: lodash$1.flatten([
                   [nx, x % 5 ? long : short],
                   [nx, this.render.toStageValue(this.option.size)]
                 ]),
@@ -23596,7 +23623,7 @@ class RulerDraw extends BaseDraw {
             groupLeft.add(
               new Konva.Line({
                 name: this.constructor.name,
-                points: lodash.flatten([
+                points: lodash$1.flatten([
                   [y % 5 ? long : short, ny],
                   [this.render.toStageValue(this.option.size), ny]
                 ]),
@@ -23691,7 +23718,7 @@ class RefLineDraw extends BaseDraw {
           group.add(
             new Konva.Line({
               name: this.constructor.name,
-              points: lodash.flatten([
+              points: lodash$1.flatten([
                 [
                   this.render.toStageValue(-stageState.x),
                   this.render.toStageValue(pos.y - stageState.y)
@@ -23711,7 +23738,7 @@ class RefLineDraw extends BaseDraw {
           group.add(
             new Konva.Line({
               name: this.constructor.name,
-              points: lodash.flatten([
+              points: lodash$1.flatten([
                 [
                   this.render.toStageValue(pos.x - stageState.x),
                   this.render.toStageValue(-stageState.y)
@@ -24015,23 +24042,23 @@ class PreviewDraw extends BaseDraw {
       const main = this.render.stage.find("#main")[0];
       const cover = this.render.stage.find("#cover")[0];
       const nodes = [
-        ...main.getChildren((node) => {
-          return !this.render.ignore(node);
+        ...main.getChildren((node2) => {
+          return !this.render.ignore(node2);
         }),
         // 补充连线
-        ...cover.getChildren((node) => {
-          return node.name() === LinkDraw.name;
+        ...cover.getChildren((node2) => {
+          return node2.name() === LinkDraw.name;
         })
       ];
       let minX = 0;
       let maxX = group.width();
       let minY = 0;
       let maxY = group.height();
-      for (const node of nodes) {
-        const x = node.x();
-        const y = node.y();
-        const width = node.width();
-        const height = node.height();
+      for (const node2 of nodes) {
+        const x = node2.x();
+        const y = node2.y();
+        const width = node2.width();
+        const height = node2.height();
         if (x < minX) {
           minX = x;
         }
@@ -24109,8 +24136,8 @@ class PreviewDraw extends BaseDraw {
           listening: false
         })
       );
-      for (const node of nodes) {
-        const copy = node.clone();
+      for (const node2 of nodes) {
+        const copy = node2.clone();
         copy.listening(false);
         copy.name(this.constructor.name);
         group.add(copy);
@@ -24201,7 +24228,7 @@ class PreviewDraw extends BaseDraw {
         group.add(
           new Konva.Line({
             name: this.constructor.name,
-            points: lodash.flatten(points),
+            points: lodash$1.flatten(points),
             stroke: "blue",
             strokeWidth: 1 / this.option.size,
             listening: false
@@ -24222,6 +24249,5885 @@ let nanoid = (size2 = 21) => {
   }
   return id;
 };
+var astar = {};
+var astarFinder = {};
+var lodash = { exports: {} };
+/**
+ * @license
+ * Lodash <https://lodash.com/>
+ * Copyright OpenJS Foundation and other contributors <https://openjsf.org/>
+ * Released under MIT license <https://lodash.com/license>
+ * Based on Underscore.js 1.8.3 <http://underscorejs.org/LICENSE>
+ * Copyright Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
+ */
+lodash.exports;
+(function(module2, exports2) {
+  (function() {
+    var undefined$1;
+    var VERSION2 = "4.17.19";
+    var LARGE_ARRAY_SIZE2 = 200;
+    var CORE_ERROR_TEXT2 = "Unsupported core-js use. Try https://npms.io/search?q=ponyfill.", FUNC_ERROR_TEXT2 = "Expected a function";
+    var HASH_UNDEFINED2 = "__lodash_hash_undefined__";
+    var MAX_MEMOIZE_SIZE2 = 500;
+    var PLACEHOLDER2 = "__lodash_placeholder__";
+    var CLONE_DEEP_FLAG2 = 1, CLONE_FLAT_FLAG2 = 2, CLONE_SYMBOLS_FLAG2 = 4;
+    var COMPARE_PARTIAL_FLAG2 = 1, COMPARE_UNORDERED_FLAG2 = 2;
+    var WRAP_BIND_FLAG2 = 1, WRAP_BIND_KEY_FLAG2 = 2, WRAP_CURRY_BOUND_FLAG2 = 4, WRAP_CURRY_FLAG2 = 8, WRAP_CURRY_RIGHT_FLAG2 = 16, WRAP_PARTIAL_FLAG2 = 32, WRAP_PARTIAL_RIGHT_FLAG2 = 64, WRAP_ARY_FLAG2 = 128, WRAP_REARG_FLAG2 = 256, WRAP_FLIP_FLAG2 = 512;
+    var DEFAULT_TRUNC_LENGTH2 = 30, DEFAULT_TRUNC_OMISSION2 = "...";
+    var HOT_COUNT2 = 800, HOT_SPAN2 = 16;
+    var LAZY_FILTER_FLAG2 = 1, LAZY_MAP_FLAG2 = 2, LAZY_WHILE_FLAG2 = 3;
+    var INFINITY2 = 1 / 0, MAX_SAFE_INTEGER2 = 9007199254740991, MAX_INTEGER2 = 17976931348623157e292, NAN2 = 0 / 0;
+    var MAX_ARRAY_LENGTH2 = 4294967295, MAX_ARRAY_INDEX2 = MAX_ARRAY_LENGTH2 - 1, HALF_MAX_ARRAY_LENGTH2 = MAX_ARRAY_LENGTH2 >>> 1;
+    var wrapFlags2 = [
+      ["ary", WRAP_ARY_FLAG2],
+      ["bind", WRAP_BIND_FLAG2],
+      ["bindKey", WRAP_BIND_KEY_FLAG2],
+      ["curry", WRAP_CURRY_FLAG2],
+      ["curryRight", WRAP_CURRY_RIGHT_FLAG2],
+      ["flip", WRAP_FLIP_FLAG2],
+      ["partial", WRAP_PARTIAL_FLAG2],
+      ["partialRight", WRAP_PARTIAL_RIGHT_FLAG2],
+      ["rearg", WRAP_REARG_FLAG2]
+    ];
+    var argsTag2 = "[object Arguments]", arrayTag2 = "[object Array]", asyncTag2 = "[object AsyncFunction]", boolTag2 = "[object Boolean]", dateTag2 = "[object Date]", domExcTag2 = "[object DOMException]", errorTag2 = "[object Error]", funcTag2 = "[object Function]", genTag2 = "[object GeneratorFunction]", mapTag2 = "[object Map]", numberTag2 = "[object Number]", nullTag2 = "[object Null]", objectTag2 = "[object Object]", promiseTag2 = "[object Promise]", proxyTag2 = "[object Proxy]", regexpTag2 = "[object RegExp]", setTag2 = "[object Set]", stringTag2 = "[object String]", symbolTag2 = "[object Symbol]", undefinedTag2 = "[object Undefined]", weakMapTag2 = "[object WeakMap]", weakSetTag2 = "[object WeakSet]";
+    var arrayBufferTag2 = "[object ArrayBuffer]", dataViewTag2 = "[object DataView]", float32Tag2 = "[object Float32Array]", float64Tag2 = "[object Float64Array]", int8Tag2 = "[object Int8Array]", int16Tag2 = "[object Int16Array]", int32Tag2 = "[object Int32Array]", uint8Tag2 = "[object Uint8Array]", uint8ClampedTag2 = "[object Uint8ClampedArray]", uint16Tag2 = "[object Uint16Array]", uint32Tag2 = "[object Uint32Array]";
+    var reEmptyStringLeading2 = /\b__p \+= '';/g, reEmptyStringMiddle2 = /\b(__p \+=) '' \+/g, reEmptyStringTrailing2 = /(__e\(.*?\)|\b__t\)) \+\n'';/g;
+    var reEscapedHtml2 = /&(?:amp|lt|gt|quot|#39);/g, reUnescapedHtml2 = /[&<>"']/g, reHasEscapedHtml2 = RegExp(reEscapedHtml2.source), reHasUnescapedHtml2 = RegExp(reUnescapedHtml2.source);
+    var reEscape2 = /<%-([\s\S]+?)%>/g, reEvaluate2 = /<%([\s\S]+?)%>/g, reInterpolate2 = /<%=([\s\S]+?)%>/g;
+    var reIsDeepProp2 = /\.|\[(?:[^[\]]*|(["'])(?:(?!\1)[^\\]|\\.)*?\1)\]/, reIsPlainProp2 = /^\w*$/, rePropName2 = /[^.[\]]+|\[(?:(-?\d+(?:\.\d+)?)|(["'])((?:(?!\2)[^\\]|\\.)*?)\2)\]|(?=(?:\.|\[\])(?:\.|\[\]|$))/g;
+    var reRegExpChar2 = /[\\^$.*+?()[\]{}|]/g, reHasRegExpChar2 = RegExp(reRegExpChar2.source);
+    var reTrim = /^\s+|\s+$/g, reTrimStart2 = /^\s+/, reTrimEnd = /\s+$/;
+    var reWrapComment2 = /\{(?:\n\/\* \[wrapped with .+\] \*\/)?\n?/, reWrapDetails2 = /\{\n\/\* \[wrapped with (.+)\] \*/, reSplitDetails2 = /,? & /;
+    var reAsciiWord2 = /[^\x00-\x2f\x3a-\x40\x5b-\x60\x7b-\x7f]+/g;
+    var reEscapeChar2 = /\\(\\)?/g;
+    var reEsTemplate2 = /\$\{([^\\}]*(?:\\.[^\\}]*)*)\}/g;
+    var reFlags2 = /\w*$/;
+    var reIsBadHex2 = /^[-+]0x[0-9a-f]+$/i;
+    var reIsBinary2 = /^0b[01]+$/i;
+    var reIsHostCtor2 = /^\[object .+?Constructor\]$/;
+    var reIsOctal2 = /^0o[0-7]+$/i;
+    var reIsUint2 = /^(?:0|[1-9]\d*)$/;
+    var reLatin2 = /[\xc0-\xd6\xd8-\xf6\xf8-\xff\u0100-\u017f]/g;
+    var reNoMatch2 = /($^)/;
+    var reUnescapedString2 = /['\n\r\u2028\u2029\\]/g;
+    var rsAstralRange2 = "\\ud800-\\udfff", rsComboMarksRange2 = "\\u0300-\\u036f", reComboHalfMarksRange2 = "\\ufe20-\\ufe2f", rsComboSymbolsRange2 = "\\u20d0-\\u20ff", rsComboRange2 = rsComboMarksRange2 + reComboHalfMarksRange2 + rsComboSymbolsRange2, rsDingbatRange2 = "\\u2700-\\u27bf", rsLowerRange2 = "a-z\\xdf-\\xf6\\xf8-\\xff", rsMathOpRange2 = "\\xac\\xb1\\xd7\\xf7", rsNonCharRange2 = "\\x00-\\x2f\\x3a-\\x40\\x5b-\\x60\\x7b-\\xbf", rsPunctuationRange2 = "\\u2000-\\u206f", rsSpaceRange2 = " \\t\\x0b\\f\\xa0\\ufeff\\n\\r\\u2028\\u2029\\u1680\\u180e\\u2000\\u2001\\u2002\\u2003\\u2004\\u2005\\u2006\\u2007\\u2008\\u2009\\u200a\\u202f\\u205f\\u3000", rsUpperRange2 = "A-Z\\xc0-\\xd6\\xd8-\\xde", rsVarRange2 = "\\ufe0e\\ufe0f", rsBreakRange2 = rsMathOpRange2 + rsNonCharRange2 + rsPunctuationRange2 + rsSpaceRange2;
+    var rsApos2 = "['’]", rsAstral2 = "[" + rsAstralRange2 + "]", rsBreak2 = "[" + rsBreakRange2 + "]", rsCombo2 = "[" + rsComboRange2 + "]", rsDigits2 = "\\d+", rsDingbat2 = "[" + rsDingbatRange2 + "]", rsLower2 = "[" + rsLowerRange2 + "]", rsMisc2 = "[^" + rsAstralRange2 + rsBreakRange2 + rsDigits2 + rsDingbatRange2 + rsLowerRange2 + rsUpperRange2 + "]", rsFitz2 = "\\ud83c[\\udffb-\\udfff]", rsModifier2 = "(?:" + rsCombo2 + "|" + rsFitz2 + ")", rsNonAstral2 = "[^" + rsAstralRange2 + "]", rsRegional2 = "(?:\\ud83c[\\udde6-\\uddff]){2}", rsSurrPair2 = "[\\ud800-\\udbff][\\udc00-\\udfff]", rsUpper2 = "[" + rsUpperRange2 + "]", rsZWJ2 = "\\u200d";
+    var rsMiscLower2 = "(?:" + rsLower2 + "|" + rsMisc2 + ")", rsMiscUpper2 = "(?:" + rsUpper2 + "|" + rsMisc2 + ")", rsOptContrLower2 = "(?:" + rsApos2 + "(?:d|ll|m|re|s|t|ve))?", rsOptContrUpper2 = "(?:" + rsApos2 + "(?:D|LL|M|RE|S|T|VE))?", reOptMod2 = rsModifier2 + "?", rsOptVar2 = "[" + rsVarRange2 + "]?", rsOptJoin2 = "(?:" + rsZWJ2 + "(?:" + [rsNonAstral2, rsRegional2, rsSurrPair2].join("|") + ")" + rsOptVar2 + reOptMod2 + ")*", rsOrdLower2 = "\\d*(?:1st|2nd|3rd|(?![123])\\dth)(?=\\b|[A-Z_])", rsOrdUpper2 = "\\d*(?:1ST|2ND|3RD|(?![123])\\dTH)(?=\\b|[a-z_])", rsSeq2 = rsOptVar2 + reOptMod2 + rsOptJoin2, rsEmoji2 = "(?:" + [rsDingbat2, rsRegional2, rsSurrPair2].join("|") + ")" + rsSeq2, rsSymbol2 = "(?:" + [rsNonAstral2 + rsCombo2 + "?", rsCombo2, rsRegional2, rsSurrPair2, rsAstral2].join("|") + ")";
+    var reApos2 = RegExp(rsApos2, "g");
+    var reComboMark2 = RegExp(rsCombo2, "g");
+    var reUnicode2 = RegExp(rsFitz2 + "(?=" + rsFitz2 + ")|" + rsSymbol2 + rsSeq2, "g");
+    var reUnicodeWord2 = RegExp([
+      rsUpper2 + "?" + rsLower2 + "+" + rsOptContrLower2 + "(?=" + [rsBreak2, rsUpper2, "$"].join("|") + ")",
+      rsMiscUpper2 + "+" + rsOptContrUpper2 + "(?=" + [rsBreak2, rsUpper2 + rsMiscLower2, "$"].join("|") + ")",
+      rsUpper2 + "?" + rsMiscLower2 + "+" + rsOptContrLower2,
+      rsUpper2 + "+" + rsOptContrUpper2,
+      rsOrdUpper2,
+      rsOrdLower2,
+      rsDigits2,
+      rsEmoji2
+    ].join("|"), "g");
+    var reHasUnicode2 = RegExp("[" + rsZWJ2 + rsAstralRange2 + rsComboRange2 + rsVarRange2 + "]");
+    var reHasUnicodeWord2 = /[a-z][A-Z]|[A-Z]{2}[a-z]|[0-9][a-zA-Z]|[a-zA-Z][0-9]|[^a-zA-Z0-9 ]/;
+    var contextProps = [
+      "Array",
+      "Buffer",
+      "DataView",
+      "Date",
+      "Error",
+      "Float32Array",
+      "Float64Array",
+      "Function",
+      "Int8Array",
+      "Int16Array",
+      "Int32Array",
+      "Map",
+      "Math",
+      "Object",
+      "Promise",
+      "RegExp",
+      "Set",
+      "String",
+      "Symbol",
+      "TypeError",
+      "Uint8Array",
+      "Uint8ClampedArray",
+      "Uint16Array",
+      "Uint32Array",
+      "WeakMap",
+      "_",
+      "clearTimeout",
+      "isFinite",
+      "parseInt",
+      "setTimeout"
+    ];
+    var templateCounter = -1;
+    var typedArrayTags2 = {};
+    typedArrayTags2[float32Tag2] = typedArrayTags2[float64Tag2] = typedArrayTags2[int8Tag2] = typedArrayTags2[int16Tag2] = typedArrayTags2[int32Tag2] = typedArrayTags2[uint8Tag2] = typedArrayTags2[uint8ClampedTag2] = typedArrayTags2[uint16Tag2] = typedArrayTags2[uint32Tag2] = true;
+    typedArrayTags2[argsTag2] = typedArrayTags2[arrayTag2] = typedArrayTags2[arrayBufferTag2] = typedArrayTags2[boolTag2] = typedArrayTags2[dataViewTag2] = typedArrayTags2[dateTag2] = typedArrayTags2[errorTag2] = typedArrayTags2[funcTag2] = typedArrayTags2[mapTag2] = typedArrayTags2[numberTag2] = typedArrayTags2[objectTag2] = typedArrayTags2[regexpTag2] = typedArrayTags2[setTag2] = typedArrayTags2[stringTag2] = typedArrayTags2[weakMapTag2] = false;
+    var cloneableTags2 = {};
+    cloneableTags2[argsTag2] = cloneableTags2[arrayTag2] = cloneableTags2[arrayBufferTag2] = cloneableTags2[dataViewTag2] = cloneableTags2[boolTag2] = cloneableTags2[dateTag2] = cloneableTags2[float32Tag2] = cloneableTags2[float64Tag2] = cloneableTags2[int8Tag2] = cloneableTags2[int16Tag2] = cloneableTags2[int32Tag2] = cloneableTags2[mapTag2] = cloneableTags2[numberTag2] = cloneableTags2[objectTag2] = cloneableTags2[regexpTag2] = cloneableTags2[setTag2] = cloneableTags2[stringTag2] = cloneableTags2[symbolTag2] = cloneableTags2[uint8Tag2] = cloneableTags2[uint8ClampedTag2] = cloneableTags2[uint16Tag2] = cloneableTags2[uint32Tag2] = true;
+    cloneableTags2[errorTag2] = cloneableTags2[funcTag2] = cloneableTags2[weakMapTag2] = false;
+    var deburredLetters2 = {
+      // Latin-1 Supplement block.
+      "À": "A",
+      "Á": "A",
+      "Â": "A",
+      "Ã": "A",
+      "Ä": "A",
+      "Å": "A",
+      "à": "a",
+      "á": "a",
+      "â": "a",
+      "ã": "a",
+      "ä": "a",
+      "å": "a",
+      "Ç": "C",
+      "ç": "c",
+      "Ð": "D",
+      "ð": "d",
+      "È": "E",
+      "É": "E",
+      "Ê": "E",
+      "Ë": "E",
+      "è": "e",
+      "é": "e",
+      "ê": "e",
+      "ë": "e",
+      "Ì": "I",
+      "Í": "I",
+      "Î": "I",
+      "Ï": "I",
+      "ì": "i",
+      "í": "i",
+      "î": "i",
+      "ï": "i",
+      "Ñ": "N",
+      "ñ": "n",
+      "Ò": "O",
+      "Ó": "O",
+      "Ô": "O",
+      "Õ": "O",
+      "Ö": "O",
+      "Ø": "O",
+      "ò": "o",
+      "ó": "o",
+      "ô": "o",
+      "õ": "o",
+      "ö": "o",
+      "ø": "o",
+      "Ù": "U",
+      "Ú": "U",
+      "Û": "U",
+      "Ü": "U",
+      "ù": "u",
+      "ú": "u",
+      "û": "u",
+      "ü": "u",
+      "Ý": "Y",
+      "ý": "y",
+      "ÿ": "y",
+      "Æ": "Ae",
+      "æ": "ae",
+      "Þ": "Th",
+      "þ": "th",
+      "ß": "ss",
+      // Latin Extended-A block.
+      "Ā": "A",
+      "Ă": "A",
+      "Ą": "A",
+      "ā": "a",
+      "ă": "a",
+      "ą": "a",
+      "Ć": "C",
+      "Ĉ": "C",
+      "Ċ": "C",
+      "Č": "C",
+      "ć": "c",
+      "ĉ": "c",
+      "ċ": "c",
+      "č": "c",
+      "Ď": "D",
+      "Đ": "D",
+      "ď": "d",
+      "đ": "d",
+      "Ē": "E",
+      "Ĕ": "E",
+      "Ė": "E",
+      "Ę": "E",
+      "Ě": "E",
+      "ē": "e",
+      "ĕ": "e",
+      "ė": "e",
+      "ę": "e",
+      "ě": "e",
+      "Ĝ": "G",
+      "Ğ": "G",
+      "Ġ": "G",
+      "Ģ": "G",
+      "ĝ": "g",
+      "ğ": "g",
+      "ġ": "g",
+      "ģ": "g",
+      "Ĥ": "H",
+      "Ħ": "H",
+      "ĥ": "h",
+      "ħ": "h",
+      "Ĩ": "I",
+      "Ī": "I",
+      "Ĭ": "I",
+      "Į": "I",
+      "İ": "I",
+      "ĩ": "i",
+      "ī": "i",
+      "ĭ": "i",
+      "į": "i",
+      "ı": "i",
+      "Ĵ": "J",
+      "ĵ": "j",
+      "Ķ": "K",
+      "ķ": "k",
+      "ĸ": "k",
+      "Ĺ": "L",
+      "Ļ": "L",
+      "Ľ": "L",
+      "Ŀ": "L",
+      "Ł": "L",
+      "ĺ": "l",
+      "ļ": "l",
+      "ľ": "l",
+      "ŀ": "l",
+      "ł": "l",
+      "Ń": "N",
+      "Ņ": "N",
+      "Ň": "N",
+      "Ŋ": "N",
+      "ń": "n",
+      "ņ": "n",
+      "ň": "n",
+      "ŋ": "n",
+      "Ō": "O",
+      "Ŏ": "O",
+      "Ő": "O",
+      "ō": "o",
+      "ŏ": "o",
+      "ő": "o",
+      "Ŕ": "R",
+      "Ŗ": "R",
+      "Ř": "R",
+      "ŕ": "r",
+      "ŗ": "r",
+      "ř": "r",
+      "Ś": "S",
+      "Ŝ": "S",
+      "Ş": "S",
+      "Š": "S",
+      "ś": "s",
+      "ŝ": "s",
+      "ş": "s",
+      "š": "s",
+      "Ţ": "T",
+      "Ť": "T",
+      "Ŧ": "T",
+      "ţ": "t",
+      "ť": "t",
+      "ŧ": "t",
+      "Ũ": "U",
+      "Ū": "U",
+      "Ŭ": "U",
+      "Ů": "U",
+      "Ű": "U",
+      "Ų": "U",
+      "ũ": "u",
+      "ū": "u",
+      "ŭ": "u",
+      "ů": "u",
+      "ű": "u",
+      "ų": "u",
+      "Ŵ": "W",
+      "ŵ": "w",
+      "Ŷ": "Y",
+      "ŷ": "y",
+      "Ÿ": "Y",
+      "Ź": "Z",
+      "Ż": "Z",
+      "Ž": "Z",
+      "ź": "z",
+      "ż": "z",
+      "ž": "z",
+      "Ĳ": "IJ",
+      "ĳ": "ij",
+      "Œ": "Oe",
+      "œ": "oe",
+      "ŉ": "'n",
+      "ſ": "s"
+    };
+    var htmlEscapes2 = {
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;"
+    };
+    var htmlUnescapes2 = {
+      "&amp;": "&",
+      "&lt;": "<",
+      "&gt;": ">",
+      "&quot;": '"',
+      "&#39;": "'"
+    };
+    var stringEscapes2 = {
+      "\\": "\\",
+      "'": "'",
+      "\n": "n",
+      "\r": "r",
+      "\u2028": "u2028",
+      "\u2029": "u2029"
+    };
+    var freeParseFloat2 = parseFloat, freeParseInt2 = parseInt;
+    var freeGlobal2 = typeof commonjsGlobal == "object" && commonjsGlobal && commonjsGlobal.Object === Object && commonjsGlobal;
+    var freeSelf2 = typeof self == "object" && self && self.Object === Object && self;
+    var root2 = freeGlobal2 || freeSelf2 || Function("return this")();
+    var freeExports2 = exports2 && !exports2.nodeType && exports2;
+    var freeModule2 = freeExports2 && true && module2 && !module2.nodeType && module2;
+    var moduleExports2 = freeModule2 && freeModule2.exports === freeExports2;
+    var freeProcess2 = moduleExports2 && freeGlobal2.process;
+    var nodeUtil2 = function() {
+      try {
+        var types = freeModule2 && freeModule2.require && freeModule2.require("util").types;
+        if (types) {
+          return types;
+        }
+        return freeProcess2 && freeProcess2.binding && freeProcess2.binding("util");
+      } catch (e) {
+      }
+    }();
+    var nodeIsArrayBuffer2 = nodeUtil2 && nodeUtil2.isArrayBuffer, nodeIsDate2 = nodeUtil2 && nodeUtil2.isDate, nodeIsMap2 = nodeUtil2 && nodeUtil2.isMap, nodeIsRegExp2 = nodeUtil2 && nodeUtil2.isRegExp, nodeIsSet2 = nodeUtil2 && nodeUtil2.isSet, nodeIsTypedArray2 = nodeUtil2 && nodeUtil2.isTypedArray;
+    function apply2(func2, thisArg, args) {
+      switch (args.length) {
+        case 0:
+          return func2.call(thisArg);
+        case 1:
+          return func2.call(thisArg, args[0]);
+        case 2:
+          return func2.call(thisArg, args[0], args[1]);
+        case 3:
+          return func2.call(thisArg, args[0], args[1], args[2]);
+      }
+      return func2.apply(thisArg, args);
+    }
+    function arrayAggregator2(array2, setter, iteratee2, accumulator) {
+      var index = -1, length = array2 == null ? 0 : array2.length;
+      while (++index < length) {
+        var value = array2[index];
+        setter(accumulator, value, iteratee2(value), array2);
+      }
+      return accumulator;
+    }
+    function arrayEach2(array2, iteratee2) {
+      var index = -1, length = array2 == null ? 0 : array2.length;
+      while (++index < length) {
+        if (iteratee2(array2[index], index, array2) === false) {
+          break;
+        }
+      }
+      return array2;
+    }
+    function arrayEachRight2(array2, iteratee2) {
+      var length = array2 == null ? 0 : array2.length;
+      while (length--) {
+        if (iteratee2(array2[length], length, array2) === false) {
+          break;
+        }
+      }
+      return array2;
+    }
+    function arrayEvery2(array2, predicate) {
+      var index = -1, length = array2 == null ? 0 : array2.length;
+      while (++index < length) {
+        if (!predicate(array2[index], index, array2)) {
+          return false;
+        }
+      }
+      return true;
+    }
+    function arrayFilter2(array2, predicate) {
+      var index = -1, length = array2 == null ? 0 : array2.length, resIndex = 0, result2 = [];
+      while (++index < length) {
+        var value = array2[index];
+        if (predicate(value, index, array2)) {
+          result2[resIndex++] = value;
+        }
+      }
+      return result2;
+    }
+    function arrayIncludes2(array2, value) {
+      var length = array2 == null ? 0 : array2.length;
+      return !!length && baseIndexOf2(array2, value, 0) > -1;
+    }
+    function arrayIncludesWith2(array2, value, comparator2) {
+      var index = -1, length = array2 == null ? 0 : array2.length;
+      while (++index < length) {
+        if (comparator2(value, array2[index])) {
+          return true;
+        }
+      }
+      return false;
+    }
+    function arrayMap2(array2, iteratee2) {
+      var index = -1, length = array2 == null ? 0 : array2.length, result2 = Array(length);
+      while (++index < length) {
+        result2[index] = iteratee2(array2[index], index, array2);
+      }
+      return result2;
+    }
+    function arrayPush2(array2, values2) {
+      var index = -1, length = values2.length, offset = array2.length;
+      while (++index < length) {
+        array2[offset + index] = values2[index];
+      }
+      return array2;
+    }
+    function arrayReduce2(array2, iteratee2, accumulator, initAccum) {
+      var index = -1, length = array2 == null ? 0 : array2.length;
+      if (initAccum && length) {
+        accumulator = array2[++index];
+      }
+      while (++index < length) {
+        accumulator = iteratee2(accumulator, array2[index], index, array2);
+      }
+      return accumulator;
+    }
+    function arrayReduceRight2(array2, iteratee2, accumulator, initAccum) {
+      var length = array2 == null ? 0 : array2.length;
+      if (initAccum && length) {
+        accumulator = array2[--length];
+      }
+      while (length--) {
+        accumulator = iteratee2(accumulator, array2[length], length, array2);
+      }
+      return accumulator;
+    }
+    function arraySome2(array2, predicate) {
+      var index = -1, length = array2 == null ? 0 : array2.length;
+      while (++index < length) {
+        if (predicate(array2[index], index, array2)) {
+          return true;
+        }
+      }
+      return false;
+    }
+    var asciiSize2 = baseProperty2("length");
+    function asciiToArray2(string2) {
+      return string2.split("");
+    }
+    function asciiWords2(string2) {
+      return string2.match(reAsciiWord2) || [];
+    }
+    function baseFindKey2(collection2, predicate, eachFunc) {
+      var result2;
+      eachFunc(collection2, function(value, key, collection3) {
+        if (predicate(value, key, collection3)) {
+          result2 = key;
+          return false;
+        }
+      });
+      return result2;
+    }
+    function baseFindIndex2(array2, predicate, fromIndex, fromRight) {
+      var length = array2.length, index = fromIndex + (fromRight ? 1 : -1);
+      while (fromRight ? index-- : ++index < length) {
+        if (predicate(array2[index], index, array2)) {
+          return index;
+        }
+      }
+      return -1;
+    }
+    function baseIndexOf2(array2, value, fromIndex) {
+      return value === value ? strictIndexOf2(array2, value, fromIndex) : baseFindIndex2(array2, baseIsNaN2, fromIndex);
+    }
+    function baseIndexOfWith2(array2, value, fromIndex, comparator2) {
+      var index = fromIndex - 1, length = array2.length;
+      while (++index < length) {
+        if (comparator2(array2[index], value)) {
+          return index;
+        }
+      }
+      return -1;
+    }
+    function baseIsNaN2(value) {
+      return value !== value;
+    }
+    function baseMean2(array2, iteratee2) {
+      var length = array2 == null ? 0 : array2.length;
+      return length ? baseSum2(array2, iteratee2) / length : NAN2;
+    }
+    function baseProperty2(key) {
+      return function(object2) {
+        return object2 == null ? undefined$1 : object2[key];
+      };
+    }
+    function basePropertyOf2(object2) {
+      return function(key) {
+        return object2 == null ? undefined$1 : object2[key];
+      };
+    }
+    function baseReduce2(collection2, iteratee2, accumulator, initAccum, eachFunc) {
+      eachFunc(collection2, function(value, index, collection3) {
+        accumulator = initAccum ? (initAccum = false, value) : iteratee2(accumulator, value, index, collection3);
+      });
+      return accumulator;
+    }
+    function baseSortBy2(array2, comparer) {
+      var length = array2.length;
+      array2.sort(comparer);
+      while (length--) {
+        array2[length] = array2[length].value;
+      }
+      return array2;
+    }
+    function baseSum2(array2, iteratee2) {
+      var result2, index = -1, length = array2.length;
+      while (++index < length) {
+        var current = iteratee2(array2[index]);
+        if (current !== undefined$1) {
+          result2 = result2 === undefined$1 ? current : result2 + current;
+        }
+      }
+      return result2;
+    }
+    function baseTimes2(n, iteratee2) {
+      var index = -1, result2 = Array(n);
+      while (++index < n) {
+        result2[index] = iteratee2(index);
+      }
+      return result2;
+    }
+    function baseToPairs2(object2, props) {
+      return arrayMap2(props, function(key) {
+        return [key, object2[key]];
+      });
+    }
+    function baseUnary2(func2) {
+      return function(value) {
+        return func2(value);
+      };
+    }
+    function baseValues2(object2, props) {
+      return arrayMap2(props, function(key) {
+        return object2[key];
+      });
+    }
+    function cacheHas2(cache, key) {
+      return cache.has(key);
+    }
+    function charsStartIndex2(strSymbols, chrSymbols) {
+      var index = -1, length = strSymbols.length;
+      while (++index < length && baseIndexOf2(chrSymbols, strSymbols[index], 0) > -1) {
+      }
+      return index;
+    }
+    function charsEndIndex2(strSymbols, chrSymbols) {
+      var index = strSymbols.length;
+      while (index-- && baseIndexOf2(chrSymbols, strSymbols[index], 0) > -1) {
+      }
+      return index;
+    }
+    function countHolders2(array2, placeholder) {
+      var length = array2.length, result2 = 0;
+      while (length--) {
+        if (array2[length] === placeholder) {
+          ++result2;
+        }
+      }
+      return result2;
+    }
+    var deburrLetter2 = basePropertyOf2(deburredLetters2);
+    var escapeHtmlChar2 = basePropertyOf2(htmlEscapes2);
+    function escapeStringChar2(chr) {
+      return "\\" + stringEscapes2[chr];
+    }
+    function getValue2(object2, key) {
+      return object2 == null ? undefined$1 : object2[key];
+    }
+    function hasUnicode2(string2) {
+      return reHasUnicode2.test(string2);
+    }
+    function hasUnicodeWord2(string2) {
+      return reHasUnicodeWord2.test(string2);
+    }
+    function iteratorToArray2(iterator) {
+      var data, result2 = [];
+      while (!(data = iterator.next()).done) {
+        result2.push(data.value);
+      }
+      return result2;
+    }
+    function mapToArray2(map2) {
+      var index = -1, result2 = Array(map2.size);
+      map2.forEach(function(value, key) {
+        result2[++index] = [key, value];
+      });
+      return result2;
+    }
+    function overArg2(func2, transform2) {
+      return function(arg) {
+        return func2(transform2(arg));
+      };
+    }
+    function replaceHolders2(array2, placeholder) {
+      var index = -1, length = array2.length, resIndex = 0, result2 = [];
+      while (++index < length) {
+        var value = array2[index];
+        if (value === placeholder || value === PLACEHOLDER2) {
+          array2[index] = PLACEHOLDER2;
+          result2[resIndex++] = index;
+        }
+      }
+      return result2;
+    }
+    function setToArray2(set2) {
+      var index = -1, result2 = Array(set2.size);
+      set2.forEach(function(value) {
+        result2[++index] = value;
+      });
+      return result2;
+    }
+    function setToPairs2(set2) {
+      var index = -1, result2 = Array(set2.size);
+      set2.forEach(function(value) {
+        result2[++index] = [value, value];
+      });
+      return result2;
+    }
+    function strictIndexOf2(array2, value, fromIndex) {
+      var index = fromIndex - 1, length = array2.length;
+      while (++index < length) {
+        if (array2[index] === value) {
+          return index;
+        }
+      }
+      return -1;
+    }
+    function strictLastIndexOf2(array2, value, fromIndex) {
+      var index = fromIndex + 1;
+      while (index--) {
+        if (array2[index] === value) {
+          return index;
+        }
+      }
+      return index;
+    }
+    function stringSize2(string2) {
+      return hasUnicode2(string2) ? unicodeSize2(string2) : asciiSize2(string2);
+    }
+    function stringToArray2(string2) {
+      return hasUnicode2(string2) ? unicodeToArray2(string2) : asciiToArray2(string2);
+    }
+    var unescapeHtmlChar2 = basePropertyOf2(htmlUnescapes2);
+    function unicodeSize2(string2) {
+      var result2 = reUnicode2.lastIndex = 0;
+      while (reUnicode2.test(string2)) {
+        ++result2;
+      }
+      return result2;
+    }
+    function unicodeToArray2(string2) {
+      return string2.match(reUnicode2) || [];
+    }
+    function unicodeWords2(string2) {
+      return string2.match(reUnicodeWord2) || [];
+    }
+    var runInContext = function runInContext2(context) {
+      context = context == null ? root2 : _.defaults(root2.Object(), context, _.pick(root2, contextProps));
+      var Array2 = context.Array, Date2 = context.Date, Error2 = context.Error, Function2 = context.Function, Math2 = context.Math, Object2 = context.Object, RegExp2 = context.RegExp, String2 = context.String, TypeError2 = context.TypeError;
+      var arrayProto2 = Array2.prototype, funcProto2 = Function2.prototype, objectProto2 = Object2.prototype;
+      var coreJsData2 = context["__core-js_shared__"];
+      var funcToString2 = funcProto2.toString;
+      var hasOwnProperty2 = objectProto2.hasOwnProperty;
+      var idCounter2 = 0;
+      var maskSrcKey2 = function() {
+        var uid2 = /[^.]+$/.exec(coreJsData2 && coreJsData2.keys && coreJsData2.keys.IE_PROTO || "");
+        return uid2 ? "Symbol(src)_1." + uid2 : "";
+      }();
+      var nativeObjectToString2 = objectProto2.toString;
+      var objectCtorString2 = funcToString2.call(Object2);
+      var oldDash = root2._;
+      var reIsNative2 = RegExp2(
+        "^" + funcToString2.call(hasOwnProperty2).replace(reRegExpChar2, "\\$&").replace(/hasOwnProperty|(function).*?(?=\\\()| for .+?(?=\\\])/g, "$1.*?") + "$"
+      );
+      var Buffer3 = moduleExports2 ? context.Buffer : undefined$1, Symbol2 = context.Symbol, Uint8Array2 = context.Uint8Array, allocUnsafe2 = Buffer3 ? Buffer3.allocUnsafe : undefined$1, getPrototype2 = overArg2(Object2.getPrototypeOf, Object2), objectCreate2 = Object2.create, propertyIsEnumerable2 = objectProto2.propertyIsEnumerable, splice2 = arrayProto2.splice, spreadableSymbol2 = Symbol2 ? Symbol2.isConcatSpreadable : undefined$1, symIterator2 = Symbol2 ? Symbol2.iterator : undefined$1, symToStringTag2 = Symbol2 ? Symbol2.toStringTag : undefined$1;
+      var defineProperty2 = function() {
+        try {
+          var func2 = getNative2(Object2, "defineProperty");
+          func2({}, "", {});
+          return func2;
+        } catch (e) {
+        }
+      }();
+      var ctxClearTimeout = context.clearTimeout !== root2.clearTimeout && context.clearTimeout, ctxNow = Date2 && Date2.now !== root2.Date.now && Date2.now, ctxSetTimeout = context.setTimeout !== root2.setTimeout && context.setTimeout;
+      var nativeCeil2 = Math2.ceil, nativeFloor2 = Math2.floor, nativeGetSymbols2 = Object2.getOwnPropertySymbols, nativeIsBuffer2 = Buffer3 ? Buffer3.isBuffer : undefined$1, nativeIsFinite2 = context.isFinite, nativeJoin2 = arrayProto2.join, nativeKeys2 = overArg2(Object2.keys, Object2), nativeMax2 = Math2.max, nativeMin2 = Math2.min, nativeNow2 = Date2.now, nativeParseInt2 = context.parseInt, nativeRandom2 = Math2.random, nativeReverse2 = arrayProto2.reverse;
+      var DataView2 = getNative2(context, "DataView"), Map2 = getNative2(context, "Map"), Promise2 = getNative2(context, "Promise"), Set2 = getNative2(context, "Set"), WeakMap2 = getNative2(context, "WeakMap"), nativeCreate2 = getNative2(Object2, "create");
+      var metaMap2 = WeakMap2 && new WeakMap2();
+      var realNames2 = {};
+      var dataViewCtorString2 = toSource2(DataView2), mapCtorString2 = toSource2(Map2), promiseCtorString2 = toSource2(Promise2), setCtorString2 = toSource2(Set2), weakMapCtorString2 = toSource2(WeakMap2);
+      var symbolProto2 = Symbol2 ? Symbol2.prototype : undefined$1, symbolValueOf2 = symbolProto2 ? symbolProto2.valueOf : undefined$1, symbolToString2 = symbolProto2 ? symbolProto2.toString : undefined$1;
+      function lodash2(value) {
+        if (isObjectLike2(value) && !isArray2(value) && !(value instanceof LazyWrapper2)) {
+          if (value instanceof LodashWrapper2) {
+            return value;
+          }
+          if (hasOwnProperty2.call(value, "__wrapped__")) {
+            return wrapperClone2(value);
+          }
+        }
+        return new LodashWrapper2(value);
+      }
+      var baseCreate2 = /* @__PURE__ */ function() {
+        function object2() {
+        }
+        return function(proto) {
+          if (!isObject2(proto)) {
+            return {};
+          }
+          if (objectCreate2) {
+            return objectCreate2(proto);
+          }
+          object2.prototype = proto;
+          var result3 = new object2();
+          object2.prototype = undefined$1;
+          return result3;
+        };
+      }();
+      function baseLodash2() {
+      }
+      function LodashWrapper2(value, chainAll) {
+        this.__wrapped__ = value;
+        this.__actions__ = [];
+        this.__chain__ = !!chainAll;
+        this.__index__ = 0;
+        this.__values__ = undefined$1;
+      }
+      lodash2.templateSettings = {
+        /**
+         * Used to detect `data` property values to be HTML-escaped.
+         *
+         * @memberOf _.templateSettings
+         * @type {RegExp}
+         */
+        "escape": reEscape2,
+        /**
+         * Used to detect code to be evaluated.
+         *
+         * @memberOf _.templateSettings
+         * @type {RegExp}
+         */
+        "evaluate": reEvaluate2,
+        /**
+         * Used to detect `data` property values to inject.
+         *
+         * @memberOf _.templateSettings
+         * @type {RegExp}
+         */
+        "interpolate": reInterpolate2,
+        /**
+         * Used to reference the data object in the template text.
+         *
+         * @memberOf _.templateSettings
+         * @type {string}
+         */
+        "variable": "",
+        /**
+         * Used to import variables into the compiled template.
+         *
+         * @memberOf _.templateSettings
+         * @type {Object}
+         */
+        "imports": {
+          /**
+           * A reference to the `lodash` function.
+           *
+           * @memberOf _.templateSettings.imports
+           * @type {Function}
+           */
+          "_": lodash2
+        }
+      };
+      lodash2.prototype = baseLodash2.prototype;
+      lodash2.prototype.constructor = lodash2;
+      LodashWrapper2.prototype = baseCreate2(baseLodash2.prototype);
+      LodashWrapper2.prototype.constructor = LodashWrapper2;
+      function LazyWrapper2(value) {
+        this.__wrapped__ = value;
+        this.__actions__ = [];
+        this.__dir__ = 1;
+        this.__filtered__ = false;
+        this.__iteratees__ = [];
+        this.__takeCount__ = MAX_ARRAY_LENGTH2;
+        this.__views__ = [];
+      }
+      function lazyClone2() {
+        var result3 = new LazyWrapper2(this.__wrapped__);
+        result3.__actions__ = copyArray2(this.__actions__);
+        result3.__dir__ = this.__dir__;
+        result3.__filtered__ = this.__filtered__;
+        result3.__iteratees__ = copyArray2(this.__iteratees__);
+        result3.__takeCount__ = this.__takeCount__;
+        result3.__views__ = copyArray2(this.__views__);
+        return result3;
+      }
+      function lazyReverse2() {
+        if (this.__filtered__) {
+          var result3 = new LazyWrapper2(this);
+          result3.__dir__ = -1;
+          result3.__filtered__ = true;
+        } else {
+          result3 = this.clone();
+          result3.__dir__ *= -1;
+        }
+        return result3;
+      }
+      function lazyValue2() {
+        var array2 = this.__wrapped__.value(), dir = this.__dir__, isArr = isArray2(array2), isRight = dir < 0, arrLength = isArr ? array2.length : 0, view = getView2(0, arrLength, this.__views__), start = view.start, end = view.end, length = end - start, index = isRight ? end : start - 1, iteratees = this.__iteratees__, iterLength = iteratees.length, resIndex = 0, takeCount = nativeMin2(length, this.__takeCount__);
+        if (!isArr || !isRight && arrLength == length && takeCount == length) {
+          return baseWrapperValue2(array2, this.__actions__);
+        }
+        var result3 = [];
+        outer:
+          while (length-- && resIndex < takeCount) {
+            index += dir;
+            var iterIndex = -1, value = array2[index];
+            while (++iterIndex < iterLength) {
+              var data = iteratees[iterIndex], iteratee3 = data.iteratee, type = data.type, computed2 = iteratee3(value);
+              if (type == LAZY_MAP_FLAG2) {
+                value = computed2;
+              } else if (!computed2) {
+                if (type == LAZY_FILTER_FLAG2) {
+                  continue outer;
+                } else {
+                  break outer;
+                }
+              }
+            }
+            result3[resIndex++] = value;
+          }
+        return result3;
+      }
+      LazyWrapper2.prototype = baseCreate2(baseLodash2.prototype);
+      LazyWrapper2.prototype.constructor = LazyWrapper2;
+      function Hash2(entries) {
+        var index = -1, length = entries == null ? 0 : entries.length;
+        this.clear();
+        while (++index < length) {
+          var entry = entries[index];
+          this.set(entry[0], entry[1]);
+        }
+      }
+      function hashClear2() {
+        this.__data__ = nativeCreate2 ? nativeCreate2(null) : {};
+        this.size = 0;
+      }
+      function hashDelete2(key) {
+        var result3 = this.has(key) && delete this.__data__[key];
+        this.size -= result3 ? 1 : 0;
+        return result3;
+      }
+      function hashGet2(key) {
+        var data = this.__data__;
+        if (nativeCreate2) {
+          var result3 = data[key];
+          return result3 === HASH_UNDEFINED2 ? undefined$1 : result3;
+        }
+        return hasOwnProperty2.call(data, key) ? data[key] : undefined$1;
+      }
+      function hashHas2(key) {
+        var data = this.__data__;
+        return nativeCreate2 ? data[key] !== undefined$1 : hasOwnProperty2.call(data, key);
+      }
+      function hashSet2(key, value) {
+        var data = this.__data__;
+        this.size += this.has(key) ? 0 : 1;
+        data[key] = nativeCreate2 && value === undefined$1 ? HASH_UNDEFINED2 : value;
+        return this;
+      }
+      Hash2.prototype.clear = hashClear2;
+      Hash2.prototype["delete"] = hashDelete2;
+      Hash2.prototype.get = hashGet2;
+      Hash2.prototype.has = hashHas2;
+      Hash2.prototype.set = hashSet2;
+      function ListCache2(entries) {
+        var index = -1, length = entries == null ? 0 : entries.length;
+        this.clear();
+        while (++index < length) {
+          var entry = entries[index];
+          this.set(entry[0], entry[1]);
+        }
+      }
+      function listCacheClear2() {
+        this.__data__ = [];
+        this.size = 0;
+      }
+      function listCacheDelete2(key) {
+        var data = this.__data__, index = assocIndexOf2(data, key);
+        if (index < 0) {
+          return false;
+        }
+        var lastIndex = data.length - 1;
+        if (index == lastIndex) {
+          data.pop();
+        } else {
+          splice2.call(data, index, 1);
+        }
+        --this.size;
+        return true;
+      }
+      function listCacheGet2(key) {
+        var data = this.__data__, index = assocIndexOf2(data, key);
+        return index < 0 ? undefined$1 : data[index][1];
+      }
+      function listCacheHas2(key) {
+        return assocIndexOf2(this.__data__, key) > -1;
+      }
+      function listCacheSet2(key, value) {
+        var data = this.__data__, index = assocIndexOf2(data, key);
+        if (index < 0) {
+          ++this.size;
+          data.push([key, value]);
+        } else {
+          data[index][1] = value;
+        }
+        return this;
+      }
+      ListCache2.prototype.clear = listCacheClear2;
+      ListCache2.prototype["delete"] = listCacheDelete2;
+      ListCache2.prototype.get = listCacheGet2;
+      ListCache2.prototype.has = listCacheHas2;
+      ListCache2.prototype.set = listCacheSet2;
+      function MapCache2(entries) {
+        var index = -1, length = entries == null ? 0 : entries.length;
+        this.clear();
+        while (++index < length) {
+          var entry = entries[index];
+          this.set(entry[0], entry[1]);
+        }
+      }
+      function mapCacheClear2() {
+        this.size = 0;
+        this.__data__ = {
+          "hash": new Hash2(),
+          "map": new (Map2 || ListCache2)(),
+          "string": new Hash2()
+        };
+      }
+      function mapCacheDelete2(key) {
+        var result3 = getMapData2(this, key)["delete"](key);
+        this.size -= result3 ? 1 : 0;
+        return result3;
+      }
+      function mapCacheGet2(key) {
+        return getMapData2(this, key).get(key);
+      }
+      function mapCacheHas2(key) {
+        return getMapData2(this, key).has(key);
+      }
+      function mapCacheSet2(key, value) {
+        var data = getMapData2(this, key), size3 = data.size;
+        data.set(key, value);
+        this.size += data.size == size3 ? 0 : 1;
+        return this;
+      }
+      MapCache2.prototype.clear = mapCacheClear2;
+      MapCache2.prototype["delete"] = mapCacheDelete2;
+      MapCache2.prototype.get = mapCacheGet2;
+      MapCache2.prototype.has = mapCacheHas2;
+      MapCache2.prototype.set = mapCacheSet2;
+      function SetCache2(values3) {
+        var index = -1, length = values3 == null ? 0 : values3.length;
+        this.__data__ = new MapCache2();
+        while (++index < length) {
+          this.add(values3[index]);
+        }
+      }
+      function setCacheAdd2(value) {
+        this.__data__.set(value, HASH_UNDEFINED2);
+        return this;
+      }
+      function setCacheHas2(value) {
+        return this.__data__.has(value);
+      }
+      SetCache2.prototype.add = SetCache2.prototype.push = setCacheAdd2;
+      SetCache2.prototype.has = setCacheHas2;
+      function Stack2(entries) {
+        var data = this.__data__ = new ListCache2(entries);
+        this.size = data.size;
+      }
+      function stackClear2() {
+        this.__data__ = new ListCache2();
+        this.size = 0;
+      }
+      function stackDelete2(key) {
+        var data = this.__data__, result3 = data["delete"](key);
+        this.size = data.size;
+        return result3;
+      }
+      function stackGet2(key) {
+        return this.__data__.get(key);
+      }
+      function stackHas2(key) {
+        return this.__data__.has(key);
+      }
+      function stackSet2(key, value) {
+        var data = this.__data__;
+        if (data instanceof ListCache2) {
+          var pairs = data.__data__;
+          if (!Map2 || pairs.length < LARGE_ARRAY_SIZE2 - 1) {
+            pairs.push([key, value]);
+            this.size = ++data.size;
+            return this;
+          }
+          data = this.__data__ = new MapCache2(pairs);
+        }
+        data.set(key, value);
+        this.size = data.size;
+        return this;
+      }
+      Stack2.prototype.clear = stackClear2;
+      Stack2.prototype["delete"] = stackDelete2;
+      Stack2.prototype.get = stackGet2;
+      Stack2.prototype.has = stackHas2;
+      Stack2.prototype.set = stackSet2;
+      function arrayLikeKeys2(value, inherited) {
+        var isArr = isArray2(value), isArg = !isArr && isArguments2(value), isBuff = !isArr && !isArg && isBuffer2(value), isType = !isArr && !isArg && !isBuff && isTypedArray2(value), skipIndexes = isArr || isArg || isBuff || isType, result3 = skipIndexes ? baseTimes2(value.length, String2) : [], length = result3.length;
+        for (var key in value) {
+          if ((inherited || hasOwnProperty2.call(value, key)) && !(skipIndexes && // Safari 9 has enumerable `arguments.length` in strict mode.
+          (key == "length" || // Node.js 0.10 has enumerable non-index properties on buffers.
+          isBuff && (key == "offset" || key == "parent") || // PhantomJS 2 has enumerable non-index properties on typed arrays.
+          isType && (key == "buffer" || key == "byteLength" || key == "byteOffset") || // Skip index properties.
+          isIndex2(key, length)))) {
+            result3.push(key);
+          }
+        }
+        return result3;
+      }
+      function arraySample2(array2) {
+        var length = array2.length;
+        return length ? array2[baseRandom2(0, length - 1)] : undefined$1;
+      }
+      function arraySampleSize2(array2, n) {
+        return shuffleSelf2(copyArray2(array2), baseClamp2(n, 0, array2.length));
+      }
+      function arrayShuffle2(array2) {
+        return shuffleSelf2(copyArray2(array2));
+      }
+      function assignMergeValue2(object2, key, value) {
+        if (value !== undefined$1 && !eq2(object2[key], value) || value === undefined$1 && !(key in object2)) {
+          baseAssignValue2(object2, key, value);
+        }
+      }
+      function assignValue2(object2, key, value) {
+        var objValue = object2[key];
+        if (!(hasOwnProperty2.call(object2, key) && eq2(objValue, value)) || value === undefined$1 && !(key in object2)) {
+          baseAssignValue2(object2, key, value);
+        }
+      }
+      function assocIndexOf2(array2, key) {
+        var length = array2.length;
+        while (length--) {
+          if (eq2(array2[length][0], key)) {
+            return length;
+          }
+        }
+        return -1;
+      }
+      function baseAggregator2(collection2, setter, iteratee3, accumulator) {
+        baseEach2(collection2, function(value, key, collection3) {
+          setter(accumulator, value, iteratee3(value), collection3);
+        });
+        return accumulator;
+      }
+      function baseAssign2(object2, source) {
+        return object2 && copyObject2(source, keys2(source), object2);
+      }
+      function baseAssignIn2(object2, source) {
+        return object2 && copyObject2(source, keysIn2(source), object2);
+      }
+      function baseAssignValue2(object2, key, value) {
+        if (key == "__proto__" && defineProperty2) {
+          defineProperty2(object2, key, {
+            "configurable": true,
+            "enumerable": true,
+            "value": value,
+            "writable": true
+          });
+        } else {
+          object2[key] = value;
+        }
+      }
+      function baseAt2(object2, paths) {
+        var index = -1, length = paths.length, result3 = Array2(length), skip = object2 == null;
+        while (++index < length) {
+          result3[index] = skip ? undefined$1 : get2(object2, paths[index]);
+        }
+        return result3;
+      }
+      function baseClamp2(number2, lower, upper) {
+        if (number2 === number2) {
+          if (upper !== undefined$1) {
+            number2 = number2 <= upper ? number2 : upper;
+          }
+          if (lower !== undefined$1) {
+            number2 = number2 >= lower ? number2 : lower;
+          }
+        }
+        return number2;
+      }
+      function baseClone2(value, bitmask, customizer, key, object2, stack2) {
+        var result3, isDeep = bitmask & CLONE_DEEP_FLAG2, isFlat = bitmask & CLONE_FLAT_FLAG2, isFull = bitmask & CLONE_SYMBOLS_FLAG2;
+        if (customizer) {
+          result3 = object2 ? customizer(value, key, object2, stack2) : customizer(value);
+        }
+        if (result3 !== undefined$1) {
+          return result3;
+        }
+        if (!isObject2(value)) {
+          return value;
+        }
+        var isArr = isArray2(value);
+        if (isArr) {
+          result3 = initCloneArray2(value);
+          if (!isDeep) {
+            return copyArray2(value, result3);
+          }
+        } else {
+          var tag = getTag2(value), isFunc = tag == funcTag2 || tag == genTag2;
+          if (isBuffer2(value)) {
+            return cloneBuffer2(value, isDeep);
+          }
+          if (tag == objectTag2 || tag == argsTag2 || isFunc && !object2) {
+            result3 = isFlat || isFunc ? {} : initCloneObject2(value);
+            if (!isDeep) {
+              return isFlat ? copySymbolsIn2(value, baseAssignIn2(result3, value)) : copySymbols2(value, baseAssign2(result3, value));
+            }
+          } else {
+            if (!cloneableTags2[tag]) {
+              return object2 ? value : {};
+            }
+            result3 = initCloneByTag2(value, tag, isDeep);
+          }
+        }
+        stack2 || (stack2 = new Stack2());
+        var stacked = stack2.get(value);
+        if (stacked) {
+          return stacked;
+        }
+        stack2.set(value, result3);
+        if (isSet2(value)) {
+          value.forEach(function(subValue) {
+            result3.add(baseClone2(subValue, bitmask, customizer, subValue, value, stack2));
+          });
+        } else if (isMap2(value)) {
+          value.forEach(function(subValue, key2) {
+            result3.set(key2, baseClone2(subValue, bitmask, customizer, key2, value, stack2));
+          });
+        }
+        var keysFunc = isFull ? isFlat ? getAllKeysIn2 : getAllKeys2 : isFlat ? keysIn2 : keys2;
+        var props = isArr ? undefined$1 : keysFunc(value);
+        arrayEach2(props || value, function(subValue, key2) {
+          if (props) {
+            key2 = subValue;
+            subValue = value[key2];
+          }
+          assignValue2(result3, key2, baseClone2(subValue, bitmask, customizer, key2, value, stack2));
+        });
+        return result3;
+      }
+      function baseConforms2(source) {
+        var props = keys2(source);
+        return function(object2) {
+          return baseConformsTo2(object2, source, props);
+        };
+      }
+      function baseConformsTo2(object2, source, props) {
+        var length = props.length;
+        if (object2 == null) {
+          return !length;
+        }
+        object2 = Object2(object2);
+        while (length--) {
+          var key = props[length], predicate = source[key], value = object2[key];
+          if (value === undefined$1 && !(key in object2) || !predicate(value)) {
+            return false;
+          }
+        }
+        return true;
+      }
+      function baseDelay2(func2, wait, args) {
+        if (typeof func2 != "function") {
+          throw new TypeError2(FUNC_ERROR_TEXT2);
+        }
+        return setTimeout2(function() {
+          func2.apply(undefined$1, args);
+        }, wait);
+      }
+      function baseDifference2(array2, values3, iteratee3, comparator2) {
+        var index = -1, includes3 = arrayIncludes2, isCommon = true, length = array2.length, result3 = [], valuesLength = values3.length;
+        if (!length) {
+          return result3;
+        }
+        if (iteratee3) {
+          values3 = arrayMap2(values3, baseUnary2(iteratee3));
+        }
+        if (comparator2) {
+          includes3 = arrayIncludesWith2;
+          isCommon = false;
+        } else if (values3.length >= LARGE_ARRAY_SIZE2) {
+          includes3 = cacheHas2;
+          isCommon = false;
+          values3 = new SetCache2(values3);
+        }
+        outer:
+          while (++index < length) {
+            var value = array2[index], computed2 = iteratee3 == null ? value : iteratee3(value);
+            value = comparator2 || value !== 0 ? value : 0;
+            if (isCommon && computed2 === computed2) {
+              var valuesIndex = valuesLength;
+              while (valuesIndex--) {
+                if (values3[valuesIndex] === computed2) {
+                  continue outer;
+                }
+              }
+              result3.push(value);
+            } else if (!includes3(values3, computed2, comparator2)) {
+              result3.push(value);
+            }
+          }
+        return result3;
+      }
+      var baseEach2 = createBaseEach2(baseForOwn2);
+      var baseEachRight2 = createBaseEach2(baseForOwnRight2, true);
+      function baseEvery2(collection2, predicate) {
+        var result3 = true;
+        baseEach2(collection2, function(value, index, collection3) {
+          result3 = !!predicate(value, index, collection3);
+          return result3;
+        });
+        return result3;
+      }
+      function baseExtremum2(array2, iteratee3, comparator2) {
+        var index = -1, length = array2.length;
+        while (++index < length) {
+          var value = array2[index], current = iteratee3(value);
+          if (current != null && (computed2 === undefined$1 ? current === current && !isSymbol2(current) : comparator2(current, computed2))) {
+            var computed2 = current, result3 = value;
+          }
+        }
+        return result3;
+      }
+      function baseFill2(array2, value, start, end) {
+        var length = array2.length;
+        start = toInteger2(start);
+        if (start < 0) {
+          start = -start > length ? 0 : length + start;
+        }
+        end = end === undefined$1 || end > length ? length : toInteger2(end);
+        if (end < 0) {
+          end += length;
+        }
+        end = start > end ? 0 : toLength2(end);
+        while (start < end) {
+          array2[start++] = value;
+        }
+        return array2;
+      }
+      function baseFilter2(collection2, predicate) {
+        var result3 = [];
+        baseEach2(collection2, function(value, index, collection3) {
+          if (predicate(value, index, collection3)) {
+            result3.push(value);
+          }
+        });
+        return result3;
+      }
+      function baseFlatten2(array2, depth, predicate, isStrict, result3) {
+        var index = -1, length = array2.length;
+        predicate || (predicate = isFlattenable2);
+        result3 || (result3 = []);
+        while (++index < length) {
+          var value = array2[index];
+          if (depth > 0 && predicate(value)) {
+            if (depth > 1) {
+              baseFlatten2(value, depth - 1, predicate, isStrict, result3);
+            } else {
+              arrayPush2(result3, value);
+            }
+          } else if (!isStrict) {
+            result3[result3.length] = value;
+          }
+        }
+        return result3;
+      }
+      var baseFor2 = createBaseFor2();
+      var baseForRight2 = createBaseFor2(true);
+      function baseForOwn2(object2, iteratee3) {
+        return object2 && baseFor2(object2, iteratee3, keys2);
+      }
+      function baseForOwnRight2(object2, iteratee3) {
+        return object2 && baseForRight2(object2, iteratee3, keys2);
+      }
+      function baseFunctions2(object2, props) {
+        return arrayFilter2(props, function(key) {
+          return isFunction2(object2[key]);
+        });
+      }
+      function baseGet2(object2, path) {
+        path = castPath2(path, object2);
+        var index = 0, length = path.length;
+        while (object2 != null && index < length) {
+          object2 = object2[toKey2(path[index++])];
+        }
+        return index && index == length ? object2 : undefined$1;
+      }
+      function baseGetAllKeys2(object2, keysFunc, symbolsFunc) {
+        var result3 = keysFunc(object2);
+        return isArray2(object2) ? result3 : arrayPush2(result3, symbolsFunc(object2));
+      }
+      function baseGetTag2(value) {
+        if (value == null) {
+          return value === undefined$1 ? undefinedTag2 : nullTag2;
+        }
+        return symToStringTag2 && symToStringTag2 in Object2(value) ? getRawTag2(value) : objectToString2(value);
+      }
+      function baseGt2(value, other) {
+        return value > other;
+      }
+      function baseHas2(object2, key) {
+        return object2 != null && hasOwnProperty2.call(object2, key);
+      }
+      function baseHasIn2(object2, key) {
+        return object2 != null && key in Object2(object2);
+      }
+      function baseInRange2(number2, start, end) {
+        return number2 >= nativeMin2(start, end) && number2 < nativeMax2(start, end);
+      }
+      function baseIntersection2(arrays, iteratee3, comparator2) {
+        var includes3 = comparator2 ? arrayIncludesWith2 : arrayIncludes2, length = arrays[0].length, othLength = arrays.length, othIndex = othLength, caches = Array2(othLength), maxLength = Infinity, result3 = [];
+        while (othIndex--) {
+          var array2 = arrays[othIndex];
+          if (othIndex && iteratee3) {
+            array2 = arrayMap2(array2, baseUnary2(iteratee3));
+          }
+          maxLength = nativeMin2(array2.length, maxLength);
+          caches[othIndex] = !comparator2 && (iteratee3 || length >= 120 && array2.length >= 120) ? new SetCache2(othIndex && array2) : undefined$1;
+        }
+        array2 = arrays[0];
+        var index = -1, seen = caches[0];
+        outer:
+          while (++index < length && result3.length < maxLength) {
+            var value = array2[index], computed2 = iteratee3 ? iteratee3(value) : value;
+            value = comparator2 || value !== 0 ? value : 0;
+            if (!(seen ? cacheHas2(seen, computed2) : includes3(result3, computed2, comparator2))) {
+              othIndex = othLength;
+              while (--othIndex) {
+                var cache = caches[othIndex];
+                if (!(cache ? cacheHas2(cache, computed2) : includes3(arrays[othIndex], computed2, comparator2))) {
+                  continue outer;
+                }
+              }
+              if (seen) {
+                seen.push(computed2);
+              }
+              result3.push(value);
+            }
+          }
+        return result3;
+      }
+      function baseInverter2(object2, setter, iteratee3, accumulator) {
+        baseForOwn2(object2, function(value, key, object3) {
+          setter(accumulator, iteratee3(value), key, object3);
+        });
+        return accumulator;
+      }
+      function baseInvoke2(object2, path, args) {
+        path = castPath2(path, object2);
+        object2 = parent2(object2, path);
+        var func2 = object2 == null ? object2 : object2[toKey2(last2(path))];
+        return func2 == null ? undefined$1 : apply2(func2, object2, args);
+      }
+      function baseIsArguments2(value) {
+        return isObjectLike2(value) && baseGetTag2(value) == argsTag2;
+      }
+      function baseIsArrayBuffer2(value) {
+        return isObjectLike2(value) && baseGetTag2(value) == arrayBufferTag2;
+      }
+      function baseIsDate2(value) {
+        return isObjectLike2(value) && baseGetTag2(value) == dateTag2;
+      }
+      function baseIsEqual2(value, other, bitmask, customizer, stack2) {
+        if (value === other) {
+          return true;
+        }
+        if (value == null || other == null || !isObjectLike2(value) && !isObjectLike2(other)) {
+          return value !== value && other !== other;
+        }
+        return baseIsEqualDeep2(value, other, bitmask, customizer, baseIsEqual2, stack2);
+      }
+      function baseIsEqualDeep2(object2, other, bitmask, customizer, equalFunc, stack2) {
+        var objIsArr = isArray2(object2), othIsArr = isArray2(other), objTag = objIsArr ? arrayTag2 : getTag2(object2), othTag = othIsArr ? arrayTag2 : getTag2(other);
+        objTag = objTag == argsTag2 ? objectTag2 : objTag;
+        othTag = othTag == argsTag2 ? objectTag2 : othTag;
+        var objIsObj = objTag == objectTag2, othIsObj = othTag == objectTag2, isSameTag = objTag == othTag;
+        if (isSameTag && isBuffer2(object2)) {
+          if (!isBuffer2(other)) {
+            return false;
+          }
+          objIsArr = true;
+          objIsObj = false;
+        }
+        if (isSameTag && !objIsObj) {
+          stack2 || (stack2 = new Stack2());
+          return objIsArr || isTypedArray2(object2) ? equalArrays2(object2, other, bitmask, customizer, equalFunc, stack2) : equalByTag2(object2, other, objTag, bitmask, customizer, equalFunc, stack2);
+        }
+        if (!(bitmask & COMPARE_PARTIAL_FLAG2)) {
+          var objIsWrapped = objIsObj && hasOwnProperty2.call(object2, "__wrapped__"), othIsWrapped = othIsObj && hasOwnProperty2.call(other, "__wrapped__");
+          if (objIsWrapped || othIsWrapped) {
+            var objUnwrapped = objIsWrapped ? object2.value() : object2, othUnwrapped = othIsWrapped ? other.value() : other;
+            stack2 || (stack2 = new Stack2());
+            return equalFunc(objUnwrapped, othUnwrapped, bitmask, customizer, stack2);
+          }
+        }
+        if (!isSameTag) {
+          return false;
+        }
+        stack2 || (stack2 = new Stack2());
+        return equalObjects2(object2, other, bitmask, customizer, equalFunc, stack2);
+      }
+      function baseIsMap2(value) {
+        return isObjectLike2(value) && getTag2(value) == mapTag2;
+      }
+      function baseIsMatch2(object2, source, matchData, customizer) {
+        var index = matchData.length, length = index, noCustomizer = !customizer;
+        if (object2 == null) {
+          return !length;
+        }
+        object2 = Object2(object2);
+        while (index--) {
+          var data = matchData[index];
+          if (noCustomizer && data[2] ? data[1] !== object2[data[0]] : !(data[0] in object2)) {
+            return false;
+          }
+        }
+        while (++index < length) {
+          data = matchData[index];
+          var key = data[0], objValue = object2[key], srcValue = data[1];
+          if (noCustomizer && data[2]) {
+            if (objValue === undefined$1 && !(key in object2)) {
+              return false;
+            }
+          } else {
+            var stack2 = new Stack2();
+            if (customizer) {
+              var result3 = customizer(objValue, srcValue, key, object2, source, stack2);
+            }
+            if (!(result3 === undefined$1 ? baseIsEqual2(srcValue, objValue, COMPARE_PARTIAL_FLAG2 | COMPARE_UNORDERED_FLAG2, customizer, stack2) : result3)) {
+              return false;
+            }
+          }
+        }
+        return true;
+      }
+      function baseIsNative2(value) {
+        if (!isObject2(value) || isMasked2(value)) {
+          return false;
+        }
+        var pattern = isFunction2(value) ? reIsNative2 : reIsHostCtor2;
+        return pattern.test(toSource2(value));
+      }
+      function baseIsRegExp2(value) {
+        return isObjectLike2(value) && baseGetTag2(value) == regexpTag2;
+      }
+      function baseIsSet2(value) {
+        return isObjectLike2(value) && getTag2(value) == setTag2;
+      }
+      function baseIsTypedArray2(value) {
+        return isObjectLike2(value) && isLength2(value.length) && !!typedArrayTags2[baseGetTag2(value)];
+      }
+      function baseIteratee2(value) {
+        if (typeof value == "function") {
+          return value;
+        }
+        if (value == null) {
+          return identity2;
+        }
+        if (typeof value == "object") {
+          return isArray2(value) ? baseMatchesProperty2(value[0], value[1]) : baseMatches2(value);
+        }
+        return property2(value);
+      }
+      function baseKeys2(object2) {
+        if (!isPrototype2(object2)) {
+          return nativeKeys2(object2);
+        }
+        var result3 = [];
+        for (var key in Object2(object2)) {
+          if (hasOwnProperty2.call(object2, key) && key != "constructor") {
+            result3.push(key);
+          }
+        }
+        return result3;
+      }
+      function baseKeysIn2(object2) {
+        if (!isObject2(object2)) {
+          return nativeKeysIn2(object2);
+        }
+        var isProto = isPrototype2(object2), result3 = [];
+        for (var key in object2) {
+          if (!(key == "constructor" && (isProto || !hasOwnProperty2.call(object2, key)))) {
+            result3.push(key);
+          }
+        }
+        return result3;
+      }
+      function baseLt2(value, other) {
+        return value < other;
+      }
+      function baseMap2(collection2, iteratee3) {
+        var index = -1, result3 = isArrayLike2(collection2) ? Array2(collection2.length) : [];
+        baseEach2(collection2, function(value, key, collection3) {
+          result3[++index] = iteratee3(value, key, collection3);
+        });
+        return result3;
+      }
+      function baseMatches2(source) {
+        var matchData = getMatchData2(source);
+        if (matchData.length == 1 && matchData[0][2]) {
+          return matchesStrictComparable2(matchData[0][0], matchData[0][1]);
+        }
+        return function(object2) {
+          return object2 === source || baseIsMatch2(object2, source, matchData);
+        };
+      }
+      function baseMatchesProperty2(path, srcValue) {
+        if (isKey2(path) && isStrictComparable2(srcValue)) {
+          return matchesStrictComparable2(toKey2(path), srcValue);
+        }
+        return function(object2) {
+          var objValue = get2(object2, path);
+          return objValue === undefined$1 && objValue === srcValue ? hasIn2(object2, path) : baseIsEqual2(srcValue, objValue, COMPARE_PARTIAL_FLAG2 | COMPARE_UNORDERED_FLAG2);
+        };
+      }
+      function baseMerge2(object2, source, srcIndex, customizer, stack2) {
+        if (object2 === source) {
+          return;
+        }
+        baseFor2(source, function(srcValue, key) {
+          stack2 || (stack2 = new Stack2());
+          if (isObject2(srcValue)) {
+            baseMergeDeep2(object2, source, key, srcIndex, baseMerge2, customizer, stack2);
+          } else {
+            var newValue = customizer ? customizer(safeGet2(object2, key), srcValue, key + "", object2, source, stack2) : undefined$1;
+            if (newValue === undefined$1) {
+              newValue = srcValue;
+            }
+            assignMergeValue2(object2, key, newValue);
+          }
+        }, keysIn2);
+      }
+      function baseMergeDeep2(object2, source, key, srcIndex, mergeFunc, customizer, stack2) {
+        var objValue = safeGet2(object2, key), srcValue = safeGet2(source, key), stacked = stack2.get(srcValue);
+        if (stacked) {
+          assignMergeValue2(object2, key, stacked);
+          return;
+        }
+        var newValue = customizer ? customizer(objValue, srcValue, key + "", object2, source, stack2) : undefined$1;
+        var isCommon = newValue === undefined$1;
+        if (isCommon) {
+          var isArr = isArray2(srcValue), isBuff = !isArr && isBuffer2(srcValue), isTyped = !isArr && !isBuff && isTypedArray2(srcValue);
+          newValue = srcValue;
+          if (isArr || isBuff || isTyped) {
+            if (isArray2(objValue)) {
+              newValue = objValue;
+            } else if (isArrayLikeObject2(objValue)) {
+              newValue = copyArray2(objValue);
+            } else if (isBuff) {
+              isCommon = false;
+              newValue = cloneBuffer2(srcValue, true);
+            } else if (isTyped) {
+              isCommon = false;
+              newValue = cloneTypedArray2(srcValue, true);
+            } else {
+              newValue = [];
+            }
+          } else if (isPlainObject2(srcValue) || isArguments2(srcValue)) {
+            newValue = objValue;
+            if (isArguments2(objValue)) {
+              newValue = toPlainObject2(objValue);
+            } else if (!isObject2(objValue) || isFunction2(objValue)) {
+              newValue = initCloneObject2(srcValue);
+            }
+          } else {
+            isCommon = false;
+          }
+        }
+        if (isCommon) {
+          stack2.set(srcValue, newValue);
+          mergeFunc(newValue, srcValue, srcIndex, customizer, stack2);
+          stack2["delete"](srcValue);
+        }
+        assignMergeValue2(object2, key, newValue);
+      }
+      function baseNth2(array2, n) {
+        var length = array2.length;
+        if (!length) {
+          return;
+        }
+        n += n < 0 ? length : 0;
+        return isIndex2(n, length) ? array2[n] : undefined$1;
+      }
+      function baseOrderBy2(collection2, iteratees, orders) {
+        if (iteratees.length) {
+          iteratees = arrayMap2(iteratees, function(iteratee3) {
+            if (isArray2(iteratee3)) {
+              return function(value) {
+                return baseGet2(value, iteratee3.length === 1 ? iteratee3[0] : iteratee3);
+              };
+            }
+            return iteratee3;
+          });
+        } else {
+          iteratees = [identity2];
+        }
+        var index = -1;
+        iteratees = arrayMap2(iteratees, baseUnary2(getIteratee()));
+        var result3 = baseMap2(collection2, function(value, key, collection3) {
+          var criteria = arrayMap2(iteratees, function(iteratee3) {
+            return iteratee3(value);
+          });
+          return { "criteria": criteria, "index": ++index, "value": value };
+        });
+        return baseSortBy2(result3, function(object2, other) {
+          return compareMultiple2(object2, other, orders);
+        });
+      }
+      function basePick2(object2, paths) {
+        return basePickBy2(object2, paths, function(value, path) {
+          return hasIn2(object2, path);
+        });
+      }
+      function basePickBy2(object2, paths, predicate) {
+        var index = -1, length = paths.length, result3 = {};
+        while (++index < length) {
+          var path = paths[index], value = baseGet2(object2, path);
+          if (predicate(value, path)) {
+            baseSet2(result3, castPath2(path, object2), value);
+          }
+        }
+        return result3;
+      }
+      function basePropertyDeep2(path) {
+        return function(object2) {
+          return baseGet2(object2, path);
+        };
+      }
+      function basePullAll2(array2, values3, iteratee3, comparator2) {
+        var indexOf3 = comparator2 ? baseIndexOfWith2 : baseIndexOf2, index = -1, length = values3.length, seen = array2;
+        if (array2 === values3) {
+          values3 = copyArray2(values3);
+        }
+        if (iteratee3) {
+          seen = arrayMap2(array2, baseUnary2(iteratee3));
+        }
+        while (++index < length) {
+          var fromIndex = 0, value = values3[index], computed2 = iteratee3 ? iteratee3(value) : value;
+          while ((fromIndex = indexOf3(seen, computed2, fromIndex, comparator2)) > -1) {
+            if (seen !== array2) {
+              splice2.call(seen, fromIndex, 1);
+            }
+            splice2.call(array2, fromIndex, 1);
+          }
+        }
+        return array2;
+      }
+      function basePullAt2(array2, indexes) {
+        var length = array2 ? indexes.length : 0, lastIndex = length - 1;
+        while (length--) {
+          var index = indexes[length];
+          if (length == lastIndex || index !== previous) {
+            var previous = index;
+            if (isIndex2(index)) {
+              splice2.call(array2, index, 1);
+            } else {
+              baseUnset2(array2, index);
+            }
+          }
+        }
+        return array2;
+      }
+      function baseRandom2(lower, upper) {
+        return lower + nativeFloor2(nativeRandom2() * (upper - lower + 1));
+      }
+      function baseRange2(start, end, step, fromRight) {
+        var index = -1, length = nativeMax2(nativeCeil2((end - start) / (step || 1)), 0), result3 = Array2(length);
+        while (length--) {
+          result3[fromRight ? length : ++index] = start;
+          start += step;
+        }
+        return result3;
+      }
+      function baseRepeat2(string2, n) {
+        var result3 = "";
+        if (!string2 || n < 1 || n > MAX_SAFE_INTEGER2) {
+          return result3;
+        }
+        do {
+          if (n % 2) {
+            result3 += string2;
+          }
+          n = nativeFloor2(n / 2);
+          if (n) {
+            string2 += string2;
+          }
+        } while (n);
+        return result3;
+      }
+      function baseRest2(func2, start) {
+        return setToString2(overRest2(func2, start, identity2), func2 + "");
+      }
+      function baseSample2(collection2) {
+        return arraySample2(values2(collection2));
+      }
+      function baseSampleSize2(collection2, n) {
+        var array2 = values2(collection2);
+        return shuffleSelf2(array2, baseClamp2(n, 0, array2.length));
+      }
+      function baseSet2(object2, path, value, customizer) {
+        if (!isObject2(object2)) {
+          return object2;
+        }
+        path = castPath2(path, object2);
+        var index = -1, length = path.length, lastIndex = length - 1, nested = object2;
+        while (nested != null && ++index < length) {
+          var key = toKey2(path[index]), newValue = value;
+          if (key === "__proto__" || key === "constructor" || key === "prototype") {
+            return object2;
+          }
+          if (index != lastIndex) {
+            var objValue = nested[key];
+            newValue = customizer ? customizer(objValue, key, nested) : undefined$1;
+            if (newValue === undefined$1) {
+              newValue = isObject2(objValue) ? objValue : isIndex2(path[index + 1]) ? [] : {};
+            }
+          }
+          assignValue2(nested, key, newValue);
+          nested = nested[key];
+        }
+        return object2;
+      }
+      var baseSetData2 = !metaMap2 ? identity2 : function(func2, data) {
+        metaMap2.set(func2, data);
+        return func2;
+      };
+      var baseSetToString2 = !defineProperty2 ? identity2 : function(func2, string2) {
+        return defineProperty2(func2, "toString", {
+          "configurable": true,
+          "enumerable": false,
+          "value": constant2(string2),
+          "writable": true
+        });
+      };
+      function baseShuffle2(collection2) {
+        return shuffleSelf2(values2(collection2));
+      }
+      function baseSlice2(array2, start, end) {
+        var index = -1, length = array2.length;
+        if (start < 0) {
+          start = -start > length ? 0 : length + start;
+        }
+        end = end > length ? length : end;
+        if (end < 0) {
+          end += length;
+        }
+        length = start > end ? 0 : end - start >>> 0;
+        start >>>= 0;
+        var result3 = Array2(length);
+        while (++index < length) {
+          result3[index] = array2[index + start];
+        }
+        return result3;
+      }
+      function baseSome2(collection2, predicate) {
+        var result3;
+        baseEach2(collection2, function(value, index, collection3) {
+          result3 = predicate(value, index, collection3);
+          return !result3;
+        });
+        return !!result3;
+      }
+      function baseSortedIndex2(array2, value, retHighest) {
+        var low = 0, high = array2 == null ? low : array2.length;
+        if (typeof value == "number" && value === value && high <= HALF_MAX_ARRAY_LENGTH2) {
+          while (low < high) {
+            var mid = low + high >>> 1, computed2 = array2[mid];
+            if (computed2 !== null && !isSymbol2(computed2) && (retHighest ? computed2 <= value : computed2 < value)) {
+              low = mid + 1;
+            } else {
+              high = mid;
+            }
+          }
+          return high;
+        }
+        return baseSortedIndexBy2(array2, value, identity2, retHighest);
+      }
+      function baseSortedIndexBy2(array2, value, iteratee3, retHighest) {
+        var low = 0, high = array2 == null ? 0 : array2.length;
+        if (high === 0) {
+          return 0;
+        }
+        value = iteratee3(value);
+        var valIsNaN = value !== value, valIsNull = value === null, valIsSymbol = isSymbol2(value), valIsUndefined = value === undefined$1;
+        while (low < high) {
+          var mid = nativeFloor2((low + high) / 2), computed2 = iteratee3(array2[mid]), othIsDefined = computed2 !== undefined$1, othIsNull = computed2 === null, othIsReflexive = computed2 === computed2, othIsSymbol = isSymbol2(computed2);
+          if (valIsNaN) {
+            var setLow = retHighest || othIsReflexive;
+          } else if (valIsUndefined) {
+            setLow = othIsReflexive && (retHighest || othIsDefined);
+          } else if (valIsNull) {
+            setLow = othIsReflexive && othIsDefined && (retHighest || !othIsNull);
+          } else if (valIsSymbol) {
+            setLow = othIsReflexive && othIsDefined && !othIsNull && (retHighest || !othIsSymbol);
+          } else if (othIsNull || othIsSymbol) {
+            setLow = false;
+          } else {
+            setLow = retHighest ? computed2 <= value : computed2 < value;
+          }
+          if (setLow) {
+            low = mid + 1;
+          } else {
+            high = mid;
+          }
+        }
+        return nativeMin2(high, MAX_ARRAY_INDEX2);
+      }
+      function baseSortedUniq2(array2, iteratee3) {
+        var index = -1, length = array2.length, resIndex = 0, result3 = [];
+        while (++index < length) {
+          var value = array2[index], computed2 = iteratee3 ? iteratee3(value) : value;
+          if (!index || !eq2(computed2, seen)) {
+            var seen = computed2;
+            result3[resIndex++] = value === 0 ? 0 : value;
+          }
+        }
+        return result3;
+      }
+      function baseToNumber2(value) {
+        if (typeof value == "number") {
+          return value;
+        }
+        if (isSymbol2(value)) {
+          return NAN2;
+        }
+        return +value;
+      }
+      function baseToString2(value) {
+        if (typeof value == "string") {
+          return value;
+        }
+        if (isArray2(value)) {
+          return arrayMap2(value, baseToString2) + "";
+        }
+        if (isSymbol2(value)) {
+          return symbolToString2 ? symbolToString2.call(value) : "";
+        }
+        var result3 = value + "";
+        return result3 == "0" && 1 / value == -INFINITY2 ? "-0" : result3;
+      }
+      function baseUniq2(array2, iteratee3, comparator2) {
+        var index = -1, includes3 = arrayIncludes2, length = array2.length, isCommon = true, result3 = [], seen = result3;
+        if (comparator2) {
+          isCommon = false;
+          includes3 = arrayIncludesWith2;
+        } else if (length >= LARGE_ARRAY_SIZE2) {
+          var set3 = iteratee3 ? null : createSet2(array2);
+          if (set3) {
+            return setToArray2(set3);
+          }
+          isCommon = false;
+          includes3 = cacheHas2;
+          seen = new SetCache2();
+        } else {
+          seen = iteratee3 ? [] : result3;
+        }
+        outer:
+          while (++index < length) {
+            var value = array2[index], computed2 = iteratee3 ? iteratee3(value) : value;
+            value = comparator2 || value !== 0 ? value : 0;
+            if (isCommon && computed2 === computed2) {
+              var seenIndex = seen.length;
+              while (seenIndex--) {
+                if (seen[seenIndex] === computed2) {
+                  continue outer;
+                }
+              }
+              if (iteratee3) {
+                seen.push(computed2);
+              }
+              result3.push(value);
+            } else if (!includes3(seen, computed2, comparator2)) {
+              if (seen !== result3) {
+                seen.push(computed2);
+              }
+              result3.push(value);
+            }
+          }
+        return result3;
+      }
+      function baseUnset2(object2, path) {
+        path = castPath2(path, object2);
+        object2 = parent2(object2, path);
+        return object2 == null || delete object2[toKey2(last2(path))];
+      }
+      function baseUpdate2(object2, path, updater, customizer) {
+        return baseSet2(object2, path, updater(baseGet2(object2, path)), customizer);
+      }
+      function baseWhile2(array2, predicate, isDrop, fromRight) {
+        var length = array2.length, index = fromRight ? length : -1;
+        while ((fromRight ? index-- : ++index < length) && predicate(array2[index], index, array2)) {
+        }
+        return isDrop ? baseSlice2(array2, fromRight ? 0 : index, fromRight ? index + 1 : length) : baseSlice2(array2, fromRight ? index + 1 : 0, fromRight ? length : index);
+      }
+      function baseWrapperValue2(value, actions) {
+        var result3 = value;
+        if (result3 instanceof LazyWrapper2) {
+          result3 = result3.value();
+        }
+        return arrayReduce2(actions, function(result4, action) {
+          return action.func.apply(action.thisArg, arrayPush2([result4], action.args));
+        }, result3);
+      }
+      function baseXor2(arrays, iteratee3, comparator2) {
+        var length = arrays.length;
+        if (length < 2) {
+          return length ? baseUniq2(arrays[0]) : [];
+        }
+        var index = -1, result3 = Array2(length);
+        while (++index < length) {
+          var array2 = arrays[index], othIndex = -1;
+          while (++othIndex < length) {
+            if (othIndex != index) {
+              result3[index] = baseDifference2(result3[index] || array2, arrays[othIndex], iteratee3, comparator2);
+            }
+          }
+        }
+        return baseUniq2(baseFlatten2(result3, 1), iteratee3, comparator2);
+      }
+      function baseZipObject2(props, values3, assignFunc) {
+        var index = -1, length = props.length, valsLength = values3.length, result3 = {};
+        while (++index < length) {
+          var value = index < valsLength ? values3[index] : undefined$1;
+          assignFunc(result3, props[index], value);
+        }
+        return result3;
+      }
+      function castArrayLikeObject2(value) {
+        return isArrayLikeObject2(value) ? value : [];
+      }
+      function castFunction2(value) {
+        return typeof value == "function" ? value : identity2;
+      }
+      function castPath2(value, object2) {
+        if (isArray2(value)) {
+          return value;
+        }
+        return isKey2(value, object2) ? [value] : stringToPath2(toString2(value));
+      }
+      var castRest2 = baseRest2;
+      function castSlice2(array2, start, end) {
+        var length = array2.length;
+        end = end === undefined$1 ? length : end;
+        return !start && end >= length ? array2 : baseSlice2(array2, start, end);
+      }
+      var clearTimeout2 = ctxClearTimeout || function(id) {
+        return root2.clearTimeout(id);
+      };
+      function cloneBuffer2(buffer, isDeep) {
+        if (isDeep) {
+          return buffer.slice();
+        }
+        var length = buffer.length, result3 = allocUnsafe2 ? allocUnsafe2(length) : new buffer.constructor(length);
+        buffer.copy(result3);
+        return result3;
+      }
+      function cloneArrayBuffer2(arrayBuffer) {
+        var result3 = new arrayBuffer.constructor(arrayBuffer.byteLength);
+        new Uint8Array2(result3).set(new Uint8Array2(arrayBuffer));
+        return result3;
+      }
+      function cloneDataView2(dataView, isDeep) {
+        var buffer = isDeep ? cloneArrayBuffer2(dataView.buffer) : dataView.buffer;
+        return new dataView.constructor(buffer, dataView.byteOffset, dataView.byteLength);
+      }
+      function cloneRegExp2(regexp) {
+        var result3 = new regexp.constructor(regexp.source, reFlags2.exec(regexp));
+        result3.lastIndex = regexp.lastIndex;
+        return result3;
+      }
+      function cloneSymbol2(symbol) {
+        return symbolValueOf2 ? Object2(symbolValueOf2.call(symbol)) : {};
+      }
+      function cloneTypedArray2(typedArray, isDeep) {
+        var buffer = isDeep ? cloneArrayBuffer2(typedArray.buffer) : typedArray.buffer;
+        return new typedArray.constructor(buffer, typedArray.byteOffset, typedArray.length);
+      }
+      function compareAscending2(value, other) {
+        if (value !== other) {
+          var valIsDefined = value !== undefined$1, valIsNull = value === null, valIsReflexive = value === value, valIsSymbol = isSymbol2(value);
+          var othIsDefined = other !== undefined$1, othIsNull = other === null, othIsReflexive = other === other, othIsSymbol = isSymbol2(other);
+          if (!othIsNull && !othIsSymbol && !valIsSymbol && value > other || valIsSymbol && othIsDefined && othIsReflexive && !othIsNull && !othIsSymbol || valIsNull && othIsDefined && othIsReflexive || !valIsDefined && othIsReflexive || !valIsReflexive) {
+            return 1;
+          }
+          if (!valIsNull && !valIsSymbol && !othIsSymbol && value < other || othIsSymbol && valIsDefined && valIsReflexive && !valIsNull && !valIsSymbol || othIsNull && valIsDefined && valIsReflexive || !othIsDefined && valIsReflexive || !othIsReflexive) {
+            return -1;
+          }
+        }
+        return 0;
+      }
+      function compareMultiple2(object2, other, orders) {
+        var index = -1, objCriteria = object2.criteria, othCriteria = other.criteria, length = objCriteria.length, ordersLength = orders.length;
+        while (++index < length) {
+          var result3 = compareAscending2(objCriteria[index], othCriteria[index]);
+          if (result3) {
+            if (index >= ordersLength) {
+              return result3;
+            }
+            var order = orders[index];
+            return result3 * (order == "desc" ? -1 : 1);
+          }
+        }
+        return object2.index - other.index;
+      }
+      function composeArgs2(args, partials, holders, isCurried) {
+        var argsIndex = -1, argsLength = args.length, holdersLength = holders.length, leftIndex = -1, leftLength = partials.length, rangeLength = nativeMax2(argsLength - holdersLength, 0), result3 = Array2(leftLength + rangeLength), isUncurried = !isCurried;
+        while (++leftIndex < leftLength) {
+          result3[leftIndex] = partials[leftIndex];
+        }
+        while (++argsIndex < holdersLength) {
+          if (isUncurried || argsIndex < argsLength) {
+            result3[holders[argsIndex]] = args[argsIndex];
+          }
+        }
+        while (rangeLength--) {
+          result3[leftIndex++] = args[argsIndex++];
+        }
+        return result3;
+      }
+      function composeArgsRight2(args, partials, holders, isCurried) {
+        var argsIndex = -1, argsLength = args.length, holdersIndex = -1, holdersLength = holders.length, rightIndex = -1, rightLength = partials.length, rangeLength = nativeMax2(argsLength - holdersLength, 0), result3 = Array2(rangeLength + rightLength), isUncurried = !isCurried;
+        while (++argsIndex < rangeLength) {
+          result3[argsIndex] = args[argsIndex];
+        }
+        var offset = argsIndex;
+        while (++rightIndex < rightLength) {
+          result3[offset + rightIndex] = partials[rightIndex];
+        }
+        while (++holdersIndex < holdersLength) {
+          if (isUncurried || argsIndex < argsLength) {
+            result3[offset + holders[holdersIndex]] = args[argsIndex++];
+          }
+        }
+        return result3;
+      }
+      function copyArray2(source, array2) {
+        var index = -1, length = source.length;
+        array2 || (array2 = Array2(length));
+        while (++index < length) {
+          array2[index] = source[index];
+        }
+        return array2;
+      }
+      function copyObject2(source, props, object2, customizer) {
+        var isNew = !object2;
+        object2 || (object2 = {});
+        var index = -1, length = props.length;
+        while (++index < length) {
+          var key = props[index];
+          var newValue = customizer ? customizer(object2[key], source[key], key, object2, source) : undefined$1;
+          if (newValue === undefined$1) {
+            newValue = source[key];
+          }
+          if (isNew) {
+            baseAssignValue2(object2, key, newValue);
+          } else {
+            assignValue2(object2, key, newValue);
+          }
+        }
+        return object2;
+      }
+      function copySymbols2(source, object2) {
+        return copyObject2(source, getSymbols2(source), object2);
+      }
+      function copySymbolsIn2(source, object2) {
+        return copyObject2(source, getSymbolsIn2(source), object2);
+      }
+      function createAggregator2(setter, initializer) {
+        return function(collection2, iteratee3) {
+          var func2 = isArray2(collection2) ? arrayAggregator2 : baseAggregator2, accumulator = initializer ? initializer() : {};
+          return func2(collection2, setter, getIteratee(iteratee3, 2), accumulator);
+        };
+      }
+      function createAssigner2(assigner) {
+        return baseRest2(function(object2, sources) {
+          var index = -1, length = sources.length, customizer = length > 1 ? sources[length - 1] : undefined$1, guard = length > 2 ? sources[2] : undefined$1;
+          customizer = assigner.length > 3 && typeof customizer == "function" ? (length--, customizer) : undefined$1;
+          if (guard && isIterateeCall2(sources[0], sources[1], guard)) {
+            customizer = length < 3 ? undefined$1 : customizer;
+            length = 1;
+          }
+          object2 = Object2(object2);
+          while (++index < length) {
+            var source = sources[index];
+            if (source) {
+              assigner(object2, source, index, customizer);
+            }
+          }
+          return object2;
+        });
+      }
+      function createBaseEach2(eachFunc, fromRight) {
+        return function(collection2, iteratee3) {
+          if (collection2 == null) {
+            return collection2;
+          }
+          if (!isArrayLike2(collection2)) {
+            return eachFunc(collection2, iteratee3);
+          }
+          var length = collection2.length, index = fromRight ? length : -1, iterable = Object2(collection2);
+          while (fromRight ? index-- : ++index < length) {
+            if (iteratee3(iterable[index], index, iterable) === false) {
+              break;
+            }
+          }
+          return collection2;
+        };
+      }
+      function createBaseFor2(fromRight) {
+        return function(object2, iteratee3, keysFunc) {
+          var index = -1, iterable = Object2(object2), props = keysFunc(object2), length = props.length;
+          while (length--) {
+            var key = props[fromRight ? length : ++index];
+            if (iteratee3(iterable[key], key, iterable) === false) {
+              break;
+            }
+          }
+          return object2;
+        };
+      }
+      function createBind2(func2, bitmask, thisArg) {
+        var isBind = bitmask & WRAP_BIND_FLAG2, Ctor = createCtor2(func2);
+        function wrapper() {
+          var fn = this && this !== root2 && this instanceof wrapper ? Ctor : func2;
+          return fn.apply(isBind ? thisArg : this, arguments);
+        }
+        return wrapper;
+      }
+      function createCaseFirst2(methodName) {
+        return function(string2) {
+          string2 = toString2(string2);
+          var strSymbols = hasUnicode2(string2) ? stringToArray2(string2) : undefined$1;
+          var chr = strSymbols ? strSymbols[0] : string2.charAt(0);
+          var trailing = strSymbols ? castSlice2(strSymbols, 1).join("") : string2.slice(1);
+          return chr[methodName]() + trailing;
+        };
+      }
+      function createCompounder2(callback) {
+        return function(string2) {
+          return arrayReduce2(words2(deburr2(string2).replace(reApos2, "")), callback, "");
+        };
+      }
+      function createCtor2(Ctor) {
+        return function() {
+          var args = arguments;
+          switch (args.length) {
+            case 0:
+              return new Ctor();
+            case 1:
+              return new Ctor(args[0]);
+            case 2:
+              return new Ctor(args[0], args[1]);
+            case 3:
+              return new Ctor(args[0], args[1], args[2]);
+            case 4:
+              return new Ctor(args[0], args[1], args[2], args[3]);
+            case 5:
+              return new Ctor(args[0], args[1], args[2], args[3], args[4]);
+            case 6:
+              return new Ctor(args[0], args[1], args[2], args[3], args[4], args[5]);
+            case 7:
+              return new Ctor(args[0], args[1], args[2], args[3], args[4], args[5], args[6]);
+          }
+          var thisBinding = baseCreate2(Ctor.prototype), result3 = Ctor.apply(thisBinding, args);
+          return isObject2(result3) ? result3 : thisBinding;
+        };
+      }
+      function createCurry2(func2, bitmask, arity) {
+        var Ctor = createCtor2(func2);
+        function wrapper() {
+          var length = arguments.length, args = Array2(length), index = length, placeholder = getHolder2(wrapper);
+          while (index--) {
+            args[index] = arguments[index];
+          }
+          var holders = length < 3 && args[0] !== placeholder && args[length - 1] !== placeholder ? [] : replaceHolders2(args, placeholder);
+          length -= holders.length;
+          if (length < arity) {
+            return createRecurry2(
+              func2,
+              bitmask,
+              createHybrid2,
+              wrapper.placeholder,
+              undefined$1,
+              args,
+              holders,
+              undefined$1,
+              undefined$1,
+              arity - length
+            );
+          }
+          var fn = this && this !== root2 && this instanceof wrapper ? Ctor : func2;
+          return apply2(fn, this, args);
+        }
+        return wrapper;
+      }
+      function createFind2(findIndexFunc) {
+        return function(collection2, predicate, fromIndex) {
+          var iterable = Object2(collection2);
+          if (!isArrayLike2(collection2)) {
+            var iteratee3 = getIteratee(predicate, 3);
+            collection2 = keys2(collection2);
+            predicate = function(key) {
+              return iteratee3(iterable[key], key, iterable);
+            };
+          }
+          var index = findIndexFunc(collection2, predicate, fromIndex);
+          return index > -1 ? iterable[iteratee3 ? collection2[index] : index] : undefined$1;
+        };
+      }
+      function createFlow2(fromRight) {
+        return flatRest2(function(funcs) {
+          var length = funcs.length, index = length, prereq = LodashWrapper2.prototype.thru;
+          if (fromRight) {
+            funcs.reverse();
+          }
+          while (index--) {
+            var func2 = funcs[index];
+            if (typeof func2 != "function") {
+              throw new TypeError2(FUNC_ERROR_TEXT2);
+            }
+            if (prereq && !wrapper && getFuncName2(func2) == "wrapper") {
+              var wrapper = new LodashWrapper2([], true);
+            }
+          }
+          index = wrapper ? index : length;
+          while (++index < length) {
+            func2 = funcs[index];
+            var funcName = getFuncName2(func2), data = funcName == "wrapper" ? getData2(func2) : undefined$1;
+            if (data && isLaziable2(data[0]) && data[1] == (WRAP_ARY_FLAG2 | WRAP_CURRY_FLAG2 | WRAP_PARTIAL_FLAG2 | WRAP_REARG_FLAG2) && !data[4].length && data[9] == 1) {
+              wrapper = wrapper[getFuncName2(data[0])].apply(wrapper, data[3]);
+            } else {
+              wrapper = func2.length == 1 && isLaziable2(func2) ? wrapper[funcName]() : wrapper.thru(func2);
+            }
+          }
+          return function() {
+            var args = arguments, value = args[0];
+            if (wrapper && args.length == 1 && isArray2(value)) {
+              return wrapper.plant(value).value();
+            }
+            var index2 = 0, result3 = length ? funcs[index2].apply(this, args) : value;
+            while (++index2 < length) {
+              result3 = funcs[index2].call(this, result3);
+            }
+            return result3;
+          };
+        });
+      }
+      function createHybrid2(func2, bitmask, thisArg, partials, holders, partialsRight, holdersRight, argPos, ary3, arity) {
+        var isAry = bitmask & WRAP_ARY_FLAG2, isBind = bitmask & WRAP_BIND_FLAG2, isBindKey = bitmask & WRAP_BIND_KEY_FLAG2, isCurried = bitmask & (WRAP_CURRY_FLAG2 | WRAP_CURRY_RIGHT_FLAG2), isFlip = bitmask & WRAP_FLIP_FLAG2, Ctor = isBindKey ? undefined$1 : createCtor2(func2);
+        function wrapper() {
+          var length = arguments.length, args = Array2(length), index = length;
+          while (index--) {
+            args[index] = arguments[index];
+          }
+          if (isCurried) {
+            var placeholder = getHolder2(wrapper), holdersCount = countHolders2(args, placeholder);
+          }
+          if (partials) {
+            args = composeArgs2(args, partials, holders, isCurried);
+          }
+          if (partialsRight) {
+            args = composeArgsRight2(args, partialsRight, holdersRight, isCurried);
+          }
+          length -= holdersCount;
+          if (isCurried && length < arity) {
+            var newHolders = replaceHolders2(args, placeholder);
+            return createRecurry2(
+              func2,
+              bitmask,
+              createHybrid2,
+              wrapper.placeholder,
+              thisArg,
+              args,
+              newHolders,
+              argPos,
+              ary3,
+              arity - length
+            );
+          }
+          var thisBinding = isBind ? thisArg : this, fn = isBindKey ? thisBinding[func2] : func2;
+          length = args.length;
+          if (argPos) {
+            args = reorder2(args, argPos);
+          } else if (isFlip && length > 1) {
+            args.reverse();
+          }
+          if (isAry && ary3 < length) {
+            args.length = ary3;
+          }
+          if (this && this !== root2 && this instanceof wrapper) {
+            fn = Ctor || createCtor2(fn);
+          }
+          return fn.apply(thisBinding, args);
+        }
+        return wrapper;
+      }
+      function createInverter2(setter, toIteratee) {
+        return function(object2, iteratee3) {
+          return baseInverter2(object2, setter, toIteratee(iteratee3), {});
+        };
+      }
+      function createMathOperation2(operator, defaultValue) {
+        return function(value, other) {
+          var result3;
+          if (value === undefined$1 && other === undefined$1) {
+            return defaultValue;
+          }
+          if (value !== undefined$1) {
+            result3 = value;
+          }
+          if (other !== undefined$1) {
+            if (result3 === undefined$1) {
+              return other;
+            }
+            if (typeof value == "string" || typeof other == "string") {
+              value = baseToString2(value);
+              other = baseToString2(other);
+            } else {
+              value = baseToNumber2(value);
+              other = baseToNumber2(other);
+            }
+            result3 = operator(value, other);
+          }
+          return result3;
+        };
+      }
+      function createOver2(arrayFunc) {
+        return flatRest2(function(iteratees) {
+          iteratees = arrayMap2(iteratees, baseUnary2(getIteratee()));
+          return baseRest2(function(args) {
+            var thisArg = this;
+            return arrayFunc(iteratees, function(iteratee3) {
+              return apply2(iteratee3, thisArg, args);
+            });
+          });
+        });
+      }
+      function createPadding2(length, chars) {
+        chars = chars === undefined$1 ? " " : baseToString2(chars);
+        var charsLength = chars.length;
+        if (charsLength < 2) {
+          return charsLength ? baseRepeat2(chars, length) : chars;
+        }
+        var result3 = baseRepeat2(chars, nativeCeil2(length / stringSize2(chars)));
+        return hasUnicode2(chars) ? castSlice2(stringToArray2(result3), 0, length).join("") : result3.slice(0, length);
+      }
+      function createPartial2(func2, bitmask, thisArg, partials) {
+        var isBind = bitmask & WRAP_BIND_FLAG2, Ctor = createCtor2(func2);
+        function wrapper() {
+          var argsIndex = -1, argsLength = arguments.length, leftIndex = -1, leftLength = partials.length, args = Array2(leftLength + argsLength), fn = this && this !== root2 && this instanceof wrapper ? Ctor : func2;
+          while (++leftIndex < leftLength) {
+            args[leftIndex] = partials[leftIndex];
+          }
+          while (argsLength--) {
+            args[leftIndex++] = arguments[++argsIndex];
+          }
+          return apply2(fn, isBind ? thisArg : this, args);
+        }
+        return wrapper;
+      }
+      function createRange2(fromRight) {
+        return function(start, end, step) {
+          if (step && typeof step != "number" && isIterateeCall2(start, end, step)) {
+            end = step = undefined$1;
+          }
+          start = toFinite2(start);
+          if (end === undefined$1) {
+            end = start;
+            start = 0;
+          } else {
+            end = toFinite2(end);
+          }
+          step = step === undefined$1 ? start < end ? 1 : -1 : toFinite2(step);
+          return baseRange2(start, end, step, fromRight);
+        };
+      }
+      function createRelationalOperation2(operator) {
+        return function(value, other) {
+          if (!(typeof value == "string" && typeof other == "string")) {
+            value = toNumber2(value);
+            other = toNumber2(other);
+          }
+          return operator(value, other);
+        };
+      }
+      function createRecurry2(func2, bitmask, wrapFunc, placeholder, thisArg, partials, holders, argPos, ary3, arity) {
+        var isCurry = bitmask & WRAP_CURRY_FLAG2, newHolders = isCurry ? holders : undefined$1, newHoldersRight = isCurry ? undefined$1 : holders, newPartials = isCurry ? partials : undefined$1, newPartialsRight = isCurry ? undefined$1 : partials;
+        bitmask |= isCurry ? WRAP_PARTIAL_FLAG2 : WRAP_PARTIAL_RIGHT_FLAG2;
+        bitmask &= ~(isCurry ? WRAP_PARTIAL_RIGHT_FLAG2 : WRAP_PARTIAL_FLAG2);
+        if (!(bitmask & WRAP_CURRY_BOUND_FLAG2)) {
+          bitmask &= ~(WRAP_BIND_FLAG2 | WRAP_BIND_KEY_FLAG2);
+        }
+        var newData = [
+          func2,
+          bitmask,
+          thisArg,
+          newPartials,
+          newHolders,
+          newPartialsRight,
+          newHoldersRight,
+          argPos,
+          ary3,
+          arity
+        ];
+        var result3 = wrapFunc.apply(undefined$1, newData);
+        if (isLaziable2(func2)) {
+          setData2(result3, newData);
+        }
+        result3.placeholder = placeholder;
+        return setWrapToString2(result3, func2, bitmask);
+      }
+      function createRound2(methodName) {
+        var func2 = Math2[methodName];
+        return function(number2, precision) {
+          number2 = toNumber2(number2);
+          precision = precision == null ? 0 : nativeMin2(toInteger2(precision), 292);
+          if (precision && nativeIsFinite2(number2)) {
+            var pair = (toString2(number2) + "e").split("e"), value = func2(pair[0] + "e" + (+pair[1] + precision));
+            pair = (toString2(value) + "e").split("e");
+            return +(pair[0] + "e" + (+pair[1] - precision));
+          }
+          return func2(number2);
+        };
+      }
+      var createSet2 = !(Set2 && 1 / setToArray2(new Set2([, -0]))[1] == INFINITY2) ? noop2 : function(values3) {
+        return new Set2(values3);
+      };
+      function createToPairs2(keysFunc) {
+        return function(object2) {
+          var tag = getTag2(object2);
+          if (tag == mapTag2) {
+            return mapToArray2(object2);
+          }
+          if (tag == setTag2) {
+            return setToPairs2(object2);
+          }
+          return baseToPairs2(object2, keysFunc(object2));
+        };
+      }
+      function createWrap2(func2, bitmask, thisArg, partials, holders, argPos, ary3, arity) {
+        var isBindKey = bitmask & WRAP_BIND_KEY_FLAG2;
+        if (!isBindKey && typeof func2 != "function") {
+          throw new TypeError2(FUNC_ERROR_TEXT2);
+        }
+        var length = partials ? partials.length : 0;
+        if (!length) {
+          bitmask &= ~(WRAP_PARTIAL_FLAG2 | WRAP_PARTIAL_RIGHT_FLAG2);
+          partials = holders = undefined$1;
+        }
+        ary3 = ary3 === undefined$1 ? ary3 : nativeMax2(toInteger2(ary3), 0);
+        arity = arity === undefined$1 ? arity : toInteger2(arity);
+        length -= holders ? holders.length : 0;
+        if (bitmask & WRAP_PARTIAL_RIGHT_FLAG2) {
+          var partialsRight = partials, holdersRight = holders;
+          partials = holders = undefined$1;
+        }
+        var data = isBindKey ? undefined$1 : getData2(func2);
+        var newData = [
+          func2,
+          bitmask,
+          thisArg,
+          partials,
+          holders,
+          partialsRight,
+          holdersRight,
+          argPos,
+          ary3,
+          arity
+        ];
+        if (data) {
+          mergeData2(newData, data);
+        }
+        func2 = newData[0];
+        bitmask = newData[1];
+        thisArg = newData[2];
+        partials = newData[3];
+        holders = newData[4];
+        arity = newData[9] = newData[9] === undefined$1 ? isBindKey ? 0 : func2.length : nativeMax2(newData[9] - length, 0);
+        if (!arity && bitmask & (WRAP_CURRY_FLAG2 | WRAP_CURRY_RIGHT_FLAG2)) {
+          bitmask &= ~(WRAP_CURRY_FLAG2 | WRAP_CURRY_RIGHT_FLAG2);
+        }
+        if (!bitmask || bitmask == WRAP_BIND_FLAG2) {
+          var result3 = createBind2(func2, bitmask, thisArg);
+        } else if (bitmask == WRAP_CURRY_FLAG2 || bitmask == WRAP_CURRY_RIGHT_FLAG2) {
+          result3 = createCurry2(func2, bitmask, arity);
+        } else if ((bitmask == WRAP_PARTIAL_FLAG2 || bitmask == (WRAP_BIND_FLAG2 | WRAP_PARTIAL_FLAG2)) && !holders.length) {
+          result3 = createPartial2(func2, bitmask, thisArg, partials);
+        } else {
+          result3 = createHybrid2.apply(undefined$1, newData);
+        }
+        var setter = data ? baseSetData2 : setData2;
+        return setWrapToString2(setter(result3, newData), func2, bitmask);
+      }
+      function customDefaultsAssignIn2(objValue, srcValue, key, object2) {
+        if (objValue === undefined$1 || eq2(objValue, objectProto2[key]) && !hasOwnProperty2.call(object2, key)) {
+          return srcValue;
+        }
+        return objValue;
+      }
+      function customDefaultsMerge2(objValue, srcValue, key, object2, source, stack2) {
+        if (isObject2(objValue) && isObject2(srcValue)) {
+          stack2.set(srcValue, objValue);
+          baseMerge2(objValue, srcValue, undefined$1, customDefaultsMerge2, stack2);
+          stack2["delete"](srcValue);
+        }
+        return objValue;
+      }
+      function customOmitClone2(value) {
+        return isPlainObject2(value) ? undefined$1 : value;
+      }
+      function equalArrays2(array2, other, bitmask, customizer, equalFunc, stack2) {
+        var isPartial = bitmask & COMPARE_PARTIAL_FLAG2, arrLength = array2.length, othLength = other.length;
+        if (arrLength != othLength && !(isPartial && othLength > arrLength)) {
+          return false;
+        }
+        var arrStacked = stack2.get(array2);
+        var othStacked = stack2.get(other);
+        if (arrStacked && othStacked) {
+          return arrStacked == other && othStacked == array2;
+        }
+        var index = -1, result3 = true, seen = bitmask & COMPARE_UNORDERED_FLAG2 ? new SetCache2() : undefined$1;
+        stack2.set(array2, other);
+        stack2.set(other, array2);
+        while (++index < arrLength) {
+          var arrValue = array2[index], othValue = other[index];
+          if (customizer) {
+            var compared = isPartial ? customizer(othValue, arrValue, index, other, array2, stack2) : customizer(arrValue, othValue, index, array2, other, stack2);
+          }
+          if (compared !== undefined$1) {
+            if (compared) {
+              continue;
+            }
+            result3 = false;
+            break;
+          }
+          if (seen) {
+            if (!arraySome2(other, function(othValue2, othIndex) {
+              if (!cacheHas2(seen, othIndex) && (arrValue === othValue2 || equalFunc(arrValue, othValue2, bitmask, customizer, stack2))) {
+                return seen.push(othIndex);
+              }
+            })) {
+              result3 = false;
+              break;
+            }
+          } else if (!(arrValue === othValue || equalFunc(arrValue, othValue, bitmask, customizer, stack2))) {
+            result3 = false;
+            break;
+          }
+        }
+        stack2["delete"](array2);
+        stack2["delete"](other);
+        return result3;
+      }
+      function equalByTag2(object2, other, tag, bitmask, customizer, equalFunc, stack2) {
+        switch (tag) {
+          case dataViewTag2:
+            if (object2.byteLength != other.byteLength || object2.byteOffset != other.byteOffset) {
+              return false;
+            }
+            object2 = object2.buffer;
+            other = other.buffer;
+          case arrayBufferTag2:
+            if (object2.byteLength != other.byteLength || !equalFunc(new Uint8Array2(object2), new Uint8Array2(other))) {
+              return false;
+            }
+            return true;
+          case boolTag2:
+          case dateTag2:
+          case numberTag2:
+            return eq2(+object2, +other);
+          case errorTag2:
+            return object2.name == other.name && object2.message == other.message;
+          case regexpTag2:
+          case stringTag2:
+            return object2 == other + "";
+          case mapTag2:
+            var convert = mapToArray2;
+          case setTag2:
+            var isPartial = bitmask & COMPARE_PARTIAL_FLAG2;
+            convert || (convert = setToArray2);
+            if (object2.size != other.size && !isPartial) {
+              return false;
+            }
+            var stacked = stack2.get(object2);
+            if (stacked) {
+              return stacked == other;
+            }
+            bitmask |= COMPARE_UNORDERED_FLAG2;
+            stack2.set(object2, other);
+            var result3 = equalArrays2(convert(object2), convert(other), bitmask, customizer, equalFunc, stack2);
+            stack2["delete"](object2);
+            return result3;
+          case symbolTag2:
+            if (symbolValueOf2) {
+              return symbolValueOf2.call(object2) == symbolValueOf2.call(other);
+            }
+        }
+        return false;
+      }
+      function equalObjects2(object2, other, bitmask, customizer, equalFunc, stack2) {
+        var isPartial = bitmask & COMPARE_PARTIAL_FLAG2, objProps = getAllKeys2(object2), objLength = objProps.length, othProps = getAllKeys2(other), othLength = othProps.length;
+        if (objLength != othLength && !isPartial) {
+          return false;
+        }
+        var index = objLength;
+        while (index--) {
+          var key = objProps[index];
+          if (!(isPartial ? key in other : hasOwnProperty2.call(other, key))) {
+            return false;
+          }
+        }
+        var objStacked = stack2.get(object2);
+        var othStacked = stack2.get(other);
+        if (objStacked && othStacked) {
+          return objStacked == other && othStacked == object2;
+        }
+        var result3 = true;
+        stack2.set(object2, other);
+        stack2.set(other, object2);
+        var skipCtor = isPartial;
+        while (++index < objLength) {
+          key = objProps[index];
+          var objValue = object2[key], othValue = other[key];
+          if (customizer) {
+            var compared = isPartial ? customizer(othValue, objValue, key, other, object2, stack2) : customizer(objValue, othValue, key, object2, other, stack2);
+          }
+          if (!(compared === undefined$1 ? objValue === othValue || equalFunc(objValue, othValue, bitmask, customizer, stack2) : compared)) {
+            result3 = false;
+            break;
+          }
+          skipCtor || (skipCtor = key == "constructor");
+        }
+        if (result3 && !skipCtor) {
+          var objCtor = object2.constructor, othCtor = other.constructor;
+          if (objCtor != othCtor && ("constructor" in object2 && "constructor" in other) && !(typeof objCtor == "function" && objCtor instanceof objCtor && typeof othCtor == "function" && othCtor instanceof othCtor)) {
+            result3 = false;
+          }
+        }
+        stack2["delete"](object2);
+        stack2["delete"](other);
+        return result3;
+      }
+      function flatRest2(func2) {
+        return setToString2(overRest2(func2, undefined$1, flatten2), func2 + "");
+      }
+      function getAllKeys2(object2) {
+        return baseGetAllKeys2(object2, keys2, getSymbols2);
+      }
+      function getAllKeysIn2(object2) {
+        return baseGetAllKeys2(object2, keysIn2, getSymbolsIn2);
+      }
+      var getData2 = !metaMap2 ? noop2 : function(func2) {
+        return metaMap2.get(func2);
+      };
+      function getFuncName2(func2) {
+        var result3 = func2.name + "", array2 = realNames2[result3], length = hasOwnProperty2.call(realNames2, result3) ? array2.length : 0;
+        while (length--) {
+          var data = array2[length], otherFunc = data.func;
+          if (otherFunc == null || otherFunc == func2) {
+            return data.name;
+          }
+        }
+        return result3;
+      }
+      function getHolder2(func2) {
+        var object2 = hasOwnProperty2.call(lodash2, "placeholder") ? lodash2 : func2;
+        return object2.placeholder;
+      }
+      function getIteratee() {
+        var result3 = lodash2.iteratee || iteratee2;
+        result3 = result3 === iteratee2 ? baseIteratee2 : result3;
+        return arguments.length ? result3(arguments[0], arguments[1]) : result3;
+      }
+      function getMapData2(map3, key) {
+        var data = map3.__data__;
+        return isKeyable2(key) ? data[typeof key == "string" ? "string" : "hash"] : data.map;
+      }
+      function getMatchData2(object2) {
+        var result3 = keys2(object2), length = result3.length;
+        while (length--) {
+          var key = result3[length], value = object2[key];
+          result3[length] = [key, value, isStrictComparable2(value)];
+        }
+        return result3;
+      }
+      function getNative2(object2, key) {
+        var value = getValue2(object2, key);
+        return baseIsNative2(value) ? value : undefined$1;
+      }
+      function getRawTag2(value) {
+        var isOwn = hasOwnProperty2.call(value, symToStringTag2), tag = value[symToStringTag2];
+        try {
+          value[symToStringTag2] = undefined$1;
+          var unmasked = true;
+        } catch (e) {
+        }
+        var result3 = nativeObjectToString2.call(value);
+        if (unmasked) {
+          if (isOwn) {
+            value[symToStringTag2] = tag;
+          } else {
+            delete value[symToStringTag2];
+          }
+        }
+        return result3;
+      }
+      var getSymbols2 = !nativeGetSymbols2 ? stubArray2 : function(object2) {
+        if (object2 == null) {
+          return [];
+        }
+        object2 = Object2(object2);
+        return arrayFilter2(nativeGetSymbols2(object2), function(symbol) {
+          return propertyIsEnumerable2.call(object2, symbol);
+        });
+      };
+      var getSymbolsIn2 = !nativeGetSymbols2 ? stubArray2 : function(object2) {
+        var result3 = [];
+        while (object2) {
+          arrayPush2(result3, getSymbols2(object2));
+          object2 = getPrototype2(object2);
+        }
+        return result3;
+      };
+      var getTag2 = baseGetTag2;
+      if (DataView2 && getTag2(new DataView2(new ArrayBuffer(1))) != dataViewTag2 || Map2 && getTag2(new Map2()) != mapTag2 || Promise2 && getTag2(Promise2.resolve()) != promiseTag2 || Set2 && getTag2(new Set2()) != setTag2 || WeakMap2 && getTag2(new WeakMap2()) != weakMapTag2) {
+        getTag2 = function(value) {
+          var result3 = baseGetTag2(value), Ctor = result3 == objectTag2 ? value.constructor : undefined$1, ctorString = Ctor ? toSource2(Ctor) : "";
+          if (ctorString) {
+            switch (ctorString) {
+              case dataViewCtorString2:
+                return dataViewTag2;
+              case mapCtorString2:
+                return mapTag2;
+              case promiseCtorString2:
+                return promiseTag2;
+              case setCtorString2:
+                return setTag2;
+              case weakMapCtorString2:
+                return weakMapTag2;
+            }
+          }
+          return result3;
+        };
+      }
+      function getView2(start, end, transforms) {
+        var index = -1, length = transforms.length;
+        while (++index < length) {
+          var data = transforms[index], size3 = data.size;
+          switch (data.type) {
+            case "drop":
+              start += size3;
+              break;
+            case "dropRight":
+              end -= size3;
+              break;
+            case "take":
+              end = nativeMin2(end, start + size3);
+              break;
+            case "takeRight":
+              start = nativeMax2(start, end - size3);
+              break;
+          }
+        }
+        return { "start": start, "end": end };
+      }
+      function getWrapDetails2(source) {
+        var match = source.match(reWrapDetails2);
+        return match ? match[1].split(reSplitDetails2) : [];
+      }
+      function hasPath2(object2, path, hasFunc) {
+        path = castPath2(path, object2);
+        var index = -1, length = path.length, result3 = false;
+        while (++index < length) {
+          var key = toKey2(path[index]);
+          if (!(result3 = object2 != null && hasFunc(object2, key))) {
+            break;
+          }
+          object2 = object2[key];
+        }
+        if (result3 || ++index != length) {
+          return result3;
+        }
+        length = object2 == null ? 0 : object2.length;
+        return !!length && isLength2(length) && isIndex2(key, length) && (isArray2(object2) || isArguments2(object2));
+      }
+      function initCloneArray2(array2) {
+        var length = array2.length, result3 = new array2.constructor(length);
+        if (length && typeof array2[0] == "string" && hasOwnProperty2.call(array2, "index")) {
+          result3.index = array2.index;
+          result3.input = array2.input;
+        }
+        return result3;
+      }
+      function initCloneObject2(object2) {
+        return typeof object2.constructor == "function" && !isPrototype2(object2) ? baseCreate2(getPrototype2(object2)) : {};
+      }
+      function initCloneByTag2(object2, tag, isDeep) {
+        var Ctor = object2.constructor;
+        switch (tag) {
+          case arrayBufferTag2:
+            return cloneArrayBuffer2(object2);
+          case boolTag2:
+          case dateTag2:
+            return new Ctor(+object2);
+          case dataViewTag2:
+            return cloneDataView2(object2, isDeep);
+          case float32Tag2:
+          case float64Tag2:
+          case int8Tag2:
+          case int16Tag2:
+          case int32Tag2:
+          case uint8Tag2:
+          case uint8ClampedTag2:
+          case uint16Tag2:
+          case uint32Tag2:
+            return cloneTypedArray2(object2, isDeep);
+          case mapTag2:
+            return new Ctor();
+          case numberTag2:
+          case stringTag2:
+            return new Ctor(object2);
+          case regexpTag2:
+            return cloneRegExp2(object2);
+          case setTag2:
+            return new Ctor();
+          case symbolTag2:
+            return cloneSymbol2(object2);
+        }
+      }
+      function insertWrapDetails2(source, details) {
+        var length = details.length;
+        if (!length) {
+          return source;
+        }
+        var lastIndex = length - 1;
+        details[lastIndex] = (length > 1 ? "& " : "") + details[lastIndex];
+        details = details.join(length > 2 ? ", " : " ");
+        return source.replace(reWrapComment2, "{\n/* [wrapped with " + details + "] */\n");
+      }
+      function isFlattenable2(value) {
+        return isArray2(value) || isArguments2(value) || !!(spreadableSymbol2 && value && value[spreadableSymbol2]);
+      }
+      function isIndex2(value, length) {
+        var type = typeof value;
+        length = length == null ? MAX_SAFE_INTEGER2 : length;
+        return !!length && (type == "number" || type != "symbol" && reIsUint2.test(value)) && (value > -1 && value % 1 == 0 && value < length);
+      }
+      function isIterateeCall2(value, index, object2) {
+        if (!isObject2(object2)) {
+          return false;
+        }
+        var type = typeof index;
+        if (type == "number" ? isArrayLike2(object2) && isIndex2(index, object2.length) : type == "string" && index in object2) {
+          return eq2(object2[index], value);
+        }
+        return false;
+      }
+      function isKey2(value, object2) {
+        if (isArray2(value)) {
+          return false;
+        }
+        var type = typeof value;
+        if (type == "number" || type == "symbol" || type == "boolean" || value == null || isSymbol2(value)) {
+          return true;
+        }
+        return reIsPlainProp2.test(value) || !reIsDeepProp2.test(value) || object2 != null && value in Object2(object2);
+      }
+      function isKeyable2(value) {
+        var type = typeof value;
+        return type == "string" || type == "number" || type == "symbol" || type == "boolean" ? value !== "__proto__" : value === null;
+      }
+      function isLaziable2(func2) {
+        var funcName = getFuncName2(func2), other = lodash2[funcName];
+        if (typeof other != "function" || !(funcName in LazyWrapper2.prototype)) {
+          return false;
+        }
+        if (func2 === other) {
+          return true;
+        }
+        var data = getData2(other);
+        return !!data && func2 === data[0];
+      }
+      function isMasked2(func2) {
+        return !!maskSrcKey2 && maskSrcKey2 in func2;
+      }
+      var isMaskable2 = coreJsData2 ? isFunction2 : stubFalse2;
+      function isPrototype2(value) {
+        var Ctor = value && value.constructor, proto = typeof Ctor == "function" && Ctor.prototype || objectProto2;
+        return value === proto;
+      }
+      function isStrictComparable2(value) {
+        return value === value && !isObject2(value);
+      }
+      function matchesStrictComparable2(key, srcValue) {
+        return function(object2) {
+          if (object2 == null) {
+            return false;
+          }
+          return object2[key] === srcValue && (srcValue !== undefined$1 || key in Object2(object2));
+        };
+      }
+      function memoizeCapped2(func2) {
+        var result3 = memoize2(func2, function(key) {
+          if (cache.size === MAX_MEMOIZE_SIZE2) {
+            cache.clear();
+          }
+          return key;
+        });
+        var cache = result3.cache;
+        return result3;
+      }
+      function mergeData2(data, source) {
+        var bitmask = data[1], srcBitmask = source[1], newBitmask = bitmask | srcBitmask, isCommon = newBitmask < (WRAP_BIND_FLAG2 | WRAP_BIND_KEY_FLAG2 | WRAP_ARY_FLAG2);
+        var isCombo = srcBitmask == WRAP_ARY_FLAG2 && bitmask == WRAP_CURRY_FLAG2 || srcBitmask == WRAP_ARY_FLAG2 && bitmask == WRAP_REARG_FLAG2 && data[7].length <= source[8] || srcBitmask == (WRAP_ARY_FLAG2 | WRAP_REARG_FLAG2) && source[7].length <= source[8] && bitmask == WRAP_CURRY_FLAG2;
+        if (!(isCommon || isCombo)) {
+          return data;
+        }
+        if (srcBitmask & WRAP_BIND_FLAG2) {
+          data[2] = source[2];
+          newBitmask |= bitmask & WRAP_BIND_FLAG2 ? 0 : WRAP_CURRY_BOUND_FLAG2;
+        }
+        var value = source[3];
+        if (value) {
+          var partials = data[3];
+          data[3] = partials ? composeArgs2(partials, value, source[4]) : value;
+          data[4] = partials ? replaceHolders2(data[3], PLACEHOLDER2) : source[4];
+        }
+        value = source[5];
+        if (value) {
+          partials = data[5];
+          data[5] = partials ? composeArgsRight2(partials, value, source[6]) : value;
+          data[6] = partials ? replaceHolders2(data[5], PLACEHOLDER2) : source[6];
+        }
+        value = source[7];
+        if (value) {
+          data[7] = value;
+        }
+        if (srcBitmask & WRAP_ARY_FLAG2) {
+          data[8] = data[8] == null ? source[8] : nativeMin2(data[8], source[8]);
+        }
+        if (data[9] == null) {
+          data[9] = source[9];
+        }
+        data[0] = source[0];
+        data[1] = newBitmask;
+        return data;
+      }
+      function nativeKeysIn2(object2) {
+        var result3 = [];
+        if (object2 != null) {
+          for (var key in Object2(object2)) {
+            result3.push(key);
+          }
+        }
+        return result3;
+      }
+      function objectToString2(value) {
+        return nativeObjectToString2.call(value);
+      }
+      function overRest2(func2, start, transform3) {
+        start = nativeMax2(start === undefined$1 ? func2.length - 1 : start, 0);
+        return function() {
+          var args = arguments, index = -1, length = nativeMax2(args.length - start, 0), array2 = Array2(length);
+          while (++index < length) {
+            array2[index] = args[start + index];
+          }
+          index = -1;
+          var otherArgs = Array2(start + 1);
+          while (++index < start) {
+            otherArgs[index] = args[index];
+          }
+          otherArgs[start] = transform3(array2);
+          return apply2(func2, this, otherArgs);
+        };
+      }
+      function parent2(object2, path) {
+        return path.length < 2 ? object2 : baseGet2(object2, baseSlice2(path, 0, -1));
+      }
+      function reorder2(array2, indexes) {
+        var arrLength = array2.length, length = nativeMin2(indexes.length, arrLength), oldArray = copyArray2(array2);
+        while (length--) {
+          var index = indexes[length];
+          array2[length] = isIndex2(index, arrLength) ? oldArray[index] : undefined$1;
+        }
+        return array2;
+      }
+      function safeGet2(object2, key) {
+        if (key === "constructor" && typeof object2[key] === "function") {
+          return;
+        }
+        if (key == "__proto__") {
+          return;
+        }
+        return object2[key];
+      }
+      var setData2 = shortOut2(baseSetData2);
+      var setTimeout2 = ctxSetTimeout || function(func2, wait) {
+        return root2.setTimeout(func2, wait);
+      };
+      var setToString2 = shortOut2(baseSetToString2);
+      function setWrapToString2(wrapper, reference, bitmask) {
+        var source = reference + "";
+        return setToString2(wrapper, insertWrapDetails2(source, updateWrapDetails2(getWrapDetails2(source), bitmask)));
+      }
+      function shortOut2(func2) {
+        var count = 0, lastCalled = 0;
+        return function() {
+          var stamp = nativeNow2(), remaining = HOT_SPAN2 - (stamp - lastCalled);
+          lastCalled = stamp;
+          if (remaining > 0) {
+            if (++count >= HOT_COUNT2) {
+              return arguments[0];
+            }
+          } else {
+            count = 0;
+          }
+          return func2.apply(undefined$1, arguments);
+        };
+      }
+      function shuffleSelf2(array2, size3) {
+        var index = -1, length = array2.length, lastIndex = length - 1;
+        size3 = size3 === undefined$1 ? length : size3;
+        while (++index < size3) {
+          var rand = baseRandom2(index, lastIndex), value = array2[rand];
+          array2[rand] = array2[index];
+          array2[index] = value;
+        }
+        array2.length = size3;
+        return array2;
+      }
+      var stringToPath2 = memoizeCapped2(function(string2) {
+        var result3 = [];
+        if (string2.charCodeAt(0) === 46) {
+          result3.push("");
+        }
+        string2.replace(rePropName2, function(match, number2, quote, subString) {
+          result3.push(quote ? subString.replace(reEscapeChar2, "$1") : number2 || match);
+        });
+        return result3;
+      });
+      function toKey2(value) {
+        if (typeof value == "string" || isSymbol2(value)) {
+          return value;
+        }
+        var result3 = value + "";
+        return result3 == "0" && 1 / value == -INFINITY2 ? "-0" : result3;
+      }
+      function toSource2(func2) {
+        if (func2 != null) {
+          try {
+            return funcToString2.call(func2);
+          } catch (e) {
+          }
+          try {
+            return func2 + "";
+          } catch (e) {
+          }
+        }
+        return "";
+      }
+      function updateWrapDetails2(details, bitmask) {
+        arrayEach2(wrapFlags2, function(pair) {
+          var value = "_." + pair[0];
+          if (bitmask & pair[1] && !arrayIncludes2(details, value)) {
+            details.push(value);
+          }
+        });
+        return details.sort();
+      }
+      function wrapperClone2(wrapper) {
+        if (wrapper instanceof LazyWrapper2) {
+          return wrapper.clone();
+        }
+        var result3 = new LodashWrapper2(wrapper.__wrapped__, wrapper.__chain__);
+        result3.__actions__ = copyArray2(wrapper.__actions__);
+        result3.__index__ = wrapper.__index__;
+        result3.__values__ = wrapper.__values__;
+        return result3;
+      }
+      function chunk2(array2, size3, guard) {
+        if (guard ? isIterateeCall2(array2, size3, guard) : size3 === undefined$1) {
+          size3 = 1;
+        } else {
+          size3 = nativeMax2(toInteger2(size3), 0);
+        }
+        var length = array2 == null ? 0 : array2.length;
+        if (!length || size3 < 1) {
+          return [];
+        }
+        var index = 0, resIndex = 0, result3 = Array2(nativeCeil2(length / size3));
+        while (index < length) {
+          result3[resIndex++] = baseSlice2(array2, index, index += size3);
+        }
+        return result3;
+      }
+      function compact2(array2) {
+        var index = -1, length = array2 == null ? 0 : array2.length, resIndex = 0, result3 = [];
+        while (++index < length) {
+          var value = array2[index];
+          if (value) {
+            result3[resIndex++] = value;
+          }
+        }
+        return result3;
+      }
+      function concat2() {
+        var length = arguments.length;
+        if (!length) {
+          return [];
+        }
+        var args = Array2(length - 1), array2 = arguments[0], index = length;
+        while (index--) {
+          args[index - 1] = arguments[index];
+        }
+        return arrayPush2(isArray2(array2) ? copyArray2(array2) : [array2], baseFlatten2(args, 1));
+      }
+      var difference2 = baseRest2(function(array2, values3) {
+        return isArrayLikeObject2(array2) ? baseDifference2(array2, baseFlatten2(values3, 1, isArrayLikeObject2, true)) : [];
+      });
+      var differenceBy2 = baseRest2(function(array2, values3) {
+        var iteratee3 = last2(values3);
+        if (isArrayLikeObject2(iteratee3)) {
+          iteratee3 = undefined$1;
+        }
+        return isArrayLikeObject2(array2) ? baseDifference2(array2, baseFlatten2(values3, 1, isArrayLikeObject2, true), getIteratee(iteratee3, 2)) : [];
+      });
+      var differenceWith2 = baseRest2(function(array2, values3) {
+        var comparator2 = last2(values3);
+        if (isArrayLikeObject2(comparator2)) {
+          comparator2 = undefined$1;
+        }
+        return isArrayLikeObject2(array2) ? baseDifference2(array2, baseFlatten2(values3, 1, isArrayLikeObject2, true), undefined$1, comparator2) : [];
+      });
+      function drop2(array2, n, guard) {
+        var length = array2 == null ? 0 : array2.length;
+        if (!length) {
+          return [];
+        }
+        n = guard || n === undefined$1 ? 1 : toInteger2(n);
+        return baseSlice2(array2, n < 0 ? 0 : n, length);
+      }
+      function dropRight2(array2, n, guard) {
+        var length = array2 == null ? 0 : array2.length;
+        if (!length) {
+          return [];
+        }
+        n = guard || n === undefined$1 ? 1 : toInteger2(n);
+        n = length - n;
+        return baseSlice2(array2, 0, n < 0 ? 0 : n);
+      }
+      function dropRightWhile2(array2, predicate) {
+        return array2 && array2.length ? baseWhile2(array2, getIteratee(predicate, 3), true, true) : [];
+      }
+      function dropWhile2(array2, predicate) {
+        return array2 && array2.length ? baseWhile2(array2, getIteratee(predicate, 3), true) : [];
+      }
+      function fill2(array2, value, start, end) {
+        var length = array2 == null ? 0 : array2.length;
+        if (!length) {
+          return [];
+        }
+        if (start && typeof start != "number" && isIterateeCall2(array2, value, start)) {
+          start = 0;
+          end = length;
+        }
+        return baseFill2(array2, value, start, end);
+      }
+      function findIndex2(array2, predicate, fromIndex) {
+        var length = array2 == null ? 0 : array2.length;
+        if (!length) {
+          return -1;
+        }
+        var index = fromIndex == null ? 0 : toInteger2(fromIndex);
+        if (index < 0) {
+          index = nativeMax2(length + index, 0);
+        }
+        return baseFindIndex2(array2, getIteratee(predicate, 3), index);
+      }
+      function findLastIndex2(array2, predicate, fromIndex) {
+        var length = array2 == null ? 0 : array2.length;
+        if (!length) {
+          return -1;
+        }
+        var index = length - 1;
+        if (fromIndex !== undefined$1) {
+          index = toInteger2(fromIndex);
+          index = fromIndex < 0 ? nativeMax2(length + index, 0) : nativeMin2(index, length - 1);
+        }
+        return baseFindIndex2(array2, getIteratee(predicate, 3), index, true);
+      }
+      function flatten2(array2) {
+        var length = array2 == null ? 0 : array2.length;
+        return length ? baseFlatten2(array2, 1) : [];
+      }
+      function flattenDeep2(array2) {
+        var length = array2 == null ? 0 : array2.length;
+        return length ? baseFlatten2(array2, INFINITY2) : [];
+      }
+      function flattenDepth2(array2, depth) {
+        var length = array2 == null ? 0 : array2.length;
+        if (!length) {
+          return [];
+        }
+        depth = depth === undefined$1 ? 1 : toInteger2(depth);
+        return baseFlatten2(array2, depth);
+      }
+      function fromPairs2(pairs) {
+        var index = -1, length = pairs == null ? 0 : pairs.length, result3 = {};
+        while (++index < length) {
+          var pair = pairs[index];
+          result3[pair[0]] = pair[1];
+        }
+        return result3;
+      }
+      function head2(array2) {
+        return array2 && array2.length ? array2[0] : undefined$1;
+      }
+      function indexOf2(array2, value, fromIndex) {
+        var length = array2 == null ? 0 : array2.length;
+        if (!length) {
+          return -1;
+        }
+        var index = fromIndex == null ? 0 : toInteger2(fromIndex);
+        if (index < 0) {
+          index = nativeMax2(length + index, 0);
+        }
+        return baseIndexOf2(array2, value, index);
+      }
+      function initial2(array2) {
+        var length = array2 == null ? 0 : array2.length;
+        return length ? baseSlice2(array2, 0, -1) : [];
+      }
+      var intersection2 = baseRest2(function(arrays) {
+        var mapped = arrayMap2(arrays, castArrayLikeObject2);
+        return mapped.length && mapped[0] === arrays[0] ? baseIntersection2(mapped) : [];
+      });
+      var intersectionBy2 = baseRest2(function(arrays) {
+        var iteratee3 = last2(arrays), mapped = arrayMap2(arrays, castArrayLikeObject2);
+        if (iteratee3 === last2(mapped)) {
+          iteratee3 = undefined$1;
+        } else {
+          mapped.pop();
+        }
+        return mapped.length && mapped[0] === arrays[0] ? baseIntersection2(mapped, getIteratee(iteratee3, 2)) : [];
+      });
+      var intersectionWith2 = baseRest2(function(arrays) {
+        var comparator2 = last2(arrays), mapped = arrayMap2(arrays, castArrayLikeObject2);
+        comparator2 = typeof comparator2 == "function" ? comparator2 : undefined$1;
+        if (comparator2) {
+          mapped.pop();
+        }
+        return mapped.length && mapped[0] === arrays[0] ? baseIntersection2(mapped, undefined$1, comparator2) : [];
+      });
+      function join2(array2, separator) {
+        return array2 == null ? "" : nativeJoin2.call(array2, separator);
+      }
+      function last2(array2) {
+        var length = array2 == null ? 0 : array2.length;
+        return length ? array2[length - 1] : undefined$1;
+      }
+      function lastIndexOf2(array2, value, fromIndex) {
+        var length = array2 == null ? 0 : array2.length;
+        if (!length) {
+          return -1;
+        }
+        var index = length;
+        if (fromIndex !== undefined$1) {
+          index = toInteger2(fromIndex);
+          index = index < 0 ? nativeMax2(length + index, 0) : nativeMin2(index, length - 1);
+        }
+        return value === value ? strictLastIndexOf2(array2, value, index) : baseFindIndex2(array2, baseIsNaN2, index, true);
+      }
+      function nth2(array2, n) {
+        return array2 && array2.length ? baseNth2(array2, toInteger2(n)) : undefined$1;
+      }
+      var pull2 = baseRest2(pullAll2);
+      function pullAll2(array2, values3) {
+        return array2 && array2.length && values3 && values3.length ? basePullAll2(array2, values3) : array2;
+      }
+      function pullAllBy2(array2, values3, iteratee3) {
+        return array2 && array2.length && values3 && values3.length ? basePullAll2(array2, values3, getIteratee(iteratee3, 2)) : array2;
+      }
+      function pullAllWith2(array2, values3, comparator2) {
+        return array2 && array2.length && values3 && values3.length ? basePullAll2(array2, values3, undefined$1, comparator2) : array2;
+      }
+      var pullAt2 = flatRest2(function(array2, indexes) {
+        var length = array2 == null ? 0 : array2.length, result3 = baseAt2(array2, indexes);
+        basePullAt2(array2, arrayMap2(indexes, function(index) {
+          return isIndex2(index, length) ? +index : index;
+        }).sort(compareAscending2));
+        return result3;
+      });
+      function remove2(array2, predicate) {
+        var result3 = [];
+        if (!(array2 && array2.length)) {
+          return result3;
+        }
+        var index = -1, indexes = [], length = array2.length;
+        predicate = getIteratee(predicate, 3);
+        while (++index < length) {
+          var value = array2[index];
+          if (predicate(value, index, array2)) {
+            result3.push(value);
+            indexes.push(index);
+          }
+        }
+        basePullAt2(array2, indexes);
+        return result3;
+      }
+      function reverse2(array2) {
+        return array2 == null ? array2 : nativeReverse2.call(array2);
+      }
+      function slice2(array2, start, end) {
+        var length = array2 == null ? 0 : array2.length;
+        if (!length) {
+          return [];
+        }
+        if (end && typeof end != "number" && isIterateeCall2(array2, start, end)) {
+          start = 0;
+          end = length;
+        } else {
+          start = start == null ? 0 : toInteger2(start);
+          end = end === undefined$1 ? length : toInteger2(end);
+        }
+        return baseSlice2(array2, start, end);
+      }
+      function sortedIndex2(array2, value) {
+        return baseSortedIndex2(array2, value);
+      }
+      function sortedIndexBy2(array2, value, iteratee3) {
+        return baseSortedIndexBy2(array2, value, getIteratee(iteratee3, 2));
+      }
+      function sortedIndexOf2(array2, value) {
+        var length = array2 == null ? 0 : array2.length;
+        if (length) {
+          var index = baseSortedIndex2(array2, value);
+          if (index < length && eq2(array2[index], value)) {
+            return index;
+          }
+        }
+        return -1;
+      }
+      function sortedLastIndex2(array2, value) {
+        return baseSortedIndex2(array2, value, true);
+      }
+      function sortedLastIndexBy2(array2, value, iteratee3) {
+        return baseSortedIndexBy2(array2, value, getIteratee(iteratee3, 2), true);
+      }
+      function sortedLastIndexOf2(array2, value) {
+        var length = array2 == null ? 0 : array2.length;
+        if (length) {
+          var index = baseSortedIndex2(array2, value, true) - 1;
+          if (eq2(array2[index], value)) {
+            return index;
+          }
+        }
+        return -1;
+      }
+      function sortedUniq2(array2) {
+        return array2 && array2.length ? baseSortedUniq2(array2) : [];
+      }
+      function sortedUniqBy2(array2, iteratee3) {
+        return array2 && array2.length ? baseSortedUniq2(array2, getIteratee(iteratee3, 2)) : [];
+      }
+      function tail2(array2) {
+        var length = array2 == null ? 0 : array2.length;
+        return length ? baseSlice2(array2, 1, length) : [];
+      }
+      function take2(array2, n, guard) {
+        if (!(array2 && array2.length)) {
+          return [];
+        }
+        n = guard || n === undefined$1 ? 1 : toInteger2(n);
+        return baseSlice2(array2, 0, n < 0 ? 0 : n);
+      }
+      function takeRight2(array2, n, guard) {
+        var length = array2 == null ? 0 : array2.length;
+        if (!length) {
+          return [];
+        }
+        n = guard || n === undefined$1 ? 1 : toInteger2(n);
+        n = length - n;
+        return baseSlice2(array2, n < 0 ? 0 : n, length);
+      }
+      function takeRightWhile2(array2, predicate) {
+        return array2 && array2.length ? baseWhile2(array2, getIteratee(predicate, 3), false, true) : [];
+      }
+      function takeWhile2(array2, predicate) {
+        return array2 && array2.length ? baseWhile2(array2, getIteratee(predicate, 3)) : [];
+      }
+      var union2 = baseRest2(function(arrays) {
+        return baseUniq2(baseFlatten2(arrays, 1, isArrayLikeObject2, true));
+      });
+      var unionBy2 = baseRest2(function(arrays) {
+        var iteratee3 = last2(arrays);
+        if (isArrayLikeObject2(iteratee3)) {
+          iteratee3 = undefined$1;
+        }
+        return baseUniq2(baseFlatten2(arrays, 1, isArrayLikeObject2, true), getIteratee(iteratee3, 2));
+      });
+      var unionWith2 = baseRest2(function(arrays) {
+        var comparator2 = last2(arrays);
+        comparator2 = typeof comparator2 == "function" ? comparator2 : undefined$1;
+        return baseUniq2(baseFlatten2(arrays, 1, isArrayLikeObject2, true), undefined$1, comparator2);
+      });
+      function uniq2(array2) {
+        return array2 && array2.length ? baseUniq2(array2) : [];
+      }
+      function uniqBy2(array2, iteratee3) {
+        return array2 && array2.length ? baseUniq2(array2, getIteratee(iteratee3, 2)) : [];
+      }
+      function uniqWith2(array2, comparator2) {
+        comparator2 = typeof comparator2 == "function" ? comparator2 : undefined$1;
+        return array2 && array2.length ? baseUniq2(array2, undefined$1, comparator2) : [];
+      }
+      function unzip2(array2) {
+        if (!(array2 && array2.length)) {
+          return [];
+        }
+        var length = 0;
+        array2 = arrayFilter2(array2, function(group) {
+          if (isArrayLikeObject2(group)) {
+            length = nativeMax2(group.length, length);
+            return true;
+          }
+        });
+        return baseTimes2(length, function(index) {
+          return arrayMap2(array2, baseProperty2(index));
+        });
+      }
+      function unzipWith2(array2, iteratee3) {
+        if (!(array2 && array2.length)) {
+          return [];
+        }
+        var result3 = unzip2(array2);
+        if (iteratee3 == null) {
+          return result3;
+        }
+        return arrayMap2(result3, function(group) {
+          return apply2(iteratee3, undefined$1, group);
+        });
+      }
+      var without2 = baseRest2(function(array2, values3) {
+        return isArrayLikeObject2(array2) ? baseDifference2(array2, values3) : [];
+      });
+      var xor2 = baseRest2(function(arrays) {
+        return baseXor2(arrayFilter2(arrays, isArrayLikeObject2));
+      });
+      var xorBy2 = baseRest2(function(arrays) {
+        var iteratee3 = last2(arrays);
+        if (isArrayLikeObject2(iteratee3)) {
+          iteratee3 = undefined$1;
+        }
+        return baseXor2(arrayFilter2(arrays, isArrayLikeObject2), getIteratee(iteratee3, 2));
+      });
+      var xorWith2 = baseRest2(function(arrays) {
+        var comparator2 = last2(arrays);
+        comparator2 = typeof comparator2 == "function" ? comparator2 : undefined$1;
+        return baseXor2(arrayFilter2(arrays, isArrayLikeObject2), undefined$1, comparator2);
+      });
+      var zip2 = baseRest2(unzip2);
+      function zipObject2(props, values3) {
+        return baseZipObject2(props || [], values3 || [], assignValue2);
+      }
+      function zipObjectDeep2(props, values3) {
+        return baseZipObject2(props || [], values3 || [], baseSet2);
+      }
+      var zipWith2 = baseRest2(function(arrays) {
+        var length = arrays.length, iteratee3 = length > 1 ? arrays[length - 1] : undefined$1;
+        iteratee3 = typeof iteratee3 == "function" ? (arrays.pop(), iteratee3) : undefined$1;
+        return unzipWith2(arrays, iteratee3);
+      });
+      function chain2(value) {
+        var result3 = lodash2(value);
+        result3.__chain__ = true;
+        return result3;
+      }
+      function tap2(value, interceptor) {
+        interceptor(value);
+        return value;
+      }
+      function thru2(value, interceptor) {
+        return interceptor(value);
+      }
+      var wrapperAt2 = flatRest2(function(paths) {
+        var length = paths.length, start = length ? paths[0] : 0, value = this.__wrapped__, interceptor = function(object2) {
+          return baseAt2(object2, paths);
+        };
+        if (length > 1 || this.__actions__.length || !(value instanceof LazyWrapper2) || !isIndex2(start)) {
+          return this.thru(interceptor);
+        }
+        value = value.slice(start, +start + (length ? 1 : 0));
+        value.__actions__.push({
+          "func": thru2,
+          "args": [interceptor],
+          "thisArg": undefined$1
+        });
+        return new LodashWrapper2(value, this.__chain__).thru(function(array2) {
+          if (length && !array2.length) {
+            array2.push(undefined$1);
+          }
+          return array2;
+        });
+      });
+      function wrapperChain2() {
+        return chain2(this);
+      }
+      function wrapperCommit2() {
+        return new LodashWrapper2(this.value(), this.__chain__);
+      }
+      function wrapperNext2() {
+        if (this.__values__ === undefined$1) {
+          this.__values__ = toArray2(this.value());
+        }
+        var done = this.__index__ >= this.__values__.length, value = done ? undefined$1 : this.__values__[this.__index__++];
+        return { "done": done, "value": value };
+      }
+      function wrapperToIterator2() {
+        return this;
+      }
+      function wrapperPlant2(value) {
+        var result3, parent3 = this;
+        while (parent3 instanceof baseLodash2) {
+          var clone3 = wrapperClone2(parent3);
+          clone3.__index__ = 0;
+          clone3.__values__ = undefined$1;
+          if (result3) {
+            previous.__wrapped__ = clone3;
+          } else {
+            result3 = clone3;
+          }
+          var previous = clone3;
+          parent3 = parent3.__wrapped__;
+        }
+        previous.__wrapped__ = value;
+        return result3;
+      }
+      function wrapperReverse2() {
+        var value = this.__wrapped__;
+        if (value instanceof LazyWrapper2) {
+          var wrapped = value;
+          if (this.__actions__.length) {
+            wrapped = new LazyWrapper2(this);
+          }
+          wrapped = wrapped.reverse();
+          wrapped.__actions__.push({
+            "func": thru2,
+            "args": [reverse2],
+            "thisArg": undefined$1
+          });
+          return new LodashWrapper2(wrapped, this.__chain__);
+        }
+        return this.thru(reverse2);
+      }
+      function wrapperValue2() {
+        return baseWrapperValue2(this.__wrapped__, this.__actions__);
+      }
+      var countBy2 = createAggregator2(function(result3, value, key) {
+        if (hasOwnProperty2.call(result3, key)) {
+          ++result3[key];
+        } else {
+          baseAssignValue2(result3, key, 1);
+        }
+      });
+      function every2(collection2, predicate, guard) {
+        var func2 = isArray2(collection2) ? arrayEvery2 : baseEvery2;
+        if (guard && isIterateeCall2(collection2, predicate, guard)) {
+          predicate = undefined$1;
+        }
+        return func2(collection2, getIteratee(predicate, 3));
+      }
+      function filter2(collection2, predicate) {
+        var func2 = isArray2(collection2) ? arrayFilter2 : baseFilter2;
+        return func2(collection2, getIteratee(predicate, 3));
+      }
+      var find2 = createFind2(findIndex2);
+      var findLast2 = createFind2(findLastIndex2);
+      function flatMap2(collection2, iteratee3) {
+        return baseFlatten2(map2(collection2, iteratee3), 1);
+      }
+      function flatMapDeep2(collection2, iteratee3) {
+        return baseFlatten2(map2(collection2, iteratee3), INFINITY2);
+      }
+      function flatMapDepth2(collection2, iteratee3, depth) {
+        depth = depth === undefined$1 ? 1 : toInteger2(depth);
+        return baseFlatten2(map2(collection2, iteratee3), depth);
+      }
+      function forEach2(collection2, iteratee3) {
+        var func2 = isArray2(collection2) ? arrayEach2 : baseEach2;
+        return func2(collection2, getIteratee(iteratee3, 3));
+      }
+      function forEachRight2(collection2, iteratee3) {
+        var func2 = isArray2(collection2) ? arrayEachRight2 : baseEachRight2;
+        return func2(collection2, getIteratee(iteratee3, 3));
+      }
+      var groupBy2 = createAggregator2(function(result3, value, key) {
+        if (hasOwnProperty2.call(result3, key)) {
+          result3[key].push(value);
+        } else {
+          baseAssignValue2(result3, key, [value]);
+        }
+      });
+      function includes2(collection2, value, fromIndex, guard) {
+        collection2 = isArrayLike2(collection2) ? collection2 : values2(collection2);
+        fromIndex = fromIndex && !guard ? toInteger2(fromIndex) : 0;
+        var length = collection2.length;
+        if (fromIndex < 0) {
+          fromIndex = nativeMax2(length + fromIndex, 0);
+        }
+        return isString2(collection2) ? fromIndex <= length && collection2.indexOf(value, fromIndex) > -1 : !!length && baseIndexOf2(collection2, value, fromIndex) > -1;
+      }
+      var invokeMap2 = baseRest2(function(collection2, path, args) {
+        var index = -1, isFunc = typeof path == "function", result3 = isArrayLike2(collection2) ? Array2(collection2.length) : [];
+        baseEach2(collection2, function(value) {
+          result3[++index] = isFunc ? apply2(path, value, args) : baseInvoke2(value, path, args);
+        });
+        return result3;
+      });
+      var keyBy2 = createAggregator2(function(result3, value, key) {
+        baseAssignValue2(result3, key, value);
+      });
+      function map2(collection2, iteratee3) {
+        var func2 = isArray2(collection2) ? arrayMap2 : baseMap2;
+        return func2(collection2, getIteratee(iteratee3, 3));
+      }
+      function orderBy2(collection2, iteratees, orders, guard) {
+        if (collection2 == null) {
+          return [];
+        }
+        if (!isArray2(iteratees)) {
+          iteratees = iteratees == null ? [] : [iteratees];
+        }
+        orders = guard ? undefined$1 : orders;
+        if (!isArray2(orders)) {
+          orders = orders == null ? [] : [orders];
+        }
+        return baseOrderBy2(collection2, iteratees, orders);
+      }
+      var partition2 = createAggregator2(function(result3, value, key) {
+        result3[key ? 0 : 1].push(value);
+      }, function() {
+        return [[], []];
+      });
+      function reduce2(collection2, iteratee3, accumulator) {
+        var func2 = isArray2(collection2) ? arrayReduce2 : baseReduce2, initAccum = arguments.length < 3;
+        return func2(collection2, getIteratee(iteratee3, 4), accumulator, initAccum, baseEach2);
+      }
+      function reduceRight2(collection2, iteratee3, accumulator) {
+        var func2 = isArray2(collection2) ? arrayReduceRight2 : baseReduce2, initAccum = arguments.length < 3;
+        return func2(collection2, getIteratee(iteratee3, 4), accumulator, initAccum, baseEachRight2);
+      }
+      function reject2(collection2, predicate) {
+        var func2 = isArray2(collection2) ? arrayFilter2 : baseFilter2;
+        return func2(collection2, negate2(getIteratee(predicate, 3)));
+      }
+      function sample2(collection2) {
+        var func2 = isArray2(collection2) ? arraySample2 : baseSample2;
+        return func2(collection2);
+      }
+      function sampleSize2(collection2, n, guard) {
+        if (guard ? isIterateeCall2(collection2, n, guard) : n === undefined$1) {
+          n = 1;
+        } else {
+          n = toInteger2(n);
+        }
+        var func2 = isArray2(collection2) ? arraySampleSize2 : baseSampleSize2;
+        return func2(collection2, n);
+      }
+      function shuffle2(collection2) {
+        var func2 = isArray2(collection2) ? arrayShuffle2 : baseShuffle2;
+        return func2(collection2);
+      }
+      function size2(collection2) {
+        if (collection2 == null) {
+          return 0;
+        }
+        if (isArrayLike2(collection2)) {
+          return isString2(collection2) ? stringSize2(collection2) : collection2.length;
+        }
+        var tag = getTag2(collection2);
+        if (tag == mapTag2 || tag == setTag2) {
+          return collection2.size;
+        }
+        return baseKeys2(collection2).length;
+      }
+      function some2(collection2, predicate, guard) {
+        var func2 = isArray2(collection2) ? arraySome2 : baseSome2;
+        if (guard && isIterateeCall2(collection2, predicate, guard)) {
+          predicate = undefined$1;
+        }
+        return func2(collection2, getIteratee(predicate, 3));
+      }
+      var sortBy2 = baseRest2(function(collection2, iteratees) {
+        if (collection2 == null) {
+          return [];
+        }
+        var length = iteratees.length;
+        if (length > 1 && isIterateeCall2(collection2, iteratees[0], iteratees[1])) {
+          iteratees = [];
+        } else if (length > 2 && isIterateeCall2(iteratees[0], iteratees[1], iteratees[2])) {
+          iteratees = [iteratees[0]];
+        }
+        return baseOrderBy2(collection2, baseFlatten2(iteratees, 1), []);
+      });
+      var now2 = ctxNow || function() {
+        return root2.Date.now();
+      };
+      function after2(n, func2) {
+        if (typeof func2 != "function") {
+          throw new TypeError2(FUNC_ERROR_TEXT2);
+        }
+        n = toInteger2(n);
+        return function() {
+          if (--n < 1) {
+            return func2.apply(this, arguments);
+          }
+        };
+      }
+      function ary2(func2, n, guard) {
+        n = guard ? undefined$1 : n;
+        n = func2 && n == null ? func2.length : n;
+        return createWrap2(func2, WRAP_ARY_FLAG2, undefined$1, undefined$1, undefined$1, undefined$1, n);
+      }
+      function before2(n, func2) {
+        var result3;
+        if (typeof func2 != "function") {
+          throw new TypeError2(FUNC_ERROR_TEXT2);
+        }
+        n = toInteger2(n);
+        return function() {
+          if (--n > 0) {
+            result3 = func2.apply(this, arguments);
+          }
+          if (n <= 1) {
+            func2 = undefined$1;
+          }
+          return result3;
+        };
+      }
+      var bind2 = baseRest2(function(func2, thisArg, partials) {
+        var bitmask = WRAP_BIND_FLAG2;
+        if (partials.length) {
+          var holders = replaceHolders2(partials, getHolder2(bind2));
+          bitmask |= WRAP_PARTIAL_FLAG2;
+        }
+        return createWrap2(func2, bitmask, thisArg, partials, holders);
+      });
+      var bindKey2 = baseRest2(function(object2, key, partials) {
+        var bitmask = WRAP_BIND_FLAG2 | WRAP_BIND_KEY_FLAG2;
+        if (partials.length) {
+          var holders = replaceHolders2(partials, getHolder2(bindKey2));
+          bitmask |= WRAP_PARTIAL_FLAG2;
+        }
+        return createWrap2(key, bitmask, object2, partials, holders);
+      });
+      function curry2(func2, arity, guard) {
+        arity = guard ? undefined$1 : arity;
+        var result3 = createWrap2(func2, WRAP_CURRY_FLAG2, undefined$1, undefined$1, undefined$1, undefined$1, undefined$1, arity);
+        result3.placeholder = curry2.placeholder;
+        return result3;
+      }
+      function curryRight2(func2, arity, guard) {
+        arity = guard ? undefined$1 : arity;
+        var result3 = createWrap2(func2, WRAP_CURRY_RIGHT_FLAG2, undefined$1, undefined$1, undefined$1, undefined$1, undefined$1, arity);
+        result3.placeholder = curryRight2.placeholder;
+        return result3;
+      }
+      function debounce2(func2, wait, options) {
+        var lastArgs, lastThis, maxWait, result3, timerId, lastCallTime, lastInvokeTime = 0, leading = false, maxing = false, trailing = true;
+        if (typeof func2 != "function") {
+          throw new TypeError2(FUNC_ERROR_TEXT2);
+        }
+        wait = toNumber2(wait) || 0;
+        if (isObject2(options)) {
+          leading = !!options.leading;
+          maxing = "maxWait" in options;
+          maxWait = maxing ? nativeMax2(toNumber2(options.maxWait) || 0, wait) : maxWait;
+          trailing = "trailing" in options ? !!options.trailing : trailing;
+        }
+        function invokeFunc(time) {
+          var args = lastArgs, thisArg = lastThis;
+          lastArgs = lastThis = undefined$1;
+          lastInvokeTime = time;
+          result3 = func2.apply(thisArg, args);
+          return result3;
+        }
+        function leadingEdge(time) {
+          lastInvokeTime = time;
+          timerId = setTimeout2(timerExpired, wait);
+          return leading ? invokeFunc(time) : result3;
+        }
+        function remainingWait(time) {
+          var timeSinceLastCall = time - lastCallTime, timeSinceLastInvoke = time - lastInvokeTime, timeWaiting = wait - timeSinceLastCall;
+          return maxing ? nativeMin2(timeWaiting, maxWait - timeSinceLastInvoke) : timeWaiting;
+        }
+        function shouldInvoke(time) {
+          var timeSinceLastCall = time - lastCallTime, timeSinceLastInvoke = time - lastInvokeTime;
+          return lastCallTime === undefined$1 || timeSinceLastCall >= wait || timeSinceLastCall < 0 || maxing && timeSinceLastInvoke >= maxWait;
+        }
+        function timerExpired() {
+          var time = now2();
+          if (shouldInvoke(time)) {
+            return trailingEdge(time);
+          }
+          timerId = setTimeout2(timerExpired, remainingWait(time));
+        }
+        function trailingEdge(time) {
+          timerId = undefined$1;
+          if (trailing && lastArgs) {
+            return invokeFunc(time);
+          }
+          lastArgs = lastThis = undefined$1;
+          return result3;
+        }
+        function cancel() {
+          if (timerId !== undefined$1) {
+            clearTimeout2(timerId);
+          }
+          lastInvokeTime = 0;
+          lastArgs = lastCallTime = lastThis = timerId = undefined$1;
+        }
+        function flush() {
+          return timerId === undefined$1 ? result3 : trailingEdge(now2());
+        }
+        function debounced() {
+          var time = now2(), isInvoking = shouldInvoke(time);
+          lastArgs = arguments;
+          lastThis = this;
+          lastCallTime = time;
+          if (isInvoking) {
+            if (timerId === undefined$1) {
+              return leadingEdge(lastCallTime);
+            }
+            if (maxing) {
+              clearTimeout2(timerId);
+              timerId = setTimeout2(timerExpired, wait);
+              return invokeFunc(lastCallTime);
+            }
+          }
+          if (timerId === undefined$1) {
+            timerId = setTimeout2(timerExpired, wait);
+          }
+          return result3;
+        }
+        debounced.cancel = cancel;
+        debounced.flush = flush;
+        return debounced;
+      }
+      var defer2 = baseRest2(function(func2, args) {
+        return baseDelay2(func2, 1, args);
+      });
+      var delay2 = baseRest2(function(func2, wait, args) {
+        return baseDelay2(func2, toNumber2(wait) || 0, args);
+      });
+      function flip2(func2) {
+        return createWrap2(func2, WRAP_FLIP_FLAG2);
+      }
+      function memoize2(func2, resolver) {
+        if (typeof func2 != "function" || resolver != null && typeof resolver != "function") {
+          throw new TypeError2(FUNC_ERROR_TEXT2);
+        }
+        var memoized = function() {
+          var args = arguments, key = resolver ? resolver.apply(this, args) : args[0], cache = memoized.cache;
+          if (cache.has(key)) {
+            return cache.get(key);
+          }
+          var result3 = func2.apply(this, args);
+          memoized.cache = cache.set(key, result3) || cache;
+          return result3;
+        };
+        memoized.cache = new (memoize2.Cache || MapCache2)();
+        return memoized;
+      }
+      memoize2.Cache = MapCache2;
+      function negate2(predicate) {
+        if (typeof predicate != "function") {
+          throw new TypeError2(FUNC_ERROR_TEXT2);
+        }
+        return function() {
+          var args = arguments;
+          switch (args.length) {
+            case 0:
+              return !predicate.call(this);
+            case 1:
+              return !predicate.call(this, args[0]);
+            case 2:
+              return !predicate.call(this, args[0], args[1]);
+            case 3:
+              return !predicate.call(this, args[0], args[1], args[2]);
+          }
+          return !predicate.apply(this, args);
+        };
+      }
+      function once2(func2) {
+        return before2(2, func2);
+      }
+      var overArgs2 = castRest2(function(func2, transforms) {
+        transforms = transforms.length == 1 && isArray2(transforms[0]) ? arrayMap2(transforms[0], baseUnary2(getIteratee())) : arrayMap2(baseFlatten2(transforms, 1), baseUnary2(getIteratee()));
+        var funcsLength = transforms.length;
+        return baseRest2(function(args) {
+          var index = -1, length = nativeMin2(args.length, funcsLength);
+          while (++index < length) {
+            args[index] = transforms[index].call(this, args[index]);
+          }
+          return apply2(func2, this, args);
+        });
+      });
+      var partial2 = baseRest2(function(func2, partials) {
+        var holders = replaceHolders2(partials, getHolder2(partial2));
+        return createWrap2(func2, WRAP_PARTIAL_FLAG2, undefined$1, partials, holders);
+      });
+      var partialRight2 = baseRest2(function(func2, partials) {
+        var holders = replaceHolders2(partials, getHolder2(partialRight2));
+        return createWrap2(func2, WRAP_PARTIAL_RIGHT_FLAG2, undefined$1, partials, holders);
+      });
+      var rearg2 = flatRest2(function(func2, indexes) {
+        return createWrap2(func2, WRAP_REARG_FLAG2, undefined$1, undefined$1, undefined$1, indexes);
+      });
+      function rest2(func2, start) {
+        if (typeof func2 != "function") {
+          throw new TypeError2(FUNC_ERROR_TEXT2);
+        }
+        start = start === undefined$1 ? start : toInteger2(start);
+        return baseRest2(func2, start);
+      }
+      function spread2(func2, start) {
+        if (typeof func2 != "function") {
+          throw new TypeError2(FUNC_ERROR_TEXT2);
+        }
+        start = start == null ? 0 : nativeMax2(toInteger2(start), 0);
+        return baseRest2(function(args) {
+          var array2 = args[start], otherArgs = castSlice2(args, 0, start);
+          if (array2) {
+            arrayPush2(otherArgs, array2);
+          }
+          return apply2(func2, this, otherArgs);
+        });
+      }
+      function throttle2(func2, wait, options) {
+        var leading = true, trailing = true;
+        if (typeof func2 != "function") {
+          throw new TypeError2(FUNC_ERROR_TEXT2);
+        }
+        if (isObject2(options)) {
+          leading = "leading" in options ? !!options.leading : leading;
+          trailing = "trailing" in options ? !!options.trailing : trailing;
+        }
+        return debounce2(func2, wait, {
+          "leading": leading,
+          "maxWait": wait,
+          "trailing": trailing
+        });
+      }
+      function unary2(func2) {
+        return ary2(func2, 1);
+      }
+      function wrap2(value, wrapper) {
+        return partial2(castFunction2(wrapper), value);
+      }
+      function castArray2() {
+        if (!arguments.length) {
+          return [];
+        }
+        var value = arguments[0];
+        return isArray2(value) ? value : [value];
+      }
+      function clone2(value) {
+        return baseClone2(value, CLONE_SYMBOLS_FLAG2);
+      }
+      function cloneWith2(value, customizer) {
+        customizer = typeof customizer == "function" ? customizer : undefined$1;
+        return baseClone2(value, CLONE_SYMBOLS_FLAG2, customizer);
+      }
+      function cloneDeep2(value) {
+        return baseClone2(value, CLONE_DEEP_FLAG2 | CLONE_SYMBOLS_FLAG2);
+      }
+      function cloneDeepWith2(value, customizer) {
+        customizer = typeof customizer == "function" ? customizer : undefined$1;
+        return baseClone2(value, CLONE_DEEP_FLAG2 | CLONE_SYMBOLS_FLAG2, customizer);
+      }
+      function conformsTo2(object2, source) {
+        return source == null || baseConformsTo2(object2, source, keys2(source));
+      }
+      function eq2(value, other) {
+        return value === other || value !== value && other !== other;
+      }
+      var gt2 = createRelationalOperation2(baseGt2);
+      var gte2 = createRelationalOperation2(function(value, other) {
+        return value >= other;
+      });
+      var isArguments2 = baseIsArguments2(/* @__PURE__ */ function() {
+        return arguments;
+      }()) ? baseIsArguments2 : function(value) {
+        return isObjectLike2(value) && hasOwnProperty2.call(value, "callee") && !propertyIsEnumerable2.call(value, "callee");
+      };
+      var isArray2 = Array2.isArray;
+      var isArrayBuffer2 = nodeIsArrayBuffer2 ? baseUnary2(nodeIsArrayBuffer2) : baseIsArrayBuffer2;
+      function isArrayLike2(value) {
+        return value != null && isLength2(value.length) && !isFunction2(value);
+      }
+      function isArrayLikeObject2(value) {
+        return isObjectLike2(value) && isArrayLike2(value);
+      }
+      function isBoolean2(value) {
+        return value === true || value === false || isObjectLike2(value) && baseGetTag2(value) == boolTag2;
+      }
+      var isBuffer2 = nativeIsBuffer2 || stubFalse2;
+      var isDate2 = nodeIsDate2 ? baseUnary2(nodeIsDate2) : baseIsDate2;
+      function isElement2(value) {
+        return isObjectLike2(value) && value.nodeType === 1 && !isPlainObject2(value);
+      }
+      function isEmpty2(value) {
+        if (value == null) {
+          return true;
+        }
+        if (isArrayLike2(value) && (isArray2(value) || typeof value == "string" || typeof value.splice == "function" || isBuffer2(value) || isTypedArray2(value) || isArguments2(value))) {
+          return !value.length;
+        }
+        var tag = getTag2(value);
+        if (tag == mapTag2 || tag == setTag2) {
+          return !value.size;
+        }
+        if (isPrototype2(value)) {
+          return !baseKeys2(value).length;
+        }
+        for (var key in value) {
+          if (hasOwnProperty2.call(value, key)) {
+            return false;
+          }
+        }
+        return true;
+      }
+      function isEqual2(value, other) {
+        return baseIsEqual2(value, other);
+      }
+      function isEqualWith2(value, other, customizer) {
+        customizer = typeof customizer == "function" ? customizer : undefined$1;
+        var result3 = customizer ? customizer(value, other) : undefined$1;
+        return result3 === undefined$1 ? baseIsEqual2(value, other, undefined$1, customizer) : !!result3;
+      }
+      function isError2(value) {
+        if (!isObjectLike2(value)) {
+          return false;
+        }
+        var tag = baseGetTag2(value);
+        return tag == errorTag2 || tag == domExcTag2 || typeof value.message == "string" && typeof value.name == "string" && !isPlainObject2(value);
+      }
+      function isFinite2(value) {
+        return typeof value == "number" && nativeIsFinite2(value);
+      }
+      function isFunction2(value) {
+        if (!isObject2(value)) {
+          return false;
+        }
+        var tag = baseGetTag2(value);
+        return tag == funcTag2 || tag == genTag2 || tag == asyncTag2 || tag == proxyTag2;
+      }
+      function isInteger2(value) {
+        return typeof value == "number" && value == toInteger2(value);
+      }
+      function isLength2(value) {
+        return typeof value == "number" && value > -1 && value % 1 == 0 && value <= MAX_SAFE_INTEGER2;
+      }
+      function isObject2(value) {
+        var type = typeof value;
+        return value != null && (type == "object" || type == "function");
+      }
+      function isObjectLike2(value) {
+        return value != null && typeof value == "object";
+      }
+      var isMap2 = nodeIsMap2 ? baseUnary2(nodeIsMap2) : baseIsMap2;
+      function isMatch2(object2, source) {
+        return object2 === source || baseIsMatch2(object2, source, getMatchData2(source));
+      }
+      function isMatchWith2(object2, source, customizer) {
+        customizer = typeof customizer == "function" ? customizer : undefined$1;
+        return baseIsMatch2(object2, source, getMatchData2(source), customizer);
+      }
+      function isNaN2(value) {
+        return isNumber2(value) && value != +value;
+      }
+      function isNative2(value) {
+        if (isMaskable2(value)) {
+          throw new Error2(CORE_ERROR_TEXT2);
+        }
+        return baseIsNative2(value);
+      }
+      function isNull2(value) {
+        return value === null;
+      }
+      function isNil2(value) {
+        return value == null;
+      }
+      function isNumber2(value) {
+        return typeof value == "number" || isObjectLike2(value) && baseGetTag2(value) == numberTag2;
+      }
+      function isPlainObject2(value) {
+        if (!isObjectLike2(value) || baseGetTag2(value) != objectTag2) {
+          return false;
+        }
+        var proto = getPrototype2(value);
+        if (proto === null) {
+          return true;
+        }
+        var Ctor = hasOwnProperty2.call(proto, "constructor") && proto.constructor;
+        return typeof Ctor == "function" && Ctor instanceof Ctor && funcToString2.call(Ctor) == objectCtorString2;
+      }
+      var isRegExp2 = nodeIsRegExp2 ? baseUnary2(nodeIsRegExp2) : baseIsRegExp2;
+      function isSafeInteger2(value) {
+        return isInteger2(value) && value >= -MAX_SAFE_INTEGER2 && value <= MAX_SAFE_INTEGER2;
+      }
+      var isSet2 = nodeIsSet2 ? baseUnary2(nodeIsSet2) : baseIsSet2;
+      function isString2(value) {
+        return typeof value == "string" || !isArray2(value) && isObjectLike2(value) && baseGetTag2(value) == stringTag2;
+      }
+      function isSymbol2(value) {
+        return typeof value == "symbol" || isObjectLike2(value) && baseGetTag2(value) == symbolTag2;
+      }
+      var isTypedArray2 = nodeIsTypedArray2 ? baseUnary2(nodeIsTypedArray2) : baseIsTypedArray2;
+      function isUndefined2(value) {
+        return value === undefined$1;
+      }
+      function isWeakMap2(value) {
+        return isObjectLike2(value) && getTag2(value) == weakMapTag2;
+      }
+      function isWeakSet2(value) {
+        return isObjectLike2(value) && baseGetTag2(value) == weakSetTag2;
+      }
+      var lt2 = createRelationalOperation2(baseLt2);
+      var lte2 = createRelationalOperation2(function(value, other) {
+        return value <= other;
+      });
+      function toArray2(value) {
+        if (!value) {
+          return [];
+        }
+        if (isArrayLike2(value)) {
+          return isString2(value) ? stringToArray2(value) : copyArray2(value);
+        }
+        if (symIterator2 && value[symIterator2]) {
+          return iteratorToArray2(value[symIterator2]());
+        }
+        var tag = getTag2(value), func2 = tag == mapTag2 ? mapToArray2 : tag == setTag2 ? setToArray2 : values2;
+        return func2(value);
+      }
+      function toFinite2(value) {
+        if (!value) {
+          return value === 0 ? value : 0;
+        }
+        value = toNumber2(value);
+        if (value === INFINITY2 || value === -INFINITY2) {
+          var sign = value < 0 ? -1 : 1;
+          return sign * MAX_INTEGER2;
+        }
+        return value === value ? value : 0;
+      }
+      function toInteger2(value) {
+        var result3 = toFinite2(value), remainder = result3 % 1;
+        return result3 === result3 ? remainder ? result3 - remainder : result3 : 0;
+      }
+      function toLength2(value) {
+        return value ? baseClamp2(toInteger2(value), 0, MAX_ARRAY_LENGTH2) : 0;
+      }
+      function toNumber2(value) {
+        if (typeof value == "number") {
+          return value;
+        }
+        if (isSymbol2(value)) {
+          return NAN2;
+        }
+        if (isObject2(value)) {
+          var other = typeof value.valueOf == "function" ? value.valueOf() : value;
+          value = isObject2(other) ? other + "" : other;
+        }
+        if (typeof value != "string") {
+          return value === 0 ? value : +value;
+        }
+        value = value.replace(reTrim, "");
+        var isBinary = reIsBinary2.test(value);
+        return isBinary || reIsOctal2.test(value) ? freeParseInt2(value.slice(2), isBinary ? 2 : 8) : reIsBadHex2.test(value) ? NAN2 : +value;
+      }
+      function toPlainObject2(value) {
+        return copyObject2(value, keysIn2(value));
+      }
+      function toSafeInteger2(value) {
+        return value ? baseClamp2(toInteger2(value), -MAX_SAFE_INTEGER2, MAX_SAFE_INTEGER2) : value === 0 ? value : 0;
+      }
+      function toString2(value) {
+        return value == null ? "" : baseToString2(value);
+      }
+      var assign2 = createAssigner2(function(object2, source) {
+        if (isPrototype2(source) || isArrayLike2(source)) {
+          copyObject2(source, keys2(source), object2);
+          return;
+        }
+        for (var key in source) {
+          if (hasOwnProperty2.call(source, key)) {
+            assignValue2(object2, key, source[key]);
+          }
+        }
+      });
+      var assignIn2 = createAssigner2(function(object2, source) {
+        copyObject2(source, keysIn2(source), object2);
+      });
+      var assignInWith2 = createAssigner2(function(object2, source, srcIndex, customizer) {
+        copyObject2(source, keysIn2(source), object2, customizer);
+      });
+      var assignWith2 = createAssigner2(function(object2, source, srcIndex, customizer) {
+        copyObject2(source, keys2(source), object2, customizer);
+      });
+      var at2 = flatRest2(baseAt2);
+      function create2(prototype, properties) {
+        var result3 = baseCreate2(prototype);
+        return properties == null ? result3 : baseAssign2(result3, properties);
+      }
+      var defaults2 = baseRest2(function(object2, sources) {
+        object2 = Object2(object2);
+        var index = -1;
+        var length = sources.length;
+        var guard = length > 2 ? sources[2] : undefined$1;
+        if (guard && isIterateeCall2(sources[0], sources[1], guard)) {
+          length = 1;
+        }
+        while (++index < length) {
+          var source = sources[index];
+          var props = keysIn2(source);
+          var propsIndex = -1;
+          var propsLength = props.length;
+          while (++propsIndex < propsLength) {
+            var key = props[propsIndex];
+            var value = object2[key];
+            if (value === undefined$1 || eq2(value, objectProto2[key]) && !hasOwnProperty2.call(object2, key)) {
+              object2[key] = source[key];
+            }
+          }
+        }
+        return object2;
+      });
+      var defaultsDeep2 = baseRest2(function(args) {
+        args.push(undefined$1, customDefaultsMerge2);
+        return apply2(mergeWith2, undefined$1, args);
+      });
+      function findKey2(object2, predicate) {
+        return baseFindKey2(object2, getIteratee(predicate, 3), baseForOwn2);
+      }
+      function findLastKey2(object2, predicate) {
+        return baseFindKey2(object2, getIteratee(predicate, 3), baseForOwnRight2);
+      }
+      function forIn2(object2, iteratee3) {
+        return object2 == null ? object2 : baseFor2(object2, getIteratee(iteratee3, 3), keysIn2);
+      }
+      function forInRight2(object2, iteratee3) {
+        return object2 == null ? object2 : baseForRight2(object2, getIteratee(iteratee3, 3), keysIn2);
+      }
+      function forOwn2(object2, iteratee3) {
+        return object2 && baseForOwn2(object2, getIteratee(iteratee3, 3));
+      }
+      function forOwnRight2(object2, iteratee3) {
+        return object2 && baseForOwnRight2(object2, getIteratee(iteratee3, 3));
+      }
+      function functions2(object2) {
+        return object2 == null ? [] : baseFunctions2(object2, keys2(object2));
+      }
+      function functionsIn2(object2) {
+        return object2 == null ? [] : baseFunctions2(object2, keysIn2(object2));
+      }
+      function get2(object2, path, defaultValue) {
+        var result3 = object2 == null ? undefined$1 : baseGet2(object2, path);
+        return result3 === undefined$1 ? defaultValue : result3;
+      }
+      function has2(object2, path) {
+        return object2 != null && hasPath2(object2, path, baseHas2);
+      }
+      function hasIn2(object2, path) {
+        return object2 != null && hasPath2(object2, path, baseHasIn2);
+      }
+      var invert2 = createInverter2(function(result3, value, key) {
+        if (value != null && typeof value.toString != "function") {
+          value = nativeObjectToString2.call(value);
+        }
+        result3[value] = key;
+      }, constant2(identity2));
+      var invertBy2 = createInverter2(function(result3, value, key) {
+        if (value != null && typeof value.toString != "function") {
+          value = nativeObjectToString2.call(value);
+        }
+        if (hasOwnProperty2.call(result3, value)) {
+          result3[value].push(key);
+        } else {
+          result3[value] = [key];
+        }
+      }, getIteratee);
+      var invoke2 = baseRest2(baseInvoke2);
+      function keys2(object2) {
+        return isArrayLike2(object2) ? arrayLikeKeys2(object2) : baseKeys2(object2);
+      }
+      function keysIn2(object2) {
+        return isArrayLike2(object2) ? arrayLikeKeys2(object2, true) : baseKeysIn2(object2);
+      }
+      function mapKeys2(object2, iteratee3) {
+        var result3 = {};
+        iteratee3 = getIteratee(iteratee3, 3);
+        baseForOwn2(object2, function(value, key, object3) {
+          baseAssignValue2(result3, iteratee3(value, key, object3), value);
+        });
+        return result3;
+      }
+      function mapValues2(object2, iteratee3) {
+        var result3 = {};
+        iteratee3 = getIteratee(iteratee3, 3);
+        baseForOwn2(object2, function(value, key, object3) {
+          baseAssignValue2(result3, key, iteratee3(value, key, object3));
+        });
+        return result3;
+      }
+      var merge2 = createAssigner2(function(object2, source, srcIndex) {
+        baseMerge2(object2, source, srcIndex);
+      });
+      var mergeWith2 = createAssigner2(function(object2, source, srcIndex, customizer) {
+        baseMerge2(object2, source, srcIndex, customizer);
+      });
+      var omit2 = flatRest2(function(object2, paths) {
+        var result3 = {};
+        if (object2 == null) {
+          return result3;
+        }
+        var isDeep = false;
+        paths = arrayMap2(paths, function(path) {
+          path = castPath2(path, object2);
+          isDeep || (isDeep = path.length > 1);
+          return path;
+        });
+        copyObject2(object2, getAllKeysIn2(object2), result3);
+        if (isDeep) {
+          result3 = baseClone2(result3, CLONE_DEEP_FLAG2 | CLONE_FLAT_FLAG2 | CLONE_SYMBOLS_FLAG2, customOmitClone2);
+        }
+        var length = paths.length;
+        while (length--) {
+          baseUnset2(result3, paths[length]);
+        }
+        return result3;
+      });
+      function omitBy2(object2, predicate) {
+        return pickBy2(object2, negate2(getIteratee(predicate)));
+      }
+      var pick2 = flatRest2(function(object2, paths) {
+        return object2 == null ? {} : basePick2(object2, paths);
+      });
+      function pickBy2(object2, predicate) {
+        if (object2 == null) {
+          return {};
+        }
+        var props = arrayMap2(getAllKeysIn2(object2), function(prop) {
+          return [prop];
+        });
+        predicate = getIteratee(predicate);
+        return basePickBy2(object2, props, function(value, path) {
+          return predicate(value, path[0]);
+        });
+      }
+      function result2(object2, path, defaultValue) {
+        path = castPath2(path, object2);
+        var index = -1, length = path.length;
+        if (!length) {
+          length = 1;
+          object2 = undefined$1;
+        }
+        while (++index < length) {
+          var value = object2 == null ? undefined$1 : object2[toKey2(path[index])];
+          if (value === undefined$1) {
+            index = length;
+            value = defaultValue;
+          }
+          object2 = isFunction2(value) ? value.call(object2) : value;
+        }
+        return object2;
+      }
+      function set2(object2, path, value) {
+        return object2 == null ? object2 : baseSet2(object2, path, value);
+      }
+      function setWith2(object2, path, value, customizer) {
+        customizer = typeof customizer == "function" ? customizer : undefined$1;
+        return object2 == null ? object2 : baseSet2(object2, path, value, customizer);
+      }
+      var toPairs2 = createToPairs2(keys2);
+      var toPairsIn2 = createToPairs2(keysIn2);
+      function transform2(object2, iteratee3, accumulator) {
+        var isArr = isArray2(object2), isArrLike = isArr || isBuffer2(object2) || isTypedArray2(object2);
+        iteratee3 = getIteratee(iteratee3, 4);
+        if (accumulator == null) {
+          var Ctor = object2 && object2.constructor;
+          if (isArrLike) {
+            accumulator = isArr ? new Ctor() : [];
+          } else if (isObject2(object2)) {
+            accumulator = isFunction2(Ctor) ? baseCreate2(getPrototype2(object2)) : {};
+          } else {
+            accumulator = {};
+          }
+        }
+        (isArrLike ? arrayEach2 : baseForOwn2)(object2, function(value, index, object3) {
+          return iteratee3(accumulator, value, index, object3);
+        });
+        return accumulator;
+      }
+      function unset2(object2, path) {
+        return object2 == null ? true : baseUnset2(object2, path);
+      }
+      function update2(object2, path, updater) {
+        return object2 == null ? object2 : baseUpdate2(object2, path, castFunction2(updater));
+      }
+      function updateWith2(object2, path, updater, customizer) {
+        customizer = typeof customizer == "function" ? customizer : undefined$1;
+        return object2 == null ? object2 : baseUpdate2(object2, path, castFunction2(updater), customizer);
+      }
+      function values2(object2) {
+        return object2 == null ? [] : baseValues2(object2, keys2(object2));
+      }
+      function valuesIn2(object2) {
+        return object2 == null ? [] : baseValues2(object2, keysIn2(object2));
+      }
+      function clamp2(number2, lower, upper) {
+        if (upper === undefined$1) {
+          upper = lower;
+          lower = undefined$1;
+        }
+        if (upper !== undefined$1) {
+          upper = toNumber2(upper);
+          upper = upper === upper ? upper : 0;
+        }
+        if (lower !== undefined$1) {
+          lower = toNumber2(lower);
+          lower = lower === lower ? lower : 0;
+        }
+        return baseClamp2(toNumber2(number2), lower, upper);
+      }
+      function inRange2(number2, start, end) {
+        start = toFinite2(start);
+        if (end === undefined$1) {
+          end = start;
+          start = 0;
+        } else {
+          end = toFinite2(end);
+        }
+        number2 = toNumber2(number2);
+        return baseInRange2(number2, start, end);
+      }
+      function random2(lower, upper, floating) {
+        if (floating && typeof floating != "boolean" && isIterateeCall2(lower, upper, floating)) {
+          upper = floating = undefined$1;
+        }
+        if (floating === undefined$1) {
+          if (typeof upper == "boolean") {
+            floating = upper;
+            upper = undefined$1;
+          } else if (typeof lower == "boolean") {
+            floating = lower;
+            lower = undefined$1;
+          }
+        }
+        if (lower === undefined$1 && upper === undefined$1) {
+          lower = 0;
+          upper = 1;
+        } else {
+          lower = toFinite2(lower);
+          if (upper === undefined$1) {
+            upper = lower;
+            lower = 0;
+          } else {
+            upper = toFinite2(upper);
+          }
+        }
+        if (lower > upper) {
+          var temp = lower;
+          lower = upper;
+          upper = temp;
+        }
+        if (floating || lower % 1 || upper % 1) {
+          var rand = nativeRandom2();
+          return nativeMin2(lower + rand * (upper - lower + freeParseFloat2("1e-" + ((rand + "").length - 1))), upper);
+        }
+        return baseRandom2(lower, upper);
+      }
+      var camelCase2 = createCompounder2(function(result3, word, index) {
+        word = word.toLowerCase();
+        return result3 + (index ? capitalize2(word) : word);
+      });
+      function capitalize2(string2) {
+        return upperFirst2(toString2(string2).toLowerCase());
+      }
+      function deburr2(string2) {
+        string2 = toString2(string2);
+        return string2 && string2.replace(reLatin2, deburrLetter2).replace(reComboMark2, "");
+      }
+      function endsWith2(string2, target, position) {
+        string2 = toString2(string2);
+        target = baseToString2(target);
+        var length = string2.length;
+        position = position === undefined$1 ? length : baseClamp2(toInteger2(position), 0, length);
+        var end = position;
+        position -= target.length;
+        return position >= 0 && string2.slice(position, end) == target;
+      }
+      function escape2(string2) {
+        string2 = toString2(string2);
+        return string2 && reHasUnescapedHtml2.test(string2) ? string2.replace(reUnescapedHtml2, escapeHtmlChar2) : string2;
+      }
+      function escapeRegExp2(string2) {
+        string2 = toString2(string2);
+        return string2 && reHasRegExpChar2.test(string2) ? string2.replace(reRegExpChar2, "\\$&") : string2;
+      }
+      var kebabCase2 = createCompounder2(function(result3, word, index) {
+        return result3 + (index ? "-" : "") + word.toLowerCase();
+      });
+      var lowerCase2 = createCompounder2(function(result3, word, index) {
+        return result3 + (index ? " " : "") + word.toLowerCase();
+      });
+      var lowerFirst2 = createCaseFirst2("toLowerCase");
+      function pad2(string2, length, chars) {
+        string2 = toString2(string2);
+        length = toInteger2(length);
+        var strLength = length ? stringSize2(string2) : 0;
+        if (!length || strLength >= length) {
+          return string2;
+        }
+        var mid = (length - strLength) / 2;
+        return createPadding2(nativeFloor2(mid), chars) + string2 + createPadding2(nativeCeil2(mid), chars);
+      }
+      function padEnd2(string2, length, chars) {
+        string2 = toString2(string2);
+        length = toInteger2(length);
+        var strLength = length ? stringSize2(string2) : 0;
+        return length && strLength < length ? string2 + createPadding2(length - strLength, chars) : string2;
+      }
+      function padStart2(string2, length, chars) {
+        string2 = toString2(string2);
+        length = toInteger2(length);
+        var strLength = length ? stringSize2(string2) : 0;
+        return length && strLength < length ? createPadding2(length - strLength, chars) + string2 : string2;
+      }
+      function parseInt2(string2, radix, guard) {
+        if (guard || radix == null) {
+          radix = 0;
+        } else if (radix) {
+          radix = +radix;
+        }
+        return nativeParseInt2(toString2(string2).replace(reTrimStart2, ""), radix || 0);
+      }
+      function repeat2(string2, n, guard) {
+        if (guard ? isIterateeCall2(string2, n, guard) : n === undefined$1) {
+          n = 1;
+        } else {
+          n = toInteger2(n);
+        }
+        return baseRepeat2(toString2(string2), n);
+      }
+      function replace2() {
+        var args = arguments, string2 = toString2(args[0]);
+        return args.length < 3 ? string2 : string2.replace(args[1], args[2]);
+      }
+      var snakeCase2 = createCompounder2(function(result3, word, index) {
+        return result3 + (index ? "_" : "") + word.toLowerCase();
+      });
+      function split2(string2, separator, limit) {
+        if (limit && typeof limit != "number" && isIterateeCall2(string2, separator, limit)) {
+          separator = limit = undefined$1;
+        }
+        limit = limit === undefined$1 ? MAX_ARRAY_LENGTH2 : limit >>> 0;
+        if (!limit) {
+          return [];
+        }
+        string2 = toString2(string2);
+        if (string2 && (typeof separator == "string" || separator != null && !isRegExp2(separator))) {
+          separator = baseToString2(separator);
+          if (!separator && hasUnicode2(string2)) {
+            return castSlice2(stringToArray2(string2), 0, limit);
+          }
+        }
+        return string2.split(separator, limit);
+      }
+      var startCase2 = createCompounder2(function(result3, word, index) {
+        return result3 + (index ? " " : "") + upperFirst2(word);
+      });
+      function startsWith2(string2, target, position) {
+        string2 = toString2(string2);
+        position = position == null ? 0 : baseClamp2(toInteger2(position), 0, string2.length);
+        target = baseToString2(target);
+        return string2.slice(position, position + target.length) == target;
+      }
+      function template2(string2, options, guard) {
+        var settings = lodash2.templateSettings;
+        if (guard && isIterateeCall2(string2, options, guard)) {
+          options = undefined$1;
+        }
+        string2 = toString2(string2);
+        options = assignInWith2({}, options, settings, customDefaultsAssignIn2);
+        var imports = assignInWith2({}, options.imports, settings.imports, customDefaultsAssignIn2), importsKeys = keys2(imports), importsValues = baseValues2(imports, importsKeys);
+        var isEscaping, isEvaluating, index = 0, interpolate = options.interpolate || reNoMatch2, source = "__p += '";
+        var reDelimiters = RegExp2(
+          (options.escape || reNoMatch2).source + "|" + interpolate.source + "|" + (interpolate === reInterpolate2 ? reEsTemplate2 : reNoMatch2).source + "|" + (options.evaluate || reNoMatch2).source + "|$",
+          "g"
+        );
+        var sourceURL = "//# sourceURL=" + (hasOwnProperty2.call(options, "sourceURL") ? (options.sourceURL + "").replace(/\s/g, " ") : "lodash.templateSources[" + ++templateCounter + "]") + "\n";
+        string2.replace(reDelimiters, function(match, escapeValue, interpolateValue, esTemplateValue, evaluateValue, offset) {
+          interpolateValue || (interpolateValue = esTemplateValue);
+          source += string2.slice(index, offset).replace(reUnescapedString2, escapeStringChar2);
+          if (escapeValue) {
+            isEscaping = true;
+            source += "' +\n__e(" + escapeValue + ") +\n'";
+          }
+          if (evaluateValue) {
+            isEvaluating = true;
+            source += "';\n" + evaluateValue + ";\n__p += '";
+          }
+          if (interpolateValue) {
+            source += "' +\n((__t = (" + interpolateValue + ")) == null ? '' : __t) +\n'";
+          }
+          index = offset + match.length;
+          return match;
+        });
+        source += "';\n";
+        var variable = hasOwnProperty2.call(options, "variable") && options.variable;
+        if (!variable) {
+          source = "with (obj) {\n" + source + "\n}\n";
+        }
+        source = (isEvaluating ? source.replace(reEmptyStringLeading2, "") : source).replace(reEmptyStringMiddle2, "$1").replace(reEmptyStringTrailing2, "$1;");
+        source = "function(" + (variable || "obj") + ") {\n" + (variable ? "" : "obj || (obj = {});\n") + "var __t, __p = ''" + (isEscaping ? ", __e = _.escape" : "") + (isEvaluating ? ", __j = Array.prototype.join;\nfunction print() { __p += __j.call(arguments, '') }\n" : ";\n") + source + "return __p\n}";
+        var result3 = attempt2(function() {
+          return Function2(importsKeys, sourceURL + "return " + source).apply(undefined$1, importsValues);
+        });
+        result3.source = source;
+        if (isError2(result3)) {
+          throw result3;
+        }
+        return result3;
+      }
+      function toLower2(value) {
+        return toString2(value).toLowerCase();
+      }
+      function toUpper2(value) {
+        return toString2(value).toUpperCase();
+      }
+      function trim2(string2, chars, guard) {
+        string2 = toString2(string2);
+        if (string2 && (guard || chars === undefined$1)) {
+          return string2.replace(reTrim, "");
+        }
+        if (!string2 || !(chars = baseToString2(chars))) {
+          return string2;
+        }
+        var strSymbols = stringToArray2(string2), chrSymbols = stringToArray2(chars), start = charsStartIndex2(strSymbols, chrSymbols), end = charsEndIndex2(strSymbols, chrSymbols) + 1;
+        return castSlice2(strSymbols, start, end).join("");
+      }
+      function trimEnd2(string2, chars, guard) {
+        string2 = toString2(string2);
+        if (string2 && (guard || chars === undefined$1)) {
+          return string2.replace(reTrimEnd, "");
+        }
+        if (!string2 || !(chars = baseToString2(chars))) {
+          return string2;
+        }
+        var strSymbols = stringToArray2(string2), end = charsEndIndex2(strSymbols, stringToArray2(chars)) + 1;
+        return castSlice2(strSymbols, 0, end).join("");
+      }
+      function trimStart2(string2, chars, guard) {
+        string2 = toString2(string2);
+        if (string2 && (guard || chars === undefined$1)) {
+          return string2.replace(reTrimStart2, "");
+        }
+        if (!string2 || !(chars = baseToString2(chars))) {
+          return string2;
+        }
+        var strSymbols = stringToArray2(string2), start = charsStartIndex2(strSymbols, stringToArray2(chars));
+        return castSlice2(strSymbols, start).join("");
+      }
+      function truncate2(string2, options) {
+        var length = DEFAULT_TRUNC_LENGTH2, omission = DEFAULT_TRUNC_OMISSION2;
+        if (isObject2(options)) {
+          var separator = "separator" in options ? options.separator : separator;
+          length = "length" in options ? toInteger2(options.length) : length;
+          omission = "omission" in options ? baseToString2(options.omission) : omission;
+        }
+        string2 = toString2(string2);
+        var strLength = string2.length;
+        if (hasUnicode2(string2)) {
+          var strSymbols = stringToArray2(string2);
+          strLength = strSymbols.length;
+        }
+        if (length >= strLength) {
+          return string2;
+        }
+        var end = length - stringSize2(omission);
+        if (end < 1) {
+          return omission;
+        }
+        var result3 = strSymbols ? castSlice2(strSymbols, 0, end).join("") : string2.slice(0, end);
+        if (separator === undefined$1) {
+          return result3 + omission;
+        }
+        if (strSymbols) {
+          end += result3.length - end;
+        }
+        if (isRegExp2(separator)) {
+          if (string2.slice(end).search(separator)) {
+            var match, substring = result3;
+            if (!separator.global) {
+              separator = RegExp2(separator.source, toString2(reFlags2.exec(separator)) + "g");
+            }
+            separator.lastIndex = 0;
+            while (match = separator.exec(substring)) {
+              var newEnd = match.index;
+            }
+            result3 = result3.slice(0, newEnd === undefined$1 ? end : newEnd);
+          }
+        } else if (string2.indexOf(baseToString2(separator), end) != end) {
+          var index = result3.lastIndexOf(separator);
+          if (index > -1) {
+            result3 = result3.slice(0, index);
+          }
+        }
+        return result3 + omission;
+      }
+      function unescape2(string2) {
+        string2 = toString2(string2);
+        return string2 && reHasEscapedHtml2.test(string2) ? string2.replace(reEscapedHtml2, unescapeHtmlChar2) : string2;
+      }
+      var upperCase2 = createCompounder2(function(result3, word, index) {
+        return result3 + (index ? " " : "") + word.toUpperCase();
+      });
+      var upperFirst2 = createCaseFirst2("toUpperCase");
+      function words2(string2, pattern, guard) {
+        string2 = toString2(string2);
+        pattern = guard ? undefined$1 : pattern;
+        if (pattern === undefined$1) {
+          return hasUnicodeWord2(string2) ? unicodeWords2(string2) : asciiWords2(string2);
+        }
+        return string2.match(pattern) || [];
+      }
+      var attempt2 = baseRest2(function(func2, args) {
+        try {
+          return apply2(func2, undefined$1, args);
+        } catch (e) {
+          return isError2(e) ? e : new Error2(e);
+        }
+      });
+      var bindAll2 = flatRest2(function(object2, methodNames) {
+        arrayEach2(methodNames, function(key) {
+          key = toKey2(key);
+          baseAssignValue2(object2, key, bind2(object2[key], object2));
+        });
+        return object2;
+      });
+      function cond2(pairs) {
+        var length = pairs == null ? 0 : pairs.length, toIteratee = getIteratee();
+        pairs = !length ? [] : arrayMap2(pairs, function(pair) {
+          if (typeof pair[1] != "function") {
+            throw new TypeError2(FUNC_ERROR_TEXT2);
+          }
+          return [toIteratee(pair[0]), pair[1]];
+        });
+        return baseRest2(function(args) {
+          var index = -1;
+          while (++index < length) {
+            var pair = pairs[index];
+            if (apply2(pair[0], this, args)) {
+              return apply2(pair[1], this, args);
+            }
+          }
+        });
+      }
+      function conforms2(source) {
+        return baseConforms2(baseClone2(source, CLONE_DEEP_FLAG2));
+      }
+      function constant2(value) {
+        return function() {
+          return value;
+        };
+      }
+      function defaultTo2(value, defaultValue) {
+        return value == null || value !== value ? defaultValue : value;
+      }
+      var flow2 = createFlow2();
+      var flowRight2 = createFlow2(true);
+      function identity2(value) {
+        return value;
+      }
+      function iteratee2(func2) {
+        return baseIteratee2(typeof func2 == "function" ? func2 : baseClone2(func2, CLONE_DEEP_FLAG2));
+      }
+      function matches2(source) {
+        return baseMatches2(baseClone2(source, CLONE_DEEP_FLAG2));
+      }
+      function matchesProperty2(path, srcValue) {
+        return baseMatchesProperty2(path, baseClone2(srcValue, CLONE_DEEP_FLAG2));
+      }
+      var method2 = baseRest2(function(path, args) {
+        return function(object2) {
+          return baseInvoke2(object2, path, args);
+        };
+      });
+      var methodOf2 = baseRest2(function(object2, args) {
+        return function(path) {
+          return baseInvoke2(object2, path, args);
+        };
+      });
+      function mixin2(object2, source, options) {
+        var props = keys2(source), methodNames = baseFunctions2(source, props);
+        if (options == null && !(isObject2(source) && (methodNames.length || !props.length))) {
+          options = source;
+          source = object2;
+          object2 = this;
+          methodNames = baseFunctions2(source, keys2(source));
+        }
+        var chain3 = !(isObject2(options) && "chain" in options) || !!options.chain, isFunc = isFunction2(object2);
+        arrayEach2(methodNames, function(methodName) {
+          var func2 = source[methodName];
+          object2[methodName] = func2;
+          if (isFunc) {
+            object2.prototype[methodName] = function() {
+              var chainAll = this.__chain__;
+              if (chain3 || chainAll) {
+                var result3 = object2(this.__wrapped__), actions = result3.__actions__ = copyArray2(this.__actions__);
+                actions.push({ "func": func2, "args": arguments, "thisArg": object2 });
+                result3.__chain__ = chainAll;
+                return result3;
+              }
+              return func2.apply(object2, arrayPush2([this.value()], arguments));
+            };
+          }
+        });
+        return object2;
+      }
+      function noConflict() {
+        if (root2._ === this) {
+          root2._ = oldDash;
+        }
+        return this;
+      }
+      function noop2() {
+      }
+      function nthArg2(n) {
+        n = toInteger2(n);
+        return baseRest2(function(args) {
+          return baseNth2(args, n);
+        });
+      }
+      var over2 = createOver2(arrayMap2);
+      var overEvery2 = createOver2(arrayEvery2);
+      var overSome2 = createOver2(arraySome2);
+      function property2(path) {
+        return isKey2(path) ? baseProperty2(toKey2(path)) : basePropertyDeep2(path);
+      }
+      function propertyOf2(object2) {
+        return function(path) {
+          return object2 == null ? undefined$1 : baseGet2(object2, path);
+        };
+      }
+      var range2 = createRange2();
+      var rangeRight2 = createRange2(true);
+      function stubArray2() {
+        return [];
+      }
+      function stubFalse2() {
+        return false;
+      }
+      function stubObject2() {
+        return {};
+      }
+      function stubString2() {
+        return "";
+      }
+      function stubTrue2() {
+        return true;
+      }
+      function times2(n, iteratee3) {
+        n = toInteger2(n);
+        if (n < 1 || n > MAX_SAFE_INTEGER2) {
+          return [];
+        }
+        var index = MAX_ARRAY_LENGTH2, length = nativeMin2(n, MAX_ARRAY_LENGTH2);
+        iteratee3 = getIteratee(iteratee3);
+        n -= MAX_ARRAY_LENGTH2;
+        var result3 = baseTimes2(length, iteratee3);
+        while (++index < n) {
+          iteratee3(index);
+        }
+        return result3;
+      }
+      function toPath2(value) {
+        if (isArray2(value)) {
+          return arrayMap2(value, toKey2);
+        }
+        return isSymbol2(value) ? [value] : copyArray2(stringToPath2(toString2(value)));
+      }
+      function uniqueId2(prefix) {
+        var id = ++idCounter2;
+        return toString2(prefix) + id;
+      }
+      var add2 = createMathOperation2(function(augend, addend) {
+        return augend + addend;
+      }, 0);
+      var ceil2 = createRound2("ceil");
+      var divide2 = createMathOperation2(function(dividend, divisor) {
+        return dividend / divisor;
+      }, 1);
+      var floor2 = createRound2("floor");
+      function max2(array2) {
+        return array2 && array2.length ? baseExtremum2(array2, identity2, baseGt2) : undefined$1;
+      }
+      function maxBy2(array2, iteratee3) {
+        return array2 && array2.length ? baseExtremum2(array2, getIteratee(iteratee3, 2), baseGt2) : undefined$1;
+      }
+      function mean2(array2) {
+        return baseMean2(array2, identity2);
+      }
+      function meanBy2(array2, iteratee3) {
+        return baseMean2(array2, getIteratee(iteratee3, 2));
+      }
+      function min2(array2) {
+        return array2 && array2.length ? baseExtremum2(array2, identity2, baseLt2) : undefined$1;
+      }
+      function minBy2(array2, iteratee3) {
+        return array2 && array2.length ? baseExtremum2(array2, getIteratee(iteratee3, 2), baseLt2) : undefined$1;
+      }
+      var multiply2 = createMathOperation2(function(multiplier, multiplicand) {
+        return multiplier * multiplicand;
+      }, 1);
+      var round2 = createRound2("round");
+      var subtract2 = createMathOperation2(function(minuend, subtrahend) {
+        return minuend - subtrahend;
+      }, 0);
+      function sum2(array2) {
+        return array2 && array2.length ? baseSum2(array2, identity2) : 0;
+      }
+      function sumBy2(array2, iteratee3) {
+        return array2 && array2.length ? baseSum2(array2, getIteratee(iteratee3, 2)) : 0;
+      }
+      lodash2.after = after2;
+      lodash2.ary = ary2;
+      lodash2.assign = assign2;
+      lodash2.assignIn = assignIn2;
+      lodash2.assignInWith = assignInWith2;
+      lodash2.assignWith = assignWith2;
+      lodash2.at = at2;
+      lodash2.before = before2;
+      lodash2.bind = bind2;
+      lodash2.bindAll = bindAll2;
+      lodash2.bindKey = bindKey2;
+      lodash2.castArray = castArray2;
+      lodash2.chain = chain2;
+      lodash2.chunk = chunk2;
+      lodash2.compact = compact2;
+      lodash2.concat = concat2;
+      lodash2.cond = cond2;
+      lodash2.conforms = conforms2;
+      lodash2.constant = constant2;
+      lodash2.countBy = countBy2;
+      lodash2.create = create2;
+      lodash2.curry = curry2;
+      lodash2.curryRight = curryRight2;
+      lodash2.debounce = debounce2;
+      lodash2.defaults = defaults2;
+      lodash2.defaultsDeep = defaultsDeep2;
+      lodash2.defer = defer2;
+      lodash2.delay = delay2;
+      lodash2.difference = difference2;
+      lodash2.differenceBy = differenceBy2;
+      lodash2.differenceWith = differenceWith2;
+      lodash2.drop = drop2;
+      lodash2.dropRight = dropRight2;
+      lodash2.dropRightWhile = dropRightWhile2;
+      lodash2.dropWhile = dropWhile2;
+      lodash2.fill = fill2;
+      lodash2.filter = filter2;
+      lodash2.flatMap = flatMap2;
+      lodash2.flatMapDeep = flatMapDeep2;
+      lodash2.flatMapDepth = flatMapDepth2;
+      lodash2.flatten = flatten2;
+      lodash2.flattenDeep = flattenDeep2;
+      lodash2.flattenDepth = flattenDepth2;
+      lodash2.flip = flip2;
+      lodash2.flow = flow2;
+      lodash2.flowRight = flowRight2;
+      lodash2.fromPairs = fromPairs2;
+      lodash2.functions = functions2;
+      lodash2.functionsIn = functionsIn2;
+      lodash2.groupBy = groupBy2;
+      lodash2.initial = initial2;
+      lodash2.intersection = intersection2;
+      lodash2.intersectionBy = intersectionBy2;
+      lodash2.intersectionWith = intersectionWith2;
+      lodash2.invert = invert2;
+      lodash2.invertBy = invertBy2;
+      lodash2.invokeMap = invokeMap2;
+      lodash2.iteratee = iteratee2;
+      lodash2.keyBy = keyBy2;
+      lodash2.keys = keys2;
+      lodash2.keysIn = keysIn2;
+      lodash2.map = map2;
+      lodash2.mapKeys = mapKeys2;
+      lodash2.mapValues = mapValues2;
+      lodash2.matches = matches2;
+      lodash2.matchesProperty = matchesProperty2;
+      lodash2.memoize = memoize2;
+      lodash2.merge = merge2;
+      lodash2.mergeWith = mergeWith2;
+      lodash2.method = method2;
+      lodash2.methodOf = methodOf2;
+      lodash2.mixin = mixin2;
+      lodash2.negate = negate2;
+      lodash2.nthArg = nthArg2;
+      lodash2.omit = omit2;
+      lodash2.omitBy = omitBy2;
+      lodash2.once = once2;
+      lodash2.orderBy = orderBy2;
+      lodash2.over = over2;
+      lodash2.overArgs = overArgs2;
+      lodash2.overEvery = overEvery2;
+      lodash2.overSome = overSome2;
+      lodash2.partial = partial2;
+      lodash2.partialRight = partialRight2;
+      lodash2.partition = partition2;
+      lodash2.pick = pick2;
+      lodash2.pickBy = pickBy2;
+      lodash2.property = property2;
+      lodash2.propertyOf = propertyOf2;
+      lodash2.pull = pull2;
+      lodash2.pullAll = pullAll2;
+      lodash2.pullAllBy = pullAllBy2;
+      lodash2.pullAllWith = pullAllWith2;
+      lodash2.pullAt = pullAt2;
+      lodash2.range = range2;
+      lodash2.rangeRight = rangeRight2;
+      lodash2.rearg = rearg2;
+      lodash2.reject = reject2;
+      lodash2.remove = remove2;
+      lodash2.rest = rest2;
+      lodash2.reverse = reverse2;
+      lodash2.sampleSize = sampleSize2;
+      lodash2.set = set2;
+      lodash2.setWith = setWith2;
+      lodash2.shuffle = shuffle2;
+      lodash2.slice = slice2;
+      lodash2.sortBy = sortBy2;
+      lodash2.sortedUniq = sortedUniq2;
+      lodash2.sortedUniqBy = sortedUniqBy2;
+      lodash2.split = split2;
+      lodash2.spread = spread2;
+      lodash2.tail = tail2;
+      lodash2.take = take2;
+      lodash2.takeRight = takeRight2;
+      lodash2.takeRightWhile = takeRightWhile2;
+      lodash2.takeWhile = takeWhile2;
+      lodash2.tap = tap2;
+      lodash2.throttle = throttle2;
+      lodash2.thru = thru2;
+      lodash2.toArray = toArray2;
+      lodash2.toPairs = toPairs2;
+      lodash2.toPairsIn = toPairsIn2;
+      lodash2.toPath = toPath2;
+      lodash2.toPlainObject = toPlainObject2;
+      lodash2.transform = transform2;
+      lodash2.unary = unary2;
+      lodash2.union = union2;
+      lodash2.unionBy = unionBy2;
+      lodash2.unionWith = unionWith2;
+      lodash2.uniq = uniq2;
+      lodash2.uniqBy = uniqBy2;
+      lodash2.uniqWith = uniqWith2;
+      lodash2.unset = unset2;
+      lodash2.unzip = unzip2;
+      lodash2.unzipWith = unzipWith2;
+      lodash2.update = update2;
+      lodash2.updateWith = updateWith2;
+      lodash2.values = values2;
+      lodash2.valuesIn = valuesIn2;
+      lodash2.without = without2;
+      lodash2.words = words2;
+      lodash2.wrap = wrap2;
+      lodash2.xor = xor2;
+      lodash2.xorBy = xorBy2;
+      lodash2.xorWith = xorWith2;
+      lodash2.zip = zip2;
+      lodash2.zipObject = zipObject2;
+      lodash2.zipObjectDeep = zipObjectDeep2;
+      lodash2.zipWith = zipWith2;
+      lodash2.entries = toPairs2;
+      lodash2.entriesIn = toPairsIn2;
+      lodash2.extend = assignIn2;
+      lodash2.extendWith = assignInWith2;
+      mixin2(lodash2, lodash2);
+      lodash2.add = add2;
+      lodash2.attempt = attempt2;
+      lodash2.camelCase = camelCase2;
+      lodash2.capitalize = capitalize2;
+      lodash2.ceil = ceil2;
+      lodash2.clamp = clamp2;
+      lodash2.clone = clone2;
+      lodash2.cloneDeep = cloneDeep2;
+      lodash2.cloneDeepWith = cloneDeepWith2;
+      lodash2.cloneWith = cloneWith2;
+      lodash2.conformsTo = conformsTo2;
+      lodash2.deburr = deburr2;
+      lodash2.defaultTo = defaultTo2;
+      lodash2.divide = divide2;
+      lodash2.endsWith = endsWith2;
+      lodash2.eq = eq2;
+      lodash2.escape = escape2;
+      lodash2.escapeRegExp = escapeRegExp2;
+      lodash2.every = every2;
+      lodash2.find = find2;
+      lodash2.findIndex = findIndex2;
+      lodash2.findKey = findKey2;
+      lodash2.findLast = findLast2;
+      lodash2.findLastIndex = findLastIndex2;
+      lodash2.findLastKey = findLastKey2;
+      lodash2.floor = floor2;
+      lodash2.forEach = forEach2;
+      lodash2.forEachRight = forEachRight2;
+      lodash2.forIn = forIn2;
+      lodash2.forInRight = forInRight2;
+      lodash2.forOwn = forOwn2;
+      lodash2.forOwnRight = forOwnRight2;
+      lodash2.get = get2;
+      lodash2.gt = gt2;
+      lodash2.gte = gte2;
+      lodash2.has = has2;
+      lodash2.hasIn = hasIn2;
+      lodash2.head = head2;
+      lodash2.identity = identity2;
+      lodash2.includes = includes2;
+      lodash2.indexOf = indexOf2;
+      lodash2.inRange = inRange2;
+      lodash2.invoke = invoke2;
+      lodash2.isArguments = isArguments2;
+      lodash2.isArray = isArray2;
+      lodash2.isArrayBuffer = isArrayBuffer2;
+      lodash2.isArrayLike = isArrayLike2;
+      lodash2.isArrayLikeObject = isArrayLikeObject2;
+      lodash2.isBoolean = isBoolean2;
+      lodash2.isBuffer = isBuffer2;
+      lodash2.isDate = isDate2;
+      lodash2.isElement = isElement2;
+      lodash2.isEmpty = isEmpty2;
+      lodash2.isEqual = isEqual2;
+      lodash2.isEqualWith = isEqualWith2;
+      lodash2.isError = isError2;
+      lodash2.isFinite = isFinite2;
+      lodash2.isFunction = isFunction2;
+      lodash2.isInteger = isInteger2;
+      lodash2.isLength = isLength2;
+      lodash2.isMap = isMap2;
+      lodash2.isMatch = isMatch2;
+      lodash2.isMatchWith = isMatchWith2;
+      lodash2.isNaN = isNaN2;
+      lodash2.isNative = isNative2;
+      lodash2.isNil = isNil2;
+      lodash2.isNull = isNull2;
+      lodash2.isNumber = isNumber2;
+      lodash2.isObject = isObject2;
+      lodash2.isObjectLike = isObjectLike2;
+      lodash2.isPlainObject = isPlainObject2;
+      lodash2.isRegExp = isRegExp2;
+      lodash2.isSafeInteger = isSafeInteger2;
+      lodash2.isSet = isSet2;
+      lodash2.isString = isString2;
+      lodash2.isSymbol = isSymbol2;
+      lodash2.isTypedArray = isTypedArray2;
+      lodash2.isUndefined = isUndefined2;
+      lodash2.isWeakMap = isWeakMap2;
+      lodash2.isWeakSet = isWeakSet2;
+      lodash2.join = join2;
+      lodash2.kebabCase = kebabCase2;
+      lodash2.last = last2;
+      lodash2.lastIndexOf = lastIndexOf2;
+      lodash2.lowerCase = lowerCase2;
+      lodash2.lowerFirst = lowerFirst2;
+      lodash2.lt = lt2;
+      lodash2.lte = lte2;
+      lodash2.max = max2;
+      lodash2.maxBy = maxBy2;
+      lodash2.mean = mean2;
+      lodash2.meanBy = meanBy2;
+      lodash2.min = min2;
+      lodash2.minBy = minBy2;
+      lodash2.stubArray = stubArray2;
+      lodash2.stubFalse = stubFalse2;
+      lodash2.stubObject = stubObject2;
+      lodash2.stubString = stubString2;
+      lodash2.stubTrue = stubTrue2;
+      lodash2.multiply = multiply2;
+      lodash2.nth = nth2;
+      lodash2.noConflict = noConflict;
+      lodash2.noop = noop2;
+      lodash2.now = now2;
+      lodash2.pad = pad2;
+      lodash2.padEnd = padEnd2;
+      lodash2.padStart = padStart2;
+      lodash2.parseInt = parseInt2;
+      lodash2.random = random2;
+      lodash2.reduce = reduce2;
+      lodash2.reduceRight = reduceRight2;
+      lodash2.repeat = repeat2;
+      lodash2.replace = replace2;
+      lodash2.result = result2;
+      lodash2.round = round2;
+      lodash2.runInContext = runInContext2;
+      lodash2.sample = sample2;
+      lodash2.size = size2;
+      lodash2.snakeCase = snakeCase2;
+      lodash2.some = some2;
+      lodash2.sortedIndex = sortedIndex2;
+      lodash2.sortedIndexBy = sortedIndexBy2;
+      lodash2.sortedIndexOf = sortedIndexOf2;
+      lodash2.sortedLastIndex = sortedLastIndex2;
+      lodash2.sortedLastIndexBy = sortedLastIndexBy2;
+      lodash2.sortedLastIndexOf = sortedLastIndexOf2;
+      lodash2.startCase = startCase2;
+      lodash2.startsWith = startsWith2;
+      lodash2.subtract = subtract2;
+      lodash2.sum = sum2;
+      lodash2.sumBy = sumBy2;
+      lodash2.template = template2;
+      lodash2.times = times2;
+      lodash2.toFinite = toFinite2;
+      lodash2.toInteger = toInteger2;
+      lodash2.toLength = toLength2;
+      lodash2.toLower = toLower2;
+      lodash2.toNumber = toNumber2;
+      lodash2.toSafeInteger = toSafeInteger2;
+      lodash2.toString = toString2;
+      lodash2.toUpper = toUpper2;
+      lodash2.trim = trim2;
+      lodash2.trimEnd = trimEnd2;
+      lodash2.trimStart = trimStart2;
+      lodash2.truncate = truncate2;
+      lodash2.unescape = unescape2;
+      lodash2.uniqueId = uniqueId2;
+      lodash2.upperCase = upperCase2;
+      lodash2.upperFirst = upperFirst2;
+      lodash2.each = forEach2;
+      lodash2.eachRight = forEachRight2;
+      lodash2.first = head2;
+      mixin2(lodash2, function() {
+        var source = {};
+        baseForOwn2(lodash2, function(func2, methodName) {
+          if (!hasOwnProperty2.call(lodash2.prototype, methodName)) {
+            source[methodName] = func2;
+          }
+        });
+        return source;
+      }(), { "chain": false });
+      lodash2.VERSION = VERSION2;
+      arrayEach2(["bind", "bindKey", "curry", "curryRight", "partial", "partialRight"], function(methodName) {
+        lodash2[methodName].placeholder = lodash2;
+      });
+      arrayEach2(["drop", "take"], function(methodName, index) {
+        LazyWrapper2.prototype[methodName] = function(n) {
+          n = n === undefined$1 ? 1 : nativeMax2(toInteger2(n), 0);
+          var result3 = this.__filtered__ && !index ? new LazyWrapper2(this) : this.clone();
+          if (result3.__filtered__) {
+            result3.__takeCount__ = nativeMin2(n, result3.__takeCount__);
+          } else {
+            result3.__views__.push({
+              "size": nativeMin2(n, MAX_ARRAY_LENGTH2),
+              "type": methodName + (result3.__dir__ < 0 ? "Right" : "")
+            });
+          }
+          return result3;
+        };
+        LazyWrapper2.prototype[methodName + "Right"] = function(n) {
+          return this.reverse()[methodName](n).reverse();
+        };
+      });
+      arrayEach2(["filter", "map", "takeWhile"], function(methodName, index) {
+        var type = index + 1, isFilter = type == LAZY_FILTER_FLAG2 || type == LAZY_WHILE_FLAG2;
+        LazyWrapper2.prototype[methodName] = function(iteratee3) {
+          var result3 = this.clone();
+          result3.__iteratees__.push({
+            "iteratee": getIteratee(iteratee3, 3),
+            "type": type
+          });
+          result3.__filtered__ = result3.__filtered__ || isFilter;
+          return result3;
+        };
+      });
+      arrayEach2(["head", "last"], function(methodName, index) {
+        var takeName = "take" + (index ? "Right" : "");
+        LazyWrapper2.prototype[methodName] = function() {
+          return this[takeName](1).value()[0];
+        };
+      });
+      arrayEach2(["initial", "tail"], function(methodName, index) {
+        var dropName = "drop" + (index ? "" : "Right");
+        LazyWrapper2.prototype[methodName] = function() {
+          return this.__filtered__ ? new LazyWrapper2(this) : this[dropName](1);
+        };
+      });
+      LazyWrapper2.prototype.compact = function() {
+        return this.filter(identity2);
+      };
+      LazyWrapper2.prototype.find = function(predicate) {
+        return this.filter(predicate).head();
+      };
+      LazyWrapper2.prototype.findLast = function(predicate) {
+        return this.reverse().find(predicate);
+      };
+      LazyWrapper2.prototype.invokeMap = baseRest2(function(path, args) {
+        if (typeof path == "function") {
+          return new LazyWrapper2(this);
+        }
+        return this.map(function(value) {
+          return baseInvoke2(value, path, args);
+        });
+      });
+      LazyWrapper2.prototype.reject = function(predicate) {
+        return this.filter(negate2(getIteratee(predicate)));
+      };
+      LazyWrapper2.prototype.slice = function(start, end) {
+        start = toInteger2(start);
+        var result3 = this;
+        if (result3.__filtered__ && (start > 0 || end < 0)) {
+          return new LazyWrapper2(result3);
+        }
+        if (start < 0) {
+          result3 = result3.takeRight(-start);
+        } else if (start) {
+          result3 = result3.drop(start);
+        }
+        if (end !== undefined$1) {
+          end = toInteger2(end);
+          result3 = end < 0 ? result3.dropRight(-end) : result3.take(end - start);
+        }
+        return result3;
+      };
+      LazyWrapper2.prototype.takeRightWhile = function(predicate) {
+        return this.reverse().takeWhile(predicate).reverse();
+      };
+      LazyWrapper2.prototype.toArray = function() {
+        return this.take(MAX_ARRAY_LENGTH2);
+      };
+      baseForOwn2(LazyWrapper2.prototype, function(func2, methodName) {
+        var checkIteratee = /^(?:filter|find|map|reject)|While$/.test(methodName), isTaker = /^(?:head|last)$/.test(methodName), lodashFunc = lodash2[isTaker ? "take" + (methodName == "last" ? "Right" : "") : methodName], retUnwrapped = isTaker || /^find/.test(methodName);
+        if (!lodashFunc) {
+          return;
+        }
+        lodash2.prototype[methodName] = function() {
+          var value = this.__wrapped__, args = isTaker ? [1] : arguments, isLazy = value instanceof LazyWrapper2, iteratee3 = args[0], useLazy = isLazy || isArray2(value);
+          var interceptor = function(value2) {
+            var result4 = lodashFunc.apply(lodash2, arrayPush2([value2], args));
+            return isTaker && chainAll ? result4[0] : result4;
+          };
+          if (useLazy && checkIteratee && typeof iteratee3 == "function" && iteratee3.length != 1) {
+            isLazy = useLazy = false;
+          }
+          var chainAll = this.__chain__, isHybrid = !!this.__actions__.length, isUnwrapped = retUnwrapped && !chainAll, onlyLazy = isLazy && !isHybrid;
+          if (!retUnwrapped && useLazy) {
+            value = onlyLazy ? value : new LazyWrapper2(this);
+            var result3 = func2.apply(value, args);
+            result3.__actions__.push({ "func": thru2, "args": [interceptor], "thisArg": undefined$1 });
+            return new LodashWrapper2(result3, chainAll);
+          }
+          if (isUnwrapped && onlyLazy) {
+            return func2.apply(this, args);
+          }
+          result3 = this.thru(interceptor);
+          return isUnwrapped ? isTaker ? result3.value()[0] : result3.value() : result3;
+        };
+      });
+      arrayEach2(["pop", "push", "shift", "sort", "splice", "unshift"], function(methodName) {
+        var func2 = arrayProto2[methodName], chainName = /^(?:push|sort|unshift)$/.test(methodName) ? "tap" : "thru", retUnwrapped = /^(?:pop|shift)$/.test(methodName);
+        lodash2.prototype[methodName] = function() {
+          var args = arguments;
+          if (retUnwrapped && !this.__chain__) {
+            var value = this.value();
+            return func2.apply(isArray2(value) ? value : [], args);
+          }
+          return this[chainName](function(value2) {
+            return func2.apply(isArray2(value2) ? value2 : [], args);
+          });
+        };
+      });
+      baseForOwn2(LazyWrapper2.prototype, function(func2, methodName) {
+        var lodashFunc = lodash2[methodName];
+        if (lodashFunc) {
+          var key = lodashFunc.name + "";
+          if (!hasOwnProperty2.call(realNames2, key)) {
+            realNames2[key] = [];
+          }
+          realNames2[key].push({ "name": methodName, "func": lodashFunc });
+        }
+      });
+      realNames2[createHybrid2(undefined$1, WRAP_BIND_KEY_FLAG2).name] = [{
+        "name": "wrapper",
+        "func": undefined$1
+      }];
+      LazyWrapper2.prototype.clone = lazyClone2;
+      LazyWrapper2.prototype.reverse = lazyReverse2;
+      LazyWrapper2.prototype.value = lazyValue2;
+      lodash2.prototype.at = wrapperAt2;
+      lodash2.prototype.chain = wrapperChain2;
+      lodash2.prototype.commit = wrapperCommit2;
+      lodash2.prototype.next = wrapperNext2;
+      lodash2.prototype.plant = wrapperPlant2;
+      lodash2.prototype.reverse = wrapperReverse2;
+      lodash2.prototype.toJSON = lodash2.prototype.valueOf = lodash2.prototype.value = wrapperValue2;
+      lodash2.prototype.first = lodash2.prototype.head;
+      if (symIterator2) {
+        lodash2.prototype[symIterator2] = wrapperToIterator2;
+      }
+      return lodash2;
+    };
+    var _ = runInContext();
+    if (freeModule2) {
+      (freeModule2.exports = _)._ = _;
+      freeExports2._ = _;
+    } else {
+      root2._ = _;
+    }
+  }).call(commonjsGlobal);
+})(lodash, lodash.exports);
+var lodashExports = lodash.exports;
+var util = {};
+Object.defineProperty(util, "__esModule", { value: true });
+util.backtrace = void 0;
+function backtrace(node2, includeStartNode, includeEndNode) {
+  const path = [];
+  let currentNode;
+  if (includeEndNode) {
+    currentNode = node2;
+  } else {
+    currentNode = node2.getParent();
+  }
+  while (currentNode.getParent()) {
+    path.push([currentNode.position.x, currentNode.position.y]);
+    currentNode = currentNode.getParent();
+  }
+  if (includeStartNode) {
+    path.push([currentNode.position.x, currentNode.position.y]);
+  }
+  return path.reverse();
+}
+util.backtrace = backtrace;
+var heuristic = {};
+Object.defineProperty(heuristic, "__esModule", { value: true });
+heuristic.calculateHeuristic = void 0;
+function calculateHeuristic(heuristicFunction, pos0, pos1, weight) {
+  const dx = Math.abs(pos1.x - pos0.x);
+  const dy = Math.abs(pos1.y - pos0.y);
+  switch (heuristicFunction) {
+    case "Manhatten":
+    case "Manhattan":
+      return (dx + dy) * weight;
+    case "Euclidean":
+      return Math.sqrt(dx * dx + dy * dy) * weight;
+    case "Chebyshev":
+      return Math.max(dx, dy) * weight;
+    case "Octile":
+      return (dx + dy - 0.58 * Math.min(dx, dy)) * weight;
+  }
+}
+heuristic.calculateHeuristic = calculateHeuristic;
+var grid = {};
+var node = {};
+Object.defineProperty(node, "__esModule", { value: true });
+node.Node = void 0;
+class Node2 {
+  constructor(aParams) {
+    this.id = aParams.id;
+    this.position = aParams.position;
+    this.hValue = 0;
+    this.gValue = 0;
+    this.fValue = 0;
+    this.parentNode = void 0;
+    this.isOnClosedList = false;
+    this.isOnOpenList = false;
+    this.isWalkable = aParams.walkable || true;
+    this.cost = aParams.cost || 0;
+  }
+  /**
+   * Calculate or Recalculate the F value
+   * This is a private function
+   */
+  calculateFValue() {
+    this.fValue = this.gValue + this.hValue;
+  }
+  /**
+   * Set the g value of the node
+   */
+  setGValue(gValue) {
+    this.gValue = gValue;
+    this.calculateFValue();
+  }
+  /**
+   * Set the h value of the node
+   */
+  setHValue(hValue) {
+    this.hValue = hValue;
+    this.calculateFValue();
+  }
+  /**
+   * Reset the FGH values to zero
+   */
+  setFGHValuesToZero() {
+    this.fValue = this.gValue = this.hValue = 0;
+  }
+  /**
+   * Getter functions
+   */
+  getFValue() {
+    return this.fValue;
+  }
+  getGValue() {
+    return this.gValue;
+  }
+  getHValue() {
+    return this.hValue;
+  }
+  getParent() {
+    return this.parentNode;
+  }
+  getIsOnClosedList() {
+    return this.isOnClosedList;
+  }
+  getIsOnOpenList() {
+    return this.isOnOpenList;
+  }
+  getIsWalkable() {
+    return this.isWalkable;
+  }
+  getCost() {
+    return this.cost;
+  }
+  /**
+   * Setter functions
+   */
+  setParent(parent2) {
+    this.parentNode = parent2;
+  }
+  setIsOnClosedList(isOnClosedList) {
+    this.isOnClosedList = isOnClosedList;
+  }
+  setIsOnOpenList(isOnOpenList) {
+    this.isOnOpenList = isOnOpenList;
+  }
+  setIsWalkable(isWalkable) {
+    this.isWalkable = isWalkable;
+  }
+  setCost(cost) {
+    this.cost = cost;
+  }
+}
+node.Node = Node2;
+Object.defineProperty(grid, "__esModule", { value: true });
+grid.Grid = void 0;
+const node_1 = node;
+class Grid {
+  constructor(aParams) {
+    if (aParams.width && aParams.height) {
+      this.width = aParams.width;
+      this.height = aParams.height;
+      this.numberOfFields = this.width * this.height;
+    } else if (aParams.matrix) {
+      this.width = aParams.matrix[0].length;
+      this.height = aParams.matrix.length;
+      this.numberOfFields = this.width * this.height;
+    }
+    this.maxCost = aParams.maxCost || 0;
+    this.gridNodes = this.buildGridWithNodes(aParams.matrix || void 0, this.width, this.height, aParams.densityOfObstacles || 0);
+  }
+  /**
+   * Build grid, fill it with nodes and return it.
+   * @param matrix [ 0 or 1: 0 = walkable; 1 = not walkable ]
+   * @param width [grid width]
+   * @param height [grid height]
+   * @param densityOfObstacles [density of non walkable fields]
+   */
+  buildGridWithNodes(matrix, width, height, densityOfObstacles) {
+    const newGrid = [];
+    let id = 0;
+    for (let y = 0; y < height; y++) {
+      newGrid[y] = [];
+      for (let x = 0; x < width; x++) {
+        newGrid[y][x] = new node_1.Node({
+          id,
+          position: { x, y }
+        });
+        id++;
+      }
+    }
+    if (matrix === void 0) {
+      for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+          const rndNumber = Math.floor(Math.random() * 10) + 1;
+          if (rndNumber > 10 - densityOfObstacles) {
+            newGrid[y][x].setIsWalkable(false);
+          } else {
+            newGrid[y][x].setIsWalkable(true);
+          }
+        }
+      }
+      return newGrid;
+    }
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        if (this.maxCost) {
+          newGrid[y][x].setIsWalkable(matrix[y][x] < this.maxCost);
+          newGrid[y][x].setCost(matrix[y][x]);
+        } else {
+          if (matrix[y][x]) {
+            newGrid[y][x].setIsWalkable(false);
+          } else {
+            newGrid[y][x].setIsWalkable(true);
+          }
+        }
+      }
+    }
+    return newGrid;
+  }
+  /**
+   * Return a specific node.
+   * @param position [position on the grid]
+   */
+  getNodeAt(position) {
+    return this.gridNodes[position.y][position.x];
+  }
+  /**
+   * Check if specific node walkable.
+   * @param position [position on the grid]
+   */
+  isWalkableAt(position) {
+    return this.gridNodes[position.y][position.x].getIsWalkable();
+  }
+  /**
+   * Check if specific node is on the grid.
+   * @param position [position on the grid]
+   */
+  isOnTheGrid(position) {
+    return position.x >= 0 && position.x < this.width && position.y >= 0 && position.y < this.height;
+  }
+  /**
+   * Get surrounding nodes.
+   * @param currentXPos [x-position on the grid]
+   * @param currentYPos [y-position on the grid]
+   * @param diagnonalMovementAllowed [is diagnonal movement allowed?]
+   */
+  getSurroundingNodes(currentPosition, diagnonalMovementAllowed) {
+    const surroundingNodes = [];
+    for (var y = currentPosition.y - 1; y <= currentPosition.y + 1; y++) {
+      for (var x = currentPosition.x - 1; x <= currentPosition.x + 1; x++) {
+        if (this.isOnTheGrid({ x, y })) {
+          if (this.isWalkableAt({ x, y })) {
+            if (diagnonalMovementAllowed) {
+              surroundingNodes.push(this.getNodeAt({ x, y }));
+            } else {
+              if (x == currentPosition.x || y == currentPosition.y) {
+                surroundingNodes.push(this.getNodeAt({ x, y }));
+              }
+            }
+          } else {
+            continue;
+          }
+        } else {
+          continue;
+        }
+      }
+    }
+    return surroundingNodes;
+  }
+  setGrid(newGrid) {
+    this.gridNodes = newGrid;
+  }
+  /**
+   * Reset the grid
+   */
+  resetGrid() {
+    for (let y = 0; y < this.gridNodes.length; y++) {
+      for (let x = 0; x < this.gridNodes[y].length; x++) {
+        this.gridNodes[y][x].setIsOnClosedList(false);
+        this.gridNodes[y][x].setIsOnOpenList(false);
+        this.gridNodes[y][x].setParent(void 0);
+        this.gridNodes[y][x].setFGHValuesToZero();
+      }
+    }
+  }
+  /**
+   * Get all the nodes of the grid.
+   */
+  getGridNodes() {
+    return this.gridNodes;
+  }
+  /**
+   * Get a clone of the grid
+   */
+  clone() {
+    const cloneGrid = [];
+    let id = 0;
+    for (let y = 0; y < this.height; y++) {
+      cloneGrid[y] = [];
+      for (let x = 0; x < this.width; x++) {
+        cloneGrid[y][x] = new node_1.Node({
+          id,
+          position: { x, y },
+          walkable: this.gridNodes[y][x].getIsWalkable(),
+          cost: this.gridNodes[y][x].getCost()
+        });
+        id++;
+      }
+    }
+    return cloneGrid;
+  }
+}
+grid.Grid = Grid;
+Object.defineProperty(astarFinder, "__esModule", { value: true });
+astarFinder.AStarFinder = void 0;
+const lodash_1 = lodashExports;
+const util_1 = util;
+const heuristic_1 = heuristic;
+const grid_1 = grid;
+class AStarFinder {
+  constructor(aParams) {
+    this.grid = new grid_1.Grid({
+      width: aParams.grid.width,
+      height: aParams.grid.height,
+      matrix: aParams.grid.matrix || void 0,
+      densityOfObstacles: aParams.grid.densityOfObstacles || 0,
+      maxCost: aParams.grid.maxCost || 0
+    });
+    this.closedList = [];
+    this.openList = [];
+    this.diagonalAllowed = aParams.diagonalAllowed !== void 0 ? aParams.diagonalAllowed : true;
+    this.heuristic = aParams.heuristic ? aParams.heuristic : "Manhattan";
+    this.includeStartNode = aParams.includeStartNode !== void 0 ? aParams.includeStartNode : true;
+    this.includeEndNode = aParams.includeEndNode !== void 0 ? aParams.includeEndNode : true;
+    this.weight = aParams.weight || 1;
+  }
+  findPath(startPosition, endPosition) {
+    this.closedList = [];
+    this.openList = [];
+    this.grid.resetGrid();
+    const startNode = this.grid.getNodeAt(startPosition);
+    const endNode = this.grid.getNodeAt(endPosition);
+    if (!this.grid.isWalkableAt(endPosition) || !this.grid.isWalkableAt(startPosition)) {
+      return [];
+    }
+    startNode.setIsOnOpenList(true);
+    this.openList.push(startNode);
+    for (let y = 0; y < this.grid.height; y++) {
+      for (let x = 0; x < this.grid.width; x++) {
+        let node2 = this.grid.getNodeAt({ x, y });
+        if (!this.grid.isWalkableAt({ x, y })) {
+          node2.setFGHValuesToZero();
+          node2.setIsOnClosedList(true);
+          this.closedList.push(node2);
+        } else {
+          node2.setHValue(heuristic_1.calculateHeuristic(this.heuristic, node2.position, endNode.position, this.weight));
+        }
+      }
+    }
+    while (this.openList.length !== 0) {
+      const currentNode = lodash_1.minBy(this.openList, (o) => {
+        return o.getFValue();
+      });
+      currentNode.setIsOnOpenList(false);
+      lodash_1.remove(this.openList, currentNode);
+      currentNode.setIsOnClosedList(true);
+      this.closedList.push(currentNode);
+      if (currentNode === endNode) {
+        return util_1.backtrace(endNode, this.includeStartNode, this.includeEndNode);
+      }
+      const neighbors = this.grid.getSurroundingNodes(currentNode.position, this.diagonalAllowed);
+      for (let i in neighbors) {
+        const neightbor = neighbors[i];
+        if (neightbor.getIsOnClosedList()) {
+          continue;
+        }
+        const nextGValue = currentNode.getGValue() + neightbor.getCost() + (neightbor.position.x !== currentNode.position.x || neightbor.position.y == currentNode.position.y ? this.weight : this.weight * 1.41421);
+        if (!neightbor.getIsOnOpenList() || nextGValue < neightbor.getGValue()) {
+          neightbor.setGValue(nextGValue);
+          neightbor.setParent(currentNode);
+          if (!neightbor.getIsOnOpenList()) {
+            neightbor.setIsOnOpenList(true);
+            this.openList.push(neightbor);
+          } else {
+            neightbor.setParent(currentNode);
+          }
+        }
+      }
+    }
+    return [];
+  }
+  /**
+   * Set the heuristic to be used for pathfinding.
+   * @param newHeuristic
+   */
+  setHeuristic(newHeuristic) {
+    this.heuristic = newHeuristic;
+  }
+  /**
+   * Set the weight for the heuristic function.
+   * @param newWeight
+   */
+  setWeight(newWeight) {
+    this.weight = newWeight;
+  }
+  /**
+   * Get a copy/clone of the grid.
+   */
+  getGridClone() {
+    return this.grid.clone();
+  }
+  /**
+   * Get the current grid
+   */
+  getGrid() {
+    return this.grid;
+  }
+}
+astarFinder.AStarFinder = AStarFinder;
+(function(exports2) {
+  Object.defineProperty(exports2, "__esModule", { value: true });
+  var astar_finder_1 = astarFinder;
+  Object.defineProperty(exports2, "AStarFinder", { enumerable: true, get: function() {
+    return astar_finder_1.AStarFinder;
+  } });
+  var grid_12 = grid;
+  Object.defineProperty(exports2, "Grid", { enumerable: true, get: function() {
+    return grid_12.Grid;
+  } });
+})(astar);
 class LinkDraw extends BaseDraw {
   constructor(render, layer, option) {
     super(render, layer);
@@ -24233,6 +30139,161 @@ class LinkDraw extends BaseDraw {
     this.option = option;
     this.group.name(this.constructor.name);
   }
+  // 元素（连接点们）最小区域（绝对值）
+  getGroupLinkArea(group) {
+    let area = {
+      x1: 0,
+      y1: 0,
+      x2: 0,
+      y2: 0
+    };
+    if (group) {
+      const stageState = this.render.getStageState();
+      const anchors = group.find(".link-anchor");
+      const positions = anchors.map((o) => o.absolutePosition());
+      area = {
+        x1: Math.min(...positions.map((o) => o.x)) - stageState.x,
+        y1: Math.min(...positions.map((o) => o.y)) - stageState.y,
+        x2: Math.max(...positions.map((o) => o.x)) - stageState.x,
+        y2: Math.max(...positions.map((o) => o.y)) - stageState.y
+      };
+      if (this.render.debug) {
+        const shape = new Konva.Rect({
+          x: this.render.toStageValue(area.x1),
+          y: this.render.toStageValue(area.y1),
+          width: this.render.toStageValue(area.x2 - area.x1),
+          height: this.render.toStageValue(area.y2 - area.y1),
+          stroke: "rgba(255,0,0,0.5)",
+          strokeWidth: 1,
+          listening: false
+        });
+        this.group.add(shape);
+        shape.zIndex(0);
+      }
+    }
+    return area;
+  }
+  // 连线不可通过区域
+  getGroupForbiddenArea(groupArea, gap) {
+    const area = {
+      x1: groupArea.x1 - gap,
+      y1: groupArea.y1 - gap,
+      x2: groupArea.x2 + gap,
+      y2: groupArea.y2 + gap
+    };
+    if (this.render.debug) {
+      const shape = new Konva.Rect({
+        x: this.render.toStageValue(area.x1),
+        y: this.render.toStageValue(area.y1),
+        width: this.render.toStageValue(area.x2 - area.x1),
+        height: this.render.toStageValue(area.y2 - area.y1),
+        stroke: "rgba(0,0,255,0.5)",
+        strokeWidth: 1,
+        listening: false
+      });
+      this.group.add(shape);
+      shape.zIndex(0);
+    }
+    return area;
+  }
+  // 连线通过区域
+  getGroupAccessArea(groupArea, gap) {
+    const area = {
+      x1: groupArea.x1 - gap,
+      y1: groupArea.y1 - gap,
+      x2: groupArea.x2 + gap,
+      y2: groupArea.y2 + gap
+    };
+    if (this.render.debug) {
+      const shape = new Konva.Rect({
+        x: this.render.toStageValue(area.x1),
+        y: this.render.toStageValue(area.y1),
+        width: this.render.toStageValue(area.x2 - area.x1),
+        height: this.render.toStageValue(area.y2 - area.y1),
+        stroke: "rgba(255,0,255,0.5)",
+        strokeWidth: 1,
+        listening: false
+      });
+      this.group.add(shape);
+      shape.zIndex(0);
+    }
+    return area;
+  }
+  // 两区域扩展
+  getGroupPairArea(groupArea1, groupArea2) {
+    const area = {
+      x1: Math.min(groupArea1.x1, groupArea2.x1),
+      y1: Math.min(groupArea1.y1, groupArea2.y1),
+      x2: Math.max(groupArea1.x2, groupArea2.x2),
+      y2: Math.max(groupArea1.y2, groupArea2.y2)
+    };
+    if (this.render.debug) {
+      const shape = new Konva.Rect({
+        x: this.render.toStageValue(area.x1),
+        y: this.render.toStageValue(area.y1),
+        width: this.render.toStageValue(area.x2 - area.x1),
+        height: this.render.toStageValue(area.y2 - area.y1),
+        stroke: "rgba(0,120,0,0.5)",
+        strokeWidth: 1,
+        listening: false
+      });
+      this.group.add(shape);
+      shape.zIndex(1);
+    }
+    return area;
+  }
+  getGroupPairDistance(groupArea1, groupArea2) {
+    const xs = [groupArea1.x1, groupArea1.x2, groupArea2.x1, groupArea2.x2];
+    const maxX = Math.max(...xs);
+    const minX = Math.min(...xs);
+    const dx = maxX - minX - (groupArea1.x2 - groupArea1.x1 + (groupArea2.x2 - groupArea2.x1));
+    const ys = [groupArea1.y1, groupArea1.y2, groupArea2.y1, groupArea2.y2];
+    const maxY = Math.max(...ys);
+    const minY = Math.min(...ys);
+    const dy = maxY - minY - (groupArea1.y2 - groupArea1.y1 + (groupArea2.y2 - groupArea2.y1));
+    return this.render.toBoardValue(
+      Math.min(this.render.bgSize, Math.max(dx < 6 ? 6 : dx, dy < 6 ? 6 : dy) * 0.5)
+    );
+  }
+  // 连接出入口
+  getEntry(anchor, groupLinkArea, gap) {
+    const stageState = this.render.getStageState();
+    let entry = {
+      x: 0,
+      y: 0
+    };
+    const fromPos = anchor.absolutePosition();
+    if (fromPos.x - stageState.x === groupLinkArea.x1) {
+      entry = {
+        x: fromPos.x - gap - stageState.x,
+        y: fromPos.y - stageState.y
+      };
+    } else if (fromPos.x - stageState.x === groupLinkArea.x2) {
+      entry = {
+        x: fromPos.x + gap - stageState.x,
+        y: fromPos.y - stageState.y
+      };
+    } else if (fromPos.y - stageState.y === groupLinkArea.y1) {
+      entry = {
+        x: fromPos.x - stageState.x,
+        y: fromPos.y - gap - stageState.y
+      };
+    } else if (fromPos.y - stageState.y === groupLinkArea.y2) {
+      entry = {
+        x: fromPos.x - stageState.x,
+        y: fromPos.y + gap - stageState.y
+      };
+    }
+    return entry;
+  }
+  // 连接点信息
+  getAnchorPos(anchor) {
+    const stageState = this.render.getStageState();
+    return anchor ? {
+      x: anchor.absolutePosition().x - stageState.x,
+      y: anchor.absolutePosition().y - stageState.y
+    } : { x: 0, y: 0 };
+  }
   draw() {
     this.clear();
     const stageState = this.render.getStageState();
@@ -24243,44 +30304,213 @@ class LinkDraw extends BaseDraw {
     const pairs = points.reduce((ps, point) => {
       return ps.concat(point.pairs ? point.pairs : []);
     }, []);
+    if (this.render.debug && pairs.length > 0) {
+      console.log("");
+      console.log("link draw");
+    }
     for (const pair of pairs) {
       const fromGroup = groups.find((o) => o.id() === pair.from.groupId);
       const fromPoint = points.find((o) => o.id === pair.from.pointId);
       const toGroup = groups.find((o) => o.id() === pair.to.groupId);
       const toPoint = points.find((o) => o.id === pair.to.pointId);
+      const fromGroupLinkArea = this.getGroupLinkArea(fromGroup);
+      const toGroupLinkArea = this.getGroupLinkArea(toGroup);
+      const groupDistance = this.getGroupPairDistance(fromGroupLinkArea, toGroupLinkArea);
+      const fromGroupForbiddenArea = this.getGroupForbiddenArea(
+        fromGroupLinkArea,
+        groupDistance - 2
+      );
+      const toGroupForbiddenArea = this.getGroupForbiddenArea(toGroupLinkArea, groupDistance - 2);
+      const groupForbiddenArea = this.getGroupPairArea(fromGroupForbiddenArea, toGroupForbiddenArea);
+      const groupAccessArea = this.getGroupPairArea(
+        this.getGroupAccessArea(fromGroupForbiddenArea, groupDistance),
+        this.getGroupAccessArea(toGroupForbiddenArea, groupDistance)
+      );
       if (fromGroup && toGroup && fromPoint && toPoint) {
-        const fromAnchor = this.render.layer.findOne(`#${fromPoint.id}`);
-        const toAnchor = this.render.layer.findOne(`#${toPoint.id}`);
+        const fromAnchor = fromGroup.findOne(`#${fromPoint.id}`);
+        const toAnchor = toGroup.findOne(`#${toPoint.id}`);
+        const fromAnchorPos = this.getAnchorPos(fromAnchor);
+        const toAnchorPos = this.getAnchorPos(toAnchor);
         if (fromAnchor && toAnchor) {
-          const line = new Konva.Line({
-            name: "link-line",
-            // 用于删除连接线
-            groupId: fromGroup.id(),
-            pointId: fromPoint.id,
-            pairId: pair.id,
-            //
-            points: lodash.flatten([
-              [
-                this.render.toStageValue(fromAnchor.absolutePosition().x - stageState.x),
-                this.render.toStageValue(fromAnchor.absolutePosition().y - stageState.y)
-              ],
-              [
-                this.render.toStageValue(toAnchor.absolutePosition().x - stageState.x),
-                this.render.toStageValue(toAnchor.absolutePosition().y - stageState.y)
-              ]
-            ]),
-            stroke: "red",
-            strokeWidth: 2
+          if (this.render.debug) {
+            console.log("distance", groupDistance);
+          }
+          const fromEntry = this.getEntry(
+            fromAnchor,
+            fromGroupLinkArea,
+            groupDistance
+          );
+          const toEntry = this.getEntry(toAnchor, toGroupLinkArea, groupDistance);
+          let matrixPoints = [];
+          matrixPoints.push({ x: groupAccessArea.x1, y: groupAccessArea.y1 });
+          matrixPoints.push({ x: groupAccessArea.x2, y: groupAccessArea.y2 });
+          matrixPoints.push({ x: groupAccessArea.x1, y: groupAccessArea.y2 });
+          matrixPoints.push({ x: groupAccessArea.x2, y: groupAccessArea.y1 });
+          matrixPoints.push({ x: groupForbiddenArea.x1, y: groupForbiddenArea.y1 });
+          matrixPoints.push({ x: groupForbiddenArea.x2, y: groupForbiddenArea.y2 });
+          matrixPoints.push({ x: groupForbiddenArea.x1, y: groupForbiddenArea.y2 });
+          matrixPoints.push({ x: groupForbiddenArea.x2, y: groupForbiddenArea.y1 });
+          matrixPoints.push({
+            ...fromAnchorPos,
+            type: "from"
           });
-          this.group.add(line);
-          line.on("mouseenter", () => {
-            line.stroke("rgba(255,0,0,0.6)");
-            document.body.style.cursor = "pointer";
+          matrixPoints.push({ ...fromEntry, type: "from-entry" });
+          matrixPoints.push({
+            ...toAnchorPos,
+            type: "to"
           });
-          line.on("mouseleave", () => {
-            line.stroke("red");
-            document.body.style.cursor = "default";
+          matrixPoints.push({ ...toEntry, type: "to-entry" });
+          matrixPoints.push({
+            x: (groupAccessArea.x1 + groupAccessArea.x2) * 0.5,
+            y: (groupAccessArea.y1 + groupAccessArea.y2) * 0.5
           });
+          matrixPoints = matrixPoints.reduce(
+            (arr, item) => {
+              if (item.type === void 0) {
+                if (arr.findIndex((o) => o.x === item.x && o.y === item.y) < 0) {
+                  arr.push(item);
+                }
+              } else {
+                const idx = arr.findIndex((o) => o.x === item.x && o.y === item.y);
+                if (idx > -1) {
+                  arr.splice(idx, 1);
+                }
+                arr.push(item);
+              }
+              return arr;
+            },
+            []
+          );
+          const columns = [
+            ...matrixPoints.map((o) => o.x),
+            // 增加列
+            fromGroupForbiddenArea.x1,
+            fromGroupForbiddenArea.x2,
+            toGroupForbiddenArea.x1,
+            toGroupForbiddenArea.x2
+          ].sort((a, b) => a - b);
+          for (let x = columns.length - 1; x > 0; x--) {
+            if (columns[x] === columns[x - 1]) {
+              columns.splice(x, 1);
+            }
+          }
+          if (this.render.debug) {
+            console.log("columns", columns);
+          }
+          const rows = [
+            ...matrixPoints.map((o) => o.y),
+            // 增加行
+            fromGroupForbiddenArea.y1,
+            fromGroupForbiddenArea.y2,
+            toGroupForbiddenArea.y1,
+            toGroupForbiddenArea.y2
+          ].sort((a, b) => a - b);
+          for (let y = rows.length - 1; y > 0; y--) {
+            if (rows[y] === rows[y - 1]) {
+              rows.splice(y, 1);
+            }
+          }
+          if (this.render.debug) {
+            console.log("rows", rows);
+          }
+          const columnFromStart = columns.findIndex((o) => o === fromGroupForbiddenArea.x1);
+          const columnFromEnd = columns.findIndex((o) => o === fromGroupForbiddenArea.x2);
+          const rowFromStart = rows.findIndex((o) => o === fromGroupForbiddenArea.y1);
+          const rowFromEnd = rows.findIndex((o) => o === fromGroupForbiddenArea.y2);
+          const columnToStart = columns.findIndex((o) => o === toGroupForbiddenArea.x1);
+          const columnToEnd = columns.findIndex((o) => o === toGroupForbiddenArea.x2);
+          const rowToStart = rows.findIndex((o) => o === toGroupForbiddenArea.y1);
+          const rowToEnd = rows.findIndex((o) => o === toGroupForbiddenArea.y2);
+          let matrixStart = null;
+          let matrixEnd = null;
+          const matrix = [];
+          for (let y = 0; y < rows.length; y++) {
+            if (matrix[y] === void 0) {
+              matrix[y] = [];
+            }
+            for (let x = 0; x < columns.length; x++) {
+              if (x >= columnFromStart && x <= columnFromEnd && y >= rowFromStart && y <= rowFromEnd) {
+                matrix[y][x] = 2;
+              } else if (x >= columnToStart && x <= columnToEnd && y >= rowToStart && y <= rowToEnd) {
+                matrix[y][x] = 2;
+              } else {
+                matrix[y][x] = 0;
+              }
+              if (columns[x] === fromAnchorPos.x && rows[y] === fromAnchorPos.y) {
+                matrixStart = { x, y };
+              } else if (columns[x] === toAnchorPos.x && rows[y] === toAnchorPos.y) {
+                matrixEnd = { x, y };
+              }
+              if (fromEntry.x === fromAnchorPos.x) {
+                if (columns[x] === fromAnchorPos.x && rows[y] >= Math.min(fromEntry.y, fromAnchorPos.y) && rows[y] <= Math.max(fromEntry.y, fromAnchorPos.y)) {
+                  matrix[y][x] = 1;
+                }
+              } else if (fromEntry.y === fromAnchorPos.y) {
+                if (columns[x] >= Math.min(fromEntry.x, fromAnchorPos.x) && columns[x] <= Math.max(fromEntry.x, fromAnchorPos.x) && rows[y] === fromAnchorPos.y) {
+                  matrix[y][x] = 1;
+                }
+              }
+              if (toEntry.x === toAnchorPos.x) {
+                if (columns[x] === toAnchorPos.x && rows[y] >= Math.min(toEntry.y, toAnchorPos.y) && rows[y] <= Math.max(toEntry.y, toAnchorPos.y)) {
+                  matrix[y][x] = 1;
+                }
+              } else if (toEntry.y === toAnchorPos.y) {
+                if (columns[x] >= Math.min(toEntry.x, toAnchorPos.x) && columns[x] <= Math.max(toEntry.x, toAnchorPos.x) && rows[y] === toAnchorPos.y) {
+                  matrix[y][x] = 1;
+                }
+              }
+            }
+          }
+          if (this.render.debug) {
+            console.log("matrix", matrix);
+          }
+          if (this.render.debug) {
+            for (const point of matrixPoints) {
+              this.group.add(
+                new Konva.Circle({
+                  name: "link-route",
+                  id: nanoid(),
+                  x: this.render.toStageValue(point.x),
+                  y: this.render.toStageValue(point.y),
+                  radius: this.render.toStageValue(3),
+                  stroke: point.type === void 0 ? "rgba(0,0,255,1)" : ["from", "to"].includes(point.type) ? "rgba(255,0,0,1)" : "rgba(0,120,0,1)",
+                  strokeWidth: this.render.toStageValue(1)
+                })
+              );
+            }
+          }
+          const aStar = new astar.AStarFinder({
+            diagonalAllowed: false,
+            heuristic: "Manhattan",
+            grid: {
+              matrix,
+              maxCost: 2
+            },
+            includeStartNode: true,
+            includeEndNode: true
+          });
+          if (matrixStart && matrixEnd) {
+            console.log("算法起点", matrixStart, "算法终点", matrixEnd);
+            const way = aStar.findPath(matrixStart, matrixEnd);
+            this.group.add(
+              new Konva.Line({
+                name: "link-line",
+                // 用于删除连接线
+                groupId: fromGroup.id(),
+                pointId: fromPoint.id,
+                pairId: pair.id,
+                //
+                points: lodash$1.flatten(
+                  way.map((o) => [
+                    this.render.toStageValue(columns[o[0]]),
+                    this.render.toStageValue(rows[o[1]])
+                  ])
+                ),
+                stroke: "red",
+                strokeWidth: 2
+              })
+            );
+          }
         }
       }
     }
@@ -24319,7 +30549,7 @@ class LinkDraw extends BaseDraw {
                 circle,
                 line: new Konva.Line({
                   name: "linking-line",
-                  points: lodash.flatten([
+                  points: lodash$1.flatten([
                     [circle.x(), circle.y()],
                     [
                       this.render.toStageValue(pos.x - stageState.x),
@@ -24533,7 +30763,7 @@ class DragOutsideHandlers {
                       ...o,
                       id: nanoid(),
                       groupId: group.id(),
-                      visible: true,
+                      visible: false,
                       pairs: []
                     })
                   )
@@ -24659,8 +30889,8 @@ class SelectionHandlers {
         mouseup: () => {
           const box = this.render.selectRect.getClientRect();
           if (box.width > 0 && box.height > 0) {
-            const shapes = this.render.layer.getChildren((node) => {
-              return !this.render.ignore(node);
+            const shapes = this.render.layer.getChildren((node2) => {
+              return !this.render.ignore(node2);
             });
             const selected = shapes.filter(
               (shape) => (
@@ -24693,18 +30923,18 @@ class SelectionHandlers {
                   const keeps = [];
                   const removes = [];
                   let finded = false;
-                  for (const node of this.render.selectionTool.selectingNodes.sort(
+                  for (const node2 of this.render.selectionTool.selectingNodes.sort(
                     (a, b) => b.zIndex() - a.zIndex()
                   )) {
-                    if (!finded && Konva.Util.haveIntersection(node.getClientRect(), {
+                    if (!finded && Konva.Util.haveIntersection(node2.getClientRect(), {
                       ...pos,
                       width: 1,
                       height: 1
                     })) {
-                      removes.unshift(node);
+                      removes.unshift(node2);
                       finded = true;
                     } else {
-                      keeps.unshift(node);
+                      keeps.unshift(node2);
                     }
                   }
                   if (removes.length > 0) {
@@ -24712,13 +30942,13 @@ class SelectionHandlers {
                   } else {
                     let finded2 = false;
                     const adds = [];
-                    for (const node of this.render.layer.getChildren().filter((node2) => !this.render.ignore(node2)).sort((a, b) => b.zIndex() - a.zIndex())) {
-                      if (!finded2 && Konva.Util.haveIntersection(node.getClientRect(), {
+                    for (const node2 of this.render.layer.getChildren().filter((node22) => !this.render.ignore(node22)).sort((a, b) => b.zIndex() - a.zIndex())) {
+                      if (!finded2 && Konva.Util.haveIntersection(node2.getClientRect(), {
                         ...pos,
                         width: 1,
                         height: 1
                       })) {
-                        adds.unshift(node);
+                        adds.unshift(node2);
                         finded2 = true;
                       }
                     }
@@ -24853,39 +31083,39 @@ class SelectionHandlers {
           }
         );
         const targetIds = this.render.selectionTool.selectingNodes.map((o) => o._id);
-        const otherNodes = this.render.layer.getChildren((node) => !targetIds.includes(node._id));
-        for (const node of otherNodes) {
+        const otherNodes = this.render.layer.getChildren((node2) => !targetIds.includes(node2._id));
+        for (const node2 of otherNodes) {
           sortX.push(
             {
-              id: node._id,
-              value: node.x()
+              id: node2._id,
+              value: node2.x()
               // 左
             },
             {
-              id: node._id,
-              value: node.x() + node.width() / 2
+              id: node2._id,
+              value: node2.x() + node2.width() / 2
               // 垂直中
             },
             {
-              id: node._id,
-              value: node.x() + node.width()
+              id: node2._id,
+              value: node2.x() + node2.width()
               // 右
             }
           );
           sortY.push(
             {
-              id: node._id,
-              value: node.y()
+              id: node2._id,
+              value: node2.y()
               // 上
             },
             {
-              id: node._id,
-              value: node.y() + node.height() / 2
+              id: node2._id,
+              value: node2.y() + node2.height() / 2
               // 水平中
             },
             {
-              id: node._id,
-              value: node.y() + node.height()
+              id: node2._id,
+              value: node2.y() + node2.height()
               // 下
             }
           );
@@ -24933,7 +31163,7 @@ class SelectionHandlers {
             const other2 = pair.find((o) => o.id !== void 0);
             if (other2) {
               const line = new Konva.Line({
-                points: lodash.flatten([
+                points: lodash$1.flatten([
                   [other2.value, this.render.toStageValue(-stageState.y)],
                   [other2.value, this.render.toStageValue(this.render.stage.height() - stageState.y)]
                 ]),
@@ -24958,7 +31188,7 @@ class SelectionHandlers {
             const other2 = pair.find((o) => o.id !== void 0);
             if (other2) {
               const line = new Konva.Line({
-                points: lodash.flatten([
+                points: lodash$1.flatten([
                   [this.render.toStageValue(-stageState.x), other2.value],
                   [this.render.toStageValue(this.render.stage.width() - stageState.x), other2.value]
                 ]),
@@ -25099,18 +31329,18 @@ class SelectionHandlers {
   }
   // 通过偏移量移动【目标节点】
   selectingNodesPositionByOffset(offset) {
-    for (const node of this.render.selectionTool.selectingNodes) {
-      const x = node.attrs.nodeMousedownPos.x + offset.x;
-      const y = node.attrs.nodeMousedownPos.y + offset.y;
-      node.x(x);
-      node.y(y);
+    for (const node2 of this.render.selectionTool.selectingNodes) {
+      const x = node2.attrs.nodeMousedownPos.x + offset.x;
+      const y = node2.attrs.nodeMousedownPos.y + offset.y;
+      node2.x(x);
+      node2.y(y);
     }
   }
   // 重置【目标节点】的 nodeMousedownPos
   selectingNodesPositionReset() {
-    for (const node of this.render.selectionTool.selectingNodes) {
-      node.attrs.nodeMousedownPos.x = node.x();
-      node.attrs.nodeMousedownPos.y = node.y();
+    for (const node2 of this.render.selectionTool.selectingNodes) {
+      node2.attrs.nodeMousedownPos.x = node2.x();
+      node2.attrs.nodeMousedownPos.y = node2.y();
     }
   }
   // 重置 transformer 状态
@@ -25130,7 +31360,7 @@ class KeyMoveHandlers {
     __publicField(this, "render");
     __publicField(this, "speed", 1);
     __publicField(this, "speedMax", 20);
-    __publicField(this, "change", lodash.debounce(() => {
+    __publicField(this, "change", lodash$1.debounce(() => {
       this.render.updateHistory();
     }, 200));
     __publicField(this, "handlers", {
@@ -25182,9 +31412,13 @@ class ShutcutHandlers {
               } else {
                 this.render.prevHistory();
               }
+            } else if (e.code === ShutcutKey.A) {
+              this.render.selectionTool.selectAll();
             }
           } else if (e.code === ShutcutKey.删除) {
             this.render.remove(this.render.selectionTool.selectingNodes);
+          } else if (e.code === ShutcutKey.Esc) {
+            this.render.selectionTool.selectingClear();
           }
         }
       }
@@ -25212,7 +31446,7 @@ class LinkHandlers {
             if (linkDrawState.linkingLine) {
               const { circle, line } = linkDrawState.linkingLine;
               line.points(
-                lodash.flatten([
+                lodash$1.flatten([
                   [circle.x(), circle.y()],
                   [
                     this.render.toStageValue(pos.x - stageState.x),
@@ -25296,17 +31530,17 @@ class SelectionTool {
     const change = this.selectingNodes.findIndex(
       (o) => o.attrs.lastZIndex !== void 0 && o.zIndex() !== o.attrs.lastZIndex
     ) > -1;
-    for (const node of [...this.selectingNodes].sort(
+    for (const node2 of [...this.selectingNodes].sort(
       (a, b) => a.attrs.lastZIndex - b.attrs.lastZIndex
     )) {
-      node.setAttrs({
+      node2.setAttrs({
         listening: true,
-        opacity: node.attrs.lastOpacity ?? 1,
-        zIndex: node.attrs.lastZIndex
+        opacity: node2.attrs.lastOpacity ?? 1,
+        zIndex: node2.attrs.lastZIndex
       });
     }
-    for (const node of this.selectingNodes) {
-      node.setAttrs({
+    for (const node2 of this.selectingNodes) {
+      node2.setAttrs({
         nodeMousedownPos: void 0,
         lastOpacity: void 0,
         lastZIndex: void 0,
@@ -25329,30 +31563,30 @@ class SelectionTool {
     this.selectingClear();
     if (nodes.length > 0) {
       const maxZIndex = Math.max(
-        ...this.render.layer.getChildren((node) => {
-          return !this.render.ignore(node);
+        ...this.render.layer.getChildren((node2) => {
+          return !this.render.ignore(node2);
         }).map((o) => o.zIndex())
       );
-      for (const node of nodes) {
-        node.setAttrs({
-          nodeMousedownPos: node.position(),
+      for (const node2 of nodes) {
+        node2.setAttrs({
+          nodeMousedownPos: node2.position(),
           // 后面用于移动所选
-          lastOpacity: node.opacity(),
+          lastOpacity: node2.opacity(),
           // 选中时，下面会使其变透明，记录原有的透明度
-          lastZIndex: node.zIndex(),
+          lastZIndex: node2.zIndex(),
           // 记录原有的层次，后面暂时提升所选节点的层次
           selectingZIndex: void 0,
           selected: true
           // 选择中
         });
-        this.render.linkTool.pointsVisible(false, node);
+        this.render.linkTool.pointsVisible(false, node2);
         this.render.draws[LinkDraw.name].draw();
         this.render.draws[PreviewDraw.name].draw();
       }
-      for (const node of nodes.sort((a, b) => a.zIndex() - b.zIndex())) {
-        node.setAttrs({
+      for (const node2 of nodes.sort((a, b) => a.zIndex() - b.zIndex())) {
+        node2.setAttrs({
           listening: false,
-          opacity: node.opacity() * 0.8,
+          opacity: node2.opacity() * 0.8,
           zIndex: maxZIndex
         });
       }
@@ -25362,10 +31596,15 @@ class SelectionTool {
   }
   // 更新节点位置
   selectingNodesMove(offset) {
-    for (const node of this.render.selectionTool.selectingNodes) {
-      node.x(node.x() + offset.x);
-      node.y(node.y() + offset.y);
+    for (const node2 of this.render.selectionTool.selectingNodes) {
+      node2.x(node2.x() + offset.x);
+      node2.y(node2.y() + offset.y);
     }
+  }
+  // 选择所有节点
+  selectAll() {
+    const nodes = this.render.layer.find(".asset");
+    this.select(nodes);
   }
 }
 __publicField(SelectionTool, "name", "SelectionTool");
@@ -25413,14 +31652,14 @@ class CopyTool {
    */
   copy(nodes) {
     const clones = [];
-    for (const node of nodes) {
-      if (node instanceof Konva.Transformer) {
+    for (const node2 of nodes) {
+      if (node2 instanceof Konva.Transformer) {
         const backup = [...this.render.selectionTool.selectingNodes];
         this.render.selectionTool.selectingClear();
         this.copy(backup);
         return;
       } else {
-        clones.push(node.clone());
+        clones.push(node2.clone());
       }
     }
     const groupIdChanges = {};
@@ -25429,7 +31668,7 @@ class CopyTool {
       const gid = nanoid();
       groupIdChanges[copy.id()] = gid;
       copy.id(gid);
-      const pointsClone = lodash.cloneDeep(copy.getAttr("points") ?? []);
+      const pointsClone = lodash$1.cloneDeep(copy.getAttr("points") ?? []);
       copy.setAttr("points", pointsClone);
       for (const point of pointsClone) {
         const pid = nanoid();
@@ -25502,14 +31741,14 @@ class PositionTool {
   // 更新中心位置
   updateCenter(x = 0, y = 0) {
     const stageState = this.render.getStageState();
-    const nodes = this.render.layer.getChildren((node) => {
-      return !this.render.ignore(node);
+    const nodes = this.render.layer.getChildren((node2) => {
+      return !this.render.ignore(node2);
     });
     let minX = 0;
     let minY = 0;
-    for (const node of nodes) {
-      const x2 = node.x();
-      const y2 = node.y();
+    for (const node2 of nodes) {
+      const x2 = node2.x();
+      const y2 = node2.y();
       if (x2 < minX) {
         minX = x2;
       }
@@ -25537,11 +31776,11 @@ class ZIndexTool {
   // 获取移动节点
   getNodes(nodes) {
     const targets = [];
-    for (const node of nodes) {
-      if (node instanceof Konva.Transformer) {
+    for (const node2 of nodes) {
+      if (node2 instanceof Konva.Transformer) {
         targets.push(...this.render.selectionTool.selectingNodes);
       } else {
-        targets.push(node);
+        targets.push(node2);
       }
     }
     return targets;
@@ -25549,39 +31788,39 @@ class ZIndexTool {
   // 最大 zIndex
   getMaxZIndex() {
     return Math.max(
-      ...this.render.layer.getChildren((node) => {
-        return !this.render.ignore(node);
+      ...this.render.layer.getChildren((node2) => {
+        return !this.render.ignore(node2);
       }).map((o) => o.zIndex())
     );
   }
   // 最小 zIndex
   getMinZIndex() {
     return Math.min(
-      ...this.render.layer.getChildren((node) => {
-        return !this.render.ignore(node);
+      ...this.render.layer.getChildren((node2) => {
+        return !this.render.ignore(node2);
       }).map((o) => o.zIndex())
     );
   }
   // 记录选择期间的 zIndex
   updateSelectingZIndex(nodes) {
-    for (const node of nodes) {
-      node.setAttrs({
-        selectingZIndex: node.zIndex()
+    for (const node2 of nodes) {
+      node2.setAttrs({
+        selectingZIndex: node2.zIndex()
       });
     }
   }
   // 恢复选择期间的 zIndex
   resetSelectingZIndex(nodes) {
     nodes.sort((a, b) => a.zIndex() - b.zIndex());
-    for (const node of nodes) {
-      node.zIndex(node.attrs.selectingZIndex);
+    for (const node2 of nodes) {
+      node2.zIndex(node2.attrs.selectingZIndex);
     }
   }
   // 更新 zIndex 缓存
   updateLastZindex(nodes) {
-    for (const node of nodes) {
-      node.setAttrs({
-        lastZIndex: node.zIndex()
+    for (const node2 of nodes) {
+      node2.setAttrs({
+        lastZIndex: node2.zIndex()
       });
     }
   }
@@ -25592,21 +31831,21 @@ class ZIndexTool {
     let lastNode = null;
     if (this.render.selectionTool.selectingNodes.length > 0) {
       this.updateSelectingZIndex(sorted);
-      for (const node of sorted) {
-        if (node.attrs.lastZIndex < maxZIndex && (lastNode === null || node.attrs.lastZIndex < lastNode.attrs.lastZIndex - 1)) {
-          node.setAttrs({
-            lastZIndex: node.attrs.lastZIndex + 1
+      for (const node2 of sorted) {
+        if (node2.attrs.lastZIndex < maxZIndex && (lastNode === null || node2.attrs.lastZIndex < lastNode.attrs.lastZIndex - 1)) {
+          node2.setAttrs({
+            lastZIndex: node2.attrs.lastZIndex + 1
           });
         }
-        lastNode = node;
+        lastNode = node2;
       }
       this.resetSelectingZIndex(sorted);
     } else {
-      for (const node of sorted) {
-        if (node.zIndex() < maxZIndex && (lastNode === null || node.zIndex() < lastNode.zIndex() - 1)) {
-          node.zIndex(node.zIndex() + 1);
+      for (const node2 of sorted) {
+        if (node2.zIndex() < maxZIndex && (lastNode === null || node2.zIndex() < lastNode.zIndex() - 1)) {
+          node2.zIndex(node2.zIndex() + 1);
         }
-        lastNode = node;
+        lastNode = node2;
       }
       this.updateLastZindex(sorted);
       this.render.updateHistory();
@@ -25621,21 +31860,21 @@ class ZIndexTool {
     let lastNode = null;
     if (this.render.selectionTool.selectingNodes.length > 0) {
       this.updateSelectingZIndex(sorted);
-      for (const node of sorted) {
-        if (node.attrs.lastZIndex > minZIndex && (lastNode === null || node.attrs.lastZIndex > lastNode.attrs.lastZIndex + 1)) {
-          node.setAttrs({
-            lastZIndex: node.attrs.lastZIndex - 1
+      for (const node2 of sorted) {
+        if (node2.attrs.lastZIndex > minZIndex && (lastNode === null || node2.attrs.lastZIndex > lastNode.attrs.lastZIndex + 1)) {
+          node2.setAttrs({
+            lastZIndex: node2.attrs.lastZIndex - 1
           });
         }
-        lastNode = node;
+        lastNode = node2;
       }
       this.resetSelectingZIndex(sorted);
     } else {
-      for (const node of sorted) {
-        if (node.zIndex() > minZIndex && (lastNode === null || node.zIndex() > lastNode.zIndex() + 1)) {
-          node.zIndex(node.zIndex() - 1);
+      for (const node2 of sorted) {
+        if (node2.zIndex() > minZIndex && (lastNode === null || node2.zIndex() > lastNode.zIndex() + 1)) {
+          node2.zIndex(node2.zIndex() - 1);
         }
-        lastNode = node;
+        lastNode = node2;
       }
       this.updateLastZindex(sorted);
       this.render.updateHistory();
@@ -25649,15 +31888,15 @@ class ZIndexTool {
     const sorted = this.getNodes(nodes).sort((a, b) => b.zIndex() - a.zIndex());
     if (this.render.selectionTool.selectingNodes.length > 0) {
       this.updateSelectingZIndex(sorted);
-      for (const node of sorted) {
-        node.setAttrs({
+      for (const node2 of sorted) {
+        node2.setAttrs({
           lastZIndex: maxZIndex--
         });
       }
       this.resetSelectingZIndex(sorted);
     } else {
-      for (const node of sorted) {
-        node.zIndex(maxZIndex);
+      for (const node2 of sorted) {
+        node2.zIndex(maxZIndex);
       }
       this.updateLastZindex(sorted);
       this.render.updateHistory();
@@ -25671,15 +31910,15 @@ class ZIndexTool {
     const sorted = this.getNodes(nodes).sort((a, b) => a.zIndex() - b.zIndex());
     if (this.render.selectionTool.selectingNodes.length > 0) {
       this.updateSelectingZIndex(sorted);
-      for (const node of sorted) {
-        node.setAttrs({
+      for (const node2 of sorted) {
+        node2.setAttrs({
           lastZIndex: minZIndex++
         });
       }
       this.resetSelectingZIndex(sorted);
     } else {
-      for (const node of sorted) {
-        node.zIndex(minZIndex);
+      for (const node2 of sorted) {
+        node2.zIndex(minZIndex);
       }
       this.updateLastZindex(sorted);
       this.render.updateHistory();
@@ -25946,12 +32185,12 @@ var canvas2svg = { exports: {} };
         }
       }
     };
-    ctx.prototype.__closestGroupOrSvg = function(node) {
-      node = node || this.__currentElement;
-      if (node.nodeName === "g" || node.nodeName === "svg") {
-        return node;
+    ctx.prototype.__closestGroupOrSvg = function(node2) {
+      node2 = node2 || this.__currentElement;
+      if (node2.nodeName === "g" || node2.nodeName === "svg") {
+        return node2;
       } else {
-        return this.__closestGroupOrSvg(node.parentNode);
+        return this.__closestGroupOrSvg(node2.parentNode);
       }
     };
     ctx.prototype.getSerializedSvg = function(fixNamedEntities) {
@@ -26430,13 +32669,13 @@ class ImportExportTool {
     const main = copy.find("#main")[0];
     const cover = copy.find("#cover")[0];
     copy.removeChildren();
-    let nodes = main.getChildren((node) => {
-      return !this.render.ignore(node);
+    let nodes = main.getChildren((node2) => {
+      return !this.render.ignore(node2);
     });
     if (withLink) {
       nodes = nodes.concat(
-        cover.getChildren((node) => {
-          return node.name() === LinkDraw.name;
+        cover.getChildren((node2) => {
+          return node2.name() === LinkDraw.name;
         })
       );
     }
@@ -26447,11 +32686,11 @@ class ImportExportTool {
     let maxX = copy.width() - this.render.rulerSize;
     let minY = 0;
     let maxY = copy.height() - this.render.rulerSize;
-    for (const node of nodes) {
-      const x = node.x();
-      const y = node.y();
-      const width = node.width();
-      const height = node.height();
+    for (const node2 of nodes) {
+      const x = node2.x();
+      const y = node2.y();
+      const width = node2.width();
+      const height = node2.height();
       if (x < minX) {
         minX = x;
       }
@@ -26464,8 +32703,8 @@ class ImportExportTool {
       if (y + height > maxY) {
         maxY = y + height;
       }
-      if (node.attrs.nodeMousedownPos) {
-        node.setAttrs({
+      if (node2.attrs.nodeMousedownPos) {
+        node2.setAttrs({
           opacity: copy.attrs.lastOpacity ?? 1
         });
       }
@@ -26500,26 +32739,26 @@ class ImportExportTool {
   }
   // 恢复图片（用于导入）
   async restoreImage(nodes = []) {
-    for (const node of nodes) {
-      if (node instanceof Konva.Group) {
-        await this.restoreImage(node.getChildren());
-      } else if (node instanceof Konva.Image) {
-        if (node.attrs.svgXML) {
-          const blob = new Blob([node.attrs.svgXML], { type: "image/svg+xml" });
+    for (const node2 of nodes) {
+      if (node2 instanceof Konva.Group) {
+        await this.restoreImage(node2.getChildren());
+      } else if (node2 instanceof Konva.Image) {
+        if (node2.attrs.svgXML) {
+          const blob = new Blob([node2.attrs.svgXML], { type: "image/svg+xml" });
           const url = URL.createObjectURL(blob);
           const image = await this.loadImage(url);
           if (image) {
-            node.image(image);
+            node2.image(image);
           }
-        } else if (node.attrs.gif) {
-          const imageNode = await this.render.assetTool.loadGif(node.attrs.gif);
+        } else if (node2.attrs.gif) {
+          const imageNode = await this.render.assetTool.loadGif(node2.attrs.gif);
           if (imageNode) {
-            node.image(imageNode.image());
+            node2.image(imageNode.image());
           }
-        } else if (node.attrs.src) {
-          const image = await this.loadImage(node.attrs.src);
+        } else if (node2.attrs.src) {
+          const image = await this.loadImage(node2.attrs.src);
           if (image) {
-            node.image(image);
+            node2.image(image);
           }
         }
       }
@@ -26535,6 +32774,18 @@ class ImportExportTool {
       const main = stage.getChildren()[0];
       const nodes = main.getChildren();
       await this.restoreImage(nodes);
+      for (const node2 of nodes) {
+        node2.off("mouseenter");
+        node2.on("mouseenter", () => {
+          this.render.linkTool.pointsVisible(true, node2);
+        });
+        node2.off("mouseleave");
+        node2.on("mouseleave", () => {
+          var _a;
+          this.render.linkTool.pointsVisible(false, node2);
+          (_a = node2.findOne("#hoverRect")) == null ? void 0 : _a.visible(false);
+        });
+      }
       this.render.layer.add(...nodes);
       this.render.selectionTool.select(this.render.layer.getChildren());
       this.render.selectionTool.selectingClear();
@@ -26563,10 +32814,10 @@ class ImportExportTool {
       fill: bgColor
     });
     bgLayer.add(bg);
-    const children = copy.getChildren();
+    const children2 = copy.getChildren();
     copy.removeChildren();
     copy.add(bgLayer);
-    copy.add(children[0], ...children.slice(1));
+    copy.add(children2[0], ...children2.slice(1));
     return copy.toDataURL({ pixelRatio });
   }
   // blob to base64 url
@@ -26690,36 +32941,36 @@ class AlignTool {
   align(type, target) {
     const points = this.getAlignPoints(target);
     const point = points[type];
-    const nodes = this.render.transformer.nodes().filter((node) => node !== target);
+    const nodes = this.render.transformer.nodes().filter((node2) => node2 !== target);
     switch (type) {
       case AlignType.垂直居中:
-        for (const node of nodes) {
-          node.x(point - node.width() / 2);
+        for (const node2 of nodes) {
+          node2.x(point - node2.width() / 2);
         }
         break;
       case AlignType.水平居中:
-        for (const node of nodes) {
-          node.y(point - node.height() / 2);
+        for (const node2 of nodes) {
+          node2.y(point - node2.height() / 2);
         }
         break;
       case AlignType.左对齐:
-        for (const node of nodes) {
-          node.x(point);
+        for (const node2 of nodes) {
+          node2.x(point);
         }
         break;
       case AlignType.右对齐:
-        for (const node of nodes) {
-          node.x(point - node.width());
+        for (const node2 of nodes) {
+          node2.x(point - node2.width());
         }
         break;
       case AlignType.上对齐:
-        for (const node of nodes) {
-          node.y(point);
+        for (const node2 of nodes) {
+          node2.y(point);
         }
         break;
       case AlignType.下对齐:
-        for (const node of nodes) {
-          node.y(point - node.height());
+        for (const node2 of nodes) {
+          node2.y(point - node2.height());
         }
         break;
     }
@@ -26828,6 +33079,8 @@ class Render {
     __publicField(this, "pointSize", 6);
     __publicField(this, "history", []);
     __publicField(this, "historyIndex", -1);
+    // 调试模式
+    __publicField(this, "debug", false);
     this.config = config;
     if (this.config.showRuler) {
       this.rulerSize = 40;
@@ -26878,6 +33131,17 @@ class Render {
     this.handlers[LinkHandlers.name] = new LinkHandlers(this);
     this.init();
   }
+  changeDebug(v) {
+    var _a, _b;
+    this.debug = v;
+    (_b = (_a = this.config.on) == null ? void 0 : _a.debugChange) == null ? void 0 : _b.call(_a, this.debug);
+    this.draws[LinkDraw.name].init();
+    this.draws[RulerDraw.name].init();
+    this.draws[RefLineDraw.name].init();
+    this.draws[ContextmenuDraw.name].init();
+    this.draws[PreviewDraw.name].init();
+    return this.debug;
+  }
   // 初始化
   init() {
     this.stage.add(this.layerFloor);
@@ -26905,15 +33169,15 @@ class Render {
   }
   // 移除元素
   remove(nodes) {
-    for (const node of nodes) {
-      if (node instanceof Konva.Transformer) {
+    for (const node2 of nodes) {
+      if (node2 instanceof Konva.Transformer) {
         this.remove(this.selectionTool.selectingNodes);
-        this.selectionTool.selectingClear();
       } else {
-        node.remove();
+        node2.remove();
       }
     }
     if (nodes.length > 0) {
+      this.selectionTool.selectingClear();
       this.updateHistory();
       this.draws[LinkDraw.name].draw();
       this.draws[PreviewDraw.name].draw();
@@ -26925,7 +33189,7 @@ class Render {
     if (record) {
       this.importExportTool.restore(record, true);
       this.historyIndex--;
-      (_b = (_a = this.config.on) == null ? void 0 : _a.historyChange) == null ? void 0 : _b.call(_a, lodash.clone(this.history), this.historyIndex);
+      (_b = (_a = this.config.on) == null ? void 0 : _a.historyChange) == null ? void 0 : _b.call(_a, lodash$1.clone(this.history), this.historyIndex);
     }
   }
   nextHistory() {
@@ -26934,7 +33198,7 @@ class Render {
     if (record) {
       this.importExportTool.restore(record, true);
       this.historyIndex++;
-      (_b = (_a = this.config.on) == null ? void 0 : _a.historyChange) == null ? void 0 : _b.call(_a, lodash.clone(this.history), this.historyIndex);
+      (_b = (_a = this.config.on) == null ? void 0 : _a.historyChange) == null ? void 0 : _b.call(_a, lodash$1.clone(this.history), this.historyIndex);
     }
   }
   updateHistory() {
@@ -26942,7 +33206,7 @@ class Render {
     this.history.splice(this.historyIndex + 1);
     this.history.push(this.importExportTool.save());
     this.historyIndex = this.history.length - 1;
-    (_b = (_a = this.config.on) == null ? void 0 : _a.historyChange) == null ? void 0 : _b.call(_a, lodash.clone(this.history), this.historyIndex);
+    (_b = (_a = this.config.on) == null ? void 0 : _a.historyChange) == null ? void 0 : _b.call(_a, lodash$1.clone(this.history), this.historyIndex);
   }
   // 事件绑定
   eventBind() {
@@ -27031,20 +33295,3749 @@ class Render {
     return stagePos * this.stage.scaleX();
   }
   // 忽略非素材
-  ignore(node) {
-    const isGroup = node instanceof Konva.Group;
-    return !isGroup || node.id() === "selectRect" || node.id() === "hoverRect" || this.ignoreDraw(node) || this.ignoreLink(node);
+  ignore(node2) {
+    const isGroup = node2 instanceof Konva.Group;
+    return !isGroup || node2.id() === "selectRect" || node2.id() === "hoverRect" || this.ignoreDraw(node2) || this.ignoreLink(node2);
   }
   // 忽略各 draw 的根 group
-  ignoreDraw(node) {
-    return node.name() === BgDraw.name || node.name() === RulerDraw.name || node.name() === RefLineDraw.name || node.name() === ContextmenuDraw.name || node.name() === PreviewDraw.name || node.name() === LinkDraw.name;
+  ignoreDraw(node2) {
+    return node2.name() === BgDraw.name || node2.name() === RulerDraw.name || node2.name() === RefLineDraw.name || node2.name() === ContextmenuDraw.name || node2.name() === PreviewDraw.name || node2.name() === LinkDraw.name;
   }
   // 忽略各 draw 的根 group
-  ignoreLink(node) {
-    return node.name() === "link-anchor" || node.name() === "linking-line" || node.name() === "link-point" || node.name() === "link-line";
+  ignoreLink(node2) {
+    return node2.name() === "link-anchor" || node2.name() === "linking-line" || node2.name() === "link-point" || node2.name() === "link-line";
   }
 }
-const _withScopeId = (n) => (pushScopeId("data-v-d092b8bf"), n = n(), popScopeId(), n);
+const attrs = {
+  width: 1920,
+  height: 1103
+};
+const className = "Stage";
+const children = [
+  {
+    attrs: {},
+    className: "Layer",
+    children: [
+      {
+        attrs: {
+          id: "oIpIS-IINvePTwIFpuvK0",
+          width: 64,
+          height: 64,
+          name: "asset",
+          x: 60,
+          y: 60,
+          points: [
+            {
+              x: 0,
+              y: 32,
+              id: "KaJaoOB1g_q5ORVN6yV3v",
+              groupId: "oIpIS-IINvePTwIFpuvK0",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 64,
+              y: 32,
+              id: "1MsSjh0xYxLVhdCXYBvu9",
+              groupId: "oIpIS-IINvePTwIFpuvK0",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 32,
+              y: 0,
+              id: "p07wQIwHo6GG03Nc89mll",
+              groupId: "oIpIS-IINvePTwIFpuvK0",
+              visible: false,
+              pairs: [
+                {
+                  id: "cURFAEX2T4y_oSmVltHcP",
+                  from: {
+                    groupId: "oIpIS-IINvePTwIFpuvK0",
+                    pointId: "p07wQIwHo6GG03Nc89mll"
+                  },
+                  to: {
+                    groupId: "5e5DmikGQjxJla3lSFCg9",
+                    pointId: "nfb5KnxgglClCvq65DjKA"
+                  }
+                }
+              ]
+            },
+            {
+              x: 32,
+              y: 64,
+              id: "utB4ZTcic0UHLvhRCFPSp",
+              groupId: "oIpIS-IINvePTwIFpuvK0",
+              visible: false,
+              pairs: []
+            }
+          ],
+          selected: false
+        },
+        className: "Group",
+        children: [
+          {
+            attrs: {
+              src: "/src/assets/img/png/2.png"
+            },
+            className: "Image"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "KaJaoOB1g_q5ORVN6yV3v",
+              y: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "1MsSjh0xYxLVhdCXYBvu9",
+              x: 64,
+              y: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "p07wQIwHo6GG03Nc89mll",
+              x: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "utB4ZTcic0UHLvhRCFPSp",
+              x: 32,
+              y: 64,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              id: "hoverRect",
+              width: 64,
+              height: 64,
+              fill: "rgba(0,255,0,0.3)",
+              visible: false
+            },
+            className: "Rect"
+          }
+        ]
+      },
+      {
+        attrs: {
+          id: "5e5DmikGQjxJla3lSFCg9",
+          width: 64,
+          height: 64,
+          name: "asset",
+          x: 220,
+          y: 80,
+          points: [
+            {
+              x: 0,
+              y: 32,
+              id: "Pc9YbXwg4I6sRlbBuuqE0",
+              groupId: "5e5DmikGQjxJla3lSFCg9",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 64,
+              y: 32,
+              id: "Uj3o3he5Gg_ve7mSj5cHP",
+              groupId: "5e5DmikGQjxJla3lSFCg9",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 32,
+              y: 0,
+              id: "nfb5KnxgglClCvq65DjKA",
+              groupId: "5e5DmikGQjxJla3lSFCg9",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 32,
+              y: 64,
+              id: "wWo2gKJuaRljoYPM5eWTZ",
+              groupId: "5e5DmikGQjxJla3lSFCg9",
+              visible: false,
+              pairs: []
+            }
+          ],
+          selected: false
+        },
+        className: "Group",
+        children: [
+          {
+            attrs: {
+              src: "/src/assets/img/png/2.png"
+            },
+            className: "Image"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "Pc9YbXwg4I6sRlbBuuqE0",
+              y: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "Uj3o3he5Gg_ve7mSj5cHP",
+              x: 64,
+              y: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "nfb5KnxgglClCvq65DjKA",
+              x: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "wWo2gKJuaRljoYPM5eWTZ",
+              x: 32,
+              y: 64,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              id: "hoverRect",
+              width: 64,
+              height: 64,
+              fill: "rgba(0,255,0,0.3)",
+              visible: false
+            },
+            className: "Rect"
+          }
+        ]
+      },
+      {
+        attrs: {
+          id: "V0HpFv-tqbo7FFDmDQ6wK",
+          width: 64,
+          height: 64,
+          name: "asset",
+          x: 400,
+          y: 60,
+          points: [
+            {
+              x: 0,
+              y: 32,
+              id: "nQjUW4wLRyg3-P5lf9gMx",
+              groupId: "V0HpFv-tqbo7FFDmDQ6wK",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 64,
+              y: 32,
+              id: "uskG8txy6sekeeOSZPokT",
+              groupId: "V0HpFv-tqbo7FFDmDQ6wK",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 32,
+              y: 0,
+              id: "xuIiI_DTwYoDROM06TD2o",
+              groupId: "V0HpFv-tqbo7FFDmDQ6wK",
+              visible: false,
+              pairs: [
+                {
+                  id: "OdrxfXmnrN_ICI2qc21oX",
+                  from: {
+                    groupId: "V0HpFv-tqbo7FFDmDQ6wK",
+                    pointId: "xuIiI_DTwYoDROM06TD2o"
+                  },
+                  to: {
+                    groupId: "kWgodfQW5QXVOEswTOEtD",
+                    pointId: "6WBRyQ7Ax9T94lrogL7WF"
+                  }
+                }
+              ]
+            },
+            {
+              x: 32,
+              y: 64,
+              id: "jMsFT2vwe0KhPIR5PtTCY",
+              groupId: "V0HpFv-tqbo7FFDmDQ6wK",
+              visible: false,
+              pairs: []
+            }
+          ],
+          selected: false
+        },
+        className: "Group",
+        children: [
+          {
+            attrs: {
+              src: "/src/assets/img/png/2.png"
+            },
+            className: "Image"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "nQjUW4wLRyg3-P5lf9gMx",
+              y: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "uskG8txy6sekeeOSZPokT",
+              x: 64,
+              y: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "xuIiI_DTwYoDROM06TD2o",
+              x: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "jMsFT2vwe0KhPIR5PtTCY",
+              x: 32,
+              y: 64,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              id: "hoverRect",
+              width: 64,
+              height: 64,
+              fill: "rgba(0,255,0,0.3)",
+              visible: false
+            },
+            className: "Rect"
+          }
+        ]
+      },
+      {
+        attrs: {
+          id: "kWgodfQW5QXVOEswTOEtD",
+          width: 64,
+          height: 64,
+          name: "asset",
+          x: 560,
+          y: 80,
+          points: [
+            {
+              x: 0,
+              y: 32,
+              id: "hvr6NPDLiCVIAatqjsR9d",
+              groupId: "kWgodfQW5QXVOEswTOEtD",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 64,
+              y: 32,
+              id: "6WBRyQ7Ax9T94lrogL7WF",
+              groupId: "kWgodfQW5QXVOEswTOEtD",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 32,
+              y: 0,
+              id: "Z81rCG3qox6x4e1ZUkU76",
+              groupId: "kWgodfQW5QXVOEswTOEtD",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 32,
+              y: 64,
+              id: "Xh8jD4O40A2xo-HQJTYnu",
+              groupId: "kWgodfQW5QXVOEswTOEtD",
+              visible: false,
+              pairs: []
+            }
+          ],
+          selected: false
+        },
+        className: "Group",
+        children: [
+          {
+            attrs: {
+              src: "/src/assets/img/png/2.png"
+            },
+            className: "Image"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "hvr6NPDLiCVIAatqjsR9d",
+              y: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "6WBRyQ7Ax9T94lrogL7WF",
+              x: 64,
+              y: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "Z81rCG3qox6x4e1ZUkU76",
+              x: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "Xh8jD4O40A2xo-HQJTYnu",
+              x: 32,
+              y: 64,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              id: "hoverRect",
+              width: 64,
+              height: 64,
+              fill: "rgba(0,255,0,0.3)",
+              visible: false
+            },
+            className: "Rect"
+          }
+        ]
+      },
+      {
+        attrs: {
+          id: "pQdXxfuscwQgVhwA57uFH",
+          width: 64,
+          height: 64,
+          name: "asset",
+          x: 740,
+          y: 60,
+          points: [
+            {
+              x: 0,
+              y: 32,
+              id: "EqQ9ENaNKFMshy9Igjvgu",
+              groupId: "pQdXxfuscwQgVhwA57uFH",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 64,
+              y: 32,
+              id: "2bwwtBpqGBJ_ePucXZWV_",
+              groupId: "pQdXxfuscwQgVhwA57uFH",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 32,
+              y: 0,
+              id: "MuT8ubSwDU37hEy9a_lhi",
+              groupId: "pQdXxfuscwQgVhwA57uFH",
+              visible: false,
+              pairs: [
+                {
+                  id: "N2ssIX2FSZ8q3TkPfC-Te",
+                  from: {
+                    groupId: "pQdXxfuscwQgVhwA57uFH",
+                    pointId: "MuT8ubSwDU37hEy9a_lhi"
+                  },
+                  to: {
+                    groupId: "dwPCcMQ3zGi4l4rDuW6yY",
+                    pointId: "QHpfFvzzYIplSuD1eI9CK"
+                  }
+                }
+              ]
+            },
+            {
+              x: 32,
+              y: 64,
+              id: "gaBrhEKuavpObF5jJXPWh",
+              groupId: "pQdXxfuscwQgVhwA57uFH",
+              visible: false,
+              pairs: []
+            }
+          ],
+          selected: false
+        },
+        className: "Group",
+        children: [
+          {
+            attrs: {
+              src: "/src/assets/img/png/2.png"
+            },
+            className: "Image"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "EqQ9ENaNKFMshy9Igjvgu",
+              y: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "2bwwtBpqGBJ_ePucXZWV_",
+              x: 64,
+              y: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "MuT8ubSwDU37hEy9a_lhi",
+              x: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "gaBrhEKuavpObF5jJXPWh",
+              x: 32,
+              y: 64,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              id: "hoverRect",
+              width: 64,
+              height: 64,
+              fill: "rgba(0,255,0,0.3)",
+              visible: false
+            },
+            className: "Rect"
+          }
+        ]
+      },
+      {
+        attrs: {
+          id: "dwPCcMQ3zGi4l4rDuW6yY",
+          width: 64,
+          height: 64,
+          name: "asset",
+          x: 900,
+          y: 80,
+          points: [
+            {
+              x: 0,
+              y: 32,
+              id: "rAPgMouwLiw6GMEFn_sYF",
+              groupId: "dwPCcMQ3zGi4l4rDuW6yY",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 64,
+              y: 32,
+              id: "VXOmnSOWo5hmT2WTAVFNJ",
+              groupId: "dwPCcMQ3zGi4l4rDuW6yY",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 32,
+              y: 0,
+              id: "5FhzxxcLcvKd_ZAPqaBCV",
+              groupId: "dwPCcMQ3zGi4l4rDuW6yY",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 32,
+              y: 64,
+              id: "QHpfFvzzYIplSuD1eI9CK",
+              groupId: "dwPCcMQ3zGi4l4rDuW6yY",
+              visible: false,
+              pairs: []
+            }
+          ],
+          selected: false
+        },
+        className: "Group",
+        children: [
+          {
+            attrs: {
+              src: "/src/assets/img/png/2.png"
+            },
+            className: "Image"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "rAPgMouwLiw6GMEFn_sYF",
+              y: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "VXOmnSOWo5hmT2WTAVFNJ",
+              x: 64,
+              y: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "5FhzxxcLcvKd_ZAPqaBCV",
+              x: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "QHpfFvzzYIplSuD1eI9CK",
+              x: 32,
+              y: 64,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              id: "hoverRect",
+              width: 64,
+              height: 64,
+              fill: "rgba(0,255,0,0.3)",
+              visible: false
+            },
+            className: "Rect"
+          }
+        ]
+      },
+      {
+        attrs: {
+          id: "p9PjvU75LdJQ-UzFTp3a2",
+          width: 64,
+          height: 64,
+          name: "asset",
+          x: 1080,
+          y: 60,
+          points: [
+            {
+              x: 0,
+              y: 32,
+              id: "PWhsPFYlvCGrbg1kJK2V6",
+              groupId: "p9PjvU75LdJQ-UzFTp3a2",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 64,
+              y: 32,
+              id: "jnRnMHFRW_FUedAHBxdUa",
+              groupId: "p9PjvU75LdJQ-UzFTp3a2",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 32,
+              y: 0,
+              id: "_-2Sq9M_0hG_ILA9RbK5_",
+              groupId: "p9PjvU75LdJQ-UzFTp3a2",
+              visible: false,
+              pairs: [
+                {
+                  id: "5FyRXGhLXyDWvyK3QgOj_",
+                  from: {
+                    groupId: "p9PjvU75LdJQ-UzFTp3a2",
+                    pointId: "_-2Sq9M_0hG_ILA9RbK5_"
+                  },
+                  to: {
+                    groupId: "7M4GYHnBQ15UqsLqTNn88",
+                    pointId: "V1UyWgZ9WPRTwGPaclbQR"
+                  }
+                }
+              ]
+            },
+            {
+              x: 32,
+              y: 64,
+              id: "ASw0hCLgm--3uzUC_cmQO",
+              groupId: "p9PjvU75LdJQ-UzFTp3a2",
+              visible: false,
+              pairs: []
+            }
+          ],
+          selected: false
+        },
+        className: "Group",
+        children: [
+          {
+            attrs: {
+              src: "/src/assets/img/png/2.png"
+            },
+            className: "Image"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "PWhsPFYlvCGrbg1kJK2V6",
+              y: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "jnRnMHFRW_FUedAHBxdUa",
+              x: 64,
+              y: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "_-2Sq9M_0hG_ILA9RbK5_",
+              x: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "ASw0hCLgm--3uzUC_cmQO",
+              x: 32,
+              y: 64,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              id: "hoverRect",
+              width: 64,
+              height: 64,
+              fill: "rgba(0,255,0,0.3)",
+              visible: false
+            },
+            className: "Rect"
+          }
+        ]
+      },
+      {
+        attrs: {
+          id: "7M4GYHnBQ15UqsLqTNn88",
+          width: 64,
+          height: 64,
+          name: "asset",
+          x: 1240,
+          y: 80,
+          points: [
+            {
+              x: 0,
+              y: 32,
+              id: "V1UyWgZ9WPRTwGPaclbQR",
+              groupId: "7M4GYHnBQ15UqsLqTNn88",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 64,
+              y: 32,
+              id: "dY_SBZlvnA4ID23t8hzeF",
+              groupId: "7M4GYHnBQ15UqsLqTNn88",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 32,
+              y: 0,
+              id: "I9ScavRmqxXSEpgshY4FW",
+              groupId: "7M4GYHnBQ15UqsLqTNn88",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 32,
+              y: 64,
+              id: "se0ECIDLD8xe4zyLObsrO",
+              groupId: "7M4GYHnBQ15UqsLqTNn88",
+              visible: false,
+              pairs: []
+            }
+          ],
+          selected: false
+        },
+        className: "Group",
+        children: [
+          {
+            attrs: {
+              src: "/src/assets/img/png/2.png"
+            },
+            className: "Image"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "V1UyWgZ9WPRTwGPaclbQR",
+              y: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "dY_SBZlvnA4ID23t8hzeF",
+              x: 64,
+              y: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "I9ScavRmqxXSEpgshY4FW",
+              x: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "se0ECIDLD8xe4zyLObsrO",
+              x: 32,
+              y: 64,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              id: "hoverRect",
+              width: 64,
+              height: 64,
+              fill: "rgba(0,255,0,0.3)",
+              visible: false
+            },
+            className: "Rect"
+          }
+        ]
+      },
+      {
+        attrs: {
+          id: "K-qzFQCKr7EOxwAVdQPTR",
+          width: 64,
+          height: 64,
+          name: "asset",
+          x: 60,
+          y: 260,
+          points: [
+            {
+              x: 0,
+              y: 32,
+              id: "iFwYLCwS7f3lxJoWe5yjH",
+              groupId: "K-qzFQCKr7EOxwAVdQPTR",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 64,
+              y: 32,
+              id: "s9Xdd13a3XUCXBRfT3c8u",
+              groupId: "K-qzFQCKr7EOxwAVdQPTR",
+              visible: false,
+              pairs: [
+                {
+                  id: "11zM8eDFsZoQTfLIcYPPg",
+                  from: {
+                    groupId: "K-qzFQCKr7EOxwAVdQPTR",
+                    pointId: "s9Xdd13a3XUCXBRfT3c8u"
+                  },
+                  to: {
+                    groupId: "iBZY6dVn8HOVvX6HO74U1",
+                    pointId: "BskThAEhOPU_wOpXZxwlK"
+                  }
+                }
+              ]
+            },
+            {
+              x: 32,
+              y: 0,
+              id: "FNoMVeejQ4guY8X5qb6y3",
+              groupId: "K-qzFQCKr7EOxwAVdQPTR",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 32,
+              y: 64,
+              id: "5t9REI02uXl7__f7zKWUa",
+              groupId: "K-qzFQCKr7EOxwAVdQPTR",
+              visible: false,
+              pairs: []
+            }
+          ],
+          selected: false
+        },
+        className: "Group",
+        children: [
+          {
+            attrs: {
+              src: "/src/assets/img/png/2.png"
+            },
+            className: "Image"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "iFwYLCwS7f3lxJoWe5yjH",
+              y: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "s9Xdd13a3XUCXBRfT3c8u",
+              x: 64,
+              y: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "FNoMVeejQ4guY8X5qb6y3",
+              x: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "5t9REI02uXl7__f7zKWUa",
+              x: 32,
+              y: 64,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              id: "hoverRect",
+              width: 64,
+              height: 64,
+              fill: "rgba(0,255,0,0.3)",
+              visible: false
+            },
+            className: "Rect"
+          }
+        ]
+      },
+      {
+        attrs: {
+          id: "iBZY6dVn8HOVvX6HO74U1",
+          width: 64,
+          height: 64,
+          name: "asset",
+          x: 220,
+          y: 280,
+          points: [
+            {
+              x: 0,
+              y: 32,
+              id: "cv8kAlmRo0Krl4mH3nurO",
+              groupId: "iBZY6dVn8HOVvX6HO74U1",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 64,
+              y: 32,
+              id: "GXBJv09sVghhbexBW28f2",
+              groupId: "iBZY6dVn8HOVvX6HO74U1",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 32,
+              y: 0,
+              id: "BskThAEhOPU_wOpXZxwlK",
+              groupId: "iBZY6dVn8HOVvX6HO74U1",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 32,
+              y: 64,
+              id: "DB2DCWoC6Y6zZwW4xdS7V",
+              groupId: "iBZY6dVn8HOVvX6HO74U1",
+              visible: false,
+              pairs: []
+            }
+          ],
+          selected: false
+        },
+        className: "Group",
+        children: [
+          {
+            attrs: {
+              src: "/src/assets/img/png/2.png"
+            },
+            className: "Image"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "cv8kAlmRo0Krl4mH3nurO",
+              y: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "GXBJv09sVghhbexBW28f2",
+              x: 64,
+              y: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "BskThAEhOPU_wOpXZxwlK",
+              x: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "DB2DCWoC6Y6zZwW4xdS7V",
+              x: 32,
+              y: 64,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              id: "hoverRect",
+              width: 64,
+              height: 64,
+              fill: "rgba(0,255,0,0.3)",
+              visible: false
+            },
+            className: "Rect"
+          }
+        ]
+      },
+      {
+        attrs: {
+          id: "aV6s__CWpB-rFcNQp_fse",
+          width: 64,
+          height: 64,
+          name: "asset",
+          x: 400,
+          y: 260,
+          points: [
+            {
+              x: 0,
+              y: 32,
+              id: "VaIMfO-bqxd0eAYlDMTZS",
+              groupId: "aV6s__CWpB-rFcNQp_fse",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 64,
+              y: 32,
+              id: "2rkX6f8_gx371k6f5B4Np",
+              groupId: "aV6s__CWpB-rFcNQp_fse",
+              visible: false,
+              pairs: [
+                {
+                  id: "oN-AkCSbZ-0KSziUEDvot",
+                  from: {
+                    groupId: "aV6s__CWpB-rFcNQp_fse",
+                    pointId: "2rkX6f8_gx371k6f5B4Np"
+                  },
+                  to: {
+                    groupId: "G-0xrDeAxukgGZKmTh7BM",
+                    pointId: "5EJ5fP8_A-PnozE54FW6Y"
+                  }
+                }
+              ]
+            },
+            {
+              x: 32,
+              y: 0,
+              id: "i6nc4KNoz9ZeHxbW_yH6B",
+              groupId: "aV6s__CWpB-rFcNQp_fse",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 32,
+              y: 64,
+              id: "vB8-4CUp0RRvwskgYCt4l",
+              groupId: "aV6s__CWpB-rFcNQp_fse",
+              visible: false,
+              pairs: []
+            }
+          ],
+          selected: false
+        },
+        className: "Group",
+        children: [
+          {
+            attrs: {
+              src: "/src/assets/img/png/2.png"
+            },
+            className: "Image"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "VaIMfO-bqxd0eAYlDMTZS",
+              y: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "2rkX6f8_gx371k6f5B4Np",
+              x: 64,
+              y: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "i6nc4KNoz9ZeHxbW_yH6B",
+              x: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "vB8-4CUp0RRvwskgYCt4l",
+              x: 32,
+              y: 64,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              id: "hoverRect",
+              width: 64,
+              height: 64,
+              fill: "rgba(0,255,0,0.3)",
+              visible: false
+            },
+            className: "Rect"
+          }
+        ]
+      },
+      {
+        attrs: {
+          id: "G-0xrDeAxukgGZKmTh7BM",
+          width: 64,
+          height: 64,
+          name: "asset",
+          x: 560,
+          y: 280,
+          points: [
+            {
+              x: 0,
+              y: 32,
+              id: "buQiryuvaKa3LWxq0t2R8",
+              groupId: "G-0xrDeAxukgGZKmTh7BM",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 64,
+              y: 32,
+              id: "5EJ5fP8_A-PnozE54FW6Y",
+              groupId: "G-0xrDeAxukgGZKmTh7BM",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 32,
+              y: 0,
+              id: "rFotLgSdY9kH12RLOXm5T",
+              groupId: "G-0xrDeAxukgGZKmTh7BM",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 32,
+              y: 64,
+              id: "8vTY2PQYsIWrwMYBUgptL",
+              groupId: "G-0xrDeAxukgGZKmTh7BM",
+              visible: false,
+              pairs: []
+            }
+          ],
+          selected: false
+        },
+        className: "Group",
+        children: [
+          {
+            attrs: {
+              src: "/src/assets/img/png/2.png"
+            },
+            className: "Image"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "buQiryuvaKa3LWxq0t2R8",
+              y: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "5EJ5fP8_A-PnozE54FW6Y",
+              x: 64,
+              y: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "rFotLgSdY9kH12RLOXm5T",
+              x: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "8vTY2PQYsIWrwMYBUgptL",
+              x: 32,
+              y: 64,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              id: "hoverRect",
+              width: 64,
+              height: 64,
+              fill: "rgba(0,255,0,0.3)",
+              visible: false
+            },
+            className: "Rect"
+          }
+        ]
+      },
+      {
+        attrs: {
+          id: "WNuFRVd1icIEHTGBmxlfz",
+          width: 64,
+          height: 64,
+          name: "asset",
+          x: 740,
+          y: 260,
+          points: [
+            {
+              x: 0,
+              y: 32,
+              id: "-0hKAw7E_RuL16v1Y_wFc",
+              groupId: "WNuFRVd1icIEHTGBmxlfz",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 64,
+              y: 32,
+              id: "p4iD4Lh4af2xbaAkcYjWh",
+              groupId: "WNuFRVd1icIEHTGBmxlfz",
+              visible: false,
+              pairs: [
+                {
+                  id: "9PK1u2HoRSDhNmBNwzurw",
+                  from: {
+                    groupId: "WNuFRVd1icIEHTGBmxlfz",
+                    pointId: "p4iD4Lh4af2xbaAkcYjWh"
+                  },
+                  to: {
+                    groupId: "vmrJdaOEnm90oJETHsqar",
+                    pointId: "P75QzvVVvIdwd5ehhL9d5"
+                  }
+                }
+              ]
+            },
+            {
+              x: 32,
+              y: 0,
+              id: "-6ks7045At1QMMSFxJN13",
+              groupId: "WNuFRVd1icIEHTGBmxlfz",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 32,
+              y: 64,
+              id: "h8SJWB3CUnjp3bVKZ-DTv",
+              groupId: "WNuFRVd1icIEHTGBmxlfz",
+              visible: false,
+              pairs: []
+            }
+          ],
+          selected: false
+        },
+        className: "Group",
+        children: [
+          {
+            attrs: {
+              src: "/src/assets/img/png/2.png"
+            },
+            className: "Image"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "-0hKAw7E_RuL16v1Y_wFc",
+              y: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "p4iD4Lh4af2xbaAkcYjWh",
+              x: 64,
+              y: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "-6ks7045At1QMMSFxJN13",
+              x: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "h8SJWB3CUnjp3bVKZ-DTv",
+              x: 32,
+              y: 64,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              id: "hoverRect",
+              width: 64,
+              height: 64,
+              fill: "rgba(0,255,0,0.3)",
+              visible: false
+            },
+            className: "Rect"
+          }
+        ]
+      },
+      {
+        attrs: {
+          id: "vmrJdaOEnm90oJETHsqar",
+          width: 64,
+          height: 64,
+          name: "asset",
+          x: 900,
+          y: 280,
+          points: [
+            {
+              x: 0,
+              y: 32,
+              id: "AxFH_Wykrfb4nqi8q3G_R",
+              groupId: "vmrJdaOEnm90oJETHsqar",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 64,
+              y: 32,
+              id: "Fvjdans5oxIWAp23L1-Qi",
+              groupId: "vmrJdaOEnm90oJETHsqar",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 32,
+              y: 0,
+              id: "6PWDIRDAgyZrwxk8t63DJ",
+              groupId: "vmrJdaOEnm90oJETHsqar",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 32,
+              y: 64,
+              id: "P75QzvVVvIdwd5ehhL9d5",
+              groupId: "vmrJdaOEnm90oJETHsqar",
+              visible: false,
+              pairs: []
+            }
+          ],
+          selected: false
+        },
+        className: "Group",
+        children: [
+          {
+            attrs: {
+              src: "/src/assets/img/png/2.png"
+            },
+            className: "Image"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "AxFH_Wykrfb4nqi8q3G_R",
+              y: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "Fvjdans5oxIWAp23L1-Qi",
+              x: 64,
+              y: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "6PWDIRDAgyZrwxk8t63DJ",
+              x: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "P75QzvVVvIdwd5ehhL9d5",
+              x: 32,
+              y: 64,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              id: "hoverRect",
+              width: 64,
+              height: 64,
+              fill: "rgba(0,255,0,0.3)",
+              visible: false
+            },
+            className: "Rect"
+          }
+        ]
+      },
+      {
+        attrs: {
+          id: "H4CIEqTrrsG0FIjvevH9M",
+          width: 64,
+          height: 64,
+          name: "asset",
+          x: 1080,
+          y: 260,
+          points: [
+            {
+              x: 0,
+              y: 32,
+              id: "y8dzKNw5HOpcmflToNto2",
+              groupId: "H4CIEqTrrsG0FIjvevH9M",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 64,
+              y: 32,
+              id: "xMHo36hFq0pLXh_Ygv0Ii",
+              groupId: "H4CIEqTrrsG0FIjvevH9M",
+              visible: false,
+              pairs: [
+                {
+                  id: "mvrmoBXluqAw3T0zoGnFo",
+                  from: {
+                    groupId: "H4CIEqTrrsG0FIjvevH9M",
+                    pointId: "xMHo36hFq0pLXh_Ygv0Ii"
+                  },
+                  to: {
+                    groupId: "zwsTBgkFPNPB7g_I1wlMt",
+                    pointId: "dl9gxunE-vZUF5m0Q04aF"
+                  }
+                }
+              ]
+            },
+            {
+              x: 32,
+              y: 0,
+              id: "k9qaoiXGfdmKSdI1t6cBS",
+              groupId: "H4CIEqTrrsG0FIjvevH9M",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 32,
+              y: 64,
+              id: "2dbfF1CVWFlt0K4zdjnO8",
+              groupId: "H4CIEqTrrsG0FIjvevH9M",
+              visible: false,
+              pairs: []
+            }
+          ],
+          selected: false
+        },
+        className: "Group",
+        children: [
+          {
+            attrs: {
+              src: "/src/assets/img/png/2.png"
+            },
+            className: "Image"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "y8dzKNw5HOpcmflToNto2",
+              y: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "xMHo36hFq0pLXh_Ygv0Ii",
+              x: 64,
+              y: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "k9qaoiXGfdmKSdI1t6cBS",
+              x: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "2dbfF1CVWFlt0K4zdjnO8",
+              x: 32,
+              y: 64,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              id: "hoverRect",
+              width: 64,
+              height: 64,
+              fill: "rgba(0,255,0,0.3)",
+              visible: false
+            },
+            className: "Rect"
+          }
+        ]
+      },
+      {
+        attrs: {
+          id: "zwsTBgkFPNPB7g_I1wlMt",
+          width: 64,
+          height: 64,
+          name: "asset",
+          x: 1240,
+          y: 280,
+          points: [
+            {
+              x: 0,
+              y: 32,
+              id: "dl9gxunE-vZUF5m0Q04aF",
+              groupId: "zwsTBgkFPNPB7g_I1wlMt",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 64,
+              y: 32,
+              id: "fwfKUREpJ5KKPrutieuky",
+              groupId: "zwsTBgkFPNPB7g_I1wlMt",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 32,
+              y: 0,
+              id: "B3S6GMIaaCcaBlTTLokoO",
+              groupId: "zwsTBgkFPNPB7g_I1wlMt",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 32,
+              y: 64,
+              id: "cSv8pV1eyyjYcMEyiLvts",
+              groupId: "zwsTBgkFPNPB7g_I1wlMt",
+              visible: false,
+              pairs: []
+            }
+          ],
+          selected: false
+        },
+        className: "Group",
+        children: [
+          {
+            attrs: {
+              src: "/src/assets/img/png/2.png"
+            },
+            className: "Image"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "dl9gxunE-vZUF5m0Q04aF",
+              y: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "fwfKUREpJ5KKPrutieuky",
+              x: 64,
+              y: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "B3S6GMIaaCcaBlTTLokoO",
+              x: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "cSv8pV1eyyjYcMEyiLvts",
+              x: 32,
+              y: 64,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              id: "hoverRect",
+              width: 64,
+              height: 64,
+              fill: "rgba(0,255,0,0.3)",
+              visible: false
+            },
+            className: "Rect"
+          }
+        ]
+      },
+      {
+        attrs: {
+          id: "4XrfNrJl3-3Kwi6IUtiv5",
+          width: 64,
+          height: 64,
+          name: "asset",
+          x: 60,
+          y: 460,
+          points: [
+            {
+              x: 0,
+              y: 32,
+              id: "rYKzcrSTpotgn_xzFe_Y7",
+              groupId: "4XrfNrJl3-3Kwi6IUtiv5",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 64,
+              y: 32,
+              id: "ri7e7j6rGmZsEqLQ_Oaun",
+              groupId: "4XrfNrJl3-3Kwi6IUtiv5",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 32,
+              y: 0,
+              id: "LGAnQxTfQiiyA0KHBf7F7",
+              groupId: "4XrfNrJl3-3Kwi6IUtiv5",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 32,
+              y: 64,
+              id: "Wm_4729iJuBch6HYrSv8f",
+              groupId: "4XrfNrJl3-3Kwi6IUtiv5",
+              visible: false,
+              pairs: [
+                {
+                  id: "2dBG3C2lSk6yAsu6l6IlE",
+                  from: {
+                    groupId: "4XrfNrJl3-3Kwi6IUtiv5",
+                    pointId: "Wm_4729iJuBch6HYrSv8f"
+                  },
+                  to: {
+                    groupId: "bvm7v0xRIyPCiXn2qTE5J",
+                    pointId: "kR2-VZERYlDqQ9onRIZCj"
+                  }
+                }
+              ]
+            }
+          ],
+          selected: false
+        },
+        className: "Group",
+        children: [
+          {
+            attrs: {
+              src: "/src/assets/img/png/2.png"
+            },
+            className: "Image"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "rYKzcrSTpotgn_xzFe_Y7",
+              y: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "ri7e7j6rGmZsEqLQ_Oaun",
+              x: 64,
+              y: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "LGAnQxTfQiiyA0KHBf7F7",
+              x: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "Wm_4729iJuBch6HYrSv8f",
+              x: 32,
+              y: 64,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              id: "hoverRect",
+              width: 64,
+              height: 64,
+              fill: "rgba(0,255,0,0.3)",
+              visible: false
+            },
+            className: "Rect"
+          }
+        ]
+      },
+      {
+        attrs: {
+          id: "bvm7v0xRIyPCiXn2qTE5J",
+          width: 64,
+          height: 64,
+          name: "asset",
+          x: 220,
+          y: 480,
+          points: [
+            {
+              x: 0,
+              y: 32,
+              id: "Ev7ZdmxL7vBYWciUertTF",
+              groupId: "bvm7v0xRIyPCiXn2qTE5J",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 64,
+              y: 32,
+              id: "YyXZzlE7iAJOIcm3_teEs",
+              groupId: "bvm7v0xRIyPCiXn2qTE5J",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 32,
+              y: 0,
+              id: "kR2-VZERYlDqQ9onRIZCj",
+              groupId: "bvm7v0xRIyPCiXn2qTE5J",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 32,
+              y: 64,
+              id: "szvyC9HMoakEg9JIrJwiA",
+              groupId: "bvm7v0xRIyPCiXn2qTE5J",
+              visible: false,
+              pairs: []
+            }
+          ],
+          selected: false
+        },
+        className: "Group",
+        children: [
+          {
+            attrs: {
+              src: "/src/assets/img/png/2.png"
+            },
+            className: "Image"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "Ev7ZdmxL7vBYWciUertTF",
+              y: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "YyXZzlE7iAJOIcm3_teEs",
+              x: 64,
+              y: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "kR2-VZERYlDqQ9onRIZCj",
+              x: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "szvyC9HMoakEg9JIrJwiA",
+              x: 32,
+              y: 64,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              id: "hoverRect",
+              width: 64,
+              height: 64,
+              fill: "rgba(0,255,0,0.3)",
+              visible: false
+            },
+            className: "Rect"
+          }
+        ]
+      },
+      {
+        attrs: {
+          id: "HM4hPrY0vS4iGuig0dI14",
+          width: 64,
+          height: 64,
+          name: "asset",
+          x: 60,
+          y: 660,
+          points: [
+            {
+              x: 0,
+              y: 32,
+              id: "qXlE0rlL0y5Ha-O4jOddc",
+              groupId: "HM4hPrY0vS4iGuig0dI14",
+              visible: false,
+              pairs: [
+                {
+                  id: "pd8qq81V5fG_dsWYn_uPa",
+                  from: {
+                    groupId: "HM4hPrY0vS4iGuig0dI14",
+                    pointId: "qXlE0rlL0y5Ha-O4jOddc"
+                  },
+                  to: {
+                    groupId: "8VKCV386uD5fYpdFAmh1F",
+                    pointId: "uI0o0SOskd1NqZ8J51-Kc"
+                  }
+                }
+              ]
+            },
+            {
+              x: 64,
+              y: 32,
+              id: "I4BKnruvodBSnyEZsIZuR",
+              groupId: "HM4hPrY0vS4iGuig0dI14",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 32,
+              y: 0,
+              id: "uXL6QDc226Y6EJf3ZczJI",
+              groupId: "HM4hPrY0vS4iGuig0dI14",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 32,
+              y: 64,
+              id: "9W51T5yiFEOak7zvkXIZn",
+              groupId: "HM4hPrY0vS4iGuig0dI14",
+              visible: false,
+              pairs: []
+            }
+          ],
+          selected: false
+        },
+        className: "Group",
+        children: [
+          {
+            attrs: {
+              src: "/src/assets/img/png/2.png"
+            },
+            className: "Image"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "qXlE0rlL0y5Ha-O4jOddc",
+              y: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "I4BKnruvodBSnyEZsIZuR",
+              x: 64,
+              y: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "uXL6QDc226Y6EJf3ZczJI",
+              x: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "9W51T5yiFEOak7zvkXIZn",
+              x: 32,
+              y: 64,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              id: "hoverRect",
+              width: 64,
+              height: 64,
+              fill: "rgba(0,255,0,0.3)",
+              visible: false
+            },
+            className: "Rect"
+          }
+        ]
+      },
+      {
+        attrs: {
+          id: "8VKCV386uD5fYpdFAmh1F",
+          width: 64,
+          height: 64,
+          name: "asset",
+          x: 220,
+          y: 680,
+          points: [
+            {
+              x: 0,
+              y: 32,
+              id: "wYze3FEEvdeZIGUCHeQew",
+              groupId: "8VKCV386uD5fYpdFAmh1F",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 64,
+              y: 32,
+              id: "4sDl0V-jreV-zk86XG9TO",
+              groupId: "8VKCV386uD5fYpdFAmh1F",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 32,
+              y: 0,
+              id: "uI0o0SOskd1NqZ8J51-Kc",
+              groupId: "8VKCV386uD5fYpdFAmh1F",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 32,
+              y: 64,
+              id: "nuBDr_B7-nhlxAC7ymEpN",
+              groupId: "8VKCV386uD5fYpdFAmh1F",
+              visible: false,
+              pairs: []
+            }
+          ],
+          selected: false
+        },
+        className: "Group",
+        children: [
+          {
+            attrs: {
+              src: "/src/assets/img/png/2.png"
+            },
+            className: "Image"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "wYze3FEEvdeZIGUCHeQew",
+              y: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "4sDl0V-jreV-zk86XG9TO",
+              x: 64,
+              y: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "uI0o0SOskd1NqZ8J51-Kc",
+              x: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "nuBDr_B7-nhlxAC7ymEpN",
+              x: 32,
+              y: 64,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              id: "hoverRect",
+              width: 64,
+              height: 64,
+              fill: "rgba(0,255,0,0.3)",
+              visible: false
+            },
+            className: "Rect"
+          }
+        ]
+      },
+      {
+        attrs: {
+          id: "-e6kYafZTr11mqJIWAcdR",
+          width: 64,
+          height: 64,
+          name: "asset",
+          x: 400,
+          y: 460,
+          points: [
+            {
+              x: 0,
+              y: 32,
+              id: "p8kEZO_Lae__cJ8b3W7CO",
+              groupId: "-e6kYafZTr11mqJIWAcdR",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 64,
+              y: 32,
+              id: "he48lQ6w23rCFShmdcCZ4",
+              groupId: "-e6kYafZTr11mqJIWAcdR",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 32,
+              y: 0,
+              id: "xbMlTLhENLWSHaKKwHWC-",
+              groupId: "-e6kYafZTr11mqJIWAcdR",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 32,
+              y: 64,
+              id: "Rt4CLkz_WYLx73XqebrAS",
+              groupId: "-e6kYafZTr11mqJIWAcdR",
+              visible: false,
+              pairs: [
+                {
+                  id: "LtrEWXCod8dX8e7FqauLb",
+                  from: {
+                    groupId: "-e6kYafZTr11mqJIWAcdR",
+                    pointId: "Rt4CLkz_WYLx73XqebrAS"
+                  },
+                  to: {
+                    groupId: "T0ukkfh1pgJzpYd3q2uN_",
+                    pointId: "jtBFaBpu3MCpawPBzJnOP"
+                  }
+                }
+              ]
+            }
+          ],
+          selected: false
+        },
+        className: "Group",
+        children: [
+          {
+            attrs: {
+              src: "/src/assets/img/png/2.png"
+            },
+            className: "Image"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "p8kEZO_Lae__cJ8b3W7CO",
+              y: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "he48lQ6w23rCFShmdcCZ4",
+              x: 64,
+              y: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "xbMlTLhENLWSHaKKwHWC-",
+              x: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "Rt4CLkz_WYLx73XqebrAS",
+              x: 32,
+              y: 64,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              id: "hoverRect",
+              width: 64,
+              height: 64,
+              fill: "rgba(0,255,0,0.3)",
+              visible: false
+            },
+            className: "Rect"
+          }
+        ]
+      },
+      {
+        attrs: {
+          id: "T0ukkfh1pgJzpYd3q2uN_",
+          width: 64,
+          height: 64,
+          name: "asset",
+          x: 560,
+          y: 480,
+          points: [
+            {
+              x: 0,
+              y: 32,
+              id: "ovHR8gPn08uoZ2HkilDj2",
+              groupId: "T0ukkfh1pgJzpYd3q2uN_",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 64,
+              y: 32,
+              id: "jtBFaBpu3MCpawPBzJnOP",
+              groupId: "T0ukkfh1pgJzpYd3q2uN_",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 32,
+              y: 0,
+              id: "Iauu_qWmNBUGm__v3Mb47",
+              groupId: "T0ukkfh1pgJzpYd3q2uN_",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 32,
+              y: 64,
+              id: "7fyTUkWSXmSGCf5cHZMr5",
+              groupId: "T0ukkfh1pgJzpYd3q2uN_",
+              visible: false,
+              pairs: []
+            }
+          ],
+          selected: false
+        },
+        className: "Group",
+        children: [
+          {
+            attrs: {
+              src: "/src/assets/img/png/2.png"
+            },
+            className: "Image"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "ovHR8gPn08uoZ2HkilDj2",
+              y: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "jtBFaBpu3MCpawPBzJnOP",
+              x: 64,
+              y: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "Iauu_qWmNBUGm__v3Mb47",
+              x: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "7fyTUkWSXmSGCf5cHZMr5",
+              x: 32,
+              y: 64,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              id: "hoverRect",
+              width: 64,
+              height: 64,
+              fill: "rgba(0,255,0,0.3)",
+              visible: false
+            },
+            className: "Rect"
+          }
+        ]
+      },
+      {
+        attrs: {
+          id: "lXifqeyVVG2Q-nV3t3EOs",
+          width: 64,
+          height: 64,
+          name: "asset",
+          x: 400,
+          y: 660,
+          points: [
+            {
+              x: 0,
+              y: 32,
+              id: "5h3lqdO1ItzxxQfJvF4la",
+              groupId: "lXifqeyVVG2Q-nV3t3EOs",
+              visible: false,
+              pairs: [
+                {
+                  id: "Y7nCttli19Dg7ObLI6gcA",
+                  from: {
+                    groupId: "lXifqeyVVG2Q-nV3t3EOs",
+                    pointId: "5h3lqdO1ItzxxQfJvF4la"
+                  },
+                  to: {
+                    groupId: "GhOZRIk6LFthne6I5u5F1",
+                    pointId: "ueMphYpU3VXxXpZTDjjsI"
+                  }
+                }
+              ]
+            },
+            {
+              x: 64,
+              y: 32,
+              id: "CRLlBp07hlQRpUEZF95o8",
+              groupId: "lXifqeyVVG2Q-nV3t3EOs",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 32,
+              y: 0,
+              id: "6Y9Ew5v1tacI3Sr0oQ_VS",
+              groupId: "lXifqeyVVG2Q-nV3t3EOs",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 32,
+              y: 64,
+              id: "a1iYQTM3AzAJFfR_K41v_",
+              groupId: "lXifqeyVVG2Q-nV3t3EOs",
+              visible: false,
+              pairs: []
+            }
+          ],
+          selected: false
+        },
+        className: "Group",
+        children: [
+          {
+            attrs: {
+              src: "/src/assets/img/png/2.png"
+            },
+            className: "Image"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "5h3lqdO1ItzxxQfJvF4la",
+              y: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "CRLlBp07hlQRpUEZF95o8",
+              x: 64,
+              y: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "6Y9Ew5v1tacI3Sr0oQ_VS",
+              x: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "a1iYQTM3AzAJFfR_K41v_",
+              x: 32,
+              y: 64,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              id: "hoverRect",
+              width: 64,
+              height: 64,
+              fill: "rgba(0,255,0,0.3)",
+              visible: false
+            },
+            className: "Rect"
+          }
+        ]
+      },
+      {
+        attrs: {
+          id: "GhOZRIk6LFthne6I5u5F1",
+          width: 64,
+          height: 64,
+          name: "asset",
+          x: 560,
+          y: 680,
+          points: [
+            {
+              x: 0,
+              y: 32,
+              id: "u12VFtOyRZDOvHtktAT1E",
+              groupId: "GhOZRIk6LFthne6I5u5F1",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 64,
+              y: 32,
+              id: "ueMphYpU3VXxXpZTDjjsI",
+              groupId: "GhOZRIk6LFthne6I5u5F1",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 32,
+              y: 0,
+              id: "kuv3TQBCO3x8M89hGSwzb",
+              groupId: "GhOZRIk6LFthne6I5u5F1",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 32,
+              y: 64,
+              id: "J68eoaozIEWYjmBCBTg1i",
+              groupId: "GhOZRIk6LFthne6I5u5F1",
+              visible: false,
+              pairs: []
+            }
+          ],
+          selected: false
+        },
+        className: "Group",
+        children: [
+          {
+            attrs: {
+              src: "/src/assets/img/png/2.png"
+            },
+            className: "Image"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "u12VFtOyRZDOvHtktAT1E",
+              y: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "ueMphYpU3VXxXpZTDjjsI",
+              x: 64,
+              y: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "kuv3TQBCO3x8M89hGSwzb",
+              x: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "J68eoaozIEWYjmBCBTg1i",
+              x: 32,
+              y: 64,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              id: "hoverRect",
+              width: 64,
+              height: 64,
+              fill: "rgba(0,255,0,0.3)",
+              visible: false
+            },
+            className: "Rect"
+          }
+        ]
+      },
+      {
+        attrs: {
+          id: "XcYreZy0d2zGaJu8GoJUU",
+          width: 64,
+          height: 64,
+          name: "asset",
+          x: 740,
+          y: 460,
+          points: [
+            {
+              x: 0,
+              y: 32,
+              id: "_uagumdUXBuPlxYf9tdsq",
+              groupId: "XcYreZy0d2zGaJu8GoJUU",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 64,
+              y: 32,
+              id: "7DIygpw5r5xVNZYUqZhV2",
+              groupId: "XcYreZy0d2zGaJu8GoJUU",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 32,
+              y: 0,
+              id: "xOEqQxajsxyryXgJanoFK",
+              groupId: "XcYreZy0d2zGaJu8GoJUU",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 32,
+              y: 64,
+              id: "ybaVp-bp3QOP6LezgNxMX",
+              groupId: "XcYreZy0d2zGaJu8GoJUU",
+              visible: false,
+              pairs: [
+                {
+                  id: "yZ4dUN7eAbeoSJKvp2Cxy",
+                  from: {
+                    groupId: "XcYreZy0d2zGaJu8GoJUU",
+                    pointId: "ybaVp-bp3QOP6LezgNxMX"
+                  },
+                  to: {
+                    groupId: "MdRm7PrD3JvtVqsxdqhMv",
+                    pointId: "EoHG-TqRANjf9THOu-Otr"
+                  }
+                }
+              ]
+            }
+          ],
+          selected: false
+        },
+        className: "Group",
+        children: [
+          {
+            attrs: {
+              src: "/src/assets/img/png/2.png"
+            },
+            className: "Image"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "_uagumdUXBuPlxYf9tdsq",
+              y: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "7DIygpw5r5xVNZYUqZhV2",
+              x: 64,
+              y: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "xOEqQxajsxyryXgJanoFK",
+              x: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "ybaVp-bp3QOP6LezgNxMX",
+              x: 32,
+              y: 64,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              id: "hoverRect",
+              width: 64,
+              height: 64,
+              fill: "rgba(0,255,0,0.3)",
+              visible: false
+            },
+            className: "Rect"
+          }
+        ]
+      },
+      {
+        attrs: {
+          id: "MdRm7PrD3JvtVqsxdqhMv",
+          width: 64,
+          height: 64,
+          name: "asset",
+          x: 900,
+          y: 480,
+          points: [
+            {
+              x: 0,
+              y: 32,
+              id: "zTU1PCfEvSwrnPEzxomUm",
+              groupId: "MdRm7PrD3JvtVqsxdqhMv",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 64,
+              y: 32,
+              id: "BU34bGHpE7xcjHsJujOWX",
+              groupId: "MdRm7PrD3JvtVqsxdqhMv",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 32,
+              y: 0,
+              id: "-fnSjPaS8ptClbxUS8zD3",
+              groupId: "MdRm7PrD3JvtVqsxdqhMv",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 32,
+              y: 64,
+              id: "EoHG-TqRANjf9THOu-Otr",
+              groupId: "MdRm7PrD3JvtVqsxdqhMv",
+              visible: false,
+              pairs: []
+            }
+          ],
+          selected: false
+        },
+        className: "Group",
+        children: [
+          {
+            attrs: {
+              src: "/src/assets/img/png/2.png"
+            },
+            className: "Image"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "zTU1PCfEvSwrnPEzxomUm",
+              y: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "BU34bGHpE7xcjHsJujOWX",
+              x: 64,
+              y: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "-fnSjPaS8ptClbxUS8zD3",
+              x: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "EoHG-TqRANjf9THOu-Otr",
+              x: 32,
+              y: 64,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              id: "hoverRect",
+              width: 64,
+              height: 64,
+              fill: "rgba(0,255,0,0.3)",
+              visible: false
+            },
+            className: "Rect"
+          }
+        ]
+      },
+      {
+        attrs: {
+          id: "uNU7FMJIofjGnK8VGZYZW",
+          width: 64,
+          height: 64,
+          name: "asset",
+          x: 740,
+          y: 660,
+          points: [
+            {
+              x: 0,
+              y: 32,
+              id: "_yPV4RYXLDj6B4i2T_Ndp",
+              groupId: "uNU7FMJIofjGnK8VGZYZW",
+              visible: false,
+              pairs: [
+                {
+                  id: "Y6-ed6IPX5tzN1HFIgMRz",
+                  from: {
+                    groupId: "uNU7FMJIofjGnK8VGZYZW",
+                    pointId: "_yPV4RYXLDj6B4i2T_Ndp"
+                  },
+                  to: {
+                    groupId: "1IPtzqLKsSHZlxesra6ud",
+                    pointId: "SXNHVkiWygwCW8aJ5j7XB"
+                  }
+                }
+              ]
+            },
+            {
+              x: 64,
+              y: 32,
+              id: "2Vfkfv46Ccj6XGtvDBnfr",
+              groupId: "uNU7FMJIofjGnK8VGZYZW",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 32,
+              y: 0,
+              id: "JUDQOMwEh6ISbDwPik0y1",
+              groupId: "uNU7FMJIofjGnK8VGZYZW",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 32,
+              y: 64,
+              id: "g-anx4tKYnFBQNm573rRN",
+              groupId: "uNU7FMJIofjGnK8VGZYZW",
+              visible: false,
+              pairs: []
+            }
+          ],
+          selected: false
+        },
+        className: "Group",
+        children: [
+          {
+            attrs: {
+              src: "/src/assets/img/png/2.png"
+            },
+            className: "Image"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "_yPV4RYXLDj6B4i2T_Ndp",
+              y: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "2Vfkfv46Ccj6XGtvDBnfr",
+              x: 64,
+              y: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "JUDQOMwEh6ISbDwPik0y1",
+              x: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "g-anx4tKYnFBQNm573rRN",
+              x: 32,
+              y: 64,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              id: "hoverRect",
+              width: 64,
+              height: 64,
+              fill: "rgba(0,255,0,0.3)",
+              visible: false
+            },
+            className: "Rect"
+          }
+        ]
+      },
+      {
+        attrs: {
+          id: "1IPtzqLKsSHZlxesra6ud",
+          width: 64,
+          height: 64,
+          name: "asset",
+          x: 900,
+          y: 680,
+          points: [
+            {
+              x: 0,
+              y: 32,
+              id: "j8ISZ9frW9GQX2bQKJDFN",
+              groupId: "1IPtzqLKsSHZlxesra6ud",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 64,
+              y: 32,
+              id: "aPsA2Bamc6Njp84BEs4ND",
+              groupId: "1IPtzqLKsSHZlxesra6ud",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 32,
+              y: 0,
+              id: "I5Y6QM8bRXfFZtHiDuR3W",
+              groupId: "1IPtzqLKsSHZlxesra6ud",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 32,
+              y: 64,
+              id: "SXNHVkiWygwCW8aJ5j7XB",
+              groupId: "1IPtzqLKsSHZlxesra6ud",
+              visible: false,
+              pairs: []
+            }
+          ],
+          selected: false
+        },
+        className: "Group",
+        children: [
+          {
+            attrs: {
+              src: "/src/assets/img/png/2.png"
+            },
+            className: "Image"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "j8ISZ9frW9GQX2bQKJDFN",
+              y: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "aPsA2Bamc6Njp84BEs4ND",
+              x: 64,
+              y: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "I5Y6QM8bRXfFZtHiDuR3W",
+              x: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "SXNHVkiWygwCW8aJ5j7XB",
+              x: 32,
+              y: 64,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              id: "hoverRect",
+              width: 64,
+              height: 64,
+              fill: "rgba(0,255,0,0.3)",
+              visible: false
+            },
+            className: "Rect"
+          }
+        ]
+      },
+      {
+        attrs: {
+          id: "7CpuB49MOBbqDRugG0Ny5",
+          width: 64,
+          height: 64,
+          name: "asset",
+          x: 1080,
+          y: 460,
+          points: [
+            {
+              x: 0,
+              y: 32,
+              id: "GCbCpdrd631ntnZV1lGYZ",
+              groupId: "7CpuB49MOBbqDRugG0Ny5",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 64,
+              y: 32,
+              id: "YVzLHE8vNOJj5rRE-auIw",
+              groupId: "7CpuB49MOBbqDRugG0Ny5",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 32,
+              y: 0,
+              id: "IaewdUPFvtIPuI_jpYZES",
+              groupId: "7CpuB49MOBbqDRugG0Ny5",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 32,
+              y: 64,
+              id: "eGeDI6eWzB5U89AReqnGe",
+              groupId: "7CpuB49MOBbqDRugG0Ny5",
+              visible: false,
+              pairs: [
+                {
+                  id: "mbb5Ok0L2azhPjT11p9j2",
+                  from: {
+                    groupId: "7CpuB49MOBbqDRugG0Ny5",
+                    pointId: "eGeDI6eWzB5U89AReqnGe"
+                  },
+                  to: {
+                    groupId: "F8Ew2YDQZsjAviO90Oc2U",
+                    pointId: "s5pwWfSgArlAT2-WnH5qU"
+                  }
+                }
+              ]
+            }
+          ],
+          selected: false
+        },
+        className: "Group",
+        children: [
+          {
+            attrs: {
+              src: "/src/assets/img/png/2.png"
+            },
+            className: "Image"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "GCbCpdrd631ntnZV1lGYZ",
+              y: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "YVzLHE8vNOJj5rRE-auIw",
+              x: 64,
+              y: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "IaewdUPFvtIPuI_jpYZES",
+              x: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "eGeDI6eWzB5U89AReqnGe",
+              x: 32,
+              y: 64,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              id: "hoverRect",
+              width: 64,
+              height: 64,
+              fill: "rgba(0,255,0,0.3)",
+              visible: false
+            },
+            className: "Rect"
+          }
+        ]
+      },
+      {
+        attrs: {
+          id: "F8Ew2YDQZsjAviO90Oc2U",
+          width: 64,
+          height: 64,
+          name: "asset",
+          x: 1240,
+          y: 480,
+          points: [
+            {
+              x: 0,
+              y: 32,
+              id: "s5pwWfSgArlAT2-WnH5qU",
+              groupId: "F8Ew2YDQZsjAviO90Oc2U",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 64,
+              y: 32,
+              id: "S0p0H72tqPxBXNucfnq6h",
+              groupId: "F8Ew2YDQZsjAviO90Oc2U",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 32,
+              y: 0,
+              id: "B3xvmriAatlON2dWOrUyk",
+              groupId: "F8Ew2YDQZsjAviO90Oc2U",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 32,
+              y: 64,
+              id: "HlFTgVGPc-vTJkyDdue4f",
+              groupId: "F8Ew2YDQZsjAviO90Oc2U",
+              visible: false,
+              pairs: []
+            }
+          ],
+          selected: false
+        },
+        className: "Group",
+        children: [
+          {
+            attrs: {
+              src: "/src/assets/img/png/2.png"
+            },
+            className: "Image"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "s5pwWfSgArlAT2-WnH5qU",
+              y: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "S0p0H72tqPxBXNucfnq6h",
+              x: 64,
+              y: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "B3xvmriAatlON2dWOrUyk",
+              x: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "HlFTgVGPc-vTJkyDdue4f",
+              x: 32,
+              y: 64,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              id: "hoverRect",
+              width: 64,
+              height: 64,
+              fill: "rgba(0,255,0,0.3)",
+              visible: false
+            },
+            className: "Rect"
+          }
+        ]
+      },
+      {
+        attrs: {
+          id: "j1fU9xvR627TS9pGYG84B",
+          width: 64,
+          height: 64,
+          name: "asset",
+          x: 1080,
+          y: 660,
+          points: [
+            {
+              x: 0,
+              y: 32,
+              id: "BnGEKenEpnagxDxetX6IX",
+              groupId: "j1fU9xvR627TS9pGYG84B",
+              visible: false,
+              pairs: [
+                {
+                  id: "4Tstn7x47HjjrqjD-2GxS",
+                  from: {
+                    groupId: "j1fU9xvR627TS9pGYG84B",
+                    pointId: "BnGEKenEpnagxDxetX6IX"
+                  },
+                  to: {
+                    groupId: "tPjow4LjPEBMYaZufaC5t",
+                    pointId: "UR6e8j7k5Lc4hkTEPvT_s"
+                  }
+                }
+              ]
+            },
+            {
+              x: 64,
+              y: 32,
+              id: "4e91dyUpQZOt_Z9EAa3KI",
+              groupId: "j1fU9xvR627TS9pGYG84B",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 32,
+              y: 0,
+              id: "NV7sikTGizDTxVT6scRAN",
+              groupId: "j1fU9xvR627TS9pGYG84B",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 32,
+              y: 64,
+              id: "Td6VrPkA5cXeG-sHUPuWR",
+              groupId: "j1fU9xvR627TS9pGYG84B",
+              visible: false,
+              pairs: []
+            }
+          ],
+          selected: false
+        },
+        className: "Group",
+        children: [
+          {
+            attrs: {
+              src: "/src/assets/img/png/2.png"
+            },
+            className: "Image"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "BnGEKenEpnagxDxetX6IX",
+              y: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "4e91dyUpQZOt_Z9EAa3KI",
+              x: 64,
+              y: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "NV7sikTGizDTxVT6scRAN",
+              x: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "Td6VrPkA5cXeG-sHUPuWR",
+              x: 32,
+              y: 64,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              id: "hoverRect",
+              width: 64,
+              height: 64,
+              fill: "rgba(0,255,0,0.3)",
+              visible: false
+            },
+            className: "Rect"
+          }
+        ]
+      },
+      {
+        attrs: {
+          id: "tPjow4LjPEBMYaZufaC5t",
+          width: 64,
+          height: 64,
+          name: "asset",
+          x: 1240,
+          y: 680,
+          points: [
+            {
+              x: 0,
+              y: 32,
+              id: "UR6e8j7k5Lc4hkTEPvT_s",
+              groupId: "tPjow4LjPEBMYaZufaC5t",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 64,
+              y: 32,
+              id: "SF-53MvWI83H6G-JC83em",
+              groupId: "tPjow4LjPEBMYaZufaC5t",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 32,
+              y: 0,
+              id: "XLXwocLrok04iZkKW9oUI",
+              groupId: "tPjow4LjPEBMYaZufaC5t",
+              visible: false,
+              pairs: []
+            },
+            {
+              x: 32,
+              y: 64,
+              id: "mw1NnOGsoLlHY5xak02HY",
+              groupId: "tPjow4LjPEBMYaZufaC5t",
+              visible: false,
+              pairs: []
+            }
+          ],
+          selected: false
+        },
+        className: "Group",
+        children: [
+          {
+            attrs: {
+              src: "/src/assets/img/png/2.png"
+            },
+            className: "Image"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "UR6e8j7k5Lc4hkTEPvT_s",
+              y: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "SF-53MvWI83H6G-JC83em",
+              x: 64,
+              y: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "XLXwocLrok04iZkKW9oUI",
+              x: 32,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              name: "link-anchor",
+              id: "mw1NnOGsoLlHY5xak02HY",
+              x: 32,
+              y: 64,
+              radius: 1,
+              stroke: "rgba(0,0,255,1)",
+              visible: false
+            },
+            className: "Circle"
+          },
+          {
+            attrs: {
+              id: "hoverRect",
+              width: 64,
+              height: 64,
+              fill: "rgba(0,255,0,0.3)",
+              visible: false
+            },
+            className: "Rect"
+          }
+        ]
+      }
+    ]
+  }
+];
+const linkTestData = {
+  attrs,
+  className,
+  children
+};
 const _hoisted_1 = { class: "page" };
 const _hoisted_2 = ["disabled"];
 const _hoisted_3 = ["disabled"];
@@ -27056,8 +37049,6 @@ const _hoisted_8 = ["disabled"];
 const _hoisted_9 = ["disabled"];
 const _hoisted_10 = ["onDragstart"];
 const _hoisted_11 = ["src"];
-const _hoisted_12 = /* @__PURE__ */ _withScopeId(() => /* @__PURE__ */ createBaseVNode("footer", null, null, -1));
-const _hoisted_13 = /* @__PURE__ */ _withScopeId(() => /* @__PURE__ */ createBaseVNode("footer", null, null, -1));
 const _sfc_main = /* @__PURE__ */ defineComponent({
   __name: "App",
   setup(__props) {
@@ -27093,6 +37084,8 @@ const _sfc_main = /* @__PURE__ */ defineComponent({
     })();
     const history = ref([]);
     const historyIndex = ref(-1);
+    const debug = ref(false);
+    const full = ref(false);
     function onPrev() {
       if (render) {
         render.prevHistory();
@@ -27127,6 +37120,9 @@ const _sfc_main = /* @__PURE__ */ defineComponent({
                   },
                   selectionChange: (nodes) => {
                     selection.value = nodes;
+                  },
+                  debugChange: (v) => {
+                    debug.value = v;
                   }
                 }
               });
@@ -27271,9 +37267,20 @@ const _sfc_main = /* @__PURE__ */ defineComponent({
     function onAlign(type) {
       render == null ? void 0 : render.alignTool.align(type);
     }
+    function onDebug() {
+      debug.value = (render == null ? void 0 : render.changeDebug(!debug.value)) ?? false;
+    }
+    function onLinkTest() {
+      render == null ? void 0 : render.importExportTool.restore(JSON.stringify(linkTestData));
+    }
+    function onFull() {
+      full.value = !full.value;
+    }
     return (_ctx, _cache) => {
       return openBlock(), createElementBlock("div", _hoisted_1, [
-        createBaseVNode("header", null, [
+        createBaseVNode("header", {
+          style: normalizeStyle({ height: full.value ? 0 : void 0, padding: full.value ? 0 : void 0 })
+        }, [
           createBaseVNode("button", { onClick: onRestore }, "导入"),
           createBaseVNode("button", { onClick: onSave }, "导出"),
           createBaseVNode("button", { onClick: onSavePNG }, "另存为图片"),
@@ -27310,9 +37317,11 @@ const _sfc_main = /* @__PURE__ */ defineComponent({
             onClick: _cache[5] || (_cache[5] = ($event) => onAlign(AlignType.下对齐)),
             disabled: noAlign.value
           }, "下对齐", 8, _hoisted_9)
-        ]),
+        ], 4),
         createBaseVNode("section", null, [
-          createBaseVNode("header", null, [
+          createBaseVNode("header", {
+            style: normalizeStyle({ width: full.value ? 0 : void 0 })
+          }, [
             createBaseVNode("ul", null, [
               (openBlock(true), createElementBlock(Fragment, null, renderList(assetsInfos.value, (item, idx) => {
                 return openBlock(), createElementBlock("li", {
@@ -27327,7 +37336,7 @@ const _sfc_main = /* @__PURE__ */ defineComponent({
                 ], 40, _hoisted_10);
               }), 128))
             ])
-          ]),
+          ], 4),
           createBaseVNode("section", {
             ref_key: "boardElement",
             ref: boardElement
@@ -27337,9 +37346,15 @@ const _sfc_main = /* @__PURE__ */ defineComponent({
               ref: stageElement
             }, null, 512)
           ], 512),
-          _hoisted_12
+          createBaseVNode("footer", {
+            style: normalizeStyle({ width: full.value ? 0 : void 0 })
+          }, null, 4)
         ]),
-        _hoisted_13
+        createBaseVNode("footer", null, [
+          createBaseVNode("button", { onClick: onLinkTest }, "加载“连接线”测试数据"),
+          createBaseVNode("button", { onClick: onDebug }, toDisplayString(debug.value ? "关闭调试" : "开启调试"), 1),
+          createBaseVNode("button", { onClick: onFull }, toDisplayString(full.value ? "显示工具栏" : "隐藏工具栏"), 1)
+        ])
       ]);
     };
   }
@@ -27351,5 +37366,5 @@ const _export_sfc = (sfc, props) => {
   }
   return target;
 };
-const App = /* @__PURE__ */ _export_sfc(_sfc_main, [["__scopeId", "data-v-d092b8bf"]]);
+const App = /* @__PURE__ */ _export_sfc(_sfc_main, [["__scopeId", "data-v-0fcfb9cc"]]);
 createApp(App).mount("#app");
