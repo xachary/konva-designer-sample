@@ -124,4 +124,10 @@ export class SelectionTool {
       node.y(node.y() + offset.y)
     }
   }
+
+  // 选择所有节点
+  selectAll() {
+    const nodes = this.render.layer.find('.asset') as Konva.Node[]
+    this.select(nodes)
+  }
 }

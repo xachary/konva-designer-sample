@@ -23,9 +23,13 @@ export class ShutcutHandlers implements Types.Handler {
             } else {
               this.render.prevHistory()
             }
+          } else if (e.code === Types.ShutcutKey.A) {
+            this.render.selectionTool.selectAll()
           }
         } else if (e.code === Types.ShutcutKey.删除) {
           this.render.remove(this.render.selectionTool.selectingNodes)
+        } else if (e.code === Types.ShutcutKey.Esc) {
+          this.render.selectionTool.selectingClear()
         }
       }
     }
