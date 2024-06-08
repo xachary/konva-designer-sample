@@ -1621,7 +1621,7 @@ function renderComponentRoot(instance) {
     props,
     propsOptions: [propsOptions],
     slots,
-    attrs: attrs2,
+    attrs,
     emit: emit2,
     render,
     renderCache,
@@ -1657,7 +1657,7 @@ function renderComponentRoot(instance) {
           ctx
         )
       );
-      fallthroughAttrs = attrs2;
+      fallthroughAttrs = attrs;
     } else {
       const render2 = Component;
       if (false)
@@ -1668,18 +1668,18 @@ function renderComponentRoot(instance) {
           false ? {
             get attrs() {
               markAttrsAccessed();
-              return attrs2;
+              return attrs;
             },
             slots,
             emit: emit2
-          } : { attrs: attrs2, slots, emit: emit2 }
+          } : { attrs, slots, emit: emit2 }
         ) : render2(
           props,
           null
           /* we know it doesn't need it */
         )
       );
-      fallthroughAttrs = Component.props ? attrs2 : getFunctionalFallthrough(attrs2);
+      fallthroughAttrs = Component.props ? attrs : getFunctionalFallthrough(attrs);
     }
   } catch (err) {
     blockStack.length = 0;
@@ -1715,20 +1715,20 @@ function renderComponentRoot(instance) {
   setCurrentRenderingInstance(prev);
   return result2;
 }
-const getFunctionalFallthrough = (attrs2) => {
+const getFunctionalFallthrough = (attrs) => {
   let res;
-  for (const key in attrs2) {
+  for (const key in attrs) {
     if (key === "class" || key === "style" || isOn(key)) {
-      (res || (res = {}))[key] = attrs2[key];
+      (res || (res = {}))[key] = attrs[key];
     }
   }
   return res;
 };
-const filterModelListeners = (attrs2, props) => {
+const filterModelListeners = (attrs, props) => {
   const res = {};
-  for (const key in attrs2) {
+  for (const key in attrs) {
     if (!isModelListener(key) || !(key.slice(9) in props)) {
-      res[key] = attrs2[key];
+      res[key] = attrs[key];
     }
   }
   return res;
@@ -2809,10 +2809,10 @@ function inject(key, defaultValue, treatDefaultAsFactory = false) {
 }
 function initProps(instance, rawProps, isStateful, isSSR = false) {
   const props = {};
-  const attrs2 = {};
-  def(attrs2, InternalObjectKey, 1);
+  const attrs = {};
+  def(attrs, InternalObjectKey, 1);
   instance.propsDefaults = /* @__PURE__ */ Object.create(null);
-  setFullProps(instance, rawProps, props, attrs2);
+  setFullProps(instance, rawProps, props, attrs);
   for (const key in instance.propsOptions[0]) {
     if (!(key in props)) {
       props[key] = void 0;
@@ -2822,17 +2822,17 @@ function initProps(instance, rawProps, isStateful, isSSR = false) {
     instance.props = isSSR ? props : shallowReactive(props);
   } else {
     if (!instance.type.props) {
-      instance.props = attrs2;
+      instance.props = attrs;
     } else {
       instance.props = props;
     }
   }
-  instance.attrs = attrs2;
+  instance.attrs = attrs;
 }
 function updateProps(instance, rawProps, rawPrevProps, optimized) {
   const {
     props,
-    attrs: attrs2,
+    attrs,
     vnode: { patchFlag }
   } = instance;
   const rawCurrentProps = toRaw(props);
@@ -2853,9 +2853,9 @@ function updateProps(instance, rawProps, rawPrevProps, optimized) {
         }
         const value = rawProps[key];
         if (options) {
-          if (hasOwn(attrs2, key)) {
-            if (value !== attrs2[key]) {
-              attrs2[key] = value;
+          if (hasOwn(attrs, key)) {
+            if (value !== attrs[key]) {
+              attrs[key] = value;
               hasAttrsChanged = true;
             }
           } else {
@@ -2870,15 +2870,15 @@ function updateProps(instance, rawProps, rawPrevProps, optimized) {
             );
           }
         } else {
-          if (value !== attrs2[key]) {
-            attrs2[key] = value;
+          if (value !== attrs[key]) {
+            attrs[key] = value;
             hasAttrsChanged = true;
           }
         }
       }
     }
   } else {
-    if (setFullProps(instance, rawProps, props, attrs2)) {
+    if (setFullProps(instance, rawProps, props, attrs)) {
       hasAttrsChanged = true;
     }
     let kebabKey;
@@ -2905,10 +2905,10 @@ function updateProps(instance, rawProps, rawPrevProps, optimized) {
         }
       }
     }
-    if (attrs2 !== rawCurrentProps) {
-      for (const key in attrs2) {
+    if (attrs !== rawCurrentProps) {
+      for (const key in attrs) {
         if (!rawProps || !hasOwn(rawProps, key) && true) {
-          delete attrs2[key];
+          delete attrs[key];
           hasAttrsChanged = true;
         }
       }
@@ -2918,7 +2918,7 @@ function updateProps(instance, rawProps, rawPrevProps, optimized) {
     trigger(instance, "set", "$attrs");
   }
 }
-function setFullProps(instance, rawProps, props, attrs2) {
+function setFullProps(instance, rawProps, props, attrs) {
   const [options, needCastKeys] = instance.propsOptions;
   let hasAttrsChanged = false;
   let rawCastValues;
@@ -2936,8 +2936,8 @@ function setFullProps(instance, rawProps, props, attrs2) {
           (rawCastValues || (rawCastValues = {}))[camelKey] = value;
         }
       } else if (!isEmitListener(instance.emitsOptions, key)) {
-        if (!(key in attrs2) || value !== attrs2[key]) {
-          attrs2[key] = value;
+        if (!(key in attrs) || value !== attrs[key]) {
+          attrs[key] = value;
           hasAttrsChanged = true;
         }
       }
@@ -3126,52 +3126,52 @@ const normalizeObjectSlots = (rawSlots, slots, instance) => {
     }
   }
 };
-const normalizeVNodeSlots = (instance, children2) => {
-  const normalized = normalizeSlotValue(children2);
+const normalizeVNodeSlots = (instance, children) => {
+  const normalized = normalizeSlotValue(children);
   instance.slots.default = () => normalized;
 };
-const initSlots = (instance, children2) => {
+const initSlots = (instance, children) => {
   if (instance.vnode.shapeFlag & 32) {
-    const type = children2._;
+    const type = children._;
     if (type) {
-      instance.slots = toRaw(children2);
-      def(children2, "_", type);
+      instance.slots = toRaw(children);
+      def(children, "_", type);
     } else {
       normalizeObjectSlots(
-        children2,
+        children,
         instance.slots = {}
       );
     }
   } else {
     instance.slots = {};
-    if (children2) {
-      normalizeVNodeSlots(instance, children2);
+    if (children) {
+      normalizeVNodeSlots(instance, children);
     }
   }
   def(instance.slots, InternalObjectKey, 1);
 };
-const updateSlots = (instance, children2, optimized) => {
+const updateSlots = (instance, children, optimized) => {
   const { vnode, slots } = instance;
   let needDeletionCheck = true;
   let deletionComparisonTarget = EMPTY_OBJ;
   if (vnode.shapeFlag & 32) {
-    const type = children2._;
+    const type = children._;
     if (type) {
       if (optimized && type === 1) {
         needDeletionCheck = false;
       } else {
-        extend$1(slots, children2);
+        extend$1(slots, children);
         if (!optimized && type === 1) {
           delete slots._;
         }
       }
     } else {
-      needDeletionCheck = !children2.$stable;
-      normalizeObjectSlots(children2, slots);
+      needDeletionCheck = !children.$stable;
+      normalizeObjectSlots(children, slots);
     }
-    deletionComparisonTarget = children2;
-  } else if (children2) {
-    normalizeVNodeSlots(instance, children2);
+    deletionComparisonTarget = children;
+  } else if (children) {
+    normalizeVNodeSlots(instance, children);
     deletionComparisonTarget = { default: 1 };
   }
   if (needDeletionCheck) {
@@ -3552,9 +3552,9 @@ function baseCreateRenderer(options, createHydrationFns) {
       }
     }
   };
-  const mountChildren = (children2, container, anchor, parentComponent, parentSuspense, namespace, slotScopeIds, optimized, start = 0) => {
-    for (let i = start; i < children2.length; i++) {
-      const child = children2[i] = optimized ? cloneIfMounted(children2[i]) : normalizeVNode(children2[i]);
+  const mountChildren = (children, container, anchor, parentComponent, parentSuspense, namespace, slotScopeIds, optimized, start = 0) => {
+    for (let i = start; i < children.length; i++) {
+      const child = children[i] = optimized ? cloneIfMounted(children[i]) : normalizeVNode(children[i]);
       patch(
         null,
         child,
@@ -4316,7 +4316,7 @@ function baseCreateRenderer(options, createHydrationFns) {
     }
   };
   const move = (vnode, container, anchor, moveType, parentSuspense = null) => {
-    const { el, type, transition, children: children2, shapeFlag } = vnode;
+    const { el, type, transition, children, shapeFlag } = vnode;
     if (shapeFlag & 6) {
       move(vnode.component.subTree, container, anchor, moveType);
       return;
@@ -4331,8 +4331,8 @@ function baseCreateRenderer(options, createHydrationFns) {
     }
     if (type === Fragment) {
       hostInsert(el, container, anchor);
-      for (let i = 0; i < children2.length; i++) {
-        move(children2[i], container, anchor, moveType);
+      for (let i = 0; i < children.length; i++) {
+        move(children[i], container, anchor, moveType);
       }
       hostInsert(vnode.anchor, container, anchor);
       return;
@@ -4371,7 +4371,7 @@ function baseCreateRenderer(options, createHydrationFns) {
       type,
       props,
       ref: ref3,
-      children: children2,
+      children,
       dynamicChildren,
       shapeFlag,
       patchFlag,
@@ -4419,7 +4419,7 @@ function baseCreateRenderer(options, createHydrationFns) {
           true
         );
       } else if (type === Fragment && patchFlag & (128 | 256) || !optimized && shapeFlag & 16) {
-        unmountChildren(children2, parentComponent, parentSuspense);
+        unmountChildren(children, parentComponent, parentSuspense);
       }
       if (doRemove) {
         remove2(vnode);
@@ -4494,9 +4494,9 @@ function baseCreateRenderer(options, createHydrationFns) {
       }
     }
   };
-  const unmountChildren = (children2, parentComponent, parentSuspense, doRemove = false, optimized = false, start = 0) => {
-    for (let i = start; i < children2.length; i++) {
-      unmount(children2[i], parentComponent, parentSuspense, doRemove, optimized);
+  const unmountChildren = (children, parentComponent, parentSuspense, doRemove = false, optimized = false, start = 0) => {
+    for (let i = start; i < children.length; i++) {
+      unmount(children[i], parentComponent, parentSuspense, doRemove, optimized);
     }
   };
   const getNextHostNode = (vnode) => {
@@ -4664,12 +4664,12 @@ function setupBlock(vnode) {
   }
   return vnode;
 }
-function createElementBlock(type, props, children2, patchFlag, dynamicProps, shapeFlag) {
+function createElementBlock(type, props, children, patchFlag, dynamicProps, shapeFlag) {
   return setupBlock(
     createBaseVNode(
       type,
       props,
-      children2,
+      children,
       patchFlag,
       dynamicProps,
       shapeFlag,
@@ -4695,7 +4695,7 @@ const normalizeRef = ({
   }
   return ref3 != null ? isString$1(ref3) || isRef(ref3) || isFunction$1(ref3) ? { i: currentRenderingInstance, r: ref3, k: ref_key, f: !!ref_for } : ref3 : null;
 };
-function createBaseVNode(type, props = null, children2 = null, patchFlag = 0, dynamicProps = null, shapeFlag = type === Fragment ? 0 : 1, isBlockNode = false, needFullChildrenNormalization = false) {
+function createBaseVNode(type, props = null, children = null, patchFlag = 0, dynamicProps = null, shapeFlag = type === Fragment ? 0 : 1, isBlockNode = false, needFullChildrenNormalization = false) {
   const vnode = {
     __v_isVNode: true,
     __v_skip: true,
@@ -4705,7 +4705,7 @@ function createBaseVNode(type, props = null, children2 = null, patchFlag = 0, dy
     ref: props && normalizeRef(props),
     scopeId: currentScopeId,
     slotScopeIds: null,
-    children: children2,
+    children,
     component: null,
     suspense: null,
     ssContent: null,
@@ -4725,12 +4725,12 @@ function createBaseVNode(type, props = null, children2 = null, patchFlag = 0, dy
     ctx: currentRenderingInstance
   };
   if (needFullChildrenNormalization) {
-    normalizeChildren(vnode, children2);
+    normalizeChildren(vnode, children);
     if (shapeFlag & 128) {
       type.normalize(vnode);
     }
-  } else if (children2) {
-    vnode.shapeFlag |= isString$1(children2) ? 8 : 16;
+  } else if (children) {
+    vnode.shapeFlag |= isString$1(children) ? 8 : 16;
   }
   if (isBlockTreeEnabled > 0 && // avoid a block node from tracking itself
   !isBlockNode && // has current parent block
@@ -4746,7 +4746,7 @@ function createBaseVNode(type, props = null, children2 = null, patchFlag = 0, dy
   return vnode;
 }
 const createVNode = _createVNode;
-function _createVNode(type, props = null, children2 = null, patchFlag = 0, dynamicProps = null, isBlockNode = false) {
+function _createVNode(type, props = null, children = null, patchFlag = 0, dynamicProps = null, isBlockNode = false) {
   if (!type || type === NULL_DYNAMIC_COMPONENT) {
     type = Comment;
   }
@@ -4757,8 +4757,8 @@ function _createVNode(type, props = null, children2 = null, patchFlag = 0, dynam
       true
       /* mergeRef: true */
     );
-    if (children2) {
-      normalizeChildren(cloned, children2);
+    if (children) {
+      normalizeChildren(cloned, children);
     }
     if (isBlockTreeEnabled > 0 && !isBlockNode && currentBlock) {
       if (cloned.shapeFlag & 6) {
@@ -4790,7 +4790,7 @@ function _createVNode(type, props = null, children2 = null, patchFlag = 0, dynam
   return createBaseVNode(
     type,
     props,
-    children2,
+    children,
     patchFlag,
     dynamicProps,
     shapeFlag,
@@ -4804,7 +4804,7 @@ function guardReactiveProps(props) {
   return isProxy(props) || InternalObjectKey in props ? extend$1({}, props) : props;
 }
 function cloneVNode(vnode, extraProps, mergeRef = false) {
-  const { props, ref: ref3, patchFlag, children: children2 } = vnode;
+  const { props, ref: ref3, patchFlag, children } = vnode;
   const mergedProps = extraProps ? mergeProps(props || {}, extraProps) : props;
   const cloned = {
     __v_isVNode: true,
@@ -4820,7 +4820,7 @@ function cloneVNode(vnode, extraProps, mergeRef = false) {
     ) : ref3,
     scopeId: vnode.scopeId,
     slotScopeIds: vnode.slotScopeIds,
-    children: children2,
+    children,
     target: vnode.target,
     targetAnchor: vnode.targetAnchor,
     staticCount: vnode.staticCount,
@@ -4872,16 +4872,16 @@ function normalizeVNode(child) {
 function cloneIfMounted(child) {
   return child.el === null && child.patchFlag !== -1 || child.memo ? child : cloneVNode(child);
 }
-function normalizeChildren(vnode, children2) {
+function normalizeChildren(vnode, children) {
   let type = 0;
   const { shapeFlag } = vnode;
-  if (children2 == null) {
-    children2 = null;
-  } else if (isArray$1(children2)) {
+  if (children == null) {
+    children = null;
+  } else if (isArray$1(children)) {
     type = 16;
-  } else if (typeof children2 === "object") {
+  } else if (typeof children === "object") {
     if (shapeFlag & (1 | 64)) {
-      const slot = children2.default;
+      const slot = children.default;
       if (slot) {
         slot._c && (slot._d = false);
         normalizeChildren(vnode, slot());
@@ -4890,31 +4890,31 @@ function normalizeChildren(vnode, children2) {
       return;
     } else {
       type = 32;
-      const slotFlag = children2._;
-      if (!slotFlag && !(InternalObjectKey in children2)) {
-        children2._ctx = currentRenderingInstance;
+      const slotFlag = children._;
+      if (!slotFlag && !(InternalObjectKey in children)) {
+        children._ctx = currentRenderingInstance;
       } else if (slotFlag === 3 && currentRenderingInstance) {
         if (currentRenderingInstance.slots._ === 1) {
-          children2._ = 1;
+          children._ = 1;
         } else {
-          children2._ = 2;
+          children._ = 2;
           vnode.patchFlag |= 1024;
         }
       }
     }
-  } else if (isFunction$1(children2)) {
-    children2 = { default: children2, _ctx: currentRenderingInstance };
+  } else if (isFunction$1(children)) {
+    children = { default: children, _ctx: currentRenderingInstance };
     type = 32;
   } else {
-    children2 = String(children2);
+    children = String(children);
     if (shapeFlag & 64) {
       type = 16;
-      children2 = [createTextVNode(children2)];
+      children = [createTextVNode(children)];
     } else {
       type = 8;
     }
   }
-  vnode.children = children2;
+  vnode.children = children;
   vnode.shapeFlag |= type;
 }
 function mergeProps(...args) {
@@ -5083,10 +5083,10 @@ function isStatefulComponent(instance) {
 let isInSSRComponentSetup = false;
 function setupComponent(instance, isSSR = false) {
   isSSR && setInSSRSetupState(isSSR);
-  const { props, children: children2 } = instance.vnode;
+  const { props, children } = instance.vnode;
   const isStateful = isStatefulComponent(instance);
   initProps(instance, props, isStateful, isSSR);
-  initSlots(instance, children2);
+  initSlots(instance, children);
   const setupResult = isStateful ? setupStatefulComponent(instance, isSSR) : void 0;
   isSSR && setInSSRSetupState(false);
   return setupResult;
@@ -14392,11 +14392,11 @@ let Node$1 = class Node {
   }
   getAbsoluteZIndex() {
     var depth = this.getDepth(), that = this, index = 0, nodes, len, n, child;
-    function addChildren(children2) {
+    function addChildren(children) {
       nodes = [];
-      len = children2.length;
+      len = children.length;
       for (n = 0; n < len; n++) {
-        child = children2[n];
+        child = children[n];
         index++;
         if (child.nodeType !== SHAPE) {
           nodes = nodes.concat(child.getChildren().slice());
@@ -14643,21 +14643,21 @@ let Node$1 = class Node {
     return this;
   }
   toObject() {
-    var attrs2 = this.getAttrs(), key, val, getter, defaultValue, nonPlainObject;
+    var attrs = this.getAttrs(), key, val, getter, defaultValue, nonPlainObject;
     const obj = {
       attrs: {},
       className: this.getClassName()
     };
-    for (key in attrs2) {
-      val = attrs2[key];
+    for (key in attrs) {
+      val = attrs[key];
       nonPlainObject = Util_1$c.Util.isObject(val) && !Util_1$c.Util._isPlainObject(val) && !Util_1$c.Util._isArray(val);
       if (nonPlainObject) {
         continue;
       }
       getter = typeof this[key] === "function" && this[key];
-      delete attrs2[key];
+      delete attrs[key];
       defaultValue = getter ? getter.call(this) : null;
-      attrs2[key] = val;
+      attrs[key] = val;
       if (defaultValue !== val) {
         obj.attrs[key] = val;
       }
@@ -14796,10 +14796,10 @@ let Node$1 = class Node {
       parent2 = parent2.getParent();
     }
     const transform2 = this.getAbsoluteTransform(top);
-    const attrs2 = transform2.decompose();
+    const attrs = transform2.decompose();
     return {
-      x: attrs2.scaleX,
-      y: attrs2.scaleY
+      x: attrs.scaleX,
+      y: attrs.scaleY
     };
   }
   getAbsoluteRotation() {
@@ -14832,11 +14832,11 @@ let Node$1 = class Node {
     return m;
   }
   clone(obj) {
-    var attrs2 = Util_1$c.Util.cloneObject(this.attrs), key, allListeners, len, n, listener;
+    var attrs = Util_1$c.Util.cloneObject(this.attrs), key, allListeners, len, n, listener;
     for (key in obj) {
-      attrs2[key] = obj[key];
+      attrs[key] = obj[key];
     }
-    var node2 = new this.constructor(attrs2);
+    var node2 = new this.constructor(attrs);
     for (key in this.eventListeners) {
       allListeners = this.eventListeners[key];
       len = allListeners.length;
@@ -15226,20 +15226,20 @@ let Node$1 = class Node {
     return this._createNode(data, container);
   }
   static _createNode(obj, container) {
-    var className2 = Node.prototype.getClassName.call(obj), children2 = obj.children, no, len, n;
+    var className = Node.prototype.getClassName.call(obj), children = obj.children, no, len, n;
     if (container) {
       obj.attrs.container = container;
     }
-    if (!Global_1$m.Konva[className2]) {
-      Util_1$c.Util.warn('Can not find a node with class name "' + className2 + '". Fallback to "Shape".');
-      className2 = "Shape";
+    if (!Global_1$m.Konva[className]) {
+      Util_1$c.Util.warn('Can not find a node with class name "' + className + '". Fallback to "Shape".');
+      className = "Shape";
     }
-    const Class = Global_1$m.Konva[className2];
+    const Class = Global_1$m.Konva[className];
     no = new Class(obj.attrs);
-    if (children2) {
-      len = children2.length;
+    if (children) {
+      len = children.length;
       for (n = 0; n < len; n++) {
-        no.add(Node._createNode(children2[n]));
+        no.add(Node._createNode(children[n]));
       }
     }
     return no;
@@ -15320,9 +15320,9 @@ class Container extends Node_1$h.Node {
     if (!filterFunc) {
       return this.children || [];
     }
-    const children2 = this.children || [];
+    const children = this.children || [];
     var results = [];
-    children2.forEach(function(child) {
+    children.forEach(function(child) {
       if (filterFunc(child)) {
         results.push(child);
       }
@@ -15352,17 +15352,17 @@ class Container extends Node_1$h.Node {
     this._requestDraw();
     return this;
   }
-  add(...children2) {
-    if (children2.length === 0) {
+  add(...children) {
+    if (children.length === 0) {
       return this;
     }
-    if (children2.length > 1) {
-      for (var i = 0; i < children2.length; i++) {
-        this.add(children2[i]);
+    if (children.length > 1) {
+      for (var i = 0; i < children.length; i++) {
+        this.add(children[i]);
       }
       return this;
     }
-    const child = children2[0];
+    const child = children[0];
     if (child.getParent()) {
       child.moveTo(this);
       return this;
@@ -15408,8 +15408,8 @@ class Container extends Node_1$h.Node {
   }
   _descendants(fn) {
     let shouldStop = false;
-    const children2 = this.getChildren();
-    for (const child of children2) {
+    const children = this.getChildren();
+    for (const child of children) {
       shouldStop = fn(child);
       if (shouldStop) {
         return true;
@@ -15758,11 +15758,11 @@ PointerEvents.releaseCapture = releaseCapture;
       return EVENTS_MAP.mouse;
     }
   };
-  function checkNoClip(attrs2 = {}) {
-    if (attrs2.clipFunc || attrs2.clipWidth || attrs2.clipHeight) {
+  function checkNoClip(attrs = {}) {
+    if (attrs.clipFunc || attrs.clipWidth || attrs.clipHeight) {
       Util_12.Util.warn("Stage does not support clipping. Please use clip for Layers or Groups.");
     }
-    return attrs2;
+    return attrs;
   }
   const NO_POINTERS_MESSAGE = `Pointer position is missing and not registered by the stage. Looks like it is outside of the stage container. You can set it manually from event: stage.setPointersPositions(event);`;
   exports2.stages = [];
@@ -15799,8 +15799,8 @@ PointerEvents.releaseCapture = releaseCapture;
     setContainer(container) {
       if (typeof container === STRING) {
         if (container.charAt(0) === ".") {
-          var className2 = container.slice(1);
-          container = document.getElementsByClassName(className2)[0];
+          var className = container.slice(1);
+          container = document.getElementsByClassName(className)[0];
         } else {
           var id;
           if (container.charAt(0) !== "#") {
@@ -16944,10 +16944,10 @@ class Layer extends Container_1$1.Container {
     if (Node_1$g.Node.prototype.moveDown.call(this)) {
       var stage = this.getStage();
       if (stage) {
-        var children2 = stage.children;
+        var children = stage.children;
         if (stage.content) {
           stage.content.removeChild(this.getNativeCanvasElement());
-          stage.content.insertBefore(this.getNativeCanvasElement(), children2[this.index + 1].getCanvas()._canvas);
+          stage.content.insertBefore(this.getNativeCanvasElement(), children[this.index + 1].getCanvas()._canvas);
         }
       }
       return true;
@@ -16958,10 +16958,10 @@ class Layer extends Container_1$1.Container {
     if (Node_1$g.Node.prototype.moveToBottom.call(this)) {
       var stage = this.getStage();
       if (stage) {
-        var children2 = stage.children;
+        var children = stage.children;
         if (stage.content) {
           stage.content.removeChild(this.getNativeCanvasElement());
-          stage.content.insertBefore(this.getNativeCanvasElement(), children2[1].getCanvas()._canvas);
+          stage.content.insertBefore(this.getNativeCanvasElement(), children[1].getCanvas()._canvas);
         }
       }
       return true;
@@ -17158,8 +17158,8 @@ const Util_1$a = Util;
 const Layer_1 = Layer$1;
 const Global_1$j = Global;
 class FastLayer extends Layer_1.Layer {
-  constructor(attrs2) {
-    super(attrs2);
+  constructor(attrs) {
+    super(attrs);
     this.listening(false);
     Util_1$a.Util.warn('Konva.Fast layer is deprecated. Please use "new Konva.Layer({ listening: false })" instead.');
   }
@@ -17556,9 +17556,9 @@ var Tween = {};
       Tween2.tweens[nodeId][key] = this._id;
     }
     _tweenFunc(i) {
-      var node2 = this.node, attrs2 = Tween2.attrs[node2._id][this._id], key, attr, start, diff, newVal, n, len, end;
-      for (key in attrs2) {
-        attr = attrs2[key];
+      var node2 = this.node, attrs = Tween2.attrs[node2._id][this._id], key, attr, start, diff, newVal, n, len, end;
+      for (key in attrs) {
+        attr = attrs[key];
         start = attr.start;
         diff = attr.diff;
         end = attr.end;
@@ -17598,9 +17598,9 @@ var Tween = {};
       };
       this.tween.onFinish = () => {
         var node2 = this.node;
-        var attrs2 = Tween2.attrs[node2._id][this._id];
-        if (attrs2.points && attrs2.points.trueEnd) {
-          node2.setAttr("points", attrs2.points.trueEnd);
+        var attrs = Tween2.attrs[node2._id][this._id];
+        if (attrs.points && attrs.points.trueEnd) {
+          node2.setAttr("points", attrs.points.trueEnd);
         }
         if (this.onFinish) {
           this.onFinish.call(this);
@@ -17608,9 +17608,9 @@ var Tween = {};
       };
       this.tween.onReset = () => {
         var node2 = this.node;
-        var attrs2 = Tween2.attrs[node2._id][this._id];
-        if (attrs2.points && attrs2.points.trueStart) {
-          node2.points(attrs2.points.trueStart);
+        var attrs = Tween2.attrs[node2._id][this._id];
+        if (attrs.points && attrs.points.trueStart) {
+          node2.points(attrs.points.trueStart);
         }
         if (this.onReset) {
           this.onReset();
@@ -17647,9 +17647,9 @@ var Tween = {};
       return this;
     }
     destroy() {
-      var nodeId = this.node._id, thisId = this._id, attrs2 = Tween2.tweens[nodeId], key;
+      var nodeId = this.node._id, thisId = this._id, attrs = Tween2.tweens[nodeId], key;
       this.pause();
-      for (key in attrs2) {
+      for (key in attrs) {
         delete Tween2.tweens[nodeId][key];
       }
       delete Tween2.attrs[nodeId][thisId];
@@ -19646,8 +19646,8 @@ const Shape_1$a = Shape;
 const Global_1$a = Global;
 const Validators_1$p = Validators;
 let Image$1 = class Image2 extends Shape_1$a.Shape {
-  constructor(attrs2) {
-    super(attrs2);
+  constructor(attrs) {
+    super(attrs);
     this.on("imageChange.konva", () => {
       this._setImageLoad();
     });
@@ -21224,9 +21224,9 @@ class Transformer extends Group_1.Group {
   }
   _handleMouseDown(e) {
     this._movingAnchorName = e.target.name().split(" ")[0];
-    var attrs2 = this._getNodeRect();
-    var width = attrs2.width;
-    var height = attrs2.height;
+    var attrs = this._getNodeRect();
+    var width = attrs.width;
+    var height = attrs.height;
     var hypotenuse = Math.sqrt(Math.pow(width, 2) + Math.pow(height, 2));
     this.sin = Math.abs(height / hypotenuse);
     this.cos = Math.abs(width / hypotenuse);
@@ -21269,19 +21269,19 @@ class Transformer extends Group_1.Group {
       return;
     }
     if (this._movingAnchorName === "rotater") {
-      var attrs2 = this._getNodeRect();
-      x = anchorNode.x() - attrs2.width / 2;
-      y = -anchorNode.y() + attrs2.height / 2;
+      var attrs = this._getNodeRect();
+      x = anchorNode.x() - attrs.width / 2;
+      y = -anchorNode.y() + attrs.height / 2;
       let delta = Math.atan2(-y, x) + Math.PI / 2;
-      if (attrs2.height < 0) {
+      if (attrs.height < 0) {
         delta -= Math.PI;
       }
       var oldRotation = Global_1$1.Konva.getAngle(this.rotation());
       const newRotation = oldRotation + delta;
       const tol = Global_1$1.Konva.getAngle(this.rotationSnapTolerance());
       const snappedRot = getSnap(this.rotationSnaps(), newRotation, tol);
-      const diff = snappedRot - attrs2.rotation;
-      const shape = rotateAroundCenter(attrs2, diff);
+      const diff = snappedRot - attrs.rotation;
+      const shape = rotateAroundCenter(attrs, diff);
       this._fitNodesInto(shape, e);
       return;
     }
@@ -21529,8 +21529,8 @@ class Transformer extends Group_1.Group {
       localTransform.translate(node2.offsetX(), node2.offsetY());
       const newLocalTransform = new Util_1$3.Transform();
       newLocalTransform.multiply(parentTransform.copy().invert()).multiply(delta).multiply(parentTransform).multiply(localTransform);
-      const attrs2 = newLocalTransform.decompose();
-      node2.setAttrs(attrs2);
+      const attrs = newLocalTransform.decompose();
+      node2.setAttrs(attrs);
       (_a = node2.getLayer()) === null || _a === void 0 ? void 0 : _a.batchDraw();
     });
     this.rotation(Util_1$3.Util._getRotation(newAttrs.rotation));
@@ -21546,16 +21546,16 @@ class Transformer extends Group_1.Group {
     this._resetTransformCache();
     this.update();
   }
-  _batchChangeChild(selector, attrs2) {
+  _batchChangeChild(selector, attrs) {
     const anchor = this.findOne(selector);
-    anchor.setAttrs(attrs2);
+    anchor.setAttrs(attrs);
   }
   update() {
     var _a;
-    var attrs2 = this._getNodeRect();
-    this.rotation(Util_1$3.Util._getRotation(attrs2.rotation));
-    var width = attrs2.width;
-    var height = attrs2.height;
+    var attrs = this._getNodeRect();
+    this.rotation(Util_1$3.Util._getRotation(attrs.rotation));
+    var width = attrs.width;
+    var height = attrs.height;
     var enabledAnchors = this.enabledAnchors();
     var resizeEnabled = this.resizeEnabled();
     var padding = this.padding();
@@ -32814,10 +32814,10 @@ class ImportExportTool {
       fill: bgColor
     });
     bgLayer.add(bg);
-    const children2 = copy.getChildren();
+    const children = copy.getChildren();
     copy.removeChildren();
     copy.add(bgLayer);
-    copy.add(children2[0], ...children2.slice(1));
+    copy.add(children[0], ...children.slice(1));
     return copy.toDataURL({ pixelRatio });
   }
   // blob to base64 url
@@ -33308,3736 +33308,6 @@ class Render {
     return node2.name() === "link-anchor" || node2.name() === "linking-line" || node2.name() === "link-point" || node2.name() === "link-line";
   }
 }
-const attrs = {
-  width: 1920,
-  height: 1103
-};
-const className = "Stage";
-const children = [
-  {
-    attrs: {},
-    className: "Layer",
-    children: [
-      {
-        attrs: {
-          id: "oIpIS-IINvePTwIFpuvK0",
-          width: 64,
-          height: 64,
-          name: "asset",
-          x: 60,
-          y: 60,
-          points: [
-            {
-              x: 0,
-              y: 32,
-              id: "KaJaoOB1g_q5ORVN6yV3v",
-              groupId: "oIpIS-IINvePTwIFpuvK0",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 64,
-              y: 32,
-              id: "1MsSjh0xYxLVhdCXYBvu9",
-              groupId: "oIpIS-IINvePTwIFpuvK0",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 0,
-              id: "p07wQIwHo6GG03Nc89mll",
-              groupId: "oIpIS-IINvePTwIFpuvK0",
-              visible: false,
-              pairs: [
-                {
-                  id: "cURFAEX2T4y_oSmVltHcP",
-                  from: {
-                    groupId: "oIpIS-IINvePTwIFpuvK0",
-                    pointId: "p07wQIwHo6GG03Nc89mll"
-                  },
-                  to: {
-                    groupId: "5e5DmikGQjxJla3lSFCg9",
-                    pointId: "nfb5KnxgglClCvq65DjKA"
-                  }
-                }
-              ]
-            },
-            {
-              x: 32,
-              y: 64,
-              id: "utB4ZTcic0UHLvhRCFPSp",
-              groupId: "oIpIS-IINvePTwIFpuvK0",
-              visible: false,
-              pairs: []
-            }
-          ],
-          selected: false
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              src: "/src/assets/img/png/2.png"
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "KaJaoOB1g_q5ORVN6yV3v",
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "1MsSjh0xYxLVhdCXYBvu9",
-              x: 64,
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "p07wQIwHo6GG03Nc89mll",
-              x: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "utB4ZTcic0UHLvhRCFPSp",
-              x: 32,
-              y: 64,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 64,
-              height: 64,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
-      },
-      {
-        attrs: {
-          id: "5e5DmikGQjxJla3lSFCg9",
-          width: 64,
-          height: 64,
-          name: "asset",
-          x: 220,
-          y: 80,
-          points: [
-            {
-              x: 0,
-              y: 32,
-              id: "Pc9YbXwg4I6sRlbBuuqE0",
-              groupId: "5e5DmikGQjxJla3lSFCg9",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 64,
-              y: 32,
-              id: "Uj3o3he5Gg_ve7mSj5cHP",
-              groupId: "5e5DmikGQjxJla3lSFCg9",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 0,
-              id: "nfb5KnxgglClCvq65DjKA",
-              groupId: "5e5DmikGQjxJla3lSFCg9",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 64,
-              id: "wWo2gKJuaRljoYPM5eWTZ",
-              groupId: "5e5DmikGQjxJla3lSFCg9",
-              visible: false,
-              pairs: []
-            }
-          ],
-          selected: false
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              src: "/src/assets/img/png/2.png"
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "Pc9YbXwg4I6sRlbBuuqE0",
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "Uj3o3he5Gg_ve7mSj5cHP",
-              x: 64,
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "nfb5KnxgglClCvq65DjKA",
-              x: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "wWo2gKJuaRljoYPM5eWTZ",
-              x: 32,
-              y: 64,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 64,
-              height: 64,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
-      },
-      {
-        attrs: {
-          id: "V0HpFv-tqbo7FFDmDQ6wK",
-          width: 64,
-          height: 64,
-          name: "asset",
-          x: 400,
-          y: 60,
-          points: [
-            {
-              x: 0,
-              y: 32,
-              id: "nQjUW4wLRyg3-P5lf9gMx",
-              groupId: "V0HpFv-tqbo7FFDmDQ6wK",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 64,
-              y: 32,
-              id: "uskG8txy6sekeeOSZPokT",
-              groupId: "V0HpFv-tqbo7FFDmDQ6wK",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 0,
-              id: "xuIiI_DTwYoDROM06TD2o",
-              groupId: "V0HpFv-tqbo7FFDmDQ6wK",
-              visible: false,
-              pairs: [
-                {
-                  id: "OdrxfXmnrN_ICI2qc21oX",
-                  from: {
-                    groupId: "V0HpFv-tqbo7FFDmDQ6wK",
-                    pointId: "xuIiI_DTwYoDROM06TD2o"
-                  },
-                  to: {
-                    groupId: "kWgodfQW5QXVOEswTOEtD",
-                    pointId: "6WBRyQ7Ax9T94lrogL7WF"
-                  }
-                }
-              ]
-            },
-            {
-              x: 32,
-              y: 64,
-              id: "jMsFT2vwe0KhPIR5PtTCY",
-              groupId: "V0HpFv-tqbo7FFDmDQ6wK",
-              visible: false,
-              pairs: []
-            }
-          ],
-          selected: false
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              src: "/src/assets/img/png/2.png"
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "nQjUW4wLRyg3-P5lf9gMx",
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "uskG8txy6sekeeOSZPokT",
-              x: 64,
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "xuIiI_DTwYoDROM06TD2o",
-              x: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "jMsFT2vwe0KhPIR5PtTCY",
-              x: 32,
-              y: 64,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 64,
-              height: 64,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
-      },
-      {
-        attrs: {
-          id: "kWgodfQW5QXVOEswTOEtD",
-          width: 64,
-          height: 64,
-          name: "asset",
-          x: 560,
-          y: 80,
-          points: [
-            {
-              x: 0,
-              y: 32,
-              id: "hvr6NPDLiCVIAatqjsR9d",
-              groupId: "kWgodfQW5QXVOEswTOEtD",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 64,
-              y: 32,
-              id: "6WBRyQ7Ax9T94lrogL7WF",
-              groupId: "kWgodfQW5QXVOEswTOEtD",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 0,
-              id: "Z81rCG3qox6x4e1ZUkU76",
-              groupId: "kWgodfQW5QXVOEswTOEtD",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 64,
-              id: "Xh8jD4O40A2xo-HQJTYnu",
-              groupId: "kWgodfQW5QXVOEswTOEtD",
-              visible: false,
-              pairs: []
-            }
-          ],
-          selected: false
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              src: "/src/assets/img/png/2.png"
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "hvr6NPDLiCVIAatqjsR9d",
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "6WBRyQ7Ax9T94lrogL7WF",
-              x: 64,
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "Z81rCG3qox6x4e1ZUkU76",
-              x: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "Xh8jD4O40A2xo-HQJTYnu",
-              x: 32,
-              y: 64,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 64,
-              height: 64,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
-      },
-      {
-        attrs: {
-          id: "pQdXxfuscwQgVhwA57uFH",
-          width: 64,
-          height: 64,
-          name: "asset",
-          x: 740,
-          y: 60,
-          points: [
-            {
-              x: 0,
-              y: 32,
-              id: "EqQ9ENaNKFMshy9Igjvgu",
-              groupId: "pQdXxfuscwQgVhwA57uFH",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 64,
-              y: 32,
-              id: "2bwwtBpqGBJ_ePucXZWV_",
-              groupId: "pQdXxfuscwQgVhwA57uFH",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 0,
-              id: "MuT8ubSwDU37hEy9a_lhi",
-              groupId: "pQdXxfuscwQgVhwA57uFH",
-              visible: false,
-              pairs: [
-                {
-                  id: "N2ssIX2FSZ8q3TkPfC-Te",
-                  from: {
-                    groupId: "pQdXxfuscwQgVhwA57uFH",
-                    pointId: "MuT8ubSwDU37hEy9a_lhi"
-                  },
-                  to: {
-                    groupId: "dwPCcMQ3zGi4l4rDuW6yY",
-                    pointId: "QHpfFvzzYIplSuD1eI9CK"
-                  }
-                }
-              ]
-            },
-            {
-              x: 32,
-              y: 64,
-              id: "gaBrhEKuavpObF5jJXPWh",
-              groupId: "pQdXxfuscwQgVhwA57uFH",
-              visible: false,
-              pairs: []
-            }
-          ],
-          selected: false
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              src: "/src/assets/img/png/2.png"
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "EqQ9ENaNKFMshy9Igjvgu",
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "2bwwtBpqGBJ_ePucXZWV_",
-              x: 64,
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "MuT8ubSwDU37hEy9a_lhi",
-              x: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "gaBrhEKuavpObF5jJXPWh",
-              x: 32,
-              y: 64,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 64,
-              height: 64,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
-      },
-      {
-        attrs: {
-          id: "dwPCcMQ3zGi4l4rDuW6yY",
-          width: 64,
-          height: 64,
-          name: "asset",
-          x: 900,
-          y: 80,
-          points: [
-            {
-              x: 0,
-              y: 32,
-              id: "rAPgMouwLiw6GMEFn_sYF",
-              groupId: "dwPCcMQ3zGi4l4rDuW6yY",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 64,
-              y: 32,
-              id: "VXOmnSOWo5hmT2WTAVFNJ",
-              groupId: "dwPCcMQ3zGi4l4rDuW6yY",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 0,
-              id: "5FhzxxcLcvKd_ZAPqaBCV",
-              groupId: "dwPCcMQ3zGi4l4rDuW6yY",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 64,
-              id: "QHpfFvzzYIplSuD1eI9CK",
-              groupId: "dwPCcMQ3zGi4l4rDuW6yY",
-              visible: false,
-              pairs: []
-            }
-          ],
-          selected: false
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              src: "/src/assets/img/png/2.png"
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "rAPgMouwLiw6GMEFn_sYF",
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "VXOmnSOWo5hmT2WTAVFNJ",
-              x: 64,
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "5FhzxxcLcvKd_ZAPqaBCV",
-              x: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "QHpfFvzzYIplSuD1eI9CK",
-              x: 32,
-              y: 64,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 64,
-              height: 64,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
-      },
-      {
-        attrs: {
-          id: "p9PjvU75LdJQ-UzFTp3a2",
-          width: 64,
-          height: 64,
-          name: "asset",
-          x: 1080,
-          y: 60,
-          points: [
-            {
-              x: 0,
-              y: 32,
-              id: "PWhsPFYlvCGrbg1kJK2V6",
-              groupId: "p9PjvU75LdJQ-UzFTp3a2",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 64,
-              y: 32,
-              id: "jnRnMHFRW_FUedAHBxdUa",
-              groupId: "p9PjvU75LdJQ-UzFTp3a2",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 0,
-              id: "_-2Sq9M_0hG_ILA9RbK5_",
-              groupId: "p9PjvU75LdJQ-UzFTp3a2",
-              visible: false,
-              pairs: [
-                {
-                  id: "5FyRXGhLXyDWvyK3QgOj_",
-                  from: {
-                    groupId: "p9PjvU75LdJQ-UzFTp3a2",
-                    pointId: "_-2Sq9M_0hG_ILA9RbK5_"
-                  },
-                  to: {
-                    groupId: "7M4GYHnBQ15UqsLqTNn88",
-                    pointId: "V1UyWgZ9WPRTwGPaclbQR"
-                  }
-                }
-              ]
-            },
-            {
-              x: 32,
-              y: 64,
-              id: "ASw0hCLgm--3uzUC_cmQO",
-              groupId: "p9PjvU75LdJQ-UzFTp3a2",
-              visible: false,
-              pairs: []
-            }
-          ],
-          selected: false
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              src: "/src/assets/img/png/2.png"
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "PWhsPFYlvCGrbg1kJK2V6",
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "jnRnMHFRW_FUedAHBxdUa",
-              x: 64,
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "_-2Sq9M_0hG_ILA9RbK5_",
-              x: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "ASw0hCLgm--3uzUC_cmQO",
-              x: 32,
-              y: 64,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 64,
-              height: 64,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
-      },
-      {
-        attrs: {
-          id: "7M4GYHnBQ15UqsLqTNn88",
-          width: 64,
-          height: 64,
-          name: "asset",
-          x: 1240,
-          y: 80,
-          points: [
-            {
-              x: 0,
-              y: 32,
-              id: "V1UyWgZ9WPRTwGPaclbQR",
-              groupId: "7M4GYHnBQ15UqsLqTNn88",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 64,
-              y: 32,
-              id: "dY_SBZlvnA4ID23t8hzeF",
-              groupId: "7M4GYHnBQ15UqsLqTNn88",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 0,
-              id: "I9ScavRmqxXSEpgshY4FW",
-              groupId: "7M4GYHnBQ15UqsLqTNn88",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 64,
-              id: "se0ECIDLD8xe4zyLObsrO",
-              groupId: "7M4GYHnBQ15UqsLqTNn88",
-              visible: false,
-              pairs: []
-            }
-          ],
-          selected: false
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              src: "/src/assets/img/png/2.png"
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "V1UyWgZ9WPRTwGPaclbQR",
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "dY_SBZlvnA4ID23t8hzeF",
-              x: 64,
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "I9ScavRmqxXSEpgshY4FW",
-              x: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "se0ECIDLD8xe4zyLObsrO",
-              x: 32,
-              y: 64,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 64,
-              height: 64,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
-      },
-      {
-        attrs: {
-          id: "K-qzFQCKr7EOxwAVdQPTR",
-          width: 64,
-          height: 64,
-          name: "asset",
-          x: 60,
-          y: 260,
-          points: [
-            {
-              x: 0,
-              y: 32,
-              id: "iFwYLCwS7f3lxJoWe5yjH",
-              groupId: "K-qzFQCKr7EOxwAVdQPTR",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 64,
-              y: 32,
-              id: "s9Xdd13a3XUCXBRfT3c8u",
-              groupId: "K-qzFQCKr7EOxwAVdQPTR",
-              visible: false,
-              pairs: [
-                {
-                  id: "11zM8eDFsZoQTfLIcYPPg",
-                  from: {
-                    groupId: "K-qzFQCKr7EOxwAVdQPTR",
-                    pointId: "s9Xdd13a3XUCXBRfT3c8u"
-                  },
-                  to: {
-                    groupId: "iBZY6dVn8HOVvX6HO74U1",
-                    pointId: "BskThAEhOPU_wOpXZxwlK"
-                  }
-                }
-              ]
-            },
-            {
-              x: 32,
-              y: 0,
-              id: "FNoMVeejQ4guY8X5qb6y3",
-              groupId: "K-qzFQCKr7EOxwAVdQPTR",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 64,
-              id: "5t9REI02uXl7__f7zKWUa",
-              groupId: "K-qzFQCKr7EOxwAVdQPTR",
-              visible: false,
-              pairs: []
-            }
-          ],
-          selected: false
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              src: "/src/assets/img/png/2.png"
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "iFwYLCwS7f3lxJoWe5yjH",
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "s9Xdd13a3XUCXBRfT3c8u",
-              x: 64,
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "FNoMVeejQ4guY8X5qb6y3",
-              x: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "5t9REI02uXl7__f7zKWUa",
-              x: 32,
-              y: 64,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 64,
-              height: 64,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
-      },
-      {
-        attrs: {
-          id: "iBZY6dVn8HOVvX6HO74U1",
-          width: 64,
-          height: 64,
-          name: "asset",
-          x: 220,
-          y: 280,
-          points: [
-            {
-              x: 0,
-              y: 32,
-              id: "cv8kAlmRo0Krl4mH3nurO",
-              groupId: "iBZY6dVn8HOVvX6HO74U1",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 64,
-              y: 32,
-              id: "GXBJv09sVghhbexBW28f2",
-              groupId: "iBZY6dVn8HOVvX6HO74U1",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 0,
-              id: "BskThAEhOPU_wOpXZxwlK",
-              groupId: "iBZY6dVn8HOVvX6HO74U1",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 64,
-              id: "DB2DCWoC6Y6zZwW4xdS7V",
-              groupId: "iBZY6dVn8HOVvX6HO74U1",
-              visible: false,
-              pairs: []
-            }
-          ],
-          selected: false
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              src: "/src/assets/img/png/2.png"
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "cv8kAlmRo0Krl4mH3nurO",
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "GXBJv09sVghhbexBW28f2",
-              x: 64,
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "BskThAEhOPU_wOpXZxwlK",
-              x: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "DB2DCWoC6Y6zZwW4xdS7V",
-              x: 32,
-              y: 64,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 64,
-              height: 64,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
-      },
-      {
-        attrs: {
-          id: "aV6s__CWpB-rFcNQp_fse",
-          width: 64,
-          height: 64,
-          name: "asset",
-          x: 400,
-          y: 260,
-          points: [
-            {
-              x: 0,
-              y: 32,
-              id: "VaIMfO-bqxd0eAYlDMTZS",
-              groupId: "aV6s__CWpB-rFcNQp_fse",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 64,
-              y: 32,
-              id: "2rkX6f8_gx371k6f5B4Np",
-              groupId: "aV6s__CWpB-rFcNQp_fse",
-              visible: false,
-              pairs: [
-                {
-                  id: "oN-AkCSbZ-0KSziUEDvot",
-                  from: {
-                    groupId: "aV6s__CWpB-rFcNQp_fse",
-                    pointId: "2rkX6f8_gx371k6f5B4Np"
-                  },
-                  to: {
-                    groupId: "G-0xrDeAxukgGZKmTh7BM",
-                    pointId: "5EJ5fP8_A-PnozE54FW6Y"
-                  }
-                }
-              ]
-            },
-            {
-              x: 32,
-              y: 0,
-              id: "i6nc4KNoz9ZeHxbW_yH6B",
-              groupId: "aV6s__CWpB-rFcNQp_fse",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 64,
-              id: "vB8-4CUp0RRvwskgYCt4l",
-              groupId: "aV6s__CWpB-rFcNQp_fse",
-              visible: false,
-              pairs: []
-            }
-          ],
-          selected: false
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              src: "/src/assets/img/png/2.png"
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "VaIMfO-bqxd0eAYlDMTZS",
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "2rkX6f8_gx371k6f5B4Np",
-              x: 64,
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "i6nc4KNoz9ZeHxbW_yH6B",
-              x: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "vB8-4CUp0RRvwskgYCt4l",
-              x: 32,
-              y: 64,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 64,
-              height: 64,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
-      },
-      {
-        attrs: {
-          id: "G-0xrDeAxukgGZKmTh7BM",
-          width: 64,
-          height: 64,
-          name: "asset",
-          x: 560,
-          y: 280,
-          points: [
-            {
-              x: 0,
-              y: 32,
-              id: "buQiryuvaKa3LWxq0t2R8",
-              groupId: "G-0xrDeAxukgGZKmTh7BM",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 64,
-              y: 32,
-              id: "5EJ5fP8_A-PnozE54FW6Y",
-              groupId: "G-0xrDeAxukgGZKmTh7BM",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 0,
-              id: "rFotLgSdY9kH12RLOXm5T",
-              groupId: "G-0xrDeAxukgGZKmTh7BM",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 64,
-              id: "8vTY2PQYsIWrwMYBUgptL",
-              groupId: "G-0xrDeAxukgGZKmTh7BM",
-              visible: false,
-              pairs: []
-            }
-          ],
-          selected: false
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              src: "/src/assets/img/png/2.png"
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "buQiryuvaKa3LWxq0t2R8",
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "5EJ5fP8_A-PnozE54FW6Y",
-              x: 64,
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "rFotLgSdY9kH12RLOXm5T",
-              x: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "8vTY2PQYsIWrwMYBUgptL",
-              x: 32,
-              y: 64,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 64,
-              height: 64,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
-      },
-      {
-        attrs: {
-          id: "WNuFRVd1icIEHTGBmxlfz",
-          width: 64,
-          height: 64,
-          name: "asset",
-          x: 740,
-          y: 260,
-          points: [
-            {
-              x: 0,
-              y: 32,
-              id: "-0hKAw7E_RuL16v1Y_wFc",
-              groupId: "WNuFRVd1icIEHTGBmxlfz",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 64,
-              y: 32,
-              id: "p4iD4Lh4af2xbaAkcYjWh",
-              groupId: "WNuFRVd1icIEHTGBmxlfz",
-              visible: false,
-              pairs: [
-                {
-                  id: "9PK1u2HoRSDhNmBNwzurw",
-                  from: {
-                    groupId: "WNuFRVd1icIEHTGBmxlfz",
-                    pointId: "p4iD4Lh4af2xbaAkcYjWh"
-                  },
-                  to: {
-                    groupId: "vmrJdaOEnm90oJETHsqar",
-                    pointId: "P75QzvVVvIdwd5ehhL9d5"
-                  }
-                }
-              ]
-            },
-            {
-              x: 32,
-              y: 0,
-              id: "-6ks7045At1QMMSFxJN13",
-              groupId: "WNuFRVd1icIEHTGBmxlfz",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 64,
-              id: "h8SJWB3CUnjp3bVKZ-DTv",
-              groupId: "WNuFRVd1icIEHTGBmxlfz",
-              visible: false,
-              pairs: []
-            }
-          ],
-          selected: false
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              src: "/src/assets/img/png/2.png"
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "-0hKAw7E_RuL16v1Y_wFc",
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "p4iD4Lh4af2xbaAkcYjWh",
-              x: 64,
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "-6ks7045At1QMMSFxJN13",
-              x: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "h8SJWB3CUnjp3bVKZ-DTv",
-              x: 32,
-              y: 64,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 64,
-              height: 64,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
-      },
-      {
-        attrs: {
-          id: "vmrJdaOEnm90oJETHsqar",
-          width: 64,
-          height: 64,
-          name: "asset",
-          x: 900,
-          y: 280,
-          points: [
-            {
-              x: 0,
-              y: 32,
-              id: "AxFH_Wykrfb4nqi8q3G_R",
-              groupId: "vmrJdaOEnm90oJETHsqar",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 64,
-              y: 32,
-              id: "Fvjdans5oxIWAp23L1-Qi",
-              groupId: "vmrJdaOEnm90oJETHsqar",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 0,
-              id: "6PWDIRDAgyZrwxk8t63DJ",
-              groupId: "vmrJdaOEnm90oJETHsqar",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 64,
-              id: "P75QzvVVvIdwd5ehhL9d5",
-              groupId: "vmrJdaOEnm90oJETHsqar",
-              visible: false,
-              pairs: []
-            }
-          ],
-          selected: false
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              src: "/src/assets/img/png/2.png"
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "AxFH_Wykrfb4nqi8q3G_R",
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "Fvjdans5oxIWAp23L1-Qi",
-              x: 64,
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "6PWDIRDAgyZrwxk8t63DJ",
-              x: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "P75QzvVVvIdwd5ehhL9d5",
-              x: 32,
-              y: 64,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 64,
-              height: 64,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
-      },
-      {
-        attrs: {
-          id: "H4CIEqTrrsG0FIjvevH9M",
-          width: 64,
-          height: 64,
-          name: "asset",
-          x: 1080,
-          y: 260,
-          points: [
-            {
-              x: 0,
-              y: 32,
-              id: "y8dzKNw5HOpcmflToNto2",
-              groupId: "H4CIEqTrrsG0FIjvevH9M",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 64,
-              y: 32,
-              id: "xMHo36hFq0pLXh_Ygv0Ii",
-              groupId: "H4CIEqTrrsG0FIjvevH9M",
-              visible: false,
-              pairs: [
-                {
-                  id: "mvrmoBXluqAw3T0zoGnFo",
-                  from: {
-                    groupId: "H4CIEqTrrsG0FIjvevH9M",
-                    pointId: "xMHo36hFq0pLXh_Ygv0Ii"
-                  },
-                  to: {
-                    groupId: "zwsTBgkFPNPB7g_I1wlMt",
-                    pointId: "dl9gxunE-vZUF5m0Q04aF"
-                  }
-                }
-              ]
-            },
-            {
-              x: 32,
-              y: 0,
-              id: "k9qaoiXGfdmKSdI1t6cBS",
-              groupId: "H4CIEqTrrsG0FIjvevH9M",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 64,
-              id: "2dbfF1CVWFlt0K4zdjnO8",
-              groupId: "H4CIEqTrrsG0FIjvevH9M",
-              visible: false,
-              pairs: []
-            }
-          ],
-          selected: false
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              src: "/src/assets/img/png/2.png"
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "y8dzKNw5HOpcmflToNto2",
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "xMHo36hFq0pLXh_Ygv0Ii",
-              x: 64,
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "k9qaoiXGfdmKSdI1t6cBS",
-              x: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "2dbfF1CVWFlt0K4zdjnO8",
-              x: 32,
-              y: 64,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 64,
-              height: 64,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
-      },
-      {
-        attrs: {
-          id: "zwsTBgkFPNPB7g_I1wlMt",
-          width: 64,
-          height: 64,
-          name: "asset",
-          x: 1240,
-          y: 280,
-          points: [
-            {
-              x: 0,
-              y: 32,
-              id: "dl9gxunE-vZUF5m0Q04aF",
-              groupId: "zwsTBgkFPNPB7g_I1wlMt",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 64,
-              y: 32,
-              id: "fwfKUREpJ5KKPrutieuky",
-              groupId: "zwsTBgkFPNPB7g_I1wlMt",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 0,
-              id: "B3S6GMIaaCcaBlTTLokoO",
-              groupId: "zwsTBgkFPNPB7g_I1wlMt",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 64,
-              id: "cSv8pV1eyyjYcMEyiLvts",
-              groupId: "zwsTBgkFPNPB7g_I1wlMt",
-              visible: false,
-              pairs: []
-            }
-          ],
-          selected: false
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              src: "/src/assets/img/png/2.png"
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "dl9gxunE-vZUF5m0Q04aF",
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "fwfKUREpJ5KKPrutieuky",
-              x: 64,
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "B3S6GMIaaCcaBlTTLokoO",
-              x: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "cSv8pV1eyyjYcMEyiLvts",
-              x: 32,
-              y: 64,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 64,
-              height: 64,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
-      },
-      {
-        attrs: {
-          id: "4XrfNrJl3-3Kwi6IUtiv5",
-          width: 64,
-          height: 64,
-          name: "asset",
-          x: 60,
-          y: 460,
-          points: [
-            {
-              x: 0,
-              y: 32,
-              id: "rYKzcrSTpotgn_xzFe_Y7",
-              groupId: "4XrfNrJl3-3Kwi6IUtiv5",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 64,
-              y: 32,
-              id: "ri7e7j6rGmZsEqLQ_Oaun",
-              groupId: "4XrfNrJl3-3Kwi6IUtiv5",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 0,
-              id: "LGAnQxTfQiiyA0KHBf7F7",
-              groupId: "4XrfNrJl3-3Kwi6IUtiv5",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 64,
-              id: "Wm_4729iJuBch6HYrSv8f",
-              groupId: "4XrfNrJl3-3Kwi6IUtiv5",
-              visible: false,
-              pairs: [
-                {
-                  id: "2dBG3C2lSk6yAsu6l6IlE",
-                  from: {
-                    groupId: "4XrfNrJl3-3Kwi6IUtiv5",
-                    pointId: "Wm_4729iJuBch6HYrSv8f"
-                  },
-                  to: {
-                    groupId: "bvm7v0xRIyPCiXn2qTE5J",
-                    pointId: "kR2-VZERYlDqQ9onRIZCj"
-                  }
-                }
-              ]
-            }
-          ],
-          selected: false
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              src: "/src/assets/img/png/2.png"
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "rYKzcrSTpotgn_xzFe_Y7",
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "ri7e7j6rGmZsEqLQ_Oaun",
-              x: 64,
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "LGAnQxTfQiiyA0KHBf7F7",
-              x: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "Wm_4729iJuBch6HYrSv8f",
-              x: 32,
-              y: 64,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 64,
-              height: 64,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
-      },
-      {
-        attrs: {
-          id: "bvm7v0xRIyPCiXn2qTE5J",
-          width: 64,
-          height: 64,
-          name: "asset",
-          x: 220,
-          y: 480,
-          points: [
-            {
-              x: 0,
-              y: 32,
-              id: "Ev7ZdmxL7vBYWciUertTF",
-              groupId: "bvm7v0xRIyPCiXn2qTE5J",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 64,
-              y: 32,
-              id: "YyXZzlE7iAJOIcm3_teEs",
-              groupId: "bvm7v0xRIyPCiXn2qTE5J",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 0,
-              id: "kR2-VZERYlDqQ9onRIZCj",
-              groupId: "bvm7v0xRIyPCiXn2qTE5J",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 64,
-              id: "szvyC9HMoakEg9JIrJwiA",
-              groupId: "bvm7v0xRIyPCiXn2qTE5J",
-              visible: false,
-              pairs: []
-            }
-          ],
-          selected: false
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              src: "/src/assets/img/png/2.png"
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "Ev7ZdmxL7vBYWciUertTF",
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "YyXZzlE7iAJOIcm3_teEs",
-              x: 64,
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "kR2-VZERYlDqQ9onRIZCj",
-              x: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "szvyC9HMoakEg9JIrJwiA",
-              x: 32,
-              y: 64,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 64,
-              height: 64,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
-      },
-      {
-        attrs: {
-          id: "HM4hPrY0vS4iGuig0dI14",
-          width: 64,
-          height: 64,
-          name: "asset",
-          x: 60,
-          y: 660,
-          points: [
-            {
-              x: 0,
-              y: 32,
-              id: "qXlE0rlL0y5Ha-O4jOddc",
-              groupId: "HM4hPrY0vS4iGuig0dI14",
-              visible: false,
-              pairs: [
-                {
-                  id: "pd8qq81V5fG_dsWYn_uPa",
-                  from: {
-                    groupId: "HM4hPrY0vS4iGuig0dI14",
-                    pointId: "qXlE0rlL0y5Ha-O4jOddc"
-                  },
-                  to: {
-                    groupId: "8VKCV386uD5fYpdFAmh1F",
-                    pointId: "uI0o0SOskd1NqZ8J51-Kc"
-                  }
-                }
-              ]
-            },
-            {
-              x: 64,
-              y: 32,
-              id: "I4BKnruvodBSnyEZsIZuR",
-              groupId: "HM4hPrY0vS4iGuig0dI14",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 0,
-              id: "uXL6QDc226Y6EJf3ZczJI",
-              groupId: "HM4hPrY0vS4iGuig0dI14",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 64,
-              id: "9W51T5yiFEOak7zvkXIZn",
-              groupId: "HM4hPrY0vS4iGuig0dI14",
-              visible: false,
-              pairs: []
-            }
-          ],
-          selected: false
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              src: "/src/assets/img/png/2.png"
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "qXlE0rlL0y5Ha-O4jOddc",
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "I4BKnruvodBSnyEZsIZuR",
-              x: 64,
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "uXL6QDc226Y6EJf3ZczJI",
-              x: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "9W51T5yiFEOak7zvkXIZn",
-              x: 32,
-              y: 64,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 64,
-              height: 64,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
-      },
-      {
-        attrs: {
-          id: "8VKCV386uD5fYpdFAmh1F",
-          width: 64,
-          height: 64,
-          name: "asset",
-          x: 220,
-          y: 680,
-          points: [
-            {
-              x: 0,
-              y: 32,
-              id: "wYze3FEEvdeZIGUCHeQew",
-              groupId: "8VKCV386uD5fYpdFAmh1F",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 64,
-              y: 32,
-              id: "4sDl0V-jreV-zk86XG9TO",
-              groupId: "8VKCV386uD5fYpdFAmh1F",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 0,
-              id: "uI0o0SOskd1NqZ8J51-Kc",
-              groupId: "8VKCV386uD5fYpdFAmh1F",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 64,
-              id: "nuBDr_B7-nhlxAC7ymEpN",
-              groupId: "8VKCV386uD5fYpdFAmh1F",
-              visible: false,
-              pairs: []
-            }
-          ],
-          selected: false
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              src: "/src/assets/img/png/2.png"
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "wYze3FEEvdeZIGUCHeQew",
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "4sDl0V-jreV-zk86XG9TO",
-              x: 64,
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "uI0o0SOskd1NqZ8J51-Kc",
-              x: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "nuBDr_B7-nhlxAC7ymEpN",
-              x: 32,
-              y: 64,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 64,
-              height: 64,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
-      },
-      {
-        attrs: {
-          id: "-e6kYafZTr11mqJIWAcdR",
-          width: 64,
-          height: 64,
-          name: "asset",
-          x: 400,
-          y: 460,
-          points: [
-            {
-              x: 0,
-              y: 32,
-              id: "p8kEZO_Lae__cJ8b3W7CO",
-              groupId: "-e6kYafZTr11mqJIWAcdR",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 64,
-              y: 32,
-              id: "he48lQ6w23rCFShmdcCZ4",
-              groupId: "-e6kYafZTr11mqJIWAcdR",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 0,
-              id: "xbMlTLhENLWSHaKKwHWC-",
-              groupId: "-e6kYafZTr11mqJIWAcdR",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 64,
-              id: "Rt4CLkz_WYLx73XqebrAS",
-              groupId: "-e6kYafZTr11mqJIWAcdR",
-              visible: false,
-              pairs: [
-                {
-                  id: "LtrEWXCod8dX8e7FqauLb",
-                  from: {
-                    groupId: "-e6kYafZTr11mqJIWAcdR",
-                    pointId: "Rt4CLkz_WYLx73XqebrAS"
-                  },
-                  to: {
-                    groupId: "T0ukkfh1pgJzpYd3q2uN_",
-                    pointId: "jtBFaBpu3MCpawPBzJnOP"
-                  }
-                }
-              ]
-            }
-          ],
-          selected: false
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              src: "/src/assets/img/png/2.png"
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "p8kEZO_Lae__cJ8b3W7CO",
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "he48lQ6w23rCFShmdcCZ4",
-              x: 64,
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "xbMlTLhENLWSHaKKwHWC-",
-              x: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "Rt4CLkz_WYLx73XqebrAS",
-              x: 32,
-              y: 64,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 64,
-              height: 64,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
-      },
-      {
-        attrs: {
-          id: "T0ukkfh1pgJzpYd3q2uN_",
-          width: 64,
-          height: 64,
-          name: "asset",
-          x: 560,
-          y: 480,
-          points: [
-            {
-              x: 0,
-              y: 32,
-              id: "ovHR8gPn08uoZ2HkilDj2",
-              groupId: "T0ukkfh1pgJzpYd3q2uN_",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 64,
-              y: 32,
-              id: "jtBFaBpu3MCpawPBzJnOP",
-              groupId: "T0ukkfh1pgJzpYd3q2uN_",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 0,
-              id: "Iauu_qWmNBUGm__v3Mb47",
-              groupId: "T0ukkfh1pgJzpYd3q2uN_",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 64,
-              id: "7fyTUkWSXmSGCf5cHZMr5",
-              groupId: "T0ukkfh1pgJzpYd3q2uN_",
-              visible: false,
-              pairs: []
-            }
-          ],
-          selected: false
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              src: "/src/assets/img/png/2.png"
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "ovHR8gPn08uoZ2HkilDj2",
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "jtBFaBpu3MCpawPBzJnOP",
-              x: 64,
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "Iauu_qWmNBUGm__v3Mb47",
-              x: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "7fyTUkWSXmSGCf5cHZMr5",
-              x: 32,
-              y: 64,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 64,
-              height: 64,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
-      },
-      {
-        attrs: {
-          id: "lXifqeyVVG2Q-nV3t3EOs",
-          width: 64,
-          height: 64,
-          name: "asset",
-          x: 400,
-          y: 660,
-          points: [
-            {
-              x: 0,
-              y: 32,
-              id: "5h3lqdO1ItzxxQfJvF4la",
-              groupId: "lXifqeyVVG2Q-nV3t3EOs",
-              visible: false,
-              pairs: [
-                {
-                  id: "Y7nCttli19Dg7ObLI6gcA",
-                  from: {
-                    groupId: "lXifqeyVVG2Q-nV3t3EOs",
-                    pointId: "5h3lqdO1ItzxxQfJvF4la"
-                  },
-                  to: {
-                    groupId: "GhOZRIk6LFthne6I5u5F1",
-                    pointId: "ueMphYpU3VXxXpZTDjjsI"
-                  }
-                }
-              ]
-            },
-            {
-              x: 64,
-              y: 32,
-              id: "CRLlBp07hlQRpUEZF95o8",
-              groupId: "lXifqeyVVG2Q-nV3t3EOs",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 0,
-              id: "6Y9Ew5v1tacI3Sr0oQ_VS",
-              groupId: "lXifqeyVVG2Q-nV3t3EOs",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 64,
-              id: "a1iYQTM3AzAJFfR_K41v_",
-              groupId: "lXifqeyVVG2Q-nV3t3EOs",
-              visible: false,
-              pairs: []
-            }
-          ],
-          selected: false
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              src: "/src/assets/img/png/2.png"
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "5h3lqdO1ItzxxQfJvF4la",
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "CRLlBp07hlQRpUEZF95o8",
-              x: 64,
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "6Y9Ew5v1tacI3Sr0oQ_VS",
-              x: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "a1iYQTM3AzAJFfR_K41v_",
-              x: 32,
-              y: 64,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 64,
-              height: 64,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
-      },
-      {
-        attrs: {
-          id: "GhOZRIk6LFthne6I5u5F1",
-          width: 64,
-          height: 64,
-          name: "asset",
-          x: 560,
-          y: 680,
-          points: [
-            {
-              x: 0,
-              y: 32,
-              id: "u12VFtOyRZDOvHtktAT1E",
-              groupId: "GhOZRIk6LFthne6I5u5F1",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 64,
-              y: 32,
-              id: "ueMphYpU3VXxXpZTDjjsI",
-              groupId: "GhOZRIk6LFthne6I5u5F1",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 0,
-              id: "kuv3TQBCO3x8M89hGSwzb",
-              groupId: "GhOZRIk6LFthne6I5u5F1",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 64,
-              id: "J68eoaozIEWYjmBCBTg1i",
-              groupId: "GhOZRIk6LFthne6I5u5F1",
-              visible: false,
-              pairs: []
-            }
-          ],
-          selected: false
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              src: "/src/assets/img/png/2.png"
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "u12VFtOyRZDOvHtktAT1E",
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "ueMphYpU3VXxXpZTDjjsI",
-              x: 64,
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "kuv3TQBCO3x8M89hGSwzb",
-              x: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "J68eoaozIEWYjmBCBTg1i",
-              x: 32,
-              y: 64,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 64,
-              height: 64,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
-      },
-      {
-        attrs: {
-          id: "XcYreZy0d2zGaJu8GoJUU",
-          width: 64,
-          height: 64,
-          name: "asset",
-          x: 740,
-          y: 460,
-          points: [
-            {
-              x: 0,
-              y: 32,
-              id: "_uagumdUXBuPlxYf9tdsq",
-              groupId: "XcYreZy0d2zGaJu8GoJUU",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 64,
-              y: 32,
-              id: "7DIygpw5r5xVNZYUqZhV2",
-              groupId: "XcYreZy0d2zGaJu8GoJUU",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 0,
-              id: "xOEqQxajsxyryXgJanoFK",
-              groupId: "XcYreZy0d2zGaJu8GoJUU",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 64,
-              id: "ybaVp-bp3QOP6LezgNxMX",
-              groupId: "XcYreZy0d2zGaJu8GoJUU",
-              visible: false,
-              pairs: [
-                {
-                  id: "yZ4dUN7eAbeoSJKvp2Cxy",
-                  from: {
-                    groupId: "XcYreZy0d2zGaJu8GoJUU",
-                    pointId: "ybaVp-bp3QOP6LezgNxMX"
-                  },
-                  to: {
-                    groupId: "MdRm7PrD3JvtVqsxdqhMv",
-                    pointId: "EoHG-TqRANjf9THOu-Otr"
-                  }
-                }
-              ]
-            }
-          ],
-          selected: false
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              src: "/src/assets/img/png/2.png"
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "_uagumdUXBuPlxYf9tdsq",
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "7DIygpw5r5xVNZYUqZhV2",
-              x: 64,
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "xOEqQxajsxyryXgJanoFK",
-              x: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "ybaVp-bp3QOP6LezgNxMX",
-              x: 32,
-              y: 64,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 64,
-              height: 64,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
-      },
-      {
-        attrs: {
-          id: "MdRm7PrD3JvtVqsxdqhMv",
-          width: 64,
-          height: 64,
-          name: "asset",
-          x: 900,
-          y: 480,
-          points: [
-            {
-              x: 0,
-              y: 32,
-              id: "zTU1PCfEvSwrnPEzxomUm",
-              groupId: "MdRm7PrD3JvtVqsxdqhMv",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 64,
-              y: 32,
-              id: "BU34bGHpE7xcjHsJujOWX",
-              groupId: "MdRm7PrD3JvtVqsxdqhMv",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 0,
-              id: "-fnSjPaS8ptClbxUS8zD3",
-              groupId: "MdRm7PrD3JvtVqsxdqhMv",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 64,
-              id: "EoHG-TqRANjf9THOu-Otr",
-              groupId: "MdRm7PrD3JvtVqsxdqhMv",
-              visible: false,
-              pairs: []
-            }
-          ],
-          selected: false
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              src: "/src/assets/img/png/2.png"
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "zTU1PCfEvSwrnPEzxomUm",
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "BU34bGHpE7xcjHsJujOWX",
-              x: 64,
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "-fnSjPaS8ptClbxUS8zD3",
-              x: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "EoHG-TqRANjf9THOu-Otr",
-              x: 32,
-              y: 64,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 64,
-              height: 64,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
-      },
-      {
-        attrs: {
-          id: "uNU7FMJIofjGnK8VGZYZW",
-          width: 64,
-          height: 64,
-          name: "asset",
-          x: 740,
-          y: 660,
-          points: [
-            {
-              x: 0,
-              y: 32,
-              id: "_yPV4RYXLDj6B4i2T_Ndp",
-              groupId: "uNU7FMJIofjGnK8VGZYZW",
-              visible: false,
-              pairs: [
-                {
-                  id: "Y6-ed6IPX5tzN1HFIgMRz",
-                  from: {
-                    groupId: "uNU7FMJIofjGnK8VGZYZW",
-                    pointId: "_yPV4RYXLDj6B4i2T_Ndp"
-                  },
-                  to: {
-                    groupId: "1IPtzqLKsSHZlxesra6ud",
-                    pointId: "SXNHVkiWygwCW8aJ5j7XB"
-                  }
-                }
-              ]
-            },
-            {
-              x: 64,
-              y: 32,
-              id: "2Vfkfv46Ccj6XGtvDBnfr",
-              groupId: "uNU7FMJIofjGnK8VGZYZW",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 0,
-              id: "JUDQOMwEh6ISbDwPik0y1",
-              groupId: "uNU7FMJIofjGnK8VGZYZW",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 64,
-              id: "g-anx4tKYnFBQNm573rRN",
-              groupId: "uNU7FMJIofjGnK8VGZYZW",
-              visible: false,
-              pairs: []
-            }
-          ],
-          selected: false
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              src: "/src/assets/img/png/2.png"
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "_yPV4RYXLDj6B4i2T_Ndp",
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "2Vfkfv46Ccj6XGtvDBnfr",
-              x: 64,
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "JUDQOMwEh6ISbDwPik0y1",
-              x: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "g-anx4tKYnFBQNm573rRN",
-              x: 32,
-              y: 64,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 64,
-              height: 64,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
-      },
-      {
-        attrs: {
-          id: "1IPtzqLKsSHZlxesra6ud",
-          width: 64,
-          height: 64,
-          name: "asset",
-          x: 900,
-          y: 680,
-          points: [
-            {
-              x: 0,
-              y: 32,
-              id: "j8ISZ9frW9GQX2bQKJDFN",
-              groupId: "1IPtzqLKsSHZlxesra6ud",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 64,
-              y: 32,
-              id: "aPsA2Bamc6Njp84BEs4ND",
-              groupId: "1IPtzqLKsSHZlxesra6ud",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 0,
-              id: "I5Y6QM8bRXfFZtHiDuR3W",
-              groupId: "1IPtzqLKsSHZlxesra6ud",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 64,
-              id: "SXNHVkiWygwCW8aJ5j7XB",
-              groupId: "1IPtzqLKsSHZlxesra6ud",
-              visible: false,
-              pairs: []
-            }
-          ],
-          selected: false
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              src: "/src/assets/img/png/2.png"
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "j8ISZ9frW9GQX2bQKJDFN",
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "aPsA2Bamc6Njp84BEs4ND",
-              x: 64,
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "I5Y6QM8bRXfFZtHiDuR3W",
-              x: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "SXNHVkiWygwCW8aJ5j7XB",
-              x: 32,
-              y: 64,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 64,
-              height: 64,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
-      },
-      {
-        attrs: {
-          id: "7CpuB49MOBbqDRugG0Ny5",
-          width: 64,
-          height: 64,
-          name: "asset",
-          x: 1080,
-          y: 460,
-          points: [
-            {
-              x: 0,
-              y: 32,
-              id: "GCbCpdrd631ntnZV1lGYZ",
-              groupId: "7CpuB49MOBbqDRugG0Ny5",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 64,
-              y: 32,
-              id: "YVzLHE8vNOJj5rRE-auIw",
-              groupId: "7CpuB49MOBbqDRugG0Ny5",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 0,
-              id: "IaewdUPFvtIPuI_jpYZES",
-              groupId: "7CpuB49MOBbqDRugG0Ny5",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 64,
-              id: "eGeDI6eWzB5U89AReqnGe",
-              groupId: "7CpuB49MOBbqDRugG0Ny5",
-              visible: false,
-              pairs: [
-                {
-                  id: "mbb5Ok0L2azhPjT11p9j2",
-                  from: {
-                    groupId: "7CpuB49MOBbqDRugG0Ny5",
-                    pointId: "eGeDI6eWzB5U89AReqnGe"
-                  },
-                  to: {
-                    groupId: "F8Ew2YDQZsjAviO90Oc2U",
-                    pointId: "s5pwWfSgArlAT2-WnH5qU"
-                  }
-                }
-              ]
-            }
-          ],
-          selected: false
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              src: "/src/assets/img/png/2.png"
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "GCbCpdrd631ntnZV1lGYZ",
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "YVzLHE8vNOJj5rRE-auIw",
-              x: 64,
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "IaewdUPFvtIPuI_jpYZES",
-              x: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "eGeDI6eWzB5U89AReqnGe",
-              x: 32,
-              y: 64,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 64,
-              height: 64,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
-      },
-      {
-        attrs: {
-          id: "F8Ew2YDQZsjAviO90Oc2U",
-          width: 64,
-          height: 64,
-          name: "asset",
-          x: 1240,
-          y: 480,
-          points: [
-            {
-              x: 0,
-              y: 32,
-              id: "s5pwWfSgArlAT2-WnH5qU",
-              groupId: "F8Ew2YDQZsjAviO90Oc2U",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 64,
-              y: 32,
-              id: "S0p0H72tqPxBXNucfnq6h",
-              groupId: "F8Ew2YDQZsjAviO90Oc2U",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 0,
-              id: "B3xvmriAatlON2dWOrUyk",
-              groupId: "F8Ew2YDQZsjAviO90Oc2U",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 64,
-              id: "HlFTgVGPc-vTJkyDdue4f",
-              groupId: "F8Ew2YDQZsjAviO90Oc2U",
-              visible: false,
-              pairs: []
-            }
-          ],
-          selected: false
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              src: "/src/assets/img/png/2.png"
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "s5pwWfSgArlAT2-WnH5qU",
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "S0p0H72tqPxBXNucfnq6h",
-              x: 64,
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "B3xvmriAatlON2dWOrUyk",
-              x: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "HlFTgVGPc-vTJkyDdue4f",
-              x: 32,
-              y: 64,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 64,
-              height: 64,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
-      },
-      {
-        attrs: {
-          id: "j1fU9xvR627TS9pGYG84B",
-          width: 64,
-          height: 64,
-          name: "asset",
-          x: 1080,
-          y: 660,
-          points: [
-            {
-              x: 0,
-              y: 32,
-              id: "BnGEKenEpnagxDxetX6IX",
-              groupId: "j1fU9xvR627TS9pGYG84B",
-              visible: false,
-              pairs: [
-                {
-                  id: "4Tstn7x47HjjrqjD-2GxS",
-                  from: {
-                    groupId: "j1fU9xvR627TS9pGYG84B",
-                    pointId: "BnGEKenEpnagxDxetX6IX"
-                  },
-                  to: {
-                    groupId: "tPjow4LjPEBMYaZufaC5t",
-                    pointId: "UR6e8j7k5Lc4hkTEPvT_s"
-                  }
-                }
-              ]
-            },
-            {
-              x: 64,
-              y: 32,
-              id: "4e91dyUpQZOt_Z9EAa3KI",
-              groupId: "j1fU9xvR627TS9pGYG84B",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 0,
-              id: "NV7sikTGizDTxVT6scRAN",
-              groupId: "j1fU9xvR627TS9pGYG84B",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 64,
-              id: "Td6VrPkA5cXeG-sHUPuWR",
-              groupId: "j1fU9xvR627TS9pGYG84B",
-              visible: false,
-              pairs: []
-            }
-          ],
-          selected: false
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              src: "/src/assets/img/png/2.png"
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "BnGEKenEpnagxDxetX6IX",
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "4e91dyUpQZOt_Z9EAa3KI",
-              x: 64,
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "NV7sikTGizDTxVT6scRAN",
-              x: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "Td6VrPkA5cXeG-sHUPuWR",
-              x: 32,
-              y: 64,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 64,
-              height: 64,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
-      },
-      {
-        attrs: {
-          id: "tPjow4LjPEBMYaZufaC5t",
-          width: 64,
-          height: 64,
-          name: "asset",
-          x: 1240,
-          y: 680,
-          points: [
-            {
-              x: 0,
-              y: 32,
-              id: "UR6e8j7k5Lc4hkTEPvT_s",
-              groupId: "tPjow4LjPEBMYaZufaC5t",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 64,
-              y: 32,
-              id: "SF-53MvWI83H6G-JC83em",
-              groupId: "tPjow4LjPEBMYaZufaC5t",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 0,
-              id: "XLXwocLrok04iZkKW9oUI",
-              groupId: "tPjow4LjPEBMYaZufaC5t",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 64,
-              id: "mw1NnOGsoLlHY5xak02HY",
-              groupId: "tPjow4LjPEBMYaZufaC5t",
-              visible: false,
-              pairs: []
-            }
-          ],
-          selected: false
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              src: "/src/assets/img/png/2.png"
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "UR6e8j7k5Lc4hkTEPvT_s",
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "SF-53MvWI83H6G-JC83em",
-              x: 64,
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "XLXwocLrok04iZkKW9oUI",
-              x: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "mw1NnOGsoLlHY5xak02HY",
-              x: 32,
-              y: 64,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 64,
-              height: 64,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
-      }
-    ]
-  }
-];
-const linkTestData = {
-  attrs,
-  className,
-  children
-};
 const _hoisted_1 = { class: "page" };
 const _hoisted_2 = ["disabled"];
 const _hoisted_3 = ["disabled"];
@@ -37270,9 +33540,6 @@ const _sfc_main = /* @__PURE__ */ defineComponent({
     function onDebug() {
       debug.value = (render == null ? void 0 : render.changeDebug(!debug.value)) ?? false;
     }
-    function onLinkTest() {
-      render == null ? void 0 : render.importExportTool.restore(JSON.stringify(linkTestData));
-    }
     function onFull() {
       full.value = !full.value;
     }
@@ -37351,7 +33618,6 @@ const _sfc_main = /* @__PURE__ */ defineComponent({
           }, null, 4)
         ]),
         createBaseVNode("footer", null, [
-          createBaseVNode("button", { onClick: onLinkTest }, "加载“连接线”测试数据"),
           createBaseVNode("button", { onClick: onDebug }, toDisplayString(debug.value ? "关闭调试" : "开启调试"), 1),
           createBaseVNode("button", { onClick: onFull }, toDisplayString(full.value ? "显示工具栏" : "隐藏工具栏"), 1)
         ])
@@ -37366,5 +33632,5 @@ const _export_sfc = (sfc, props) => {
   }
   return target;
 };
-const App = /* @__PURE__ */ _export_sfc(_sfc_main, [["__scopeId", "data-v-0fcfb9cc"]]);
+const App = /* @__PURE__ */ _export_sfc(_sfc_main, [["__scopeId", "data-v-ab8bb56b"]]);
 createApp(App).mount("#app");
