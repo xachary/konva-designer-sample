@@ -220,9 +220,9 @@ function onDebug() {
   debug.value = render?.changeDebug(!debug.value) ?? false
 }
 
-function onLinkTest() {
-  render?.importExportTool.restore(JSON.stringify(linkTestData))
-}
+// function onLinkTest() {
+//   render?.importExportTool.restore(JSON.stringify(linkTestData))
+// }
 
 function onFull() {
   full.value = !full.value
@@ -248,7 +248,12 @@ function onFull() {
     <section>
       <header :style="{ width: full ? 0 : undefined }">
         <ul>
-          <li v-for="(item, idx) of assetsInfos" :key="idx" draggable="true" @dragstart="onDragstart($event, item)">
+          <li
+            v-for="(item, idx) of assetsInfos"
+            :key="idx"
+            draggable="true"
+            @dragstart="onDragstart($event, item)"
+          >
             <img :src="item.url" style="object-fit: contain; width: 100%; height: 100%" />
           </li>
         </ul>
@@ -259,7 +264,9 @@ function onFull() {
       <footer :style="{ width: full ? 0 : undefined }"></footer>
     </section>
     <footer>
+      <!--
       <button @click="onLinkTest">加载“连接线”测试数据</button>
+      -->
       <button @click="onDebug">{{ debug ? '关闭调试' : '开启调试' }}</button>
       <button @click="onFull">{{ full ? '显示工具栏' : '隐藏工具栏' }}</button>
     </footer>
@@ -272,51 +279,51 @@ function onFull() {
   display: flex;
   flex-direction: column;
 
-  &>header,
-  &>footer {
+  & > header,
+  & > footer {
     height: 64px;
     flex-shrink: 0;
     z-index: 2;
   }
 
-  &>header,
-  &>footer {
+  & > header,
+  & > footer {
     box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
     display: flex;
     padding: 12px;
     align-items: center;
     overflow: hidden;
 
-    &>button {
-      &+button {
+    & > button {
+      & + button {
         margin-left: 12px;
       }
     }
   }
 
-  &>section {
+  & > section {
     z-index: 1;
     height: 0;
     flex-grow: 1;
     display: flex;
 
-    &>header,
-    &>footer {
+    & > header,
+    & > footer {
       width: 300px;
       flex-shrink: 0;
       background-color: #fff;
       z-index: 2;
     }
 
-    &>header {
+    & > header {
       box-shadow: 1px 0 2px 0 rgba(0, 0, 0, 0.05);
       overflow: auto;
 
-      &>ul {
+      & > ul {
         display: flex;
         flex-wrap: wrap;
 
-        &>li {
+        & > li {
           width: 33.33%;
           flex-shrink: 0;
           border: 1px solid #eee;
@@ -325,11 +332,11 @@ function onFull() {
       }
     }
 
-    &>footer {
+    & > footer {
       box-shadow: -1px 0 2px 0 rgba(0, 0, 0, 0.05);
     }
 
-    &>section {
+    & > section {
       width: 0;
       flex-grow: 1;
       background-color: rgba(0, 0, 0, 0.05);
