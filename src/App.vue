@@ -7,7 +7,7 @@ import * as Types from './Render/types'
 import type Konva from 'konva'
 
 // 连接线测试数据
-import linkTestData from './link.json'
+// import linkTestData from './link.json'
 
 // 容器
 const boardElement = ref<HTMLDivElement>()
@@ -264,9 +264,8 @@ function onFull() {
       <footer :style="{ width: full ? 0 : undefined }"></footer>
     </section>
     <footer>
-      <!--
-      <button @click="onLinkTest">加载“连接线”测试数据</button>
-      -->
+      <!-- <button @click="onLinkTest">加载“连接线”测试数据</button> -->
+
       <button @click="onDebug">{{ debug ? '关闭调试' : '开启调试' }}</button>
       <button @click="onFull">{{ full ? '显示工具栏' : '隐藏工具栏' }}</button>
     </footer>

@@ -5,7 +5,9 @@ import * as Types from '../types'
 import * as Draws from '../draws'
 import { nanoid } from 'nanoid'
 
-import { AStarFinder } from 'astar-typescript-cost'
+// import { AStarFinder } from 'astar-typescript-cost'
+
+import aStar from '../utils/aStar'
 
 export interface LinkDrawOption {
   size: number
@@ -548,16 +550,16 @@ export class LinkDraw extends Types.BaseDraw implements Types.Draw {
           }
 
           // A Star 算法，“曼哈顿距离”作为启发
-          const aStar = new AStarFinder({
-            diagonalAllowed: false,
-            heuristic: 'Manhattan',
-            grid: {
-              matrix,
-              maxCost: 2
-            },
-            includeStartNode: true,
-            includeEndNode: true
-          })
+          // const aStar = new AStarFinder({
+          //   diagonalAllowed: false,
+          //   heuristic: 'Manhattan',
+          //   grid: {
+          //     matrix,
+          //     maxCost: 2
+          //   },
+          //   includeStartNode: true,
+          //   includeEndNode: true
+          // })
 
           // A Star 双向，不支持代价 Cost
           // const aStarBi = new window.PF.BiAStarFinder()
@@ -565,7 +567,7 @@ export class LinkDraw extends Types.BaseDraw implements Types.Draw {
           if (matrixStart && matrixEnd) {
             console.log('算法起点', matrixStart, '算法终点', matrixEnd)
 
-            const way = aStar.findPath(matrixStart, matrixEnd)
+            // const way = aStar.findPath(matrixStart, matrixEnd)
 
             // const way: number[][] = aStarBi.findPath(
             //   matrixStart.x,
@@ -574,6 +576,13 @@ export class LinkDraw extends Types.BaseDraw implements Types.Draw {
             //   matrixEnd.y,
             //   new window.PF.Grid(columns.length, rows.length, matrix)
             // )
+
+            const way = aStar({
+              from: matrixStart,
+              to: matrixEnd,
+              matrix,
+              maxCost: 2
+            })
 
             this.group.add(
               new Konva.Line({
@@ -585,8 +594,8 @@ export class LinkDraw extends Types.BaseDraw implements Types.Draw {
                 //
                 points: _.flatten(
                   way.map((o) => [
-                    this.render.toStageValue(columns[o[0]]),
-                    this.render.toStageValue(rows[o[1]])
+                    this.render.toStageValue(columns[o.x]),
+                    this.render.toStageValue(rows[o.y])
                   ])
                 ),
                 stroke: 'red',
