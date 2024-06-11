@@ -1,15 +1,15 @@
 export interface Node {
   x: number
   y: number
-  cost?: number
-  parent?: Node
+  cost?: number // 代价
+  parent?: Node // 上一步
 }
 
 export default function aStar(config: {
-  from: Node
-  to: Node
-  matrix: number[][]
-  maxCost: number
+  from: Node // 起点
+  to: Node // 终点
+  matrix: number[][] // 矩阵
+  maxCost: number // 作为墙的值
 }): Node[] {
   const { from, to, matrix, maxCost = 1 } = config
 

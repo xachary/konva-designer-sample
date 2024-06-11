@@ -421,6 +421,7 @@ export class LinkDraw extends Types.BaseDraw implements Types.Draw {
             toGroupForbiddenArea.y2
           ].sort((a, b) => a - b)
 
+          // 去重
           for (let y = rows.length - 1; y > 0; y--) {
             if (rows[y] === rows[y - 1]) {
               rows.splice(y, 1)
