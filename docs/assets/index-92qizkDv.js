@@ -24274,7 +24274,10 @@ function aStar(config) {
       if (closed.has(neighbor)) {
         continue;
       }
-      const tentativeG = g.get(current) + (neighbor.cost ?? 0) + (current.x === ((_a = current.parent) == null ? void 0 : _a.x) && current.x !== neighbor.x || current.y === ((_b = current.parent) == null ? void 0 : _b.y) && current.y !== neighbor.y ? Math.max(grid.length, grid[0].length) : 0);
+      const tentativeG = g.get(current) + // 累计距离
+      (neighbor.cost ?? 1) + // 下一步距离
+      (g.get(current) > 1 && // 第二步开始再考虑转弯代价
+      (current.x === ((_a = current.parent) == null ? void 0 : _a.x) && current.x !== neighbor.x || current.y === ((_b = current.parent) == null ? void 0 : _b.y) && current.y !== neighbor.y) ? grid.length + grid[0].length : 0);
       if (!open.includes(neighbor) || tentativeG < g.get(neighbor)) {
         g.set(neighbor, tentativeG);
         h.set(neighbor, manhattanDistance(neighbor, goal));
