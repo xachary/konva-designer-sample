@@ -24446,6 +24446,7 @@ class LinkDraw extends BaseDraw {
     }
     return area;
   }
+  // 两区域最短距离
   getGroupPairDistance(groupArea1, groupArea2) {
     const xs = [groupArea1.x1, groupArea1.x2, groupArea2.x1, groupArea2.x2];
     const maxX = Math.max(...xs);
@@ -24458,6 +24459,10 @@ class LinkDraw extends BaseDraw {
     return this.render.toBoardValue(
       Math.min(this.render.bgSize, Math.max(dx < 6 ? 6 : dx, dy < 6 ? 6 : dy) * 0.5)
     );
+  }
+  // 两区域空隙中点
+  getGroupPairCenter(groupArea1, groupArea2) {
+    return { x: (groupArea2.x1 + groupArea1.x2) * 0.5, y: (groupArea2.y1 + groupArea1.y2) * 0.5 };
   }
   // 连接出入口
   getEntry(anchor, groupLinkArea, gap) {
@@ -24564,10 +24569,7 @@ class LinkDraw extends BaseDraw {
             type: "to"
           });
           matrixPoints.push({ ...toEntry, type: "to-entry" });
-          matrixPoints.push({
-            x: (groupAccessArea.x1 + groupAccessArea.x2) * 0.5,
-            y: (groupAccessArea.y1 + groupAccessArea.y2) * 0.5
-          });
+          matrixPoints.push(this.getGroupPairCenter(fromGroupForbiddenArea, toGroupForbiddenArea));
           matrixPoints = matrixPoints.reduce(
             (arr, item) => {
               if (item.type === void 0) {
