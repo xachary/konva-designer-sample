@@ -53,11 +53,12 @@ export default function aStar(config: {
 
       // 计算从起点到邻居节点的距离（转弯距离增加）
       const tentativeG =
-        g.get(current)! +
-        (neighbor.cost ?? 0) +
+        g.get(current)! + // 累计距离
+        (neighbor.cost ?? 1) + // 下一步距离
+        (g.get(current)! > 1 && // 第二步开始再考虑转弯代价
         ((current.x === current.parent?.x && current.x !== neighbor.x) ||
-        (current.y === current.parent?.y && current.y !== neighbor.y)
-          ? Math.max(grid.length, grid[0].length)
+          (current.y === current.parent?.y && current.y !== neighbor.y))
+          ? grid.length + grid[0].length
           : 0)
 
       // 如果邻居节点不在 open 列表中，或者新的 g 值更小，更新邻居节点的 g, h, f 值，并将其加入 open 列表
