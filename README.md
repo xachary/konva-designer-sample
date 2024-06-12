@@ -56,6 +56,8 @@
 
 ![1](https://github.com/xachary/konva-designer-sample/assets/16830398/b6bb083d-0725-4371-b5c2-b4495f0b4ada)
 
+![image](https://github.com/xachary/konva-designer-sample/assets/16830398/d1cdb263-cb6d-470e-a271-caef34988f07)
+
 ## 功能点
 
 - 无限画布（√）
