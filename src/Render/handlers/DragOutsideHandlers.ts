@@ -30,6 +30,17 @@ export class DragOutsideHandlers implements Types.Handler {
       },
       drop: (e: GlobalEventHandlersEventMap['drop']) => {
         const src = e.dataTransfer?.getData('src')
+
+        // 接收连接点信息
+        let morePoints: Types.AssetInfoPoint[] = []
+        const morePointsTxt = e.dataTransfer?.getData('points') ?? '[]'
+
+        try {
+          morePoints = JSON.parse(morePointsTxt)
+        } catch (e) {
+          console.error(e)
+        }
+
         const type = e.dataTransfer?.getData('type')
 
         if (src && type) {
@@ -67,22 +78,30 @@ export class DragOutsideHandlers implements Types.Handler {
                 y
               })
 
-              const points = [
+              // 默认连接点
+              let points: Types.AssetInfoPoint[] = [
                 // 左
-                { x: 0, y: group.height() / 2 },
+                { x: 0, y: group.height() / 2, direction: 'left' },
                 // 右
                 {
                   x: group.width(),
-                  y: group.height() / 2
+                  y: group.height() / 2,
+                  direction: 'right'
                 },
                 // 上
-                { x: group.width() / 2, y: 0 },
+                { x: group.width() / 2, y: 0, direction: 'top' },
                 // 下
                 {
                   x: group.width() / 2,
-                  y: group.height()
+                  y: group.height(),
+                  direction: 'bottom'
                 }
               ]
+
+              // 自定义连接点 覆盖 默认连接点
+              if (Array.isArray(morePoints) && morePoints.length > 0) {
+                points = morePoints
+              }
 
               // 连接点信息
               group.setAttrs({
@@ -93,7 +112,8 @@ export class DragOutsideHandlers implements Types.Handler {
                       id: nanoid(),
                       groupId: group.id(),
                       visible: false,
-                      pairs: []
+                      pairs: [],
+                      direction: o.direction
                     }) as LinkDrawPoint
                 )
               })
@@ -109,7 +129,8 @@ export class DragOutsideHandlers implements Types.Handler {
                     radius: this.render.toStageValue(1),
                     stroke: 'rgba(0,0,255,1)',
                     strokeWidth: this.render.toStageValue(2),
-                    visible: false
+                    visible: false,
+                    direction: point.direction
                   })
                 )
               }
