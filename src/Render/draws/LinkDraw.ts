@@ -717,12 +717,15 @@ export class LinkDraw extends Types.BaseDraw implements Types.Draw {
                 pairId: pair.id,
                 //
                 points: _.flatten([
-                  [fromAnchorPos.x, fromAnchorPos.y], // 补充 起点
+                  [
+                    this.render.toStageValue(fromAnchorPos.x),
+                    this.render.toStageValue(fromAnchorPos.y)
+                  ], // 补充 起点
                   ...way.map((o) => [
                     this.render.toStageValue(columns[o.x]),
                     this.render.toStageValue(rows[o.y])
                   ]),
-                  [toAnchorPos.x, toAnchorPos.y] // 补充 终点
+                  [this.render.toStageValue(toAnchorPos.x), this.render.toStageValue(toAnchorPos.y)] // 补充 终点
                 ]),
                 stroke: 'red',
                 strokeWidth: 2
