@@ -630,8 +630,6 @@ export class LinkDraw extends Types.BaseDraw implements Types.Draw {
                     y >= rowFromStart &&
                     y <= rowFromEnd
                   ) {
-                    console.log('from', columnFromStart, columnFromEnd, rowFromStart, rowFromEnd)
-                    console.log(x, y)
                     matrix[y][x] = 1
                   }
                 }
@@ -639,8 +637,6 @@ export class LinkDraw extends Types.BaseDraw implements Types.Draw {
               if (!toAnchor.attrs.direction) {
                 if (columns[x] === toEntry.x || rows[y] === toEntry.y) {
                   if (x >= columnToStart && x <= columnToEnd && y >= rowToStart && y <= rowToEnd) {
-                    console.log('to', columnFromStart, columnFromEnd, rowFromStart, rowFromEnd)
-                    console.log(x, y)
                     matrix[y][x] = 1
                   }
                 }
