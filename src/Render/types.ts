@@ -85,8 +85,15 @@ export class BaseDraw {
 
 export { Render }
 
+export interface AssetInfoPoint {
+  x: number
+  y: number
+  direction?: 'top' | 'bottom' | 'left' | 'right' // 人为定义连接点属于元素的什么方向
+}
+
 export interface AssetInfo {
   url: string
+  points?: Array<AssetInfoPoint>
 }
 
 export enum MoveKey {
