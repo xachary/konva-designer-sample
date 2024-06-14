@@ -9,7 +9,7 @@ var __publicField = (obj, key, value) => {
   return value;
 };
 var require_index_001 = __commonJS({
-  "assets/index-DD4f9V0C.js"(exports, module) {
+  "assets/index-qWKKcUbE.js"(exports, module) {
     (function polyfill() {
       const relList = document.createElement("link").relList;
       if (relList && relList.supports && relList.supports("modulepreload")) {
@@ -24504,13 +24504,16 @@ var require_index_001 = __commonJS({
                     pairId: pair.id,
                     //
                     points: lodash.flatten([
-                      [fromAnchorPos.x, fromAnchorPos.y],
+                      [
+                        this.render.toStageValue(fromAnchorPos.x),
+                        this.render.toStageValue(fromAnchorPos.y)
+                      ],
                       // 补充 起点
                       ...way.map((o) => [
                         this.render.toStageValue(columns[o.x]),
                         this.render.toStageValue(rows[o.y])
                       ]),
-                      [toAnchorPos.x, toAnchorPos.y]
+                      [this.render.toStageValue(toAnchorPos.x), this.render.toStageValue(toAnchorPos.y)]
                       // 补充 终点
                     ]),
                     stroke: "red",
