@@ -55,9 +55,8 @@ export default function aStar(config: {
       const tentativeG =
         g.get(current)! + // 累计距离
         (neighbor.cost ?? 1) + // 下一步距离
-        (g.get(current)! > 1 && // 第二步开始再考虑转弯代价
         ((current.x === current.parent?.x && current.x !== neighbor.x) ||
-          (current.y === current.parent?.y && current.y !== neighbor.y))
+        (current.y === current.parent?.y && current.y !== neighbor.y)
           ? grid.length + grid[0].length
           : 0)
 

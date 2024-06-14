@@ -215,80 +215,156 @@ export class LinkDraw extends Types.BaseDraw implements Types.Draw {
   }
 
   // 连接出入口
-  getEntry(anchor: Konva.Node, groupLinkArea: Area, gap: number): Konva.Vector2d {
+  getEntry(anchor: Konva.Node, groupForbiddenArea: Area, gap: number): Konva.Vector2d {
     // stage 状态
     const stageState = this.render.getStageState()
 
     const fromPos = anchor.absolutePosition()
 
-    let entry: Konva.Vector2d = {
-      x: fromPos.x - stageState.x,
-      y: fromPos.y - stageState.y
-    }
+    // 默认为 起点/终点 位置（无 direction 时的值）
+    let x = fromPos.x - stageState.x,
+      y = fromPos.y - stageState.y
 
     const direction = anchor.attrs.direction
-    const rotate = anchor.getAbsoluteRotation()
-    console.log('rotate', rotate)
 
-    const testPoint = new Konva.Circle({
-      radius: this.render.toStageValue(6),
-      stroke: 'rgba(0,120,0,1)',
-      strokeWidth: this.render.toStageValue(3)
-    })
+    // 定义了 direction 的时候
+    if (direction) {
+      // 取整 连接点 锚点 旋转角度（保留 1 位小数点）
+      const rotate = Math.round(anchor.getAbsoluteRotation() * 10) / 10
 
-    if (direction === 'top') {
-      const x = gap * Math.sin((rotate * Math.PI) / 180)
-      const y = gap * Math.cos((rotate * Math.PI) / 180)
-
-      entry = {
-        x: fromPos.x - stageState.x + x,
-        y: fromPos.y - stageState.y - y
+      // 利用三角函数，计算按 direction 方向与 不可通过区域 的相交点位置（即出/入口 entry）
+      // 如（假设-为起点、#为出/口、x为墙）：
+      // x # x           x x #
+      // x - x -> 45° -> x - x
+      // x x x           x x x
+      //
+      // x # x           x x x
+      // x - x -> 90° -> x - #
+      // x x x           x x x
+      //
+      // x # x            x x x
+      // x - x -> 135° -> x - x
+      // x x x            x x #
+      if (rotate === -45) {
+        if (direction === 'top') {
+          x = groupForbiddenArea.x1
+          y = groupForbiddenArea.y1
+        } else if (direction === 'bottom') {
+          x = groupForbiddenArea.x2
+          y = groupForbiddenArea.y2
+        } else if (direction === 'left') {
+          x = groupForbiddenArea.x1
+          y = groupForbiddenArea.y2
+        } else if (direction === 'right') {
+          x = groupForbiddenArea.x2
+          y = groupForbiddenArea.y1
+        }
+      } else if (rotate === 45) {
+        if (direction === 'top') {
+          x = groupForbiddenArea.x2
+          y = groupForbiddenArea.y1
+        } else if (direction === 'bottom') {
+          x = groupForbiddenArea.x1
+          y = groupForbiddenArea.y2
+        } else if (direction === 'left') {
+          x = groupForbiddenArea.x1
+          y = groupForbiddenArea.y1
+        } else if (direction === 'right') {
+          x = groupForbiddenArea.x2
+          y = groupForbiddenArea.y2
+        }
+      } else if (rotate === 135) {
+        if (direction === 'top') {
+          x = groupForbiddenArea.x2
+          y = groupForbiddenArea.y2
+        } else if (direction === 'bottom') {
+          x = groupForbiddenArea.x1
+          y = groupForbiddenArea.y1
+        } else if (direction === 'left') {
+          x = groupForbiddenArea.x2
+          y = groupForbiddenArea.y1
+        } else if (direction === 'right') {
+          x = groupForbiddenArea.x1
+          y = groupForbiddenArea.y2
+        }
+      } else if (rotate === -135) {
+        if (direction === 'top') {
+          x = groupForbiddenArea.x1
+          y = groupForbiddenArea.y2
+        } else if (direction === 'bottom') {
+          x = groupForbiddenArea.x2
+          y = groupForbiddenArea.y1
+        } else if (direction === 'left') {
+          x = groupForbiddenArea.x2
+          y = groupForbiddenArea.y2
+        } else if (direction === 'right') {
+          x = groupForbiddenArea.x1
+          y = groupForbiddenArea.y1
+        }
+      } else if (rotate > -45 && rotate < 45) {
+        const offset = gap * Math.tan((rotate * Math.PI) / 180)
+        if (direction === 'top') {
+          x = fromPos.x - stageState.x + offset
+          y = groupForbiddenArea.y1
+        } else if (direction === 'bottom') {
+          x = fromPos.x - stageState.x - offset
+          y = groupForbiddenArea.y2
+        } else if (direction === 'left') {
+          x = groupForbiddenArea.x1
+          y = fromPos.y - stageState.y - offset
+        } else if (direction === 'right') {
+          x = groupForbiddenArea.x2
+          y = fromPos.y - stageState.y + offset
+        }
+      } else if (rotate > 45 && rotate < 135) {
+        const offset = gap * Math.atan(((90 - rotate) * Math.PI) / 180)
+        if (direction === 'top') {
+          x = groupForbiddenArea.x2
+          y = fromPos.y - stageState.y - offset
+        } else if (direction === 'bottom') {
+          x = groupForbiddenArea.x1
+          y = fromPos.y - stageState.y + offset
+        } else if (direction === 'left') {
+          x = fromPos.x - stageState.x - offset
+          y = groupForbiddenArea.y1
+        } else if (direction === 'right') {
+          x = fromPos.x - stageState.x + offset
+          y = groupForbiddenArea.y2
+        }
+      } else if ((rotate > 135 && rotate <= 180) || (rotate >= -180 && rotate < -135)) {
+        const offset = gap * Math.tan((rotate * Math.PI) / 180)
+        if (direction === 'top') {
+          x = fromPos.x - stageState.x - offset
+          y = groupForbiddenArea.y2
+        } else if (direction === 'bottom') {
+          x = fromPos.x - stageState.x + offset
+          y = groupForbiddenArea.y1
+        } else if (direction === 'left') {
+          x = groupForbiddenArea.x2
+          y = fromPos.y - stageState.y + offset
+        } else if (direction === 'right') {
+          x = groupForbiddenArea.x1
+          y = fromPos.y - stageState.y - offset
+        }
+      } else if (rotate > -135 && rotate < -45) {
+        const offset = gap * Math.atan(((90 + rotate) * Math.PI) / 180)
+        if (direction === 'top') {
+          x = groupForbiddenArea.x1
+          y = fromPos.y - stageState.y - offset
+        } else if (direction === 'bottom') {
+          x = groupForbiddenArea.x2
+          y = fromPos.y - stageState.y + offset
+        } else if (direction === 'left') {
+          x = fromPos.x - stageState.x - offset
+          y = groupForbiddenArea.y2
+        } else if (direction === 'right') {
+          x = fromPos.x - stageState.x + offset
+          y = groupForbiddenArea.y1
+        }
       }
-      testPoint.absolutePosition({
-        x: fromPos.x - stageState.x + x,
-        y: fromPos.y - stageState.y - y
-      })
-    } else if (direction === 'bottom') {
-      const x = gap * Math.sin((-rotate * Math.PI) / 180)
-      const y = gap * Math.cos((-rotate * Math.PI) / 180)
-
-      entry = {
-        x: fromPos.x - stageState.x + x,
-        y: fromPos.y - stageState.y + y
-      }
-      testPoint.absolutePosition({
-        x: fromPos.x - stageState.x + x,
-        y: fromPos.y - stageState.y + y
-      })
-    } else if (direction === 'left') {
-      const x = gap * Math.cos((rotate * Math.PI) / 180)
-      const y = gap * Math.sin((rotate * Math.PI) / 180)
-
-      entry = {
-        x: fromPos.x - stageState.x - x,
-        y: fromPos.y - stageState.y - y
-      }
-      testPoint.absolutePosition({
-        x: fromPos.x - stageState.x - x,
-        y: fromPos.y - stageState.y - y
-      })
-    } else if (direction === 'right') {
-      const x = gap * Math.cos((rotate * Math.PI) / 180)
-      const y = gap * Math.sin((-rotate * Math.PI) / 180)
-
-      entry = {
-        x: fromPos.x - stageState.x + x,
-        y: fromPos.y - stageState.y - y
-      }
-      testPoint.absolutePosition({
-        x: fromPos.x - stageState.x + x,
-        y: fromPos.y - stageState.y - y
-      })
     }
 
-    // this.group.add(testPoint)
-
-    return entry
+    return { x, y } as Konva.Vector2d
   }
 
   // 连接点信息
@@ -372,10 +448,14 @@ export class LinkDraw extends Types.BaseDraw implements Types.Draw {
           // 连接出入口
           const fromEntry: Konva.Vector2d = this.getEntry(
             fromAnchor,
-            fromGroupLinkArea,
+            fromGroupForbiddenArea,
             groupDistance
           )
-          const toEntry: Konva.Vector2d = this.getEntry(toAnchor, toGroupLinkArea, groupDistance)
+          const toEntry: Konva.Vector2d = this.getEntry(
+            toAnchor,
+            toGroupForbiddenArea,
+            groupDistance
+          )
 
           type matrixPoint = {
             x: number
@@ -521,53 +601,28 @@ export class LinkDraw extends Types.BaseDraw implements Types.Draw {
                 matrix[y][x] = 0
               }
 
-              // 起点、终点 -> 算法 起点、终点
+              // 出口、入口 -> 算法 起点、终点
 
-              if (columns[x] === fromAnchorPos.x && rows[y] === fromAnchorPos.y) {
+              if (columns[x] === fromEntry.x && rows[y] === fromEntry.y) {
+                matrix[y][x] = 1
                 matrixStart = { x, y }
-              } else if (columns[x] === toAnchorPos.x && rows[y] === toAnchorPos.y) {
+              }
+
+              if (columns[x] === toEntry.x && rows[y] === toEntry.y) {
+                matrix[y][x] = 1
                 matrixEnd = { x, y }
               }
 
-              // 从 不可通过区域 中找 起点、出口、终点、入口，设置为 可通过
-              if (fromAnchor.attrs.direction) {
-                // 如，从：
-                // 1 1 1
-                // 1 0 1
-                // 1 1 1
-                // 变成：
-                //                             0
-                // 1 1 1          1 1 1      1 0 1      1 1 1
-                // 1 0 0 0  or  0 0 0 1  or  1 0 1  or  1 0 1
-                // 1 1 1          1 1 1      1 1 1      1 0 1
-                //                                        0
-                if (fromEntry.x === fromAnchorPos.x) {
-                  if (
-                    columns[x] === fromAnchorPos.x &&
-                    rows[y] >= Math.min(fromEntry.y, fromAnchorPos.y) &&
-                    rows[y] <= Math.max(fromEntry.y, fromAnchorPos.y)
-                  ) {
-                    matrix[y][x] = 1
-                  }
-                } else if (fromEntry.y === fromAnchorPos.y) {
-                  if (
-                    columns[x] >= Math.min(fromEntry.x, fromAnchorPos.x) &&
-                    columns[x] <= Math.max(fromEntry.x, fromAnchorPos.x) &&
-                    rows[y] === fromAnchorPos.y
-                  ) {
-                    matrix[y][x] = 1
-                  }
-                }
-              } else {
-                // 没有定义方向（给于十字可通过区域）
-                // 如，从：
-                // 1 1 1
-                // 1 0 1
-                // 1 1 1
-                // 变成：
-                // 1 0 1
-                // 0 0 0
-                // 1 0 1
+              // 没有定义方向（给于十字可通过区域）
+              // 如，从：
+              // 1 1 1
+              // 1 0 1
+              // 1 1 1
+              // 变成：
+              // 1 0 1
+              // 0 0 0
+              // 1 0 1
+              if (!fromAnchor.attrs.direction) {
                 if (columns[x] === fromEntry.x || rows[y] === fromEntry.y) {
                   if (
                     x >= columnFromStart &&
@@ -581,45 +636,7 @@ export class LinkDraw extends Types.BaseDraw implements Types.Draw {
                   }
                 }
               }
-
-              if (toAnchor.attrs.direction) {
-                // 如，从：
-                // 1 1 1
-                // 1 0 1
-                // 1 1 1
-                // 变成：
-                //                             0
-                // 1 1 1          1 1 1      1 0 1      1 1 1
-                // 1 0 0 0  or  0 0 0 1  or  1 0 1  or  1 0 1
-                // 1 1 1          1 1 1      1 1 1      1 0 1
-                //                                        0
-                if (toEntry.x === toAnchorPos.x) {
-                  if (
-                    columns[x] === toAnchorPos.x &&
-                    rows[y] >= Math.min(toEntry.y, toAnchorPos.y) &&
-                    rows[y] <= Math.max(toEntry.y, toAnchorPos.y)
-                  ) {
-                    matrix[y][x] = 1
-                  }
-                } else if (toEntry.y === toAnchorPos.y) {
-                  if (
-                    columns[x] >= Math.min(toEntry.x, toAnchorPos.x) &&
-                    columns[x] <= Math.max(toEntry.x, toAnchorPos.x) &&
-                    rows[y] === toAnchorPos.y
-                  ) {
-                    matrix[y][x] = 1
-                  }
-                }
-              } else {
-                // 没有定义方向（给于十字可通过区域）
-                // 如，从：
-                // 1 1 1
-                // 1 0 1
-                // 1 1 1
-                // 变成：
-                // 1 0 1
-                // 0 0 0
-                // 1 0 1
+              if (!toAnchor.attrs.direction) {
                 if (columns[x] === toEntry.x || rows[y] === toEntry.y) {
                   if (x >= columnToStart && x <= columnToEnd && y >= rowToStart && y <= rowToEnd) {
                     console.log('to', columnFromStart, columnFromEnd, rowFromStart, rowFromEnd)
@@ -699,12 +716,14 @@ export class LinkDraw extends Types.BaseDraw implements Types.Draw {
                 pointId: fromPoint.id,
                 pairId: pair.id,
                 //
-                points: _.flatten(
-                  way.map((o) => [
+                points: _.flatten([
+                  [fromAnchorPos.x, fromAnchorPos.y],
+                  ...way.map((o) => [
                     this.render.toStageValue(columns[o.x]),
                     this.render.toStageValue(rows[o.y])
-                  ])
-                ),
+                  ]),
+                  [toAnchorPos.x, toAnchorPos.y]
+                ]),
                 stroke: 'red',
                 strokeWidth: 2
               })

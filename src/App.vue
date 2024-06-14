@@ -8,6 +8,7 @@ import type Konva from 'konva'
 
 // 连接线测试数据
 import linkTestData from './link.json'
+import rotateTestData from './rotate.json'
 
 // 容器
 const boardElement = ref<HTMLDivElement>()
@@ -115,6 +116,12 @@ function init() {
         render.resize(width, height)
       }
     })
+
+    // onFull()
+    // setTimeout(() => {
+    //   render?.importExportTool.restore(JSON.stringify(rotateTestData))
+    //   onDebug()
+    // }, 1000)
   }
 }
 
@@ -302,6 +309,10 @@ function onLinkTest() {
   render?.importExportTool.restore(JSON.stringify(linkTestData))
 }
 
+function onRotateTest() {
+  render?.importExportTool.restore(JSON.stringify(rotateTestData))
+}
+
 function onFull() {
   full.value = !full.value
 }
@@ -337,7 +348,8 @@ function onFull() {
       <footer :style="{ width: full ? 0 : undefined }"></footer>
     </section>
     <footer>
-      <button @click="onLinkTest">加载“连接线”测试数据</button>
+      <button @click="onLinkTest">“连接线”方向测试数据</button>
+      <button @click="onRotateTest">“连接线”出入口测试数据</button>
 
       <button @click="onDebug">{{ debug ? '关闭调试' : '开启调试' }}</button>
       <button @click="onFull">{{ full ? '显示工具栏' : '隐藏工具栏' }}</button>
