@@ -9,7 +9,7 @@ var __publicField = (obj, key, value) => {
   return value;
 };
 var require_index_001 = __commonJS({
-  "assets/index-qWKKcUbE.js"(exports, module) {
+  "assets/index-C3QK0Y9E.js"(exports, module) {
     (function polyfill() {
       const relList = document.createElement("link").relList;
       if (relList && relList.supports && relList.supports("modulepreload")) {
@@ -23128,7 +23128,9 @@ var require_index_001 = __commonJS({
       ShutcutKey2["V"] = "KeyV";
       ShutcutKey2["Z"] = "KeyZ";
       ShutcutKey2["A"] = "KeyA";
+      ShutcutKey2["R"] = "KeyR";
       ShutcutKey2["Esc"] = "Escape";
+      ShutcutKey2["Backspace"] = "Backspace";
       return ShutcutKey2;
     })(ShutcutKey || {});
     var AlignType = /* @__PURE__ */ ((AlignType2) => {
@@ -23470,7 +23472,7 @@ var require_index_001 = __commonJS({
                   this.state.target = null;
                   this.draw();
                 }
-              } else if (e.evt.button === MouseButton.右键) {
+              } else if (e.evt.button === MouseButton.右键 && !e.evt.ctrlKey) {
                 this.state.right = true;
               }
             },
@@ -23484,14 +23486,16 @@ var require_index_001 = __commonJS({
               this.state.right = false;
             },
             contextmenu: (e) => {
-              const pos = this.render.stage.getPointerPosition();
-              if (pos && this.state.lastPos) {
-                if (pos.x === this.state.lastPos.x || pos.y === this.state.lastPos.y) {
-                  this.state.target = e.target;
-                } else {
-                  this.state.target = null;
+              if (!e.evt.ctrlKey) {
+                const pos = this.render.stage.getPointerPosition();
+                if (pos && this.state.lastPos) {
+                  if (pos.x === this.state.lastPos.x || pos.y === this.state.lastPos.y) {
+                    this.state.target = e.target;
+                  } else {
+                    this.state.target = null;
+                  }
+                  this.draw();
                 }
-                this.draw();
               }
             },
             wheel: () => {
@@ -24452,8 +24456,6 @@ var require_index_001 = __commonJS({
                   if (!fromAnchor.attrs.direction) {
                     if (columns[x] === fromEntry.x || rows[y] === fromEntry.y) {
                       if (x >= columnFromStart && x <= columnFromEnd && y >= rowFromStart && y <= rowFromEnd) {
-                        console.log("from", columnFromStart, columnFromEnd, rowFromStart, rowFromEnd);
-                        console.log(x, y);
                         matrix[y][x] = 1;
                       }
                     }
@@ -24461,8 +24463,6 @@ var require_index_001 = __commonJS({
                   if (!toAnchor.attrs.direction) {
                     if (columns[x] === toEntry.x || rows[y] === toEntry.y) {
                       if (x >= columnToStart && x <= columnToEnd && y >= rowToStart && y <= rowToEnd) {
-                        console.log("to", columnFromStart, columnFromEnd, rowFromStart, rowFromEnd);
-                        console.log(x, y);
                         matrix[y][x] = 1;
                       }
                     }
@@ -24620,6 +24620,63 @@ var require_index_001 = __commonJS({
       }
     }
     __publicField(LinkDraw, "name", "Link");
+    class AttractDraw extends BaseDraw {
+      constructor(render, layer, option) {
+        super(render, layer);
+        __publicField(this, "option");
+        __publicField(this, "on", {});
+        this.option = option;
+        this.group.name(this.constructor.name);
+      }
+      draw() {
+        this.clear();
+        if (this.render.debug) {
+          const stageState = this.render.getStageState();
+          const groups = this.render.layer.find(".asset");
+          const lastGroup = groups.pop();
+          if (lastGroup) {
+            this.render.selectionTool.selectingNodes = [lastGroup];
+            const rect = lastGroup.getClientRect();
+            const { sortX, sortY } = this.render.attractTool.getSortItems(rect);
+            for (const x of sortX) {
+              this.group.add(
+                new Konva.Line({
+                  name: this.constructor.name,
+                  points: lodash.flatten([
+                    [x.value, this.render.toStageValue(this.render.rulerSize - stageState.y)],
+                    [
+                      x.value,
+                      this.render.toStageValue(this.render.rulerSize - stageState.y + stageState.height)
+                    ]
+                  ]),
+                  stroke: "rgba(0,200,0,1)",
+                  strokeWidth: 1,
+                  dash: [4, 4]
+                })
+              );
+            }
+            for (const y of sortY) {
+              this.group.add(
+                new Konva.Line({
+                  name: this.constructor.name,
+                  points: lodash.flatten([
+                    [this.render.toStageValue(this.render.rulerSize - stageState.x), y.value],
+                    [
+                      this.render.toStageValue(this.render.rulerSize - stageState.x + stageState.width),
+                      y.value
+                    ]
+                  ]),
+                  stroke: "rgba(0,200,0,1)",
+                  strokeWidth: 1,
+                  dash: [4, 4]
+                })
+              );
+            }
+          }
+        }
+      }
+    }
+    __publicField(AttractDraw, "name", "Attract");
     class DragHandlers {
       constructor(render) {
         __publicField(this, "render");
@@ -24632,7 +24689,7 @@ var require_index_001 = __commonJS({
         __publicField(this, "handlers", {
           stage: {
             mousedown: (e) => {
-              if (e.evt.button === MouseButton.右键) {
+              if (e.evt.button === MouseButton.右键 || e.evt.ctrlKey && e.evt.button === MouseButton.左键) {
                 const stageState = this.render.getStageState();
                 this.mousedownRight = true;
                 this.mousedownStagePos = { x: stageState.x, y: stageState.y };
@@ -24659,6 +24716,7 @@ var require_index_001 = __commonJS({
                   });
                   this.render.draws[BgDraw.name].draw();
                   this.render.draws[LinkDraw.name].draw();
+                  this.render.draws[AttractDraw.name].draw();
                   this.render.draws[RulerDraw.name].draw();
                   this.render.draws[PreviewDraw.name].draw();
                 }
@@ -24689,7 +24747,7 @@ var require_index_001 = __commonJS({
                   x: (pos.x - stageState.x) / oldScale,
                   y: (pos.y - stageState.y) / oldScale
                 };
-                const direction = e.evt.deltaY > 0 ? 1 : -1;
+                const direction = e.evt.deltaY > 0 ? -1 : 1;
                 const newScale = direction > 0 ? oldScale + this.scaleBy : oldScale - this.scaleBy;
                 if (newScale >= this.scaleMin && newScale < this.scaleMax) {
                   this.render.stage.scale({ x: newScale, y: newScale });
@@ -24699,6 +24757,7 @@ var require_index_001 = __commonJS({
                   });
                   this.render.draws[BgDraw.name].draw();
                   this.render.draws[LinkDraw.name].draw();
+                  this.render.draws[AttractDraw.name].draw();
                   this.render.draws[RulerDraw.name].draw();
                   this.render.draws[PreviewDraw.name].draw();
                 }
@@ -24856,7 +24915,7 @@ var require_index_001 = __commonJS({
               const parent2 = e.target.getParent();
               if (e.target === this.render.stage) {
                 this.render.selectionTool.selectingClear();
-                if (e.evt.button === MouseButton.左键) {
+                if (e.evt.button === MouseButton.左键 && !e.evt.ctrlKey) {
                   const pos = this.render.stage.getPointerPosition();
                   if (pos) {
                     this.selectRectStartX = pos.x;
@@ -24872,9 +24931,9 @@ var require_index_001 = __commonJS({
               } else if (parent2 instanceof Konva.Transformer)
                 ;
               else if (parent2 instanceof Konva.Group) {
-                if (e.evt.button === MouseButton.左键) {
+                if (e.evt.button === MouseButton.左键 && !e.evt.ctrlKey) {
                   if (!this.render.ignore(parent2) && !this.render.ignoreDraw(e.target)) {
-                    if (e.evt.ctrlKey) {
+                    if (e.evt.ctrlKey || e.evt.metaKey) {
                       this.render.selectionTool.select([
                         ...this.render.selectionTool.selectingNodes,
                         parent2
@@ -24940,7 +24999,7 @@ var require_index_001 = __commonJS({
             mousedown: (e) => {
               const anchor = this.render.transformer.getActiveAnchor();
               if (!anchor) {
-                if (e.evt.ctrlKey) {
+                if (e.evt.ctrlKey || e.evt.metaKey) {
                   if (this.render.selectionTool.selectingNodes.length > 0) {
                     const pos = this.render.stage.getPointerPosition();
                     if (pos) {
@@ -24996,12 +25055,14 @@ var require_index_001 = __commonJS({
             },
             transform: () => {
               this.render.draws[LinkDraw.name].draw();
+              this.render.draws[AttractDraw.name].draw();
               this.render.draws[PreviewDraw.name].draw();
             },
             transformend: () => {
               this.reset();
               this.render.updateHistory();
               this.render.draws[LinkDraw.name].draw();
+              this.render.draws[AttractDraw.name].draw();
               this.render.draws[PreviewDraw.name].draw();
             },
             //
@@ -25009,8 +25070,8 @@ var require_index_001 = __commonJS({
             },
             // 拖动
             dragmove: () => {
-              const pos = this.render.transformer.position();
-              const { pos: transformerPos, isAttract } = this.attract(pos);
+              const rect = this.render.transformer.findOne(".back").getClientRect();
+              const { pos: transformerPos, isAttract } = this.render.attractTool.attract(rect);
               if (isAttract) {
                 this.selectingNodesPositionByOffset({
                   x: this.render.toStageValue(transformerPos.x - this.transformerMousedownPos.x),
@@ -25019,12 +25080,14 @@ var require_index_001 = __commonJS({
                 this.render.draws[PreviewDraw.name].draw();
               }
               this.render.draws[LinkDraw.name].draw();
+              this.render.draws[AttractDraw.name].draw();
               this.render.draws[PreviewDraw.name].draw();
             },
             dragend: () => {
               this.reset();
               this.render.updateHistory();
               this.render.draws[LinkDraw.name].draw();
+              this.render.draws[AttractDraw.name].draw();
               this.render.draws[PreviewDraw.name].draw();
             },
             // 子节点 hover
@@ -25063,245 +25126,6 @@ var require_index_001 = __commonJS({
               }
             }
           }
-        });
-        // 磁吸逻辑
-        __publicField(this, "attract", (newPos) => {
-          this.alignLinesClear();
-          const stageState = this.render.getStageState();
-          const width = this.render.transformer.width();
-          const height = this.render.transformer.height();
-          let newPosX = newPos.x;
-          let newPosY = newPos.y;
-          let isAttract = false;
-          let pairX = null;
-          let pairY = null;
-          if (this.render.config.attractNode) {
-            const sortX = [];
-            const sortY = [];
-            sortX.push(
-              {
-                value: this.render.toStageValue(newPos.x - stageState.x)
-                // 左
-              },
-              {
-                value: this.render.toStageValue(newPos.x - stageState.x + width / 2)
-                // 垂直中
-              },
-              {
-                value: this.render.toStageValue(newPos.x - stageState.x + width)
-                // 右
-              }
-            );
-            sortY.push(
-              {
-                value: this.render.toStageValue(newPos.y - stageState.y)
-                // 上
-              },
-              {
-                value: this.render.toStageValue(newPos.y - stageState.y + height / 2)
-                // 水平中
-              },
-              {
-                value: this.render.toStageValue(newPos.y - stageState.y + height)
-                // 下
-              }
-            );
-            const targetIds = this.render.selectionTool.selectingNodes.map((o) => o._id);
-            const otherNodes = this.render.layer.getChildren((node) => !targetIds.includes(node._id));
-            for (const node of otherNodes) {
-              sortX.push(
-                {
-                  id: node._id,
-                  value: node.x()
-                  // 左
-                },
-                {
-                  id: node._id,
-                  value: node.x() + node.width() / 2
-                  // 垂直中
-                },
-                {
-                  id: node._id,
-                  value: node.x() + node.width()
-                  // 右
-                }
-              );
-              sortY.push(
-                {
-                  id: node._id,
-                  value: node.y()
-                  // 上
-                },
-                {
-                  id: node._id,
-                  value: node.y() + node.height() / 2
-                  // 水平中
-                },
-                {
-                  id: node._id,
-                  value: node.y() + node.height()
-                  // 下
-                }
-              );
-            }
-            sortX.sort((a, b) => a.value - b.value);
-            sortY.sort((a, b) => a.value - b.value);
-            let XMin = Infinity;
-            let pairXMin = [];
-            let YMin = Infinity;
-            let pairYMin = [];
-            for (let i = 0; i < sortX.length - 1; i++) {
-              if (sortX[i].id === void 0 && sortX[i + 1].id !== void 0 || sortX[i].id !== void 0 && sortX[i + 1].id === void 0) {
-                const offset = Math.abs(sortX[i].value - sortX[i + 1].value);
-                if (offset < XMin) {
-                  XMin = offset;
-                  pairXMin = [[sortX[i], sortX[i + 1]]];
-                } else if (offset === XMin) {
-                  pairXMin.push([sortX[i], sortX[i + 1]]);
-                }
-              }
-            }
-            for (let i = 0; i < sortY.length - 1; i++) {
-              if (sortY[i].id === void 0 && sortY[i + 1].id !== void 0 || sortY[i].id !== void 0 && sortY[i + 1].id === void 0) {
-                const offset = Math.abs(sortY[i].value - sortY[i + 1].value);
-                if (offset < YMin) {
-                  YMin = offset;
-                  pairYMin = [[sortY[i], sortY[i + 1]]];
-                } else if (offset === YMin) {
-                  pairYMin.push([sortY[i], sortY[i + 1]]);
-                }
-              }
-            }
-            if (pairXMin[0]) {
-              if (Math.abs(pairXMin[0][0].value - pairXMin[0][1].value) < this.render.bgSize / 2) {
-                pairX = pairXMin[0];
-              }
-            }
-            if (pairYMin[0]) {
-              if (Math.abs(pairYMin[0][0].value - pairYMin[0][1].value) < this.render.bgSize / 2) {
-                pairY = pairYMin[0];
-              }
-            }
-            if ((pairX == null ? void 0 : pairX.length) === 2) {
-              for (const pair of pairXMin) {
-                const other2 = pair.find((o) => o.id !== void 0);
-                if (other2) {
-                  const line = new Konva.Line({
-                    points: lodash.flatten([
-                      [other2.value, this.render.toStageValue(-stageState.y)],
-                      [other2.value, this.render.toStageValue(this.render.stage.height() - stageState.y)]
-                    ]),
-                    stroke: "blue",
-                    strokeWidth: this.render.toStageValue(1),
-                    dash: [4, 4],
-                    listening: false
-                  });
-                  this.alignLines.push(line);
-                  this.render.layerCover.add(line);
-                }
-              }
-              const target = pairX.find((o) => o.id === void 0);
-              const other = pairX.find((o) => o.id !== void 0);
-              if (target && other) {
-                newPosX = newPosX - this.render.toBoardValue(target.value - other.value);
-                isAttract = true;
-              }
-            }
-            if ((pairY == null ? void 0 : pairY.length) === 2) {
-              for (const pair of pairYMin) {
-                const other2 = pair.find((o) => o.id !== void 0);
-                if (other2) {
-                  const line = new Konva.Line({
-                    points: lodash.flatten([
-                      [this.render.toStageValue(-stageState.x), other2.value],
-                      [this.render.toStageValue(this.render.stage.width() - stageState.x), other2.value]
-                    ]),
-                    stroke: "blue",
-                    strokeWidth: this.render.toStageValue(1),
-                    dash: [4, 4],
-                    listening: false
-                  });
-                  this.alignLines.push(line);
-                  this.render.layerCover.add(line);
-                }
-              }
-              const target = pairY.find((o) => o.id === void 0);
-              const other = pairY.find((o) => o.id !== void 0);
-              if (target && other) {
-                newPosY = newPosY - this.render.toBoardValue(target.value - other.value);
-                isAttract = true;
-              }
-            }
-          }
-          if (this.render.config.attractBg) {
-            if (pairX === null) {
-              const logicLeftX = this.render.toStageValue(newPos.x - stageState.x);
-              const logicNumLeftX = Math.round(logicLeftX / this.render.bgSize);
-              const logicClosestLeftX = logicNumLeftX * this.render.bgSize;
-              const logicDiffLeftX = Math.abs(logicLeftX - logicClosestLeftX);
-              const logicRightX = this.render.toStageValue(newPos.x + width - stageState.x);
-              const logicNumRightX = Math.round(logicRightX / this.render.bgSize);
-              const logicClosestRightX = logicNumRightX * this.render.bgSize;
-              const logicDiffRightX = Math.abs(logicRightX - logicClosestRightX);
-              const logicStageRightX = stageState.width;
-              const logicDiffStageRightX = Math.abs(logicRightX - logicStageRightX);
-              for (const diff of [
-                { type: "leftX", value: logicDiffLeftX },
-                { type: "rightX", value: logicDiffRightX },
-                { type: "stageRightX", value: logicDiffStageRightX }
-              ].sort((a, b) => a.value - b.value)) {
-                if (diff.value < 5) {
-                  if (diff.type === "stageRightX") {
-                    console.log(1, newPosX);
-                    newPosX = this.render.toBoardValue(logicStageRightX) + stageState.x - width;
-                    console.log(2, newPosX);
-                  } else if (diff.type === "leftX") {
-                    newPosX = this.render.toBoardValue(logicClosestLeftX) + stageState.x;
-                  } else if (diff.type === "rightX") {
-                    newPosX = this.render.toBoardValue(logicClosestRightX) + stageState.x - width;
-                  }
-                  isAttract = true;
-                  break;
-                }
-              }
-            }
-            if (pairY === null) {
-              const logicTopY = this.render.toStageValue(newPos.y - stageState.y);
-              const logicNumTopY = Math.round(logicTopY / this.render.bgSize);
-              const logicClosestTopY = logicNumTopY * this.render.bgSize;
-              const logicDiffTopY = Math.abs(logicTopY - logicClosestTopY);
-              const logicBottomY = this.render.toStageValue(newPos.y + height - stageState.y);
-              const logicNumBottomY = Math.round(logicBottomY / this.render.bgSize);
-              const logicClosestBottomY = logicNumBottomY * this.render.bgSize;
-              const logicDiffBottomY = Math.abs(logicBottomY - logicClosestBottomY);
-              const logicStageBottomY = stageState.height;
-              const logicDiffStageBottomY = Math.abs(logicBottomY - logicStageBottomY);
-              for (const diff of [
-                { type: "topY", value: logicDiffTopY },
-                { type: "bottomY", value: logicDiffBottomY },
-                { type: "stageBottomY", value: logicDiffStageBottomY }
-              ].sort((a, b) => a.value - b.value)) {
-                if (diff.value < 5) {
-                  if (diff.type === "stageBottomY") {
-                    newPosY = this.render.toBoardValue(logicStageBottomY) + stageState.y - height;
-                  } else if (diff.type === "topY") {
-                    newPosY = this.render.toBoardValue(logicClosestTopY) + stageState.y;
-                  } else if (diff.type === "bottomY") {
-                    newPosY = this.render.toBoardValue(logicClosestBottomY) + stageState.y - height;
-                  }
-                  isAttract = true;
-                  break;
-                }
-              }
-            }
-          }
-          return {
-            pos: {
-              x: newPosX,
-              y: newPosY
-            },
-            isAttract
-          };
         });
         // transformer config
         __publicField(this, "transformerConfig", {
@@ -25369,11 +25193,12 @@ var require_index_001 = __commonJS({
       }
       // 重置 transformer 状态
       transformerStateReset() {
-        this.transformerMousedownPos = this.render.transformer.position();
+        const rect = this.render.transformer.findOne(".back").getClientRect();
+        this.transformerMousedownPos = { x: rect.x, y: rect.y };
       }
       // 重置
       reset() {
-        this.alignLinesClear();
+        this.render.attractTool.alignLinesClear();
         this.transformerStateReset();
         this.selectingNodesPositionReset();
       }
@@ -25406,6 +25231,7 @@ var require_index_001 = __commonJS({
                   }
                   this.change();
                   this.render.draws[LinkDraw.name].draw();
+                  this.render.draws[AttractDraw.name].draw();
                   this.render.draws[PreviewDraw.name].draw();
                 }
               }
@@ -25425,7 +25251,7 @@ var require_index_001 = __commonJS({
         __publicField(this, "handlers", {
           dom: {
             keydown: (e) => {
-              if (e.ctrlKey) {
+              if (e.ctrlKey || e.metaKey) {
                 if (e.code === ShutcutKey.C) {
                   this.render.copyTool.pasteStart();
                 } else if (e.code === ShutcutKey.V) {
@@ -25438,8 +25264,10 @@ var require_index_001 = __commonJS({
                   }
                 } else if (e.code === ShutcutKey.A) {
                   this.render.selectionTool.selectAll();
+                } else if (e.code === ShutcutKey.R) {
+                  window.location.reload();
                 }
-              } else if (e.code === ShutcutKey.删除) {
+              } else if (e.code === ShutcutKey.删除 || e.code === ShutcutKey.Backspace) {
                 this.render.remove(this.render.selectionTool.selectingNodes);
               } else if (e.code === ShutcutKey.Esc) {
                 this.render.selectionTool.selectingClear();
@@ -25605,6 +25433,7 @@ var require_index_001 = __commonJS({
             });
             this.render.linkTool.pointsVisible(false, node);
             this.render.draws[LinkDraw.name].draw();
+            this.render.draws[AttractDraw.name].draw();
             this.render.draws[PreviewDraw.name].draw();
           }
           for (const node of nodes.sort((a, b) => a.zIndex() - b.zIndex())) {
@@ -25734,6 +25563,7 @@ var require_index_001 = __commonJS({
         this.render.selectionTool.select(clones);
         this.render.updateHistory();
         this.render.draws[LinkDraw.name].draw();
+        this.render.draws[AttractDraw.name].draw();
         this.render.draws[PreviewDraw.name].draw();
       }
     }
@@ -25758,6 +25588,7 @@ var require_index_001 = __commonJS({
         });
         this.render.draws[BgDraw.name].draw();
         this.render.draws[LinkDraw.name].draw();
+        this.render.draws[AttractDraw.name].draw();
         this.render.draws[RulerDraw.name].draw();
         this.render.draws[RefLineDraw.name].draw();
         this.render.draws[PreviewDraw.name].draw();
@@ -25786,6 +25617,7 @@ var require_index_001 = __commonJS({
         });
         this.render.draws[BgDraw.name].draw();
         this.render.draws[LinkDraw.name].draw();
+        this.render.draws[AttractDraw.name].draw();
         this.render.draws[RulerDraw.name].draw();
         this.render.draws[RefLineDraw.name].draw();
         this.render.draws[PreviewDraw.name].draw();
@@ -25874,6 +25706,7 @@ var require_index_001 = __commonJS({
           this.updateLastZindex(sorted);
           this.render.updateHistory();
           this.render.draws[LinkDraw.name].draw();
+          this.render.draws[AttractDraw.name].draw();
           this.render.draws[PreviewDraw.name].draw();
         }
       }
@@ -25903,6 +25736,7 @@ var require_index_001 = __commonJS({
           this.updateLastZindex(sorted);
           this.render.updateHistory();
           this.render.draws[LinkDraw.name].draw();
+          this.render.draws[AttractDraw.name].draw();
           this.render.draws[PreviewDraw.name].draw();
         }
       }
@@ -25925,6 +25759,7 @@ var require_index_001 = __commonJS({
           this.updateLastZindex(sorted);
           this.render.updateHistory();
           this.render.draws[LinkDraw.name].draw();
+          this.render.draws[AttractDraw.name].draw();
           this.render.draws[PreviewDraw.name].draw();
         }
       }
@@ -25947,6 +25782,7 @@ var require_index_001 = __commonJS({
           this.updateLastZindex(sorted);
           this.render.updateHistory();
           this.render.draws[LinkDraw.name].draw();
+          this.render.draws[AttractDraw.name].draw();
           this.render.draws[PreviewDraw.name].draw();
         }
       }
@@ -26818,6 +26654,7 @@ var require_index_001 = __commonJS({
           }
           this.render.linkTool.pointsVisible(false);
           this.render.draws[LinkDraw.name].draw();
+          this.render.draws[AttractDraw.name].draw();
           this.render.draws[PreviewDraw.name].draw();
         } catch (e) {
           console.error(e);
@@ -27000,6 +26837,7 @@ var require_index_001 = __commonJS({
         }
         this.render.updateHistory();
         this.render.draws[LinkDraw.name].draw();
+        this.render.draws[AttractDraw.name].draw();
         this.render.draws[PreviewDraw.name].draw();
       }
     }
@@ -27025,6 +26863,7 @@ var require_index_001 = __commonJS({
           }
         }
         this.render.draws[LinkDraw.name].draw();
+        this.render.draws[AttractDraw.name].draw();
         this.render.draws[PreviewDraw.name].draw();
       }
       remove(line) {
@@ -27042,6 +26881,7 @@ var require_index_001 = __commonJS({
                 point.pairs.splice(pairIndex, 1);
                 group.setAttr("points", points);
                 this.render.draws[LinkDraw.name].draw();
+                this.render.draws[AttractDraw.name].draw();
                 this.render.draws[PreviewDraw.name].draw();
               }
             }
@@ -27050,6 +26890,267 @@ var require_index_001 = __commonJS({
       }
     }
     __publicField(LinkTool, "name", "LinkTool");
+    class AttractTool {
+      constructor(render) {
+        __publicField(this, "render");
+        // 对齐线
+        __publicField(this, "alignLines", []);
+        // 磁吸逻辑
+        __publicField(this, "attract", (rect) => {
+          this.alignLinesClear();
+          const stageState = this.render.getStageState();
+          const width = this.render.transformer.width();
+          const height = this.render.transformer.height();
+          let newPosX = rect.x;
+          let newPosY = rect.y;
+          let isAttract = false;
+          let pairX = null;
+          let pairY = null;
+          if (this.render.config.attractNode) {
+            const { sortX, sortY } = this.getSortItems(rect);
+            let XMin = Infinity;
+            let pairXMin = [];
+            let YMin = Infinity;
+            let pairYMin = [];
+            for (let i = 0; i < sortX.length - 1; i++) {
+              if (sortX[i].id === void 0 && sortX[i + 1].id !== void 0 || sortX[i].id !== void 0 && sortX[i + 1].id === void 0) {
+                const offset = Math.abs(sortX[i].value - sortX[i + 1].value);
+                if (offset < XMin) {
+                  XMin = offset;
+                  pairXMin = [[sortX[i], sortX[i + 1]]];
+                } else if (offset === XMin) {
+                  pairXMin.push([sortX[i], sortX[i + 1]]);
+                }
+              }
+            }
+            for (let i = 0; i < sortY.length - 1; i++) {
+              if (sortY[i].id === void 0 && sortY[i + 1].id !== void 0 || sortY[i].id !== void 0 && sortY[i + 1].id === void 0) {
+                const offset = Math.abs(sortY[i].value - sortY[i + 1].value);
+                if (offset < YMin) {
+                  YMin = offset;
+                  pairYMin = [[sortY[i], sortY[i + 1]]];
+                } else if (offset === YMin) {
+                  pairYMin.push([sortY[i], sortY[i + 1]]);
+                }
+              }
+            }
+            if (pairXMin[0]) {
+              if (Math.abs(pairXMin[0][0].value - pairXMin[0][1].value) < this.render.bgSize / 2) {
+                pairX = pairXMin[0];
+              }
+            }
+            if (pairYMin[0]) {
+              if (Math.abs(pairYMin[0][0].value - pairYMin[0][1].value) < this.render.bgSize / 2) {
+                pairY = pairYMin[0];
+              }
+            }
+            if ((pairX == null ? void 0 : pairX.length) === 2) {
+              for (const pair of pairXMin) {
+                const other2 = pair.find((o) => o.id !== void 0);
+                if (other2) {
+                  const line = new Konva.Line({
+                    points: lodash.flatten([
+                      [other2.value, this.render.toStageValue(-stageState.y)],
+                      [other2.value, this.render.toStageValue(this.render.stage.height() - stageState.y)]
+                    ]),
+                    stroke: "blue",
+                    strokeWidth: this.render.toStageValue(1),
+                    dash: [4, 4],
+                    listening: false
+                  });
+                  this.alignLines.push(line);
+                  this.render.layerCover.add(line);
+                }
+              }
+              const target = pairX.find((o) => o.id === void 0);
+              const other = pairX.find((o) => o.id !== void 0);
+              if (target && other) {
+                newPosX = newPosX - this.render.toBoardValue(target.value - other.value);
+                isAttract = true;
+              }
+            }
+            if ((pairY == null ? void 0 : pairY.length) === 2) {
+              for (const pair of pairYMin) {
+                const other2 = pair.find((o) => o.id !== void 0);
+                if (other2) {
+                  const line = new Konva.Line({
+                    points: lodash.flatten([
+                      [this.render.toStageValue(-stageState.x), other2.value],
+                      [this.render.toStageValue(this.render.stage.width() - stageState.x), other2.value]
+                    ]),
+                    stroke: "blue",
+                    strokeWidth: this.render.toStageValue(1),
+                    dash: [4, 4],
+                    listening: false
+                  });
+                  this.alignLines.push(line);
+                  this.render.layerCover.add(line);
+                }
+              }
+              const target = pairY.find((o) => o.id === void 0);
+              const other = pairY.find((o) => o.id !== void 0);
+              if (target && other) {
+                newPosY = newPosY - this.render.toBoardValue(target.value - other.value);
+                isAttract = true;
+              }
+            }
+          }
+          if (this.render.config.attractBg) {
+            if (pairX === null) {
+              const logicLeftX = this.render.toStageValue(newPosX - stageState.x);
+              const logicNumLeftX = Math.round(logicLeftX / this.render.bgSize);
+              const logicClosestLeftX = logicNumLeftX * this.render.bgSize;
+              const logicDiffLeftX = Math.abs(logicLeftX - logicClosestLeftX);
+              const logicRightX = this.render.toStageValue(newPosX + width - stageState.x);
+              const logicNumRightX = Math.round(logicRightX / this.render.bgSize);
+              const logicClosestRightX = logicNumRightX * this.render.bgSize;
+              const logicDiffRightX = Math.abs(logicRightX - logicClosestRightX);
+              const logicStageRightX = stageState.width;
+              const logicDiffStageRightX = Math.abs(logicRightX - logicStageRightX);
+              for (const diff of [
+                { type: "leftX", value: logicDiffLeftX },
+                { type: "rightX", value: logicDiffRightX },
+                { type: "stageRightX", value: logicDiffStageRightX }
+              ].sort((a, b) => a.value - b.value)) {
+                if (diff.value < 5) {
+                  if (diff.type === "stageRightX") {
+                    console.log(1, newPosX);
+                    newPosX = this.render.toBoardValue(logicStageRightX) + stageState.x - width;
+                    console.log(2, newPosX);
+                  } else if (diff.type === "leftX") {
+                    newPosX = this.render.toBoardValue(logicClosestLeftX) + stageState.x;
+                  } else if (diff.type === "rightX") {
+                    newPosX = this.render.toBoardValue(logicClosestRightX) + stageState.x - width;
+                  }
+                  isAttract = true;
+                  break;
+                }
+              }
+            }
+            if (pairY === null) {
+              const logicTopY = this.render.toStageValue(newPosY - stageState.y);
+              const logicNumTopY = Math.round(logicTopY / this.render.bgSize);
+              const logicClosestTopY = logicNumTopY * this.render.bgSize;
+              const logicDiffTopY = Math.abs(logicTopY - logicClosestTopY);
+              const logicBottomY = this.render.toStageValue(newPosY + height - stageState.y);
+              const logicNumBottomY = Math.round(logicBottomY / this.render.bgSize);
+              const logicClosestBottomY = logicNumBottomY * this.render.bgSize;
+              const logicDiffBottomY = Math.abs(logicBottomY - logicClosestBottomY);
+              const logicStageBottomY = stageState.height;
+              const logicDiffStageBottomY = Math.abs(logicBottomY - logicStageBottomY);
+              for (const diff of [
+                { type: "topY", value: logicDiffTopY },
+                { type: "bottomY", value: logicDiffBottomY },
+                { type: "stageBottomY", value: logicDiffStageBottomY }
+              ].sort((a, b) => a.value - b.value)) {
+                if (diff.value < 5) {
+                  if (diff.type === "stageBottomY") {
+                    newPosY = this.render.toBoardValue(logicStageBottomY) + stageState.y - height;
+                  } else if (diff.type === "topY") {
+                    newPosY = this.render.toBoardValue(logicClosestTopY) + stageState.y;
+                  } else if (diff.type === "bottomY") {
+                    newPosY = this.render.toBoardValue(logicClosestBottomY) + stageState.y - height;
+                  }
+                  isAttract = true;
+                  break;
+                }
+              }
+            }
+          }
+          return {
+            pos: {
+              x: newPosX,
+              y: newPosY
+            },
+            isAttract
+          };
+        });
+        this.render = render;
+      }
+      // 对齐线清除
+      alignLinesClear() {
+        for (const line of this.alignLines) {
+          line.remove();
+        }
+        this.alignLines = [];
+      }
+      getSortItems(rect) {
+        const stageState = this.render.getStageState();
+        const sortX = [];
+        const sortY = [];
+        sortX.push(
+          {
+            value: this.render.toStageValue(rect.x - stageState.x)
+            // 左
+          },
+          {
+            value: this.render.toStageValue(rect.x - stageState.x + rect.width / 2)
+            // 垂直中
+          },
+          {
+            value: this.render.toStageValue(rect.x - stageState.x + rect.width)
+            // 右
+          }
+        );
+        sortY.push(
+          {
+            value: this.render.toStageValue(rect.y - stageState.y)
+            // 上
+          },
+          {
+            value: this.render.toStageValue(rect.y - stageState.y + rect.height / 2)
+            // 水平中
+          },
+          {
+            value: this.render.toStageValue(rect.y - stageState.y + rect.height)
+            // 下
+          }
+        );
+        const targetIds = this.render.selectionTool.selectingNodes.map((o) => o._id);
+        const otherNodes = this.render.layer.find(".asset").filter((node) => !targetIds.includes(node._id));
+        for (const node of otherNodes) {
+          const nodeRect = node.getClientRect();
+          sortX.push(
+            {
+              id: node._id,
+              value: this.render.toStageValue(nodeRect.x - stageState.x)
+              // 左
+            },
+            {
+              id: node._id,
+              value: this.render.toStageValue(nodeRect.x - stageState.x + nodeRect.width / 2)
+              // 垂直中
+            },
+            {
+              id: node._id,
+              value: this.render.toStageValue(nodeRect.x - stageState.x + nodeRect.width)
+              // 右
+            }
+          );
+          sortY.push(
+            {
+              id: node._id,
+              value: this.render.toStageValue(nodeRect.y - stageState.y)
+              // 上
+            },
+            {
+              id: node._id,
+              value: this.render.toStageValue(nodeRect.y - stageState.y + nodeRect.height / 2)
+              // 水平中
+            },
+            {
+              id: node._id,
+              value: this.render.toStageValue(nodeRect.y - stageState.y + nodeRect.height)
+              // 下
+            }
+          );
+        }
+        sortX.sort((a, b) => a.value - b.value);
+        sortY.sort((a, b) => a.value - b.value);
+        return { sortX, sortY };
+      }
+    }
+    __publicField(AttractTool, "name", "AttractTool");
     class Render {
       constructor(stageEle, config) {
         __publicField(this, "stage");
@@ -27079,6 +27180,8 @@ var require_index_001 = __commonJS({
         __publicField(this, "alignTool");
         // 连线工具
         __publicField(this, "linkTool");
+        // 磁贴工具
+        __publicField(this, "attractTool");
         // 多选器层
         __publicField(this, "groupTransformer", new Konva.Group());
         // 多选器
@@ -27126,6 +27229,9 @@ var require_index_001 = __commonJS({
         this.draws[LinkDraw.name] = new LinkDraw(this, this.layerCover, {
           size: this.pointSize
         });
+        this.draws[AttractDraw.name] = new AttractDraw(this, this.layerCover, {
+          size: this.pointSize
+        });
         this.draws[RulerDraw.name] = new RulerDraw(this, this.layerCover, {
           size: this.rulerSize
         });
@@ -27146,6 +27252,7 @@ var require_index_001 = __commonJS({
         this.importExportTool = new ImportExportTool(this);
         this.alignTool = new AlignTool(this);
         this.linkTool = new LinkTool(this);
+        this.attractTool = new AttractTool(this);
         this.handlers[DragHandlers.name] = new DragHandlers(this);
         this.handlers[ZoomHandlers.name] = new ZoomHandlers(this);
         this.handlers[DragOutsideHandlers.name] = new DragOutsideHandlers(this);
@@ -27161,6 +27268,7 @@ var require_index_001 = __commonJS({
         this.debug = v;
         (_b = (_a = this.config.on) == null ? void 0 : _a.debugChange) == null ? void 0 : _b.call(_a, this.debug);
         this.draws[LinkDraw.name].init();
+        this.draws[AttractDraw.name].init();
         this.draws[RulerDraw.name].init();
         this.draws[RefLineDraw.name].init();
         this.draws[ContextmenuDraw.name].init();
@@ -27174,6 +27282,7 @@ var require_index_001 = __commonJS({
         this.stage.add(this.layer);
         this.stage.add(this.layerCover);
         this.draws[LinkDraw.name].init();
+        this.draws[AttractDraw.name].init();
         this.draws[RulerDraw.name].init();
         this.draws[RefLineDraw.name].init();
         this.draws[ContextmenuDraw.name].init();
@@ -27189,6 +27298,7 @@ var require_index_001 = __commonJS({
         });
         this.draws[BgDraw.name].draw();
         this.draws[LinkDraw.name].draw();
+        this.draws[AttractDraw.name].draw();
         this.draws[RulerDraw.name].draw();
         this.draws[PreviewDraw.name].draw();
       }
@@ -27205,6 +27315,7 @@ var require_index_001 = __commonJS({
           this.selectionTool.selectingClear();
           this.updateHistory();
           this.draws[LinkDraw.name].draw();
+          this.draws[AttractDraw.name].draw();
           this.draws[PreviewDraw.name].draw();
         }
       }
@@ -27326,19 +27437,19 @@ var require_index_001 = __commonJS({
       }
       // 忽略各 draw 的根 group
       ignoreDraw(node) {
-        return node.name() === BgDraw.name || node.name() === RulerDraw.name || node.name() === RefLineDraw.name || node.name() === ContextmenuDraw.name || node.name() === PreviewDraw.name || node.name() === LinkDraw.name;
+        return node.name() === BgDraw.name || node.name() === RulerDraw.name || node.name() === RefLineDraw.name || node.name() === ContextmenuDraw.name || node.name() === PreviewDraw.name || node.name() === LinkDraw.name || node.name() === AttractDraw.name;
       }
       // 忽略各 draw 的根 group
       ignoreLink(node) {
         return node.name() === "link-anchor" || node.name() === "linking-line" || node.name() === "link-point" || node.name() === "link-line";
       }
     }
-    const attrs$1 = {
+    const attrs$2 = {
       width: 1541,
       height: 1103
     };
-    const className$1 = "Stage";
-    const children$1 = [
+    const className$2 = "Stage";
+    const children$2 = [
       {
         attrs: {},
         className: "Layer",
@@ -31315,16 +31426,16 @@ var require_index_001 = __commonJS({
       }
     ];
     const linkTestData = {
-      attrs: attrs$1,
-      className: className$1,
-      children: children$1
+      attrs: attrs$2,
+      className: className$2,
+      children: children$2
     };
-    const attrs = {
+    const attrs$1 = {
       width: 1541,
       height: 1103
     };
-    const className = "Stage";
-    const children = [
+    const className$1 = "Stage";
+    const children$1 = [
       {
         attrs: {},
         className: "Layer",
@@ -33527,6 +33638,191 @@ var require_index_001 = __commonJS({
       }
     ];
     const rotateTestData = {
+      attrs: attrs$1,
+      className: className$1,
+      children: children$1
+    };
+    const attrs = {
+      width: 542.0394627062592,
+      height: 630
+    };
+    const className = "Stage";
+    const children = [
+      {
+        attrs: {},
+        className: "Layer",
+        children: [
+          {
+            attrs: {
+              id: "QdQ1rDuuZplnUxK4eSezV",
+              width: 200,
+              height: 200,
+              name: "asset",
+              x: 199.99999999999855,
+              y: 58.578643762690355,
+              points: [
+                {
+                  x: 100,
+                  y: 1,
+                  direction: "top",
+                  id: "wag__sUg5Rr6wtI_YnA6d",
+                  groupId: "QdQ1rDuuZplnUxK4eSezV",
+                  visible: false,
+                  pairs: []
+                },
+                {
+                  x: 100,
+                  y: 199,
+                  direction: "bottom",
+                  id: "FU0C4FGCPkNMQU1FoPapk",
+                  groupId: "QdQ1rDuuZplnUxK4eSezV",
+                  visible: false,
+                  pairs: []
+                }
+              ],
+              selected: false,
+              rotation: 44.999999999999204,
+              scaleX: 0.9999999999999963,
+              scaleY: 1.0000000000000027,
+              skewX: 27755575615628943e-32
+            },
+            className: "Group",
+            children: [
+              {
+                attrs: {
+                  svgXML: '<?xml version="1.0" standalone="no"?><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd"><svg class="icon" width="200px" height="200.00px" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"><path d="M381.902 772.197V251.803h125.901V0h8.394v251.803h125.901v520.394H516.197V1024h-8.394V772.197H381.902z m251.803-512h-243.41v503.606h243.41V260.197z" /></svg>'
+                },
+                className: "Image"
+              },
+              {
+                attrs: {
+                  name: "link-anchor",
+                  id: "wag__sUg5Rr6wtI_YnA6d",
+                  x: 100,
+                  y: 1,
+                  radius: 1,
+                  stroke: "rgba(0,0,255,1)",
+                  visible: false,
+                  direction: "top"
+                },
+                className: "Circle"
+              },
+              {
+                attrs: {
+                  name: "link-anchor",
+                  id: "FU0C4FGCPkNMQU1FoPapk",
+                  x: 100,
+                  y: 199,
+                  radius: 1,
+                  stroke: "rgba(0,0,255,1)",
+                  visible: false,
+                  direction: "bottom"
+                },
+                className: "Circle"
+              },
+              {
+                attrs: {
+                  id: "hoverRect",
+                  width: 200,
+                  height: 200,
+                  fill: "rgba(0,255,0,0.3)",
+                  visible: false
+                },
+                className: "Rect"
+              }
+            ]
+          },
+          {
+            attrs: {
+              id: "KecmScqSmHBwWZd73i6TM",
+              width: 200,
+              height: 200,
+              name: "asset",
+              x: 342.0394627062592,
+              y: 268.68606643209193,
+              points: [
+                {
+                  x: 100,
+                  y: 1,
+                  direction: "top",
+                  id: "a9ZDde2HgcNcsdpIROvOR",
+                  groupId: "KecmScqSmHBwWZd73i6TM",
+                  visible: false,
+                  pairs: []
+                },
+                {
+                  x: 100,
+                  y: 199,
+                  direction: "bottom",
+                  id: "6dL29tj2jGFxMbWd8rb1e",
+                  groupId: "KecmScqSmHBwWZd73i6TM",
+                  visible: false,
+                  pairs: []
+                }
+              ],
+              selected: true,
+              listening: false,
+              rotation: -74.05728503451608,
+              scaleX: 0.9999999999999892,
+              scaleY: 1.0000000000000115,
+              skewX: 22759572004815693e-31,
+              nodeMousedownPos: {
+                x: 342.0394627062592,
+                y: 268.68606643209193
+              },
+              lastOpacity: 1,
+              lastZIndex: 1
+            },
+            className: "Group",
+            children: [
+              {
+                attrs: {
+                  svgXML: '<?xml version="1.0" standalone="no"?><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd"><svg class="icon" width="200px" height="200.00px" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"><path d="M381.902 772.197V251.803h125.901V0h8.394v251.803h125.901v520.394H516.197V1024h-8.394V772.197H381.902z m251.803-512h-243.41v503.606h243.41V260.197z" /></svg>'
+                },
+                className: "Image"
+              },
+              {
+                attrs: {
+                  name: "link-anchor",
+                  id: "a9ZDde2HgcNcsdpIROvOR",
+                  x: 100,
+                  y: 1,
+                  radius: 1,
+                  stroke: "rgba(0,0,255,1)",
+                  visible: false,
+                  direction: "top"
+                },
+                className: "Circle"
+              },
+              {
+                attrs: {
+                  name: "link-anchor",
+                  id: "6dL29tj2jGFxMbWd8rb1e",
+                  x: 100,
+                  y: 199,
+                  radius: 1,
+                  stroke: "rgba(0,0,255,1)",
+                  visible: false,
+                  direction: "bottom"
+                },
+                className: "Circle"
+              },
+              {
+                attrs: {
+                  id: "hoverRect",
+                  width: 200,
+                  height: 200,
+                  fill: "rgba(0,255,0,0.3)",
+                  visible: false
+                },
+                className: "Rect"
+              }
+            ]
+          }
+        ]
+      }
+    ];
+    const alignTestData = {
       attrs,
       className,
       children
@@ -33775,6 +34071,9 @@ var require_index_001 = __commonJS({
         function onRotateTest() {
           render == null ? void 0 : render.importExportTool.restore(JSON.stringify(rotateTestData));
         }
+        function onAlignTest() {
+          render == null ? void 0 : render.importExportTool.restore(JSON.stringify(alignTestData));
+        }
         function onFull() {
           full.value = !full.value;
         }
@@ -33855,6 +34154,7 @@ var require_index_001 = __commonJS({
             createBaseVNode("footer", null, [
               createBaseVNode("button", { onClick: onLinkTest }, "“连接线”方向测试数据"),
               createBaseVNode("button", { onClick: onRotateTest }, "“连接线”出入口测试数据"),
+              createBaseVNode("button", { onClick: onAlignTest }, "“对齐”测试数据"),
               createBaseVNode("button", { onClick: onDebug }, toDisplayString(debug.value ? "关闭调试" : "开启调试"), 1),
               createBaseVNode("button", { onClick: onFull }, toDisplayString(full.value ? "显示工具栏" : "隐藏工具栏"), 1)
             ])
@@ -33869,7 +34169,7 @@ var require_index_001 = __commonJS({
       }
       return target;
     };
-    const App = /* @__PURE__ */ _export_sfc(_sfc_main, [["__scopeId", "data-v-46635782"]]);
+    const App = /* @__PURE__ */ _export_sfc(_sfc_main, [["__scopeId", "data-v-803d652c"]]);
     createApp(App).mount("#app");
   }
 });
