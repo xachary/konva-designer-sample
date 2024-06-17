@@ -53,6 +53,8 @@ export class ZoomHandlers implements Types.Handler {
             this.render.draws[Draws.BgDraw.name].draw()
             // 更新连线
             this.render.draws[Draws.LinkDraw.name].draw()
+            // 更新磁贴
+            this.render.draws[Draws.AttractDraw.name].draw()
             // 更新比例尺
             this.render.draws[Draws.RulerDraw.name].draw()
             // 更新预览

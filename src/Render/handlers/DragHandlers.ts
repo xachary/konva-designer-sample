@@ -23,7 +23,10 @@ export class DragHandlers implements Types.Handler {
   handlers = {
     stage: {
       mousedown: (e: Konva.KonvaEventObject<GlobalEventHandlersEventMap['mousedown']>) => {
-        if (e.evt.button === Types.MouseButton.右键) {
+        if (
+          e.evt.button === Types.MouseButton.右键 ||
+          (e.evt.ctrlKey && e.evt.button === Types.MouseButton.左键) // mac 拖动画布快捷键
+        ) {
           // stage 状态
           const stageState = this.render.getStageState()
 
@@ -62,7 +65,9 @@ export class DragHandlers implements Types.Handler {
             // 更新背景
             this.render.draws[Draws.BgDraw.name].draw()
             // 更新连线
-            this.render.draws[Draws.LinkDraw.name].draw();
+            this.render.draws[Draws.LinkDraw.name].draw()
+            // 更新磁贴
+            this.render.draws[Draws.AttractDraw.name].draw()
             // 更新比例尺
             this.render.draws[Draws.RulerDraw.name].draw()
             // 更新预览

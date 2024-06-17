@@ -49,6 +49,9 @@ export class Render {
   // 连线工具
   linkTool: Tools.LinkTool
 
+  // 磁贴工具
+  attractTool: Tools.AttractTool
+
   // 多选器层
   groupTransformer: Konva.Group = new Konva.Group()
 
@@ -87,6 +90,7 @@ export class Render {
     this.config.on?.debugChange?.(this.debug)
 
     this.draws[Draws.LinkDraw.name].init()
+    this.draws[Draws.AttractDraw.name].init()
     this.draws[Draws.RulerDraw.name].init()
     this.draws[Draws.RefLineDraw.name].init()
     this.draws[Draws.ContextmenuDraw.name].init()
@@ -120,6 +124,9 @@ export class Render {
       size: this.bgSize
     })
     this.draws[Draws.LinkDraw.name] = new Draws.LinkDraw(this, this.layerCover, {
+      size: this.pointSize
+    })
+    this.draws[Draws.AttractDraw.name] = new Draws.AttractDraw(this, this.layerCover, {
       size: this.pointSize
     })
     this.draws[Draws.RulerDraw.name] = new Draws.RulerDraw(this, this.layerCover, {
@@ -159,6 +166,9 @@ export class Render {
     // 对齐工具
     this.linkTool = new Tools.LinkTool(this)
 
+    // 磁贴工具
+    this.attractTool = new Tools.AttractTool(this)
+
     // 事件处理
     this.handlers[Handlers.DragHandlers.name] = new Handlers.DragHandlers(this)
     this.handlers[Handlers.ZoomHandlers.name] = new Handlers.ZoomHandlers(this)
@@ -182,6 +192,7 @@ export class Render {
 
     this.stage.add(this.layerCover)
     this.draws[Draws.LinkDraw.name].init()
+    this.draws[Draws.AttractDraw.name].init()
     this.draws[Draws.RulerDraw.name].init()
     this.draws[Draws.RefLineDraw.name].init()
     this.draws[Draws.ContextmenuDraw.name].init()
@@ -205,6 +216,8 @@ export class Render {
     this.draws[Draws.BgDraw.name].draw()
     // 更新连线
     this.draws[Draws.LinkDraw.name].draw()
+    // 更新磁贴
+    this.draws[Draws.AttractDraw.name].draw()
     // 更新比例尺
     this.draws[Draws.RulerDraw.name].draw()
     // 更新预览
@@ -231,6 +244,8 @@ export class Render {
       this.updateHistory()
       // 更新连线
       this.draws[Draws.LinkDraw.name].draw()
+      // 更新磁贴
+      this.draws[Draws.AttractDraw.name].draw()
       // 更新预览
       this.draws[Draws.PreviewDraw.name].draw()
     }
@@ -383,7 +398,8 @@ export class Render {
       node.name() === Draws.RefLineDraw.name ||
       node.name() === Draws.ContextmenuDraw.name ||
       node.name() === Draws.PreviewDraw.name ||
-      node.name() === Draws.LinkDraw.name
+      node.name() === Draws.LinkDraw.name ||
+      node.name() === Draws.AttractDraw.name
     )
   }
 
