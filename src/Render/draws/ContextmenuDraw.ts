@@ -281,7 +281,8 @@ export class ContextmenuDraw extends Types.BaseDraw implements Types.Draw {
             this.state.target = null
             this.draw()
           }
-        } else if (e.evt.button === Types.MouseButton.右键) {
+        } else if (e.evt.button === Types.MouseButton.右键 && !e.evt.ctrlKey) {
+          // （判断 ctrlKey 为了排查 mac 拖动快捷键）
           // 右键按下
           this.state.right = true
         }
@@ -297,15 +298,18 @@ export class ContextmenuDraw extends Types.BaseDraw implements Types.Draw {
         this.state.right = false
       },
       contextmenu: (e: Konva.KonvaEventObject<GlobalEventHandlersEventMap['contextmenu']>) => {
-        const pos = this.render.stage.getPointerPosition()
-        if (pos && this.state.lastPos) {
-          // 右键目标
-          if (pos.x === this.state.lastPos.x || pos.y === this.state.lastPos.y) {
-            this.state.target = e.target
-          } else {
-            this.state.target = null
+        // （判断 ctrlKey 为了排查 mac 拖动快捷键）
+        if (!e.evt.ctrlKey) {
+          const pos = this.render.stage.getPointerPosition()
+          if (pos && this.state.lastPos) {
+            // 右键目标
+            if (pos.x === this.state.lastPos.x || pos.y === this.state.lastPos.y) {
+              this.state.target = e.target
+            } else {
+              this.state.target = null
+            }
+            this.draw()
           }
-          this.draw()
         }
       },
       wheel: () => {

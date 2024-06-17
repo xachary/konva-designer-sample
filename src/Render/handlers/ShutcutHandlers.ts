@@ -12,7 +12,7 @@ export class ShutcutHandlers implements Types.Handler {
   handlers = {
     dom: {
       keydown: (e: GlobalEventHandlersEventMap['keydown']) => {
-        if (e.ctrlKey) {
+        if (e.ctrlKey || e.metaKey) {
           if (e.code === Types.ShutcutKey.C) {
             this.render.copyTool.pasteStart()
           } else if (e.code === Types.ShutcutKey.V) {
@@ -25,8 +25,10 @@ export class ShutcutHandlers implements Types.Handler {
             }
           } else if (e.code === Types.ShutcutKey.A) {
             this.render.selectionTool.selectAll()
+          } else if (e.code === Types.ShutcutKey.R) {
+            window.location.reload()
           }
-        } else if (e.code === Types.ShutcutKey.删除) {
+        } else if (e.code === Types.ShutcutKey.删除 || e.code === Types.ShutcutKey.Backspace) {
           this.render.remove(this.render.selectionTool.selectingNodes)
         } else if (e.code === Types.ShutcutKey.Esc) {
           this.render.selectionTool.selectingClear()

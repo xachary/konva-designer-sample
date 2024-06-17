@@ -35,7 +35,7 @@ export class ZoomHandlers implements Types.Handler {
           }
 
           // 滚轮方向
-          const direction = e.evt.deltaY > 0 ? 1 : -1
+          const direction = e.evt.deltaY > 0 ? -1 : 1
 
           const newScale = direction > 0 ? oldScale + this.scaleBy : oldScale - this.scaleBy
 

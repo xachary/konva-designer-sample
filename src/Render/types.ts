@@ -109,7 +109,9 @@ export enum ShutcutKey {
   V = 'KeyV',
   Z = 'KeyZ',
   A = 'KeyA',
-  Esc = 'Escape'
+  R = 'KeyR',
+  Esc = 'Escape',
+  Backspace = 'Backspace'
 }
 
 export enum AlignType {
