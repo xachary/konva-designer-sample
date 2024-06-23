@@ -352,7 +352,12 @@ function onFull() {
       <section ref="boardElement">
         <div ref="stageElement"></div>
       </section>
-      <footer :style="{ width: full ? 0 : undefined }"></footer>
+      <footer :style="{ width: full ? 0 : undefined }">
+        快捷键：<br>
+        1、复制、粘贴、多选、全选、删除、上一步、下一步等快捷键与一般文档编辑器类似；<br>
+        2、放大缩小，【Win】鼠标上滚动下滚动，【Mac】触控板双指放大、缩小；<br>
+        3、画布拖动，在空白处，【Win】右键按下移动，【Mac】contril + 触控板三指移动；<br>
+      </footer>
     </section>
     <footer>
       <button @click="onLinkTest">“连接线”方向测试数据</button>
@@ -426,6 +431,7 @@ function onFull() {
 
     &>footer {
       box-shadow: -1px 0 2px 0 rgba(0, 0, 0, 0.05);
+      padding: 12px;
     }
 
     &>section {
