@@ -9,7 +9,7 @@ var __publicField = (obj, key, value) => {
   return value;
 };
 var require_index_001 = __commonJS({
-  "assets/index-C3QK0Y9E.js"(exports, module) {
+  "assets/index-DjXV6w7X.js"(exports, module) {
     (function polyfill() {
       const relList = document.createElement("link").relList;
       if (relList && relList.supports && relList.supports("modulepreload")) {
@@ -1588,6 +1588,12 @@ var require_index_001 = __commonJS({
       currentRenderingInstance = instance;
       currentScopeId = instance && instance.type.__scopeId || null;
       return prev;
+    }
+    function pushScopeId(id) {
+      currentScopeId = id;
+    }
+    function popScopeId() {
+      currentScopeId = null;
     }
     function withCtx(fn, ctx = currentRenderingInstance, isNonScopedSlot) {
       if (!ctx)
@@ -33827,6 +33833,7 @@ var require_index_001 = __commonJS({
       className,
       children
     };
+    const _withScopeId = (n) => (pushScopeId("data-v-d1bcc6f3"), n = n(), popScopeId(), n);
     const _hoisted_1 = { class: "page" };
     const _hoisted_2 = ["disabled"];
     const _hoisted_3 = ["disabled"];
@@ -33838,6 +33845,10 @@ var require_index_001 = __commonJS({
     const _hoisted_9 = ["disabled"];
     const _hoisted_10 = ["onDragstart"];
     const _hoisted_11 = ["src"];
+    const _hoisted_12 = /* @__PURE__ */ _withScopeId(() => /* @__PURE__ */ createBaseVNode("br", null, null, -1));
+    const _hoisted_13 = /* @__PURE__ */ _withScopeId(() => /* @__PURE__ */ createBaseVNode("br", null, null, -1));
+    const _hoisted_14 = /* @__PURE__ */ _withScopeId(() => /* @__PURE__ */ createBaseVNode("br", null, null, -1));
+    const _hoisted_15 = /* @__PURE__ */ _withScopeId(() => /* @__PURE__ */ createBaseVNode("br", null, null, -1));
     const _sfc_main = /* @__PURE__ */ defineComponent({
       __name: "App",
       setup(__props) {
@@ -34149,7 +34160,16 @@ var require_index_001 = __commonJS({
               ], 512),
               createBaseVNode("footer", {
                 style: normalizeStyle({ width: full.value ? 0 : void 0 })
-              }, null, 4)
+              }, [
+                createTextVNode(" 快捷键："),
+                _hoisted_12,
+                createTextVNode(" 1、复制、粘贴、多选、全选、删除、上一步、下一步等快捷键与一般文档编辑器类似；"),
+                _hoisted_13,
+                createTextVNode(" 2、放大缩小，【Win】鼠标上滚动下滚动，【Mac】触控板双指放大、缩小；"),
+                _hoisted_14,
+                createTextVNode(" 3、画布拖动，在空白处，【Win】右键按下移动，【Mac】contril + 触控板三指移动；"),
+                _hoisted_15
+              ], 4)
             ]),
             createBaseVNode("footer", null, [
               createBaseVNode("button", { onClick: onLinkTest }, "“连接线”方向测试数据"),
@@ -34169,7 +34189,7 @@ var require_index_001 = __commonJS({
       }
       return target;
     };
-    const App = /* @__PURE__ */ _export_sfc(_sfc_main, [["__scopeId", "data-v-803d652c"]]);
+    const App = /* @__PURE__ */ _export_sfc(_sfc_main, [["__scopeId", "data-v-d1bcc6f3"]]);
     createApp(App).mount("#app");
   }
 });

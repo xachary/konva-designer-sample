@@ -107,60 +107,61 @@ ul {
   margin-block: 0;
   padding-inline: 0;
 }
-.page[data-v-803d652c] {
+.page[data-v-d1bcc6f3] {
   width: 100%;
   display: flex;
   flex-direction: column;
 }
-.page > header[data-v-803d652c],
-.page > footer[data-v-803d652c] {
+.page > header[data-v-d1bcc6f3],
+.page > footer[data-v-d1bcc6f3] {
   height: 64px;
   flex-shrink: 0;
   z-index: 2;
 }
-.page > header[data-v-803d652c],
-.page > footer[data-v-803d652c] {
+.page > header[data-v-d1bcc6f3],
+.page > footer[data-v-d1bcc6f3] {
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   display: flex;
   padding: 12px;
   align-items: center;
   overflow: hidden;
 }
-.page > header > button + button[data-v-803d652c],
-.page > footer > button + button[data-v-803d652c] {
+.page > header > button + button[data-v-d1bcc6f3],
+.page > footer > button + button[data-v-d1bcc6f3] {
   margin-left: 12px;
 }
-.page > section[data-v-803d652c] {
+.page > section[data-v-d1bcc6f3] {
   z-index: 1;
   height: 0;
   flex-grow: 1;
   display: flex;
 }
-.page > section > header[data-v-803d652c],
-.page > section > footer[data-v-803d652c] {
+.page > section > header[data-v-d1bcc6f3],
+.page > section > footer[data-v-d1bcc6f3] {
   width: 300px;
   flex-shrink: 0;
   background-color: #fff;
   z-index: 2;
 }
-.page > section > header[data-v-803d652c] {
+.page > section > header[data-v-d1bcc6f3] {
   box-shadow: 1px 0 2px 0 rgba(0, 0, 0, 0.05);
   overflow: auto;
 }
-.page > section > header > ul[data-v-803d652c] {
+.page > section > header > ul[data-v-d1bcc6f3] {
   display: flex;
   flex-wrap: wrap;
 }
-.page > section > header > ul > li[data-v-803d652c] {
+.page > section > header > ul > li[data-v-d1bcc6f3] {
   width: 33.33%;
   flex-shrink: 0;
   border: 1px solid #eee;
   cursor: move;
 }
-.page > section > footer[data-v-803d652c] {
+.page > section > footer[data-v-d1bcc6f3] {
   box-shadow: -1px 0 2px 0 rgba(0, 0, 0, 0.05);
+  padding: 12px;
 }
-.page > section > section[data-v-803d652c] {
+.page > section > section[data-v-d1bcc6f3] {
   width: 0;
   flex-grow: 1;
   background-color: rgba(0, 0, 0, 0.05);
