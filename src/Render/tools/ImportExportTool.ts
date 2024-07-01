@@ -1,3 +1,4 @@
+import { nanoid } from 'nanoid'
 import Konva from 'konva'
 import C2S from 'canvas2svg'
 //
@@ -31,6 +32,15 @@ export class ImportExportTool {
     let nodes = main.getChildren((node) => {
       return !this.render.ignore(node)
     })
+
+    // 移除多余结构
+    for (const node of nodes) {
+      for (const child of (node as Konva.Group).children) {
+        if (this.render.ignoreSelect(child)) {
+          child.remove()
+        }
+      }
+    }
 
     if (withLink) {
       nodes = nodes.concat(
@@ -365,5 +375,235 @@ export class ImportExportTool {
     return Promise.resolve(
       `<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="0" height="0"></svg>`
     )
+  }
+
+  getAsset() {
+    const copy = this.getView()
+    const children = copy.getChildren()[0].getChildren()
+
+    const nodes: Konva.Stage | Konva.Layer | Konva.Group | Konva.Node[] = [...children]
+
+    let minX = Infinity,
+      maxX = -Infinity,
+      minY = Infinity,
+      maxY = -Infinity,
+      minStartX = Infinity,
+      minStartY = Infinity
+
+    for (const node of nodes) {
+      if (node instanceof Konva.Group) {
+        if (node.x() < minX) {
+          minX = node.x()
+        }
+        if (node.x() + node.width() > maxX) {
+          maxX = node.x() + node.width()
+        }
+        if (node.y() < minY) {
+          minY = node.y()
+        }
+        if (node.y() + node.height() > maxY) {
+          maxY = node.y() + node.height()
+        }
+
+        if (node.x() < minStartX) {
+          minStartX = node.x()
+        }
+        if (node.y() < minStartY) {
+          minStartY = node.y()
+        }
+      }
+    }
+
+    for (const node of nodes) {
+      node.x(node.x() - minStartX)
+      node.y(node.y() - minStartY)
+    }
+
+    const json = copy.toJSON()
+    const obj = JSON.parse(json)
+    const assets = obj.children[0].children
+
+    let deepAssets = [...assets]
+    let numId = 0
+    const idMap = new Map()
+
+    while (deepAssets.length > 0) {
+      const asset = deepAssets.shift()
+      if (asset) {
+        if (Array.isArray(asset.attrs.points)) {
+          for (const point of asset.attrs.points) {
+            if (Array.isArray(point.pairs)) {
+              for (const pair of point.pairs) {
+                if (pair.id) {
+                  pair.id = 'pr:' + numId++
+                }
+
+                if (pair.from.groupId && !idMap.has(pair.from.groupId)) {
+                  idMap.set(pair.from.groupId, 'g:' + numId++)
+                }
+
+                if (pair.to.groupId && !idMap.has(pair.to.groupId)) {
+                  idMap.set(pair.to.groupId, 'g:' + numId++)
+                }
+
+                if (pair.from.pointId && !idMap.has(pair.from.pointId)) {
+                  idMap.set(pair.from.pointId, 'p:' + numId++)
+                }
+
+                if (pair.to.pointId && !idMap.has(pair.to.pointId)) {
+                  idMap.set(pair.to.pointId, 'p:' + numId++)
+                }
+              }
+            }
+
+            if (point.id) {
+              if (!idMap.has(point.id)) {
+                idMap.set(point.id, 'p:' + numId++)
+              }
+            }
+
+            if (point.groupId) {
+              if (!idMap.has(point.groupId)) {
+                idMap.set(point.groupId, 'g:' + numId++)
+              }
+            }
+          }
+        }
+
+        if (asset.attrs.id) {
+          if (!idMap.has(asset.attrs.id)) {
+            idMap.set(asset.attrs.id, 'n:' + numId++)
+          }
+        }
+
+        if (Array.isArray(asset.children)) {
+          deepAssets.push(...asset.children)
+        }
+      }
+    }
+
+    deepAssets = [...assets]
+
+    console.log(assets)
+    console.log(idMap)
+
+    while (deepAssets.length > 0) {
+      const asset = deepAssets.shift()
+      if (asset) {
+        if (idMap.has(asset.attrs.id)) {
+          asset.attrs.id = idMap.get(asset.attrs.id)
+        }
+
+        if (Array.isArray(asset.attrs.points)) {
+          for (const point of asset.attrs.points) {
+            if (Array.isArray(point.pairs)) {
+              for (const pair of point.pairs) {
+                if (idMap.has(pair.from.groupId)) {
+                  pair.from.groupId = idMap.get(pair.from.groupId)
+                }
+                if (idMap.has(pair.to.groupId)) {
+                  pair.to.groupId = idMap.get(pair.to.groupId)
+                }
+                if (idMap.has(pair.from.pointId)) {
+                  pair.from.pointId = idMap.get(pair.from.pointId)
+                }
+                if (idMap.has(pair.to.pointId)) {
+                  pair.to.pointId = idMap.get(pair.to.pointId)
+                }
+              }
+            }
+
+            if (idMap.has(point.id)) {
+              point.id = idMap.get(point.id)
+            }
+
+            if (idMap.has(point.groupId)) {
+              point.groupId = idMap.get(point.groupId)
+            }
+          }
+        }
+
+        if (Array.isArray(asset.children)) {
+          deepAssets.push(...asset.children)
+        }
+      }
+    }
+
+    console.log(assets)
+
+    //     if (asset.className === 'Group' && asset.attrs.name === 'asset') {
+    //       asset.attrs.id = 'a:' + nanoid()
+    //       asset.attrs.name = undefined
+    //       if (Array.isArray(asset.attrs.points)) {
+    //         for (const point of asset.attrs.points) {
+    //           point.groupId = asset.attrs.id
+    //         }
+    //         allPoints.push(...asset.attrs.points)
+    //       }
+    //     } else if (asset.className === 'Circle' && asset.attrs.name === 'link-anchor') {
+    //       allAnchors.push(asset)
+    //     }
+
+    // console.log('allPoints', allPoints)
+    // console.log('allAnchors', allAnchors)
+    // for (const point of allPoints) {
+    //   if (Array.isArray(point.pairs)) {
+    //     for (const pair of point.pairs) {
+    //       pair.id = 'pr:' + nanoid()
+
+    //       for (const anchor of allAnchors) {
+    //         if (pair.from.pointId === anchor.attrs.id) {
+    //           // point.id = 'p:' + nanoid()
+    //           // anchor.attrs.id = point.id
+
+    //           // pair.from.groupId = ''
+    //           // pair.from.pointId = ''
+    //         } else if (pair.to.pointId === anchor.attrs.id) {
+    //           // point.id = 'p:' + nanoid()
+    //           // anchor.attrs.id = point.id
+
+    //           // pair.from.groupId = ''
+    //           // pair.from.pointId = ''
+    //         }
+    //       }
+    //     }
+    //   }
+    // }
+    // for (const point of allPoints) {
+    //   if (Array.isArray(point.pairs)) {
+    //     for (const pair of point.pairs) {
+    //       // pair.id = 'r:' + nanoid()
+    //     }
+    //   }
+    //   for (const anchor of allAnchors) {
+    //     if (point.id === anchor.attrs.id) {
+    //       point.id = 'p:' + nanoid()
+    //       anchor.attrs.id = point.id
+    //     }
+    //   }
+    // }
+
+    // console.log('allPoints2', allPoints)
+    // console.log('allAnchors2', allAnchors)
+
+    // 移除所有 .asset
+    // 实例化所有连线，移除所有 .link-*、link信息
+    // 用新的 .asset 包装
+
+    // 导出 stage json
+    // 导入 stage json 到 新 stage
+    // 从新 stage 获取根 .asset
+
+    // 通过 stage api 导出 json
+    return JSON.stringify({
+      ...obj.children[0],
+      className: 'Group',
+      attrs: {
+        width: maxX - minX,
+        height: maxY - minY,
+        x: 0,
+        y: 0
+      }
+    })
   }
 }

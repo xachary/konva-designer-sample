@@ -1,0 +1,142 @@
+{
+  "attrs": { "width": 490.5, "height": 623.5, "x": 0, "y": 0 },
+  "className": "Group",
+  "children": [
+    {
+      "attrs": {
+        "width": 200,
+        "height": 200,
+        "points": [
+          {
+            "x": 100,
+            "y": 100,
+            "id": "hSJM4fSu0GLm11hnzaSuC",
+            "groupId": "J9DEeIk6EJmq0V7tUdds4",
+            "visible": false,
+            "pairs": [
+              {
+                "id": "R-_6SZhyUVdOnnqZWgZza",
+                "from": {
+                  "groupId": "J9DEeIk6EJmq0V7tUdds4",
+                  "pointId": "hSJM4fSu0GLm11hnzaSuC"
+                },
+                "to": {
+                  "groupId": "jw7Yq5nP2R7EuxdARJDz2",
+                  "pointId": "UmM1jxKAC1Fma8uCuFFLN"
+                }
+              }
+            ]
+          }
+        ],
+        "selected": false
+      },
+      "className": "Group",
+      "children": [
+        {
+          "attrs": {
+            "svgXML": "<?xml version=\"1.0\" standalone=\"no\"?><!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\"><svg class=\"icon\" width=\"200px\" height=\"200.00px\" viewBox=\"0 0 1024 1024\" version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M512 0c282.763636 0 512 229.236364 512 512S794.763636 1024 512 1024 0 794.763636 0 512 229.236364 0 512 0z m0 11.636364C235.659636 11.636364 11.636364 235.659636 11.636364 512s224.023273 500.363636 500.363636 500.363636 500.363636-224.023273 500.363636-500.363636S788.340364 11.636364 512 11.636364z\" /></svg>"
+          },
+          "className": "Image"
+        },
+        {
+          "attrs": {
+            "name": "link-anchor",
+            "id": "hSJM4fSu0GLm11hnzaSuC",
+            "x": 100,
+            "y": 100,
+            "radius": 1,
+            "stroke": "rgba(0,0,255,1)",
+            "visible": false
+          },
+          "className": "Circle"
+        }
+      ]
+    },
+    {
+      "attrs": {
+        "width": 200,
+        "height": 200,
+        "x": 290.5,
+        "y": 223,
+        "points": [
+          {
+            "x": 100,
+            "y": 100,
+            "id": "peKof0f7_vRHMOiV1fGRD",
+            "groupId": "VzVrwuJD_YUjnJZB0v-c8",
+            "visible": false,
+            "pairs": []
+          }
+        ],
+        "selected": false
+      },
+      "className": "Group",
+      "children": [
+        {
+          "attrs": {
+            "svgXML": "<?xml version=\"1.0\" standalone=\"no\"?><!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\"><svg class=\"icon\" width=\"200px\" height=\"200.00px\" viewBox=\"0 0 1024 1024\" version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M512 0c282.763636 0 512 229.236364 512 512S794.763636 1024 512 1024 0 794.763636 0 512 229.236364 0 512 0z m0 11.636364C235.659636 11.636364 11.636364 235.659636 11.636364 512s224.023273 500.363636 500.363636 500.363636 500.363636-224.023273 500.363636-500.363636S788.340364 11.636364 512 11.636364z\" /></svg>"
+          },
+          "className": "Image"
+        },
+        {
+          "attrs": {
+            "name": "link-anchor",
+            "id": "peKof0f7_vRHMOiV1fGRD",
+            "x": 100,
+            "y": 100,
+            "radius": 1,
+            "stroke": "rgba(0,0,255,1)",
+            "visible": false
+          },
+          "className": "Circle"
+        }
+      ]
+    },
+    {
+      "attrs": {
+        "width": 200,
+        "height": 200,
+        "x": 48.5,
+        "y": 423.5,
+        "points": [
+          {
+            "x": 100,
+            "y": 100,
+            "id": "UmM1jxKAC1Fma8uCuFFLN",
+            "groupId": "jw7Yq5nP2R7EuxdARJDz2",
+            "visible": false,
+            "pairs": [
+              {
+                "id": "pfwdrqvjhTnUqSdYlOug1",
+                "from": {
+                  "groupId": "jw7Yq5nP2R7EuxdARJDz2",
+                  "pointId": "UmM1jxKAC1Fma8uCuFFLN"
+                },
+                "to": {
+                  "groupId": "VzVrwuJD_YUjnJZB0v-c8",
+                  "pointId": "peKof0f7_vRHMOiV1fGRD"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "className": "Group",
+      "children": [
+        { "attrs": { "gif": "./img/gif/5.gif" }, "className": "Image" },
+        {
+          "attrs": {
+            "name": "link-anchor",
+            "id": "UmM1jxKAC1Fma8uCuFFLN",
+            "x": 100,
+            "y": 100,
+            "radius": 1,
+            "stroke": "rgba(0,0,255,1)",
+            "visible": false
+          },
+          "className": "Circle"
+        }
+      ]
+    }
+  ]
+}

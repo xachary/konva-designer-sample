@@ -147,6 +147,9 @@ onMounted(() => {
 
 // 从 public 加载静态资源 + 自定义连接点
 const assetsModules: Array<Types.AssetInfo> = [
+  { "url": "./json/1.json" },
+  { "url": "./json/2.json" },
+  //
   { "url": "./img/svg/ARRESTER_1.svg", points: [{ x: 101, y: 1, direction: 'top' }, { x: 101, y: 199, direction: 'bottom' }] },
   { "url": "./img/svg/ARRESTER_2.svg", points: [{ x: 101, y: 1, direction: 'top' }, { x: 101, y: 199, direction: 'bottom' }] },
   { "url": "./img/svg/ARRESTER_2_1.svg", points: [{ x: 101, y: 1, direction: 'top' }, { x: 101, y: 199, direction: 'bottom' }] },
@@ -294,6 +297,17 @@ async function onSaveSvg() {
   }
 }
 
+function onSaveAsset() {
+  if (render) {
+    const a = document.createElement('a')
+    const event = new MouseEvent('click')
+    a.download = 'asset.json'
+    a.href = window.URL.createObjectURL(new Blob([render.importExportTool.getAsset()]))
+    a.dispatchEvent(event)
+    a.remove()
+  }
+}
+
 // 选择项
 const selection: Ref<Konva.Node[]> = ref([])
 // 是否可以进行对齐
@@ -332,6 +346,7 @@ function onFull() {
       <button @click="onSave">导出</button>
       <button @click="onSavePNG">另存为图片</button>
       <button @click="onSaveSvg">另存为Svg</button>
+      <button @click="onSaveAsset">另存为元素</button>
       <button @click="onPrev" :disabled="historyIndex <= 0">上一步</button>
       <button @click="onNext" :disabled="historyIndex >= history.length - 1">下一步</button>
       <button @click="onAlign(Types.AlignType.垂直居中)" :disabled="noAlign">垂直居中</button>

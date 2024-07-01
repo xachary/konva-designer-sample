@@ -388,6 +388,8 @@ export class LinkDraw extends Types.BaseDraw implements Types.Draw {
 
     const groups = this.render.layer.find('.asset') as Konva.Group[]
 
+    // TODO: 深度 points 数据
+
     const points = groups.reduce((ps, group) => {
       return ps.concat(Array.isArray(group.getAttr('points')) ? group.getAttr('points') : [])
     }, [] as LinkDrawPoint[])

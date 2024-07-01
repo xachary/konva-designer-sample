@@ -23,6 +23,7 @@ export class LinkTool {
   }
 
   pointsVisible(visible: boolean, group?: Konva.Group) {
+    // TODO: deep
     if (group) {
       this.pointsVisibleEach(visible, group)
     } else {

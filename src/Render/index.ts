@@ -382,12 +382,16 @@ export class Render {
     // 素材有各自根 group
     const isGroup = node instanceof Konva.Group
     return (
-      !isGroup ||
-      node.id() === 'selectRect' ||
-      node.id() === 'hoverRect' ||
+      !isGroup || 
+      this.ignoreSelect(node)||
       this.ignoreDraw(node) ||
       this.ignoreLink(node)
     )
+  }
+
+  // 忽略 选择时 辅助元素
+  ignoreSelect(node: Konva.Node) {
+    return node.id() === 'selectRect' || node.id() === 'hoverRect'
   }
 
   // 忽略各 draw 的根 group
