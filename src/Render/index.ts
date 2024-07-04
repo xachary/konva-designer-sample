@@ -350,7 +350,7 @@ export class Render {
       })
     }
 
-    this.handlers[Handlers.SelectionHandlers.name].transformerConfig?.anchorDragBoundFunc &&
+    this.handlers[Handlers.SelectionHandlers.name]?.transformerConfig?.anchorDragBoundFunc &&
       this.transformer.anchorDragBoundFunc(
         this.handlers[Handlers.SelectionHandlers.name].transformerConfig!.anchorDragBoundFunc!
       )
