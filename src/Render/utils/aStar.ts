@@ -23,9 +23,9 @@ export default function aStar(config: {
   const closed = new Set<Node>()
 
   // 初始化每个节点的 f, g, h 值
-  const f = new Map<Node, number>()
-  const g = new Map<Node, number>()
-  const h = new Map<Node, number>()
+  const f = new WeakMap<Node, number>()
+  const g = new WeakMap<Node, number>()
+  const h = new WeakMap<Node, number>()
   g.set(start, 0)
   h.set(start, manhattanDistance(start, goal))
   f.set(start, g.get(start)! + h.get(start)!)
