@@ -19,7 +19,7 @@ export class LinkHandlers implements Types.Handler {
         const linkDrawState = (this.render.draws[Draws.LinkDraw.name] as Draws.LinkDraw).state
 
         // 临时 连接线 移除
-        linkDrawState.linkingLine?.line.remove()
+        linkDrawState.linkingLine?.line.destroy()
         linkDrawState.linkingLine = null
       },
       mousemove: () => {

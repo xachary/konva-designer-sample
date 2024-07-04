@@ -32,7 +32,7 @@ export class AttractTool {
   // 对齐线清除
   alignLinesClear() {
     for (const line of this.alignLines) {
-      line.remove()
+      line.destroy()
     }
     this.alignLines = []
   }

@@ -232,7 +232,7 @@ export class Render {
         this.remove(this.selectionTool.selectingNodes)
       } else {
         // 移除未选择的节点
-        node.remove()
+        node.destroy()
       }
     }
 

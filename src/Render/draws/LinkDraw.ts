@@ -843,7 +843,7 @@ export class LinkDraw extends Types.BaseDraw implements Types.Draw {
               }
 
               // 临时 连接线 移除
-              this.state.linkingLine?.line.remove()
+              this.state.linkingLine?.line.destroy()
               this.state.linkingLine = null
             }
           })
