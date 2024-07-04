@@ -9,7 +9,7 @@ var __publicField = (obj, key, value) => {
   return value;
 };
 var require_index_001 = __commonJS({
-  "assets/index-DjXV6w7X.js"(exports, module) {
+  "assets/index-Cj8HipJ4.js"(exports, module) {
     (function polyfill() {
       const relList = document.createElement("link").relList;
       if (relList && relList.supports && relList.supports("modulepreload")) {
@@ -23118,7 +23118,9 @@ var require_index_001 = __commonJS({
       draw() {
       }
       clear() {
-        this.group.removeChildren();
+        this.group.destroy();
+        this.group = new Konva.Group();
+        this.layer.add(this.group);
       }
     }
     var MoveKey = /* @__PURE__ */ ((MoveKey2) => {
@@ -24488,7 +24490,8 @@ var require_index_001 = __commonJS({
                       y: this.render.toStageValue(point.y),
                       radius: this.render.toStageValue(3),
                       stroke: point.type === void 0 ? "rgba(0,0,255,1)" : ["from", "to"].includes(point.type) ? "rgba(255,0,0,1)" : "rgba(0,120,0,1)",
-                      strokeWidth: this.render.toStageValue(1)
+                      strokeWidth: this.render.toStageValue(1),
+                      listening: false
                     })
                   );
                 }
@@ -24615,7 +24618,7 @@ var require_index_001 = __commonJS({
                       }
                     }
                   }
-                  (_a = this.state.linkingLine) == null ? void 0 : _a.line.remove();
+                  (_a = this.state.linkingLine) == null ? void 0 : _a.line.destroy();
                   this.state.linkingLine = null;
                 }
               });
@@ -24657,7 +24660,8 @@ var require_index_001 = __commonJS({
                   ]),
                   stroke: "rgba(0,200,0,1)",
                   strokeWidth: 1,
-                  dash: [4, 4]
+                  dash: [4, 4],
+                  listening: false
                 })
               );
             }
@@ -24674,7 +24678,8 @@ var require_index_001 = __commonJS({
                   ]),
                   stroke: "rgba(0,200,0,1)",
                   strokeWidth: 1,
-                  dash: [4, 4]
+                  dash: [4, 4],
+                  listening: false
                 })
               );
             }
@@ -25177,7 +25182,7 @@ var require_index_001 = __commonJS({
       // 对齐线清除
       alignLinesClear() {
         for (const line of this.alignLines) {
-          line.remove();
+          line.destroy();
         }
         this.alignLines = [];
       }
@@ -25293,7 +25298,7 @@ var require_index_001 = __commonJS({
             mouseup: () => {
               var _a;
               const linkDrawState = this.render.draws[LinkDraw.name].state;
-              (_a = linkDrawState.linkingLine) == null ? void 0 : _a.line.remove();
+              (_a = linkDrawState.linkingLine) == null ? void 0 : _a.line.destroy();
               linkDrawState.linkingLine = null;
             },
             mousemove: () => {
@@ -27076,7 +27081,7 @@ var require_index_001 = __commonJS({
       // 对齐线清除
       alignLinesClear() {
         for (const line of this.alignLines) {
-          line.remove();
+          line.destroy();
         }
         this.alignLines = [];
       }
@@ -27314,7 +27319,7 @@ var require_index_001 = __commonJS({
           if (node instanceof Konva.Transformer) {
             this.remove(this.selectionTool.selectingNodes);
           } else {
-            node.remove();
+            node.destroy();
           }
         }
         if (nodes.length > 0) {
@@ -27352,13 +27357,13 @@ var require_index_001 = __commonJS({
       }
       // 事件绑定
       eventBind() {
-        var _a;
+        var _a, _b;
         for (const event of ["mousedown", "mouseup", "mousemove", "wheel", "contextmenu"]) {
           this.stage.on(event, (e) => {
-            var _a2, _b, _c, _d, _e, _f, _g;
+            var _a2, _b2, _c, _d, _e, _f, _g;
             (_a2 = e == null ? void 0 : e.evt) == null ? void 0 : _a2.preventDefault();
             for (const k in this.draws) {
-              (_d = (_c = (_b = this.draws[k].handlers) == null ? void 0 : _b.stage) == null ? void 0 : _c[event]) == null ? void 0 : _d.call(_c, e);
+              (_d = (_c = (_b2 = this.draws[k].handlers) == null ? void 0 : _b2.stage) == null ? void 0 : _c[event]) == null ? void 0 : _d.call(_c, e);
             }
             for (const k in this.handlers) {
               (_g = (_f = (_e = this.handlers[k].handlers) == null ? void 0 : _e.stage) == null ? void 0 : _f[event]) == null ? void 0 : _g.call(_f, e);
@@ -27380,13 +27385,13 @@ var require_index_001 = __commonJS({
           "keyup"
         ]) {
           container.addEventListener(event, (e) => {
-            var _a2, _b, _c, _d, _e, _f;
+            var _a2, _b2, _c, _d, _e, _f;
             e == null ? void 0 : e.preventDefault();
             if (["mouseenter", "dragenter"].includes(event)) {
               this.stage.container().focus();
             }
             for (const k in this.draws) {
-              (_c = (_b = (_a2 = this.draws[k].handlers) == null ? void 0 : _a2.dom) == null ? void 0 : _b[event]) == null ? void 0 : _c.call(_b, e);
+              (_c = (_b2 = (_a2 = this.draws[k].handlers) == null ? void 0 : _a2.dom) == null ? void 0 : _b2[event]) == null ? void 0 : _c.call(_b2, e);
             }
             for (const k in this.handlers) {
               (_f = (_e = (_d = this.handlers[k].handlers) == null ? void 0 : _d.dom) == null ? void 0 : _e[event]) == null ? void 0 : _f.call(_e, e);
@@ -27404,17 +27409,17 @@ var require_index_001 = __commonJS({
           "mouseleave"
         ]) {
           this.transformer.on(event, (e) => {
-            var _a2, _b, _c, _d, _e, _f, _g;
+            var _a2, _b2, _c, _d, _e, _f, _g;
             (_a2 = e == null ? void 0 : e.evt) == null ? void 0 : _a2.preventDefault();
             for (const k in this.draws) {
-              (_d = (_c = (_b = this.draws[k].handlers) == null ? void 0 : _b.transformer) == null ? void 0 : _c[event]) == null ? void 0 : _d.call(_c, e);
+              (_d = (_c = (_b2 = this.draws[k].handlers) == null ? void 0 : _b2.transformer) == null ? void 0 : _c[event]) == null ? void 0 : _d.call(_c, e);
             }
             for (const k in this.handlers) {
               (_g = (_f = (_e = this.handlers[k].handlers) == null ? void 0 : _e.transformer) == null ? void 0 : _f[event]) == null ? void 0 : _g.call(_f, e);
             }
           });
         }
-        ((_a = this.handlers[SelectionHandlers.name].transformerConfig) == null ? void 0 : _a.anchorDragBoundFunc) && this.transformer.anchorDragBoundFunc(
+        ((_b = (_a = this.handlers[SelectionHandlers.name]) == null ? void 0 : _a.transformerConfig) == null ? void 0 : _b.anchorDragBoundFunc) && this.transformer.anchorDragBoundFunc(
           this.handlers[SelectionHandlers.name].transformerConfig.anchorDragBoundFunc
         );
       }
