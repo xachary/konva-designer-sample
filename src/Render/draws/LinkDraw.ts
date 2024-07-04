@@ -663,7 +663,8 @@ export class LinkDraw extends Types.BaseDraw implements Types.Draw {
                       : ['from', 'to'].includes(point.type)
                         ? 'rgba(255,0,0,1)'
                         : 'rgba(0,120,0,1)',
-                  strokeWidth: this.render.toStageValue(1)
+                  strokeWidth: this.render.toStageValue(1),
+                  listening: false
                 })
               )
             }

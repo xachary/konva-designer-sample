@@ -46,7 +46,8 @@ export class AttractDraw extends Types.BaseDraw implements Types.Draw {
               ]),
               stroke: 'rgba(0,200,0,1)',
               strokeWidth: 1,
-              dash: [4, 4]
+              dash: [4, 4],
+              listening: false
             })
           )
         }
@@ -63,7 +64,8 @@ export class AttractDraw extends Types.BaseDraw implements Types.Draw {
               ]),
               stroke: 'rgba(0,200,0,1)',
               strokeWidth: 1,
-              dash: [4, 4]
+              dash: [4, 4],
+              listening: false
             })
           )
         }
