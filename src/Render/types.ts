@@ -61,7 +61,7 @@ export interface Draw {
 export class BaseDraw {
   protected render: Render
   readonly layer: Konva.Layer
-  readonly group: Konva.Group
+  protected group: Konva.Group
 
   constructor(render: Render, layer: Konva.Layer) {
     this.render = render
@@ -79,7 +79,9 @@ export class BaseDraw {
 
   clear() {
     // 重置
-    this.group.removeChildren()
+    this.group.destroy()
+    this.group = new Konva.Group()
+    this.layer.add(this.group)
   }
 }
 
