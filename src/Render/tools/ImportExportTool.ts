@@ -96,9 +96,11 @@ export class ImportExportTool {
   // 保存
   save() {
     const copy = this.getView()
+    const json = copy.toJSON()
+    copy.destroy()
 
     // 通过 stage api 导出 json
-    return copy.toJSON()
+    return json
   }
 
   // 加载 image（用于导入）
@@ -246,8 +248,11 @@ export class ImportExportTool {
     copy.add(bgLayer)
     copy.add(children[0], ...children.slice(1))
 
+    const url = copy.toDataURL({ pixelRatio })
+    copy.destroy()
+
     // 通过 stage api 导出图片
-    return copy.toDataURL({ pixelRatio })
+    return url
   }
 
   // blob to base64 url
@@ -358,6 +363,8 @@ export class ImportExportTool {
       // 替换 image 链接
       const svg = await this.parseImage(rawSvg)
       console.log(svg)
+
+      copy.destroy()
 
       // 输出 svg
       return svg
