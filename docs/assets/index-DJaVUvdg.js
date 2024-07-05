@@ -9,7 +9,7 @@ var __publicField = (obj, key, value) => {
   return value;
 };
 var require_index_001 = __commonJS({
-  "assets/index-Cj8HipJ4.js"(exports, module) {
+  "assets/index-DJaVUvdg.js"(exports, module) {
     (function polyfill() {
       const relList = document.createElement("link").relList;
       if (relList && relList.supports && relList.supports("modulepreload")) {
@@ -26593,7 +26593,9 @@ var require_index_001 = __commonJS({
       // 保存
       save() {
         const copy = this.getView();
-        return copy.toJSON();
+        const json = copy.toJSON();
+        copy.destroy();
+        return json;
       }
       // 加载 image（用于导入）
       loadImage(src) {
@@ -26690,7 +26692,9 @@ var require_index_001 = __commonJS({
         copy.removeChildren();
         copy.add(bgLayer);
         copy.add(children2[0], ...children2.slice(1));
-        return copy.toDataURL({ pixelRatio });
+        const url = copy.toDataURL({ pixelRatio });
+        copy.destroy();
+        return url;
       }
       // blob to base64 url
       blobToBase64(blob, type) {
@@ -26769,6 +26773,7 @@ var require_index_001 = __commonJS({
           console.log(rawSvg);
           const svg = await this.parseImage(rawSvg);
           console.log(svg);
+          copy.destroy();
           return svg;
         }
         return Promise.resolve(
