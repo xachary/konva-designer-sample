@@ -9,7 +9,7 @@ var __publicField = (obj, key, value) => {
   return value;
 };
 var require_index_001 = __commonJS({
-  "assets/index-DJaVUvdg.js"(exports, module) {
+  "assets/index-Bq_nG-bZ.js"(exports, module) {
     (function polyfill() {
       const relList = document.createElement("link").relList;
       if (relList && relList.supports && relList.supports("modulepreload")) {
@@ -5285,9 +5285,9 @@ var require_index_001 = __commonJS({
           parent2.removeChild(child);
         }
       },
-      createElement: (tag, namespace, is, props) => {
-        const el = namespace === "svg" ? doc.createElementNS(svgNS, tag) : namespace === "mathml" ? doc.createElementNS(mathmlNS, tag) : doc.createElement(tag, is ? { is } : void 0);
-        if (tag === "select" && props && props.multiple != null) {
+      createElement: (tag2, namespace, is, props) => {
+        const el = namespace === "svg" ? doc.createElementNS(svgNS, tag2) : namespace === "mathml" ? doc.createElementNS(mathmlNS, tag2) : doc.createElement(tag2, is ? { is } : void 0);
+        if (tag2 === "select" && props && props.multiple != null) {
           el.setAttribute("multiple", props.multiple);
         }
         return el;
@@ -5472,10 +5472,10 @@ var require_index_001 = __commonJS({
         el[key] = value == null ? "" : value;
         return;
       }
-      const tag = el.tagName;
-      if (key === "value" && tag !== "PROGRESS" && // custom elements may use _value internally
-      !tag.includes("-")) {
-        const oldValue = tag === "OPTION" ? el.getAttribute("value") || "" : el.value;
+      const tag2 = el.tagName;
+      if (key === "value" && tag2 !== "PROGRESS" && // custom elements may use _value internally
+      !tag2.includes("-")) {
+        const oldValue = tag2 === "OPTION" ? el.getAttribute("value") || "" : el.value;
         const newValue = value == null ? "" : value;
         if (oldValue !== newValue || !("_value" in el)) {
           el.value = newValue;
@@ -5629,8 +5629,8 @@ var require_index_001 = __commonJS({
         return false;
       }
       if (key === "width" || key === "height") {
-        const tag = el.tagName;
-        if (tag === "IMG" || tag === "VIDEO" || tag === "CANVAS" || tag === "SOURCE") {
+        const tag2 = el.tagName;
+        if (tag2 === "IMG" || tag2 === "VIDEO" || tag2 === "CANVAS" || tag2 === "SOURCE") {
           return false;
         }
       }
@@ -5689,7 +5689,7 @@ var require_index_001 = __commonJS({
     var nativeObjectToString$3 = objectProto$s.toString;
     var symToStringTag$1 = Symbol$1 ? Symbol$1.toStringTag : void 0;
     function getRawTag(value) {
-      var isOwn = hasOwnProperty$o.call(value, symToStringTag$1), tag = value[symToStringTag$1];
+      var isOwn = hasOwnProperty$o.call(value, symToStringTag$1), tag2 = value[symToStringTag$1];
       try {
         value[symToStringTag$1] = void 0;
         var unmasked = true;
@@ -5698,7 +5698,7 @@ var require_index_001 = __commonJS({
       var result2 = nativeObjectToString$3.call(value);
       if (unmasked) {
         if (isOwn) {
-          value[symToStringTag$1] = tag;
+          value[symToStringTag$1] = tag2;
         } else {
           delete value[symToStringTag$1];
         }
@@ -5861,8 +5861,8 @@ var require_index_001 = __commonJS({
       if (!isObject(value)) {
         return false;
       }
-      var tag = baseGetTag(value);
-      return tag == funcTag$2 || tag == genTag$1 || tag == asyncTag || tag == proxyTag;
+      var tag2 = baseGetTag(value);
+      return tag2 == funcTag$2 || tag2 == genTag$1 || tag2 == asyncTag || tag2 == proxyTag;
     }
     var coreJsData = root["__core-js_shared__"];
     var maskSrcKey = function() {
@@ -7031,8 +7031,8 @@ var require_index_001 = __commonJS({
       if (!isObjectLike(value)) {
         return false;
       }
-      var tag = baseGetTag(value);
-      return tag == errorTag$2 || tag == domExcTag || typeof value.message == "string" && typeof value.name == "string" && !isPlainObject(value);
+      var tag2 = baseGetTag(value);
+      return tag2 == errorTag$2 || tag2 == domExcTag || typeof value.message == "string" && typeof value.name == "string" && !isPlainObject(value);
     }
     var attempt = baseRest(function(func2, args) {
       try {
@@ -7650,9 +7650,9 @@ var require_index_001 = __commonJS({
     }
     var boolTag$3 = "[object Boolean]", dateTag$3 = "[object Date]", mapTag$7 = "[object Map]", numberTag$3 = "[object Number]", regexpTag$3 = "[object RegExp]", setTag$7 = "[object Set]", stringTag$3 = "[object String]", symbolTag$2 = "[object Symbol]";
     var arrayBufferTag$3 = "[object ArrayBuffer]", dataViewTag$2 = "[object DataView]", float32Tag$1 = "[object Float32Array]", float64Tag$1 = "[object Float64Array]", int8Tag$1 = "[object Int8Array]", int16Tag$1 = "[object Int16Array]", int32Tag$1 = "[object Int32Array]", uint8Tag$1 = "[object Uint8Array]", uint8ClampedTag$1 = "[object Uint8ClampedArray]", uint16Tag$1 = "[object Uint16Array]", uint32Tag$1 = "[object Uint32Array]";
-    function initCloneByTag(object2, tag, isDeep) {
+    function initCloneByTag(object2, tag2, isDeep) {
       var Ctor = object2.constructor;
-      switch (tag) {
+      switch (tag2) {
         case arrayBufferTag$3:
           return cloneArrayBuffer(object2);
         case boolTag$3:
@@ -7724,20 +7724,20 @@ var require_index_001 = __commonJS({
           return copyArray(value, result2);
         }
       } else {
-        var tag = getTag$1(value), isFunc = tag == funcTag || tag == genTag;
+        var tag2 = getTag$1(value), isFunc = tag2 == funcTag || tag2 == genTag;
         if (isBuffer$1(value)) {
           return cloneBuffer(value, isDeep);
         }
-        if (tag == objectTag$1 || tag == argsTag$1 || isFunc && !object2) {
+        if (tag2 == objectTag$1 || tag2 == argsTag$1 || isFunc && !object2) {
           result2 = isFlat || isFunc ? {} : initCloneObject(value);
           if (!isDeep) {
             return isFlat ? copySymbolsIn(value, baseAssignIn(result2, value)) : copySymbols(value, baseAssign(result2, value));
           }
         } else {
-          if (!cloneableTags[tag]) {
+          if (!cloneableTags[tag2]) {
             return object2 ? value : {};
           }
-          result2 = initCloneByTag(value, tag, isDeep);
+          result2 = initCloneByTag(value, tag2, isDeep);
         }
       }
       stack2 || (stack2 = new Stack());
@@ -7899,8 +7899,8 @@ var require_index_001 = __commonJS({
     var boolTag$1 = "[object Boolean]", dateTag$1 = "[object Date]", errorTag = "[object Error]", mapTag$4 = "[object Map]", numberTag$1 = "[object Number]", regexpTag$1 = "[object RegExp]", setTag$4 = "[object Set]", stringTag$1 = "[object String]", symbolTag = "[object Symbol]";
     var arrayBufferTag$1 = "[object ArrayBuffer]", dataViewTag = "[object DataView]";
     var symbolProto = Symbol$1 ? Symbol$1.prototype : void 0, symbolValueOf = symbolProto ? symbolProto.valueOf : void 0;
-    function equalByTag(object2, other, tag, bitmask, customizer, equalFunc, stack2) {
-      switch (tag) {
+    function equalByTag(object2, other, tag2, bitmask, customizer, equalFunc, stack2) {
+      switch (tag2) {
         case dataViewTag:
           if (object2.byteLength != other.byteLength || object2.byteOffset != other.byteOffset) {
             return false;
@@ -8662,11 +8662,11 @@ var require_index_001 = __commonJS({
     var mapTag$3 = "[object Map]", setTag$3 = "[object Set]";
     function createToPairs(keysFunc) {
       return function(object2) {
-        var tag = getTag$1(object2);
-        if (tag == mapTag$3) {
+        var tag2 = getTag$1(object2);
+        if (tag2 == mapTag$3) {
           return mapToArray(object2);
         }
-        if (tag == setTag$3) {
+        if (tag2 == setTag$3) {
           return setToPairs(object2);
         }
         return baseToPairs(object2, keysFunc(object2));
@@ -9174,8 +9174,8 @@ var require_index_001 = __commonJS({
       if (isArrayLike(value) && (isArray(value) || typeof value == "string" || typeof value.splice == "function" || isBuffer$1(value) || isTypedArray$1(value) || isArguments$1(value))) {
         return !value.length;
       }
-      var tag = getTag$1(value);
-      if (tag == mapTag$2 || tag == setTag$2) {
+      var tag2 = getTag$1(value);
+      if (tag2 == mapTag$2 || tag2 == setTag$2) {
         return !value.size;
       }
       if (isPrototype(value)) {
@@ -9454,7 +9454,7 @@ var require_index_001 = __commonJS({
       if (symIterator$1 && value[symIterator$1]) {
         return iteratorToArray(value[symIterator$1]());
       }
-      var tag = getTag$1(value), func2 = tag == mapTag$1 ? mapToArray : tag == setTag$1 ? setToArray : values;
+      var tag2 = getTag$1(value), func2 = tag2 == mapTag$1 ? mapToArray : tag2 == setTag$1 ? setToArray : values;
       return func2(value);
     }
     function wrapperNext() {
@@ -10088,8 +10088,8 @@ var require_index_001 = __commonJS({
       if (isArrayLike(collection2)) {
         return isString(collection2) ? stringSize(collection2) : collection2.length;
       }
-      var tag = getTag$1(collection2);
-      if (tag == mapTag || tag == setTag) {
+      var tag2 = getTag$1(collection2);
+      if (tag2 == mapTag || tag2 == setTag) {
         return collection2.size;
       }
       return baseKeys(collection2).length;
@@ -19503,13 +19503,13 @@ var require_index_001 = __commonJS({
         return this.getText().height();
       }
       _sync() {
-        var text = this.getText(), tag = this.getTag(), width, height, pointerDirection, pointerWidth, x, y, pointerHeight;
-        if (text && tag) {
+        var text = this.getText(), tag2 = this.getTag(), width, height, pointerDirection, pointerWidth, x, y, pointerHeight;
+        if (text && tag2) {
           width = text.width();
           height = text.height();
-          pointerDirection = tag.pointerDirection();
-          pointerWidth = tag.pointerWidth();
-          pointerHeight = tag.pointerHeight();
+          pointerDirection = tag2.pointerDirection();
+          pointerWidth = tag2.pointerWidth();
+          pointerHeight = tag2.pointerHeight();
           x = 0;
           y = 0;
           switch (pointerDirection) {
@@ -19530,7 +19530,7 @@ var require_index_001 = __commonJS({
               y = height / 2;
               break;
           }
-          tag.setAttrs({
+          tag2.setAttrs({
             x: -1 * x,
             y: -1 * y,
             width,
@@ -34200,6 +34200,39 @@ var require_index_001 = __commonJS({
       return target;
     };
     const App = /* @__PURE__ */ _export_sfc(_sfc_main, [["__scopeId", "data-v-d1bcc6f3"]]);
+    const optionsDefault = {
+      colors: ["purple", "blue", "green", "blueviolet", "goldenrod", "brown", "chocolate"],
+      type: "log"
+    };
+    const logArray = (words2) => {
+      try {
+        const { colors, type } = { ...optionsDefault };
+        if (Array.isArray(words2)) {
+          const length = words2.length;
+          const format = new Array(length).fill("%c%s").join("");
+          const array2 = [...words2].reduce((t, v, i) => {
+            const radius = length === 1 ? "4px" : { 0: "4px 0 0 4px", [(length - 1).toString()]: "0 4px 4px 0" }[i];
+            return [
+              ...t,
+              `color:#fff;background:${colors[i] || "black"};padding:2px 4px;border-radius:${radius};`,
+              v
+            ];
+          }, []);
+          console[type](format, ...array2);
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    };
+    var define_BUILD_INFO_default = { lastBuildTime: "2024-07-05 09:27:53", git: { branch: "master", hash: "bbec458fb88acd382fa5d709fdddfc5fae097648", tag: "chapter16" } };
+    const {
+      lastBuildTime,
+      git: { branch, tag, hash }
+    } = define_BUILD_INFO_default;
+    logArray(["branch", branch]);
+    logArray(["tag", tag]);
+    logArray(["hash", hash]);
+    logArray(["build", lastBuildTime]);
     createApp(App).mount("#app");
   }
 });
