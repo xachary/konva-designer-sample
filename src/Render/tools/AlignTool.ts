@@ -1,7 +1,6 @@
 import { Render } from '../index'
 //
 import * as Types from '../types'
-import * as Draws from '../draws'
 import Konva from 'konva'
 
 export class AlignTool {
@@ -12,32 +11,75 @@ export class AlignTool {
     this.render = render
   }
 
+  calcNodeRotationInfo(node: Konva.Node) {
+    const rotate = node.rotation()
+    const offsetLeft = node.height() * Math.sin((rotate * Math.PI) / 180)
+    const offsetRight = node.width() * Math.cos((rotate * Math.PI) / 180)
+    const offsetTop = node.height() * Math.cos((rotate * Math.PI) / 180)
+    const offsetBottom = node.width() * Math.sin((rotate * Math.PI) / 180)
+
+    const width = Math.abs(offsetLeft) + Math.abs(offsetRight)
+    const height = Math.abs(offsetTop) + Math.abs(offsetBottom)
+
+    let x = node.x()
+    if ((rotate >= 0 && rotate < 90) || (rotate >= -360 && rotate < -270)) {
+      x = x - Math.abs(offsetLeft)
+    } else if ((rotate >= 90 && rotate < 180) || (rotate >= -270 && rotate < -180)) {
+      x = x - width
+    } else if ((rotate >= 180 && rotate < 270) || (rotate >= -180 && rotate < -90)) {
+      x = x - Math.abs(offsetRight)
+    } else if ((rotate >= 270 && rotate < 360) || (rotate >= -90 && rotate < 0)) {
+      // 无需处理
+    }
+
+    let y = node.y()
+    if ((rotate >= 0 && rotate < 90) || (rotate >= -360 && rotate < -270)) {
+      // 无需处理
+    } else if ((rotate >= 90 && rotate < 180) || (rotate >= -270 && rotate < -180)) {
+      y = y - Math.abs(offsetTop)
+    } else if ((rotate >= 180 && rotate < 270) || (rotate >= -180 && rotate < -90)) {
+      y = y - height
+    } else if ((rotate >= 270 && rotate < 360) || (rotate >= -90 && rotate < 0)) {
+      y = y - Math.abs(offsetBottom)
+    }
+
+    return {
+      x,
+      y,
+      width,
+      height
+    }
+  }
+
   // 对齐参考点
-  getAlignPoints(target?: Konva.Node | Konva.Transformer): { [index: string]: number } {
+  getAlignPoints(node?: Konva.Node | Konva.Transformer): { [index: string]: number } {
     let width = 0,
       height = 0,
       x = 0,
       y = 0
 
-    if (target instanceof Konva.Transformer) {
+    if (node instanceof Konva.Transformer) {
       // stage 状态
       const stageState = this.render.getStageState()
+
+      const result = this.calcNodeRotationInfo(node)
 
       // 选择器
       // 转为 逻辑觉尺寸
       ;[width, height] = [
-        this.render.toStageValue(target.width()),
-        this.render.toStageValue(target.height())
+        this.render.toStageValue(result.width),
+        this.render.toStageValue(result.height)
       ]
       ;[x, y] = [
-        this.render.toStageValue(target.x() - stageState.x),
-        this.render.toStageValue(target.y() - stageState.y)
+        this.render.toStageValue(result.x - stageState.x),
+        this.render.toStageValue(result.y - stageState.y)
       ]
-    } else if (target !== void 0) {
+    } else if (node !== void 0) {
+      const result = this.calcNodeRotationInfo(node)
       // 节点
       // 逻辑尺寸
-      ;[width, height] = [target.width(), target.height()]
-      ;[x, y] = [target.x(), target.y()]
+      ;[width, height] = [result.width, result.height]
+      ;[x, y] = [result.x, result.y]
     } else {
       // 默认为选择器
       return this.getAlignPoints(this.render.transformer)
@@ -64,38 +106,49 @@ export class AlignTool {
     const nodes = this.render.transformer.nodes().filter((node) => node !== target)
 
     // 移动逻辑
-    switch (type) {
-      case Types.AlignType.垂直居中:
-        for (const node of nodes) {
-          node.x(point - node.width() / 2)
-        }
-        break
-      case Types.AlignType.水平居中:
-        for (const node of nodes) {
-          node.y(point - node.height() / 2)
-        }
-        break
-      case Types.AlignType.左对齐:
-        for (const node of nodes) {
-          node.x(point)
-        }
-        break
-      case Types.AlignType.右对齐:
-        for (const node of nodes) {
-          node.x(point - node.width())
-        }
-        break
-      case Types.AlignType.上对齐:
-        for (const node of nodes) {
-          node.y(point)
-        }
-        break
-      case Types.AlignType.下对齐:
-        for (const node of nodes) {
-          node.y(point - node.height())
-        }
-        break
+    for (const node of nodes) {
+      const { width, height, x, y } = this.calcNodeRotationInfo(node)
+
+      switch (type) {
+        case Types.AlignType.垂直居中:
+          {
+            const cx = x + width / 2
+            node.x(node.x() + (point - cx))
+          }
+          break
+        case Types.AlignType.水平居中:
+          {
+            const cy = y + height / 2
+            node.y(node.y() + (point - cy))
+          }
+          break
+        case Types.AlignType.左对齐:
+          {
+            const cx = x
+            node.x(node.x() + (point - cx))
+          }
+          break
+        case Types.AlignType.右对齐:
+          {
+            const cx = x + width
+            node.x(node.x() + (point - cx))
+          }
+          break
+        case Types.AlignType.上对齐:
+          {
+            const cy = y
+            node.y(node.y() + (point - cy))
+          }
+          break
+        case Types.AlignType.下对齐:
+          {
+            const cy = y + height
+            node.y(node.y() + (point - cy))
+          }
+          break
+      }
     }
+
     // 更新历史
     this.render.updateHistory()
     
