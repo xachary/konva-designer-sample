@@ -49,16 +49,8 @@ export class ZoomHandlers implements Types.Handler {
               y: pos.y - mousePointTo.y * newScale
             })
 
-            // 更新背景
-            this.render.draws[Draws.BgDraw.name].draw()
-            // 更新连线
-            this.render.draws[Draws.LinkDraw.name].draw()
-            // 更新磁贴
-            this.render.draws[Draws.AttractDraw.name].draw()
-            // 更新比例尺
-            this.render.draws[Draws.RulerDraw.name].draw()
-            // 更新预览
-            this.render.draws[Draws.PreviewDraw.name].draw()
+            // 重绘
+            this.render.redraw()
           }
         }
       }

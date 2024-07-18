@@ -212,16 +212,8 @@ export class Render {
       height: height
     })
 
-    // 更新背景
-    this.draws[Draws.BgDraw.name].draw()
-    // 更新连线
-    this.draws[Draws.LinkDraw.name].draw()
-    // 更新磁贴
-    this.draws[Draws.AttractDraw.name].draw()
-    // 更新比例尺
-    this.draws[Draws.RulerDraw.name].draw()
-    // 更新预览
-    this.draws[Draws.PreviewDraw.name].draw()
+    // 重绘
+    this.redraw()
   }
 
   // 移除元素
@@ -242,12 +234,9 @@ export class Render {
 
       // 更新历史
       this.updateHistory()
-      // 更新连线
-      this.draws[Draws.LinkDraw.name].draw()
-      // 更新磁贴
-      this.draws[Draws.AttractDraw.name].draw()
-      // 更新预览
-      this.draws[Draws.PreviewDraw.name].draw()
+
+      // 重绘
+      this.redraw()
     }
   }
 
@@ -411,5 +400,23 @@ export class Render {
       node.name() === 'link-point' ||
       node.name() === 'link-line'
     )
+  }
+
+  // 重绘（保留部分单独控制 draw）
+  redraw() {
+    // 更新背景
+    this.draws[Draws.BgDraw.name].draw()
+    // 更新连线
+    this.draws[Draws.LinkDraw.name].draw()
+    // 更新磁贴
+    this.draws[Draws.AttractDraw.name].draw()
+    // 更新比例尺
+    this.draws[Draws.RulerDraw.name].draw()
+    // 更新参考线
+    this.draws[Draws.RefLineDraw.name].draw()
+    // 更新预览
+    this.draws[Draws.PreviewDraw.name].draw()
+    // 更新右键菜单
+    this.draws[Draws.ContextmenuDraw.name].draw()
   }
 }

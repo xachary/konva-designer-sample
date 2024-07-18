@@ -273,12 +273,8 @@ export class SelectionHandlers implements Types.Handler {
         }
       },
       transform: () => {
-        // 更新连线
-        this.render.draws[Draws.LinkDraw.name].draw()
-        // 更新磁贴
-        this.render.draws[Draws.AttractDraw.name].draw()
-        // 更新预览
-        this.render.draws[Draws.PreviewDraw.name].draw()
+        // 重绘
+        this.render.redraw()
       },
       transformend: () => {
         // 变换结束
@@ -288,12 +284,9 @@ export class SelectionHandlers implements Types.Handler {
 
         // 更新历史
         this.render.updateHistory()
-        // 更新连线
-        this.render.draws[Draws.LinkDraw.name].draw()
-        // 更新磁贴
-        this.render.draws[Draws.AttractDraw.name].draw()
-        // 更新预览
-        this.render.draws[Draws.PreviewDraw.name].draw()
+        
+        // 重绘
+        this.render.redraw()
       },
       //
       dragstart: () => {
@@ -311,17 +304,10 @@ export class SelectionHandlers implements Types.Handler {
             x: this.render.toStageValue(transformerPos.x - this.transformerMousedownPos.x),
             y: this.render.toStageValue(transformerPos.y - this.transformerMousedownPos.y)
           })
-
-          // 更新预览
-          this.render.draws[Draws.PreviewDraw.name].draw()
         }
 
-        // 更新连线
-        this.render.draws[Draws.LinkDraw.name].draw()
-        // 更新磁贴
-        this.render.draws[Draws.AttractDraw.name].draw()
-        // 更新预览
-        this.render.draws[Draws.PreviewDraw.name].draw()
+        // 重绘
+        this.render.redraw()
       },
       dragend: () => {
         // 拖动结束
@@ -331,12 +317,9 @@ export class SelectionHandlers implements Types.Handler {
 
         // 更新历史
         this.render.updateHistory()
-        // 更新连线
-        this.render.draws[Draws.LinkDraw.name].draw()
-        // 更新磁贴
-        this.render.draws[Draws.AttractDraw.name].draw()
-        // 更新预览
-        this.render.draws[Draws.PreviewDraw.name].draw()
+        
+        // 重绘
+        this.render.redraw()
       },
       // 子节点 hover
       mousemove: () => {

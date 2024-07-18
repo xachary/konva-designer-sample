@@ -26,18 +26,8 @@ export class PositionTool {
       y: this.render.rulerSize
     })
 
-    // 更新背景
-    this.render.draws[Draws.BgDraw.name].draw()
-    // 更新连线
-    this.render.draws[Draws.LinkDraw.name].draw();
-    // 更新磁贴
-    this.render.draws[Draws.AttractDraw.name].draw()
-    // 更新比例尺
-    this.render.draws[Draws.RulerDraw.name].draw()
-    // 更新参考线
-    this.render.draws[Draws.RefLineDraw.name].draw()
-    // 更新预览
-    this.render.draws[Draws.PreviewDraw.name].draw()
+    // 重绘
+    this.render.redraw()
   }
 
   // 更新中心位置
@@ -79,17 +69,7 @@ export class PositionTool {
         this.render.rulerSize
     })
 
-    // 更新背景
-    this.render.draws[Draws.BgDraw.name].draw()
-    // 更新连线
-    this.render.draws[Draws.LinkDraw.name].draw();
-    // 更新磁贴
-    this.render.draws[Draws.AttractDraw.name].draw()
-    // 更新比例尺
-    this.render.draws[Draws.RulerDraw.name].draw()
-    // 更新参考线
-    this.render.draws[Draws.RefLineDraw.name].draw()
-    // 更新预览
-    this.render.draws[Draws.PreviewDraw.name].draw()
+    // 重绘
+    this.render.redraw()
   }
 }

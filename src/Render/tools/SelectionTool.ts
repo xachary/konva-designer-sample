@@ -57,8 +57,8 @@ export class SelectionTool {
     this.render.linkTool.pointsVisible(false)
 
     if (change) {
-      // 更新预览
-      this.render.draws[Draws.PreviewDraw.name].draw()
+      // 重绘
+      this.render.redraw()
     }
   }
 
@@ -94,12 +94,8 @@ export class SelectionTool {
         // 隐藏 连接点
         this.render.linkTool.pointsVisible(false, node as Konva.Group)
 
-        // 更新连线
-        this.render.draws[Draws.LinkDraw.name].draw()
-        // 更新磁贴
-        this.render.draws[Draws.AttractDraw.name].draw()
-        // 更新预览
-        this.render.draws[Draws.PreviewDraw.name].draw()
+        // 重绘
+        this.render.redraw()
       }
 
       // 设置透明度、提升层次、不可交互

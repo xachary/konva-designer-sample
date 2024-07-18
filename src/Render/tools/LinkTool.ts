@@ -32,12 +32,8 @@ export class LinkTool {
       }
     }
 
-    // 更新连线
-    this.render.draws[Draws.LinkDraw.name].draw()
-    // 更新磁贴
-    this.render.draws[Draws.AttractDraw.name].draw()
-    // 更新预览
-    this.render.draws[Draws.PreviewDraw.name].draw()
+    // 重绘
+    this.render.redraw()
   }
 
   remove(line: Konva.Line) {
@@ -55,12 +51,8 @@ export class LinkTool {
             point.pairs.splice(pairIndex, 1)
             group.setAttr('points', points)
 
-            // 更新连线
-            this.render.draws[Draws.LinkDraw.name].draw()
-            // 更新磁贴
-            this.render.draws[Draws.AttractDraw.name].draw()
-            // 更新预览
-            this.render.draws[Draws.PreviewDraw.name].draw()
+            // 重绘
+            this.render.redraw()
           }
         }
       }

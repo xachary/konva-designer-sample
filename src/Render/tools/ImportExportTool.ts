@@ -208,12 +208,8 @@ export class ImportExportTool {
       // 隐藏 连接点
       this.render.linkTool.pointsVisible(false)
 
-      // 更新连线
-      this.render.draws[Draws.LinkDraw.name].draw()
-      // 更新磁贴
-      this.render.draws[Draws.AttractDraw.name].draw()
-      // 更新预览
-      this.render.draws[Draws.PreviewDraw.name].draw()
+      // 重绘
+      this.render.redraw()
     } catch (e) {
       console.error(e)
     }
