@@ -1,5 +1,6 @@
 import Konva from 'konva'
 import * as Types from '../types'
+import * as Draws from '../draws'
 
 export interface ContextmenuDrawOption {
   //
@@ -302,9 +303,30 @@ export class ContextmenuDraw extends Types.BaseDraw implements Types.Draw {
         if (!e.evt.ctrlKey) {
           const pos = this.render.stage.getPointerPosition()
           if (pos && this.state.lastPos) {
-            // 右键目标
+            const linkGroup = this.render.layerCover.find(
+              `.${Draws.LinkDraw.name}`
+            )[0] as Konva.Group
+
+            // 右键目标可能为 连接线
+            let lineSelection: Konva.Node | null = null
+
+            if (linkGroup) {
+              const linkLines = linkGroup.find('.link-line')
+
+              for (const line of linkLines) {
+                if (
+                  Konva.Util.haveIntersection({ ...pos, width: 1, height: 1 }, line.getClientRect())
+                ) {
+                  // 右键目标为 连接线
+                  lineSelection = line
+                  break
+                }
+              }
+            }
+
             if (pos.x === this.state.lastPos.x || pos.y === this.state.lastPos.y) {
-              this.state.target = e.target
+              // 右键 连接线/其它目标
+              this.state.target = lineSelection ?? e.target
             } else {
               this.state.target = null
             }
