@@ -21,9 +21,11 @@ export class ImportExportTool {
   getView(withLink: boolean = false) {
     // 复制画布
     const copy = this.render.stage.clone()
+
     // 提取 main layer 备用
     const main = copy.find('#main')[0] as Konva.Layer
     const cover = copy.find('#cover')[0] as Konva.Layer
+
     // 暂时清空所有 layer
     copy.removeChildren()
 
@@ -32,12 +34,24 @@ export class ImportExportTool {
       return !this.render.ignore(node)
     })
 
+    // 移除多余结构
+    for (const node of nodes) {
+      for (const child of (node as Konva.Group).children) {
+        if (this.render.ignoreSelect(child)) {
+          child.remove()
+        }
+      }
+    }
+
     if (withLink) {
-      nodes = nodes.concat(
-        cover.getChildren((node) => {
-          return node.name() === Draws.LinkDraw.name
-        })
-      )
+      // 从 Link group 中提取 连接线
+      const linkDraw = cover.children.find(
+        (o) => o.attrs.name === Draws.LinkDraw.name
+      ) as Konva.Group
+
+      if (linkDraw) {
+        nodes = nodes.concat(linkDraw.children.filter((o) => o.attrs.name === 'link-line'))
+      }
     }
 
     // 重新装载节点
@@ -180,6 +194,18 @@ export class ImportExportTool {
           // 显示 连接点
           this.render.linkTool.pointsVisible(true, node)
         })
+
+        // 恢复的时候，恢复 hoverRect
+        node.add(
+          new Konva.Rect({
+            id: 'hoverRect',
+            width: node.width(),
+            height: node.height(),
+            fill: 'rgba(0,255,0,0.3)',
+            visible: false
+          })
+        )
+
         node.off('mouseleave')
         node.on('mouseleave', () => {
           // 隐藏 连接点
@@ -219,6 +245,42 @@ export class ImportExportTool {
   getImage(pixelRatio = 1, bgColor?: string) {
     // 获取可视节点和 layer
     const copy = this.getView(true)
+
+    // 背景层
+    const bgLayer = new Konva.Layer()
+
+    // 背景矩形
+    const bg = new Konva.Rect({
+      listening: false
+    })
+    bg.setAttrs({
+      x: -copy.x(),
+      y: -copy.y(),
+      width: copy.width(),
+      height: copy.height(),
+      fill: bgColor
+    })
+
+    // 添加背景
+    bgLayer.add(bg)
+
+    // 插入背景
+    const children = copy.getChildren()
+    copy.removeChildren()
+    copy.add(bgLayer)
+    copy.add(children[0], ...children.slice(1))
+
+    const url = copy.toDataURL({ pixelRatio })
+    copy.destroy()
+
+    // 通过 stage api 导出图片
+    return url
+  }
+
+  // 获取元素图片
+  getAssetImage(pixelRatio = 1, bgColor?: string) {
+    // 获取可视节点和 layer
+    const copy = this.getAssetView()
 
     // 背景层
     const bgLayer = new Konva.Layer()
@@ -368,5 +430,139 @@ export class ImportExportTool {
     return Promise.resolve(
       `<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="0" height="0"></svg>`
     )
+  }
+
+  /**
+   * 获得显示内容（用于另存为元素）
+   * @returns Konva.Stage
+   */
+  getAssetView() {
+    const copy = this.getView(true)
+    const children = copy.getChildren()[0].getChildren()
+
+    const nodes: Konva.Stage | Konva.Layer | Konva.Group | Konva.Node[] = [...children]
+
+    let minX = Infinity,
+      maxX = -Infinity,
+      minY = Infinity,
+      maxY = -Infinity,
+      minStartX = Infinity,
+      minStartY = Infinity
+
+    for (const node of nodes) {
+      if (node instanceof Konva.Group) {
+        if (node.x() < minX) {
+          minX = node.x()
+        }
+        if (node.x() + node.width() > maxX) {
+          maxX = node.x() + node.width()
+        }
+        if (node.y() < minY) {
+          minY = node.y()
+        }
+        if (node.y() + node.height() > maxY) {
+          maxY = node.y() + node.height()
+        }
+
+        if (node.x() < minStartX) {
+          minStartX = node.x()
+        }
+        if (node.y() < minStartY) {
+          minStartY = node.y()
+        }
+
+        // 移除辅助元素
+        if (node instanceof Konva.Group) {
+          const clickMask = node.findOne('#click-mask')
+          if (clickMask) {
+            clickMask.destroy()
+          }
+        }
+      } else if (node instanceof Konva.Line && node.name() === 'link-line') {
+        // 连线占用空间
+        const points = node.points()
+        for (let i = 0; i < points.length; i += 2) {
+          const [x, y] = [points[i], points[i + 1]]
+
+          if (x < minX) {
+            minX = x - 1
+          }
+          if (x > maxX) {
+            maxX = x + 1
+          }
+          if (y < minY) {
+            minY = y - 1
+          }
+          if (y > maxY) {
+            maxY = y + 1
+          }
+          if (x < minStartX) {
+            minStartX = x - 1
+          }
+          if (y < minStartY) {
+            minStartY = y - 1
+          }
+        }
+      }
+    }
+
+    for (const node of nodes) {
+      if (node instanceof Konva.Group) {
+        node.x(node.x() - minStartX)
+        node.y(node.y() - minStartY)
+      } else if (node instanceof Konva.Line && node.name() === 'link-line') {
+        const points = node.points()
+        for (let i = 0; i < points.length; i += 2) {
+          points[i] = points[i] - minStartX
+          points[i + 1] = points[i + 1] - minStartY
+        }
+        node.points(points)
+      }
+    }
+
+    copy.x(0)
+    copy.y(0)
+    copy.width(maxX - minX)
+    copy.height(maxY - minY)
+
+    return copy
+  }
+
+  /**
+   * 获得元素（用于另存为元素）
+   * @returns Konva.Stage
+   */
+  getAsset() {
+    const copy = this.getAssetView()
+
+    const json = copy.toJSON()
+    const obj = JSON.parse(json)
+    const assets = obj.children[0].children
+
+    for (const asset of assets) {
+      if (asset.attrs.name === 'asset') {
+        asset.attrs.name = 'sub-asset'
+      }
+      if (asset.attrs.selected) {
+        asset.attrs.selected = false
+      }
+    }
+
+    this.render.linkTool.jsonIdCover(assets)
+
+    // 通过 stage api 导出 json
+    const result = JSON.stringify({
+      ...obj.children[0],
+      className: 'Group',
+      attrs: {
+        width: copy.width(),
+        height: copy.height(),
+        x: 0,
+        y: 0
+      }
+    })
+
+    copy.destroy()
+    return result
   }
 }

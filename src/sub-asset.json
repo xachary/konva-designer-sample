@@ -1,0 +1,304 @@
+{
+  "attrs": { "width": 990, "height": 1070 },
+  "className": "Stage",
+  "children": [
+    {
+      "attrs": {},
+      "className": "Layer",
+      "children": [
+        {
+          "attrs": {
+            "id": "9bQ2g-ZUYnKLzAAWRQ8I4",
+            "width": 200,
+            "height": 200,
+            "name": "asset",
+            "x": 100.5,
+            "y": 100.5,
+            "points": [
+              {
+                "x": 100,
+                "y": 1,
+                "direction": "top",
+                "id": "wzPPCdJxNM_z4zWW0JFE2",
+                "groupId": "9bQ2g-ZUYnKLzAAWRQ8I4",
+                "visible": false,
+                "pairs": [
+                  {
+                    "id": "eWDAuz9Tm156pkRzeEqbP",
+                    "from": {
+                      "groupId": "9bQ2g-ZUYnKLzAAWRQ8I4",
+                      "pointId": "wzPPCdJxNM_z4zWW0JFE2"
+                    },
+                    "to": { "groupId": "lpr8-KBAFKO5jv423Dd1B", "pointId": "DHNHlUKTt2Q6asiO4ioKK" }
+                  }
+                ]
+              },
+              {
+                "x": 100,
+                "y": 199,
+                "direction": "bottom",
+                "id": "2bHz862ps4SvLn_9V8Rjd",
+                "groupId": "9bQ2g-ZUYnKLzAAWRQ8I4",
+                "visible": false,
+                "pairs": [
+                  {
+                    "id": "PqVJ0QUtZEmjMqcBye8tl",
+                    "from": {
+                      "groupId": "9bQ2g-ZUYnKLzAAWRQ8I4",
+                      "pointId": "2bHz862ps4SvLn_9V8Rjd"
+                    },
+                    "to": { "groupId": "x2PhMzhmA3trG1EE3Fz58", "pointId": "vynaJcpIu1lPvEO9MR8Iq" }
+                  }
+                ]
+              }
+            ],
+            "selected": false
+          },
+          "className": "Group",
+          "children": [
+            {
+              "attrs": {
+                "svgXML": "<?xml version=\"1.0\" standalone=\"no\"?><!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\"><svg class=\"icon\" width=\"200px\" height=\"200.00px\" viewBox=\"0 0 1024 1024\" version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M381.902 772.197V251.803h125.901V0h8.394v251.803h125.901v520.394H516.197V1024h-8.394V772.197H381.902z m251.803-512h-243.41v503.606h243.41V260.197z\" /></svg>"
+              },
+              "className": "Image"
+            },
+            {
+              "attrs": {
+                "name": "link-anchor",
+                "id": "wzPPCdJxNM_z4zWW0JFE2",
+                "x": 100,
+                "y": 1,
+                "radius": 1,
+                "stroke": "rgba(0,0,255,1)",
+                "visible": false,
+                "direction": "top"
+              },
+              "className": "Circle"
+            },
+            {
+              "attrs": {
+                "name": "link-anchor",
+                "id": "2bHz862ps4SvLn_9V8Rjd",
+                "x": 100,
+                "y": 199,
+                "radius": 1,
+                "stroke": "rgba(0,0,255,1)",
+                "visible": false,
+                "direction": "bottom"
+              },
+              "className": "Circle"
+            }
+          ]
+        },
+        {
+          "attrs": {
+            "id": "lpr8-KBAFKO5jv423Dd1B",
+            "width": 64,
+            "height": 64,
+            "name": "asset",
+            "x": 400.5,
+            "y": 101,
+            "points": [
+              {
+                "x": 0,
+                "y": 32,
+                "direction": "left",
+                "id": "L4hN5_FVa94EMZLm6pCIt",
+                "groupId": "lpr8-KBAFKO5jv423Dd1B",
+                "visible": false,
+                "pairs": []
+              },
+              {
+                "x": 64,
+                "y": 32,
+                "direction": "right",
+                "id": "zv7hK6wwF05VwzkcsLEL1",
+                "groupId": "lpr8-KBAFKO5jv423Dd1B",
+                "visible": false,
+                "pairs": []
+              },
+              {
+                "x": 32,
+                "y": 0,
+                "direction": "top",
+                "id": "DHNHlUKTt2Q6asiO4ioKK",
+                "groupId": "lpr8-KBAFKO5jv423Dd1B",
+                "visible": false,
+                "pairs": []
+              },
+              {
+                "x": 32,
+                "y": 64,
+                "direction": "bottom",
+                "id": "9hKSHWNEFO1E2eI3MUa3C",
+                "groupId": "lpr8-KBAFKO5jv423Dd1B",
+                "visible": false,
+                "pairs": []
+              }
+            ],
+            "selected": false
+          },
+          "className": "Group",
+          "children": [
+            { "attrs": { "gif": "./img/gif/8.gif" }, "className": "Image" },
+            {
+              "attrs": {
+                "name": "link-anchor",
+                "id": "L4hN5_FVa94EMZLm6pCIt",
+                "y": 32,
+                "radius": 1,
+                "stroke": "rgba(0,0,255,1)",
+                "visible": false,
+                "direction": "left"
+              },
+              "className": "Circle"
+            },
+            {
+              "attrs": {
+                "name": "link-anchor",
+                "id": "zv7hK6wwF05VwzkcsLEL1",
+                "x": 64,
+                "y": 32,
+                "radius": 1,
+                "stroke": "rgba(0,0,255,1)",
+                "visible": false,
+                "direction": "right"
+              },
+              "className": "Circle"
+            },
+            {
+              "attrs": {
+                "name": "link-anchor",
+                "id": "DHNHlUKTt2Q6asiO4ioKK",
+                "x": 32,
+                "radius": 1,
+                "stroke": "rgba(0,0,255,1)",
+                "visible": false,
+                "direction": "top"
+              },
+              "className": "Circle"
+            },
+            {
+              "attrs": {
+                "name": "link-anchor",
+                "id": "9hKSHWNEFO1E2eI3MUa3C",
+                "x": 32,
+                "y": 64,
+                "radius": 1,
+                "stroke": "rgba(0,0,255,1)",
+                "visible": false,
+                "direction": "bottom"
+              },
+              "className": "Circle"
+            }
+          ]
+        },
+        {
+          "attrs": {
+            "id": "x2PhMzhmA3trG1EE3Fz58",
+            "width": 104,
+            "height": 104,
+            "name": "asset",
+            "x": 301,
+            "y": 400.5,
+            "points": [
+              {
+                "x": 52,
+                "y": 2,
+                "direction": "top",
+                "id": "eS22DoWCmm_tuDAsoElVT",
+                "groupId": "x2PhMzhmA3trG1EE3Fz58",
+                "visible": false,
+                "pairs": []
+              },
+              {
+                "x": 52,
+                "y": 100,
+                "direction": "bottom",
+                "id": "vynaJcpIu1lPvEO9MR8Iq",
+                "groupId": "x2PhMzhmA3trG1EE3Fz58",
+                "visible": false,
+                "pairs": []
+              },
+              {
+                "x": 2,
+                "y": 51,
+                "direction": "left",
+                "id": "1NoSLJUz5oNsjiOxtJ_wG",
+                "groupId": "x2PhMzhmA3trG1EE3Fz58",
+                "visible": false,
+                "pairs": []
+              },
+              {
+                "x": 101,
+                "y": 51,
+                "direction": "right",
+                "id": "mwFsWlZAHPiVsyMNf1-li",
+                "groupId": "x2PhMzhmA3trG1EE3Fz58",
+                "visible": false,
+                "pairs": []
+              }
+            ],
+            "selected": false
+          },
+          "className": "Group",
+          "children": [
+            { "attrs": { "src": "./img/png/1.png" }, "className": "Image" },
+            {
+              "attrs": {
+                "name": "link-anchor",
+                "id": "eS22DoWCmm_tuDAsoElVT",
+                "x": 52,
+                "y": 2,
+                "radius": 1,
+                "stroke": "rgba(0,0,255,1)",
+                "visible": false,
+                "direction": "top"
+              },
+              "className": "Circle"
+            },
+            {
+              "attrs": {
+                "name": "link-anchor",
+                "id": "vynaJcpIu1lPvEO9MR8Iq",
+                "x": 52,
+                "y": 100,
+                "radius": 1,
+                "stroke": "rgba(0,0,255,1)",
+                "visible": false,
+                "direction": "bottom"
+              },
+              "className": "Circle"
+            },
+            {
+              "attrs": {
+                "name": "link-anchor",
+                "id": "1NoSLJUz5oNsjiOxtJ_wG",
+                "x": 2,
+                "y": 51,
+                "radius": 1,
+                "stroke": "rgba(0,0,255,1)",
+                "visible": false,
+                "direction": "left"
+              },
+              "className": "Circle"
+            },
+            {
+              "attrs": {
+                "name": "link-anchor",
+                "id": "mwFsWlZAHPiVsyMNf1-li",
+                "x": 101,
+                "y": 51,
+                "radius": 1,
+                "stroke": "rgba(0,0,255,1)",
+                "visible": false,
+                "direction": "right"
+              },
+              "className": "Circle"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

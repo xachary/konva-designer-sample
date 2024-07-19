@@ -20,11 +20,13 @@ export class DragOutsideHandlers implements Types.Handler {
     dom: {
       dragenter: (e: GlobalEventHandlersEventMap['dragenter']) => {
         this.render.stage.setPointersPositions(e)
+        
         // 更新参考线
         this.render.draws[Draws.RefLineDraw.name].draw()
       },
       dragover: (e: GlobalEventHandlersEventMap['dragover']) => {
         this.render.stage.setPointersPositions(e)
+        
         // 更新参考线
         this.render.draws[Draws.RefLineDraw.name].draw()
       },
@@ -52,23 +54,61 @@ export class DragOutsideHandlers implements Types.Handler {
           const pos = this.render.stage.getPointerPosition()
           if (pos) {
             this.render.assetTool[
-              type === 'svg' ? `loadSvg` : type === 'gif' ? 'loadGif' : 'loadImg'
-            ](src).then((image: Konva.Image) => {
-              const group = new Konva.Group({
-                id: nanoid(),
-                width: image.width(),
-                height: image.height(),
-                name: 'asset'
-              })
+              type === 'svg'
+                ? `loadSvg`
+                : type === 'gif'
+                  ? 'loadGif'
+                  : type === 'json'
+                    ? 'loadJson'
+                    : 'loadImg'
+            ](src).then((target: Konva.Image | Konva.Group) => {
+              let group = null
+              // 默认连接点
+              let points: Types.AssetInfoPoint[] = []
 
-              this.render.layer.add(group)
+              // 图片素材
+              if (target instanceof Konva.Image) {
+                group = new Konva.Group({
+                  id: nanoid(),
+                  width: target.width(),
+                  height: target.height(),
+                  name: 'asset'
+                })
 
-              image.setAttrs({
+                group.add(target)
+
+                points = [
+                  // 左
+                  { x: 0, y: group.height() / 2, direction: 'left' },
+                  // 右
+                  {
+                    x: group.width(),
+                    y: group.height() / 2,
+                    direction: 'right'
+                  },
+                  // 上
+                  { x: group.width() / 2, y: 0, direction: 'top' },
+                  // 下
+                  {
+                    x: group.width() / 2,
+                    y: group.height(),
+                    direction: 'bottom'
+                  }
+                ]
+              } else {
+                // json 素材
+                target.id(nanoid())
+                target.name('asset')
+                group = target
+                this.render.linkTool.groupIdCover(group)
+              }
+
+              target.setAttrs({
                 x: 0,
                 y: 0
               })
 
-              group.add(image)
+              this.render.layer.add(group)
 
               const x = this.render.toStageValue(pos.x - stageState.x) - group.width() / 2
               const y = this.render.toStageValue(pos.y - stageState.y) - group.height() / 2
@@ -77,26 +117,6 @@ export class DragOutsideHandlers implements Types.Handler {
                 x,
                 y
               })
-
-              // 默认连接点
-              let points: Types.AssetInfoPoint[] = [
-                // 左
-                { x: 0, y: group.height() / 2, direction: 'left' },
-                // 右
-                {
-                  x: group.width(),
-                  y: group.height() / 2,
-                  direction: 'right'
-                },
-                // 上
-                { x: group.width() / 2, y: 0, direction: 'top' },
-                // 下
-                {
-                  x: group.width() / 2,
-                  y: group.height(),
-                  direction: 'bottom'
-                }
-              ]
 
               // 自定义连接点 覆盖 默认连接点
               if (Array.isArray(morePoints) && morePoints.length > 0) {
@@ -144,8 +164,8 @@ export class DragOutsideHandlers implements Types.Handler {
               group.add(
                 new Konva.Rect({
                   id: 'hoverRect',
-                  width: image.width(),
-                  height: image.height(),
+                  width: target.width(),
+                  height: target.height(),
                   fill: 'rgba(0,255,0,0.3)',
                   visible: false
                 })

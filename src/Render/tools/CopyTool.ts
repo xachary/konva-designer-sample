@@ -50,6 +50,143 @@ export class CopyTool {
     }
   }
 
+  // 刷新 id、事件
+  nodesIdCover(nodes: Konva.Node[]) {
+    let deepAssets = [...nodes]
+    const idMap = new Map()
+
+    while (deepAssets.length > 0) {
+      const asset = deepAssets.shift()
+      if (asset) {
+        if (Array.isArray(asset.attrs.points)) {
+          for (const point of asset.attrs.points) {
+            if (Array.isArray(point.pairs)) {
+              for (const pair of point.pairs) {
+                if (pair.from.groupId && !idMap.has(pair.from.groupId)) {
+                  idMap.set(pair.from.groupId, 'g:' + nanoid())
+                }
+
+                if (pair.to.groupId && !idMap.has(pair.to.groupId)) {
+                  idMap.set(pair.to.groupId, 'g:' + nanoid())
+                }
+
+                if (pair.from.pointId && !idMap.has(pair.from.pointId)) {
+                  idMap.set(pair.from.pointId, 'p:' + nanoid())
+                }
+
+                if (pair.to.pointId && !idMap.has(pair.to.pointId)) {
+                  idMap.set(pair.to.pointId, 'p:' + nanoid())
+                }
+              }
+            }
+
+            if (point.id) {
+              if (!idMap.has(point.id)) {
+                idMap.set(point.id, 'p:' + nanoid())
+              }
+            }
+
+            if (point.groupId) {
+              if (!idMap.has(point.groupId)) {
+                idMap.set(point.groupId, 'g:' + nanoid())
+              }
+            }
+          }
+        }
+
+        if (asset.id()) {
+          if (!idMap.has(asset.id())) {
+            idMap.set(asset.id(), 'n:' + nanoid())
+          }
+        }
+
+        if (asset instanceof Konva.Group && Array.isArray(asset.children)) {
+          deepAssets.push(...asset.children)
+        }
+      }
+    }
+
+    deepAssets = [...nodes]
+
+    while (deepAssets.length > 0) {
+      const asset = deepAssets.shift()
+      if (asset) {
+        if (idMap.has(asset.id())) {
+          asset.id(idMap.get(asset.id()))
+        }
+
+        if (Array.isArray(asset.attrs.points)) {
+          asset.attrs.points = _.cloneDeep(asset.attrs.points ?? [])
+
+          for (const point of asset.attrs.points) {
+            if (Array.isArray(point.pairs)) {
+              for (const pair of point.pairs) {
+                if (pair.id) {
+                  pair.id = 'pr:' + nanoid()
+                }
+
+                if (idMap.has(pair.from.groupId)) {
+                  pair.from.groupId = idMap.get(pair.from.groupId)
+                }
+                if (idMap.has(pair.to.groupId)) {
+                  pair.to.groupId = idMap.get(pair.to.groupId)
+                }
+                if (idMap.has(pair.from.pointId)) {
+                  pair.from.pointId = idMap.get(pair.from.pointId)
+                }
+                if (idMap.has(pair.to.pointId)) {
+                  pair.to.pointId = idMap.get(pair.to.pointId)
+                }
+              }
+            }
+
+            if (idMap.has(point.id)) {
+              if (asset instanceof Konva.Group) {
+                const anchor = asset.findOne(`#${point.id}`)
+                anchor?.id(idMap.get(point.id))
+              }
+
+              point.id = idMap.get(point.id)
+              point.visible = false
+            }
+
+            if (idMap.has(point.groupId)) {
+              point.groupId = idMap.get(point.groupId)
+            }
+          }
+        }
+
+        if (asset instanceof Konva.Group && Array.isArray(asset.children)) {
+          deepAssets.push(...asset.children)
+        }
+      }
+    }
+
+    for (const node of nodes) {
+      if (node instanceof Konva.Group) {
+        node.off('mouseenter')
+        node.on('mouseenter', () => {
+          // 显示 连接点
+          this.render.linkTool.pointsVisible(true, node)
+        })
+        node.off('mouseleave')
+        node.on('mouseleave', () => {
+          // 隐藏 连接点
+          this.render.linkTool.pointsVisible(false, node)
+
+          // 隐藏 hover 框
+          node.findOne('#hoverRect')?.visible(false)
+        })
+
+        // 使新节点产生偏移
+        node.setAttrs({
+          x: node.x() + this.render.toStageValue(this.render.bgSize) * this.pasteCount,
+          y: node.y() + this.render.toStageValue(this.render.bgSize) * this.pasteCount
+        })
+      }
+    }
+  }
+
   /**
    * 复制粘贴
    * @param nodes 节点数组
@@ -73,69 +210,8 @@ export class CopyTool {
       }
     }
 
-    // 处理克隆节点
-
-    // 新旧 id 映射
-    const groupIdChanges: { [index: string]: string } = {}
-    const pointIdChanges: { [index: string]: string } = {}
-
-    // 新 id、新事件
-    for (const copy of clones) {
-      const gid = nanoid()
-      groupIdChanges[copy.id()] = gid
-      copy.id(gid)
-
-      const pointsClone = _.cloneDeep(copy.getAttr('points') ?? [])
-      copy.setAttr('points', pointsClone)
-
-      for (const point of pointsClone) {
-        const pid = nanoid()
-        pointIdChanges[point.id] = pid
-
-        const anchor = copy.findOne(`#${point.id}`)
-        anchor?.id(pid)
-
-        point.id = pid
-
-        point.groupId = copy.id()
-        point.visible = false
-      }
-
-      copy.off('mouseenter')
-      copy.on('mouseenter', () => {
-        // 显示 连接点
-        this.render.linkTool.pointsVisible(true, copy)
-      })
-      copy.off('mouseleave')
-      copy.on('mouseleave', () => {
-        // 隐藏 连接点
-        this.render.linkTool.pointsVisible(false, copy)
-
-        // 隐藏 hover 框
-        copy.findOne('#hoverRect')?.visible(false)
-      })
-
-      // 使新节点产生偏移
-      copy.setAttrs({
-        x: copy.x() + this.render.toStageValue(this.render.bgSize) * this.pasteCount,
-        y: copy.y() + this.render.toStageValue(this.render.bgSize) * this.pasteCount
-      })
-    }
-
-    // pairs 新 id
-    for (const copy of clones) {
-      const points = copy.getAttr('points') ?? []
-      for (const point of points) {
-        for (const pair of point.pairs) {
-          // id 换新
-          pair.id = nanoid()
-          pair.from.groupId = groupIdChanges[pair.from.groupId]
-          pair.from.pointId = pointIdChanges[pair.from.pointId]
-          pair.to.groupId = groupIdChanges[pair.to.groupId]
-          pair.to.pointId = pointIdChanges[pair.to.pointId]
-        }
-      }
-    }
+    // 刷新 id、事件
+    this.nodesIdCover(clones)
 
     // 插入新节点
     this.render.layer.add(...clones)

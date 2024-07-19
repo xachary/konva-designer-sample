@@ -79,8 +79,9 @@ export class BaseDraw {
 
   clear() {
     // 重置
+    const name = this.group.name()
     this.group.destroy()
-    this.group = new Konva.Group()
+    this.group = new Konva.Group({ name })
     this.layer.add(this.group)
   }
 }
@@ -95,6 +96,7 @@ export interface AssetInfoPoint {
 
 export interface AssetInfo {
   url: string
+  avatar?: string // 子素材需要额外的封面
   points?: Array<AssetInfoPoint>
 }
 

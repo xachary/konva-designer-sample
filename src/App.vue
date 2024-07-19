@@ -11,6 +11,10 @@ import linkTestData from './link.json'
 import rotateTestData from './rotate.json'
 import alignTestData from './align.json'
 
+// import copyTestData from './copy.json'
+// import subAssetTestData from './sub-asset.json'
+// import hoverTestData from './hover.json'
+
 // 容器
 const boardElement = ref<HTMLDivElement>()
 // 画布挂载节点
@@ -120,10 +124,14 @@ function init() {
 
     // onFull()
     // setTimeout(() => {
-    //   // onLinkTest()
-    //   // onRotateTest()
-    //   onAlignTest()
-    //   onDebug()
+      //   // onLinkTest()
+      //   // onRotateTest()
+      //   onAlignTest()
+      //   onDebug()
+      // render?.importExportTool.restore(JSON.stringify(copyTestData))
+      // render?.importExportTool.restore(JSON.stringify(subAssetTestData))
+      // render?.importExportTool.restore(JSON.stringify(hoverTestData))
+
     // }, 1000)
   }
 }
@@ -147,6 +155,11 @@ onMounted(() => {
 
 // 从 public 加载静态资源 + 自定义连接点
 const assetsModules: Array<Types.AssetInfo> = [
+  { "url": "./json/1.json", avatar: './json/1.png' },
+  { "url": "./json/2.json", avatar: './json/2.png' },
+  { "url": "./json/3.json", avatar: './json/3.png' },
+  { "url": "./json/4.json", avatar: './json/4.png' },
+  //
   { "url": "./img/svg/ARRESTER_1.svg", points: [{ x: 101, y: 1, direction: 'top' }, { x: 101, y: 199, direction: 'bottom' }] },
   { "url": "./img/svg/ARRESTER_2.svg", points: [{ x: 101, y: 1, direction: 'top' }, { x: 101, y: 199, direction: 'bottom' }] },
   { "url": "./img/svg/ARRESTER_2_1.svg", points: [{ x: 101, y: 1, direction: 'top' }, { x: 101, y: 199, direction: 'bottom' }] },
@@ -218,6 +231,7 @@ const assetsModules: Array<Types.AssetInfo> = [
 const assetsInfos = computed(() => {
   return assetsModules.map((o) => ({
     url: o.url,
+    avatar: o.avatar, // 子素材需要额外的封面
     points: Array.isArray(o.points) ? o.points : []
   }))
 })
@@ -294,6 +308,33 @@ async function onSaveSvg() {
   }
 }
 
+// 另存为元素
+function onSaveAsset() {
+  if (render) {
+    const a = document.createElement('a')
+    const event = new MouseEvent('click')
+    a.download = 'asset.json'
+    a.href = window.URL.createObjectURL(new Blob([render.importExportTool.getAsset()]))
+    a.dispatchEvent(event)
+    a.remove()
+  }
+}
+
+// 另存为元素图片
+function onSaveAssetPNG() {
+  if (render) {
+    // 3倍尺寸、白色背景
+    const url = render.importExportTool.getAssetImage(3, '#ffffff')
+
+    const a = document.createElement('a')
+    const event = new MouseEvent('click')
+    a.download = 'image'
+    a.href = url
+    a.dispatchEvent(event)
+    a.remove()
+  }
+}
+
 // 选择项
 const selection: Ref<Konva.Node[]> = ref([])
 // 是否可以进行对齐
@@ -332,6 +373,8 @@ function onFull() {
       <button @click="onSave">导出</button>
       <button @click="onSavePNG">另存为图片</button>
       <button @click="onSaveSvg">另存为Svg</button>
+      <button @click="onSaveAsset">另存为元素</button>
+      <button @click="onSaveAssetPNG">另存为元素图片</button>
       <button @click="onPrev" :disabled="historyIndex <= 0">上一步</button>
       <button @click="onNext" :disabled="historyIndex >= history.length - 1">下一步</button>
       <button @click="onAlign(Types.AlignType.垂直居中)" :disabled="noAlign">垂直居中</button>
@@ -345,7 +388,7 @@ function onFull() {
       <header :style="{ width: full ? 0 : undefined }">
         <ul>
           <li v-for="(item, idx) of assetsInfos" :key="idx" draggable="true" @dragstart="onDragstart($event, item)">
-            <img :src="item.url" style="object-fit: contain; width: 100%; height: 100%" />
+            <img :src="item.avatar || item.url" />
           </li>
         </ul>
       </header>
@@ -356,7 +399,7 @@ function onFull() {
         快捷键：<br>
         1、复制、粘贴、多选、全选、删除、上一步、下一步等快捷键与一般文档编辑器类似；<br>
         2、放大缩小，【Win】鼠标上滚动下滚动，【Mac】触控板双指放大、缩小；<br>
-        3、画布拖动，在空白处，【Win】右键按下移动，【Mac】contril + 触控板三指移动；<br>
+        3、画布拖动，在空白处，【Win】右键按下移动，【Mac】control + 触控板三指移动；<br>
       </footer>
     </section>
     <footer>
@@ -406,7 +449,7 @@ function onFull() {
 
     &>header,
     &>footer {
-      width: 300px;
+      width: 307px;
       flex-shrink: 0;
       background-color: #fff;
       z-index: 2;
@@ -421,10 +464,17 @@ function onFull() {
         flex-wrap: wrap;
 
         &>li {
-          width: 33.33%;
+          width: 100px;
+          height: 100px;
           flex-shrink: 0;
           border: 1px solid #eee;
           cursor: move;
+
+          &>img {
+            object-fit: contain;
+            width: 100%;
+            height: 100%;
+          }
         }
       }
     }

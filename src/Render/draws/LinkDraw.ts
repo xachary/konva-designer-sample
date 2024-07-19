@@ -2,7 +2,6 @@ import _ from 'lodash-es'
 import Konva from 'konva'
 //
 import * as Types from '../types'
-import * as Draws from '../draws'
 import { nanoid } from 'nanoid'
 
 // import { AStarFinder } from 'astar-typescript-cost'
@@ -19,17 +18,21 @@ export interface LinkDrawPair {
   from: {
     groupId: string
     pointId: string
+    rawGroupId?: string // 预留
   }
   to: {
     groupId: string
     pointId: string
+    rawGroupId?: string // 预留
   }
+  disabled?: boolean // 标记为 true，算法会忽略该 pair 的画线逻辑
 }
 
 // 连接点
 export interface LinkDrawPoint {
   id: string
   groupId: string
+  rawGroupId?: string // 预留
   visible: boolean
   pairs: LinkDrawPair[]
   x: number
@@ -386,14 +389,18 @@ export class LinkDraw extends Types.BaseDraw implements Types.Draw {
     // stage 状态
     const stageState = this.render.getStageState()
 
-    const groups = this.render.layer.find('.asset') as Konva.Group[]
+    // 所有层级的素材
+    const groups = [
+      ...(this.render.layer.find('.asset') as Konva.Group[]),
+      ...(this.render.layer.find('.sub-asset') as Konva.Group[])
+    ]
 
     const points = groups.reduce((ps, group) => {
       return ps.concat(Array.isArray(group.getAttr('points')) ? group.getAttr('points') : [])
     }, [] as LinkDrawPoint[])
 
     const pairs = points.reduce((ps, point) => {
-      return ps.concat(point.pairs ? point.pairs : [])
+      return ps.concat(point.pairs ? point.pairs.filter((o) => !o.disabled) : [])
     }, [] as LinkDrawPair[])
 
     if (this.render.debug && pairs.length > 0) {
@@ -401,312 +408,324 @@ export class LinkDraw extends Types.BaseDraw implements Types.Draw {
       console.log('link draw')
     }
 
+    // TODO: 算法建模考虑所有子元素
+
     // 连接线
     for (const pair of pairs) {
-      const fromGroup = groups.find((o) => o.id() === pair.from.groupId)
-      const fromPoint = points.find((o) => o.id === pair.from.pointId)
+      // 多层素材，需要排除内部 pair 对
+      // pair 也不能为 disabled
+      if (pair.from.groupId !== pair.to.groupId && !pair.disabled) {
+        const fromGroup = groups.find((o) => o.id() === pair.from.groupId)
+        const fromPoint = points.find((o) => o.id === pair.from.pointId)
 
-      const toGroup = groups.find((o) => o.id() === pair.to.groupId)
-      const toPoint = points.find((o) => o.id === pair.to.pointId)
+        const toGroup = groups.find((o) => o.id() === pair.to.groupId)
+        const toPoint = points.find((o) => o.id === pair.to.pointId)
 
-      // 最小区域
-      const fromGroupLinkArea = this.getGroupLinkArea(fromGroup)
-      const toGroupLinkArea = this.getGroupLinkArea(toGroup)
+        // 最小区域
+        const fromGroupLinkArea = this.getGroupLinkArea(fromGroup)
+        const toGroupLinkArea = this.getGroupLinkArea(toGroup)
 
-      // 两区域的最短距离
-      const groupDistance = this.getGroupPairDistance(fromGroupLinkArea, toGroupLinkArea)
+        // 两区域的最短距离
+        const groupDistance = this.getGroupPairDistance(fromGroupLinkArea, toGroupLinkArea)
 
-      // 不可通过区域
-      const fromGroupForbiddenArea = this.getGroupForbiddenArea(
-        fromGroupLinkArea,
-        groupDistance - 2
-      )
-      const toGroupForbiddenArea = this.getGroupForbiddenArea(toGroupLinkArea, groupDistance - 2)
+        // 不可通过区域
+        const fromGroupForbiddenArea = this.getGroupForbiddenArea(
+          fromGroupLinkArea,
+          groupDistance - 2
+        )
+        const toGroupForbiddenArea = this.getGroupForbiddenArea(toGroupLinkArea, groupDistance - 2)
 
-      // 两区域扩展
-      const groupForbiddenArea = this.getGroupPairArea(fromGroupForbiddenArea, toGroupForbiddenArea)
+        // 两区域扩展
+        const groupForbiddenArea = this.getGroupPairArea(
+          fromGroupForbiddenArea,
+          toGroupForbiddenArea
+        )
 
-      // 连线通过区域
-      const groupAccessArea = this.getGroupPairArea(
-        this.getGroupAccessArea(fromGroupForbiddenArea, groupDistance),
-        this.getGroupAccessArea(toGroupForbiddenArea, groupDistance)
-      )
+        // 连线通过区域
+        const groupAccessArea = this.getGroupPairArea(
+          this.getGroupAccessArea(fromGroupForbiddenArea, groupDistance),
+          this.getGroupAccessArea(toGroupForbiddenArea, groupDistance)
+        )
 
-      if (fromGroup && toGroup && fromPoint && toPoint) {
-        const fromAnchor = fromGroup.findOne(`#${fromPoint.id}`)
-        const toAnchor = toGroup.findOne(`#${toPoint.id}`)
+        if (fromGroup && toGroup && fromPoint && toPoint) {
+          const fromAnchor = fromGroup.findOne(`#${fromPoint.id}`)
+          const toAnchor = toGroup.findOne(`#${toPoint.id}`)
 
-        // 锚点信息
-        const fromAnchorPos = this.getAnchorPos(fromAnchor)
-        const toAnchorPos = this.getAnchorPos(toAnchor)
+          // 锚点信息
+          const fromAnchorPos = this.getAnchorPos(fromAnchor)
+          const toAnchorPos = this.getAnchorPos(toAnchor)
 
-        if (fromAnchor && toAnchor) {
-          if (this.render.debug) {
-            console.log('distance', groupDistance)
-          }
+          if (fromAnchor && toAnchor) {
+            if (this.render.debug) {
+              console.log('distance', groupDistance)
+            }
 
-          // 连接出入口
-          const fromEntry: Konva.Vector2d = this.getEntry(
-            fromAnchor,
-            fromGroupForbiddenArea,
-            groupDistance
-          )
-          const toEntry: Konva.Vector2d = this.getEntry(
-            toAnchor,
-            toGroupForbiddenArea,
-            groupDistance
-          )
+            // 连接出入口
+            const fromEntry: Konva.Vector2d = this.getEntry(
+              fromAnchor,
+              fromGroupForbiddenArea,
+              groupDistance
+            )
+            const toEntry: Konva.Vector2d = this.getEntry(
+              toAnchor,
+              toGroupForbiddenArea,
+              groupDistance
+            )
 
-          type matrixPoint = {
-            x: number
-            y: number
-            type?: 'from' | 'to' | 'from-entry' | 'to-entry'
-          }
-          // 可能点
-          let matrixPoints: matrixPoint[] = []
+            type matrixPoint = {
+              x: number
+              y: number
+              type?: 'from' | 'to' | 'from-entry' | 'to-entry'
+            }
+            // 可能点
+            let matrixPoints: matrixPoint[] = []
 
-          // 通过区域 四角
-          matrixPoints.push({ x: groupAccessArea.x1, y: groupAccessArea.y1 })
-          matrixPoints.push({ x: groupAccessArea.x2, y: groupAccessArea.y2 })
-          matrixPoints.push({ x: groupAccessArea.x1, y: groupAccessArea.y2 })
-          matrixPoints.push({ x: groupAccessArea.x2, y: groupAccessArea.y1 })
+            // 通过区域 四角
+            matrixPoints.push({ x: groupAccessArea.x1, y: groupAccessArea.y1 })
+            matrixPoints.push({ x: groupAccessArea.x2, y: groupAccessArea.y2 })
+            matrixPoints.push({ x: groupAccessArea.x1, y: groupAccessArea.y2 })
+            matrixPoints.push({ x: groupAccessArea.x2, y: groupAccessArea.y1 })
 
-          // 最小区域 四角
-          matrixPoints.push({ x: groupForbiddenArea.x1, y: groupForbiddenArea.y1 })
-          matrixPoints.push({ x: groupForbiddenArea.x2, y: groupForbiddenArea.y2 })
-          matrixPoints.push({ x: groupForbiddenArea.x1, y: groupForbiddenArea.y2 })
-          matrixPoints.push({ x: groupForbiddenArea.x2, y: groupForbiddenArea.y1 })
+            // 最小区域 四角
+            matrixPoints.push({ x: groupForbiddenArea.x1, y: groupForbiddenArea.y1 })
+            matrixPoints.push({ x: groupForbiddenArea.x2, y: groupForbiddenArea.y2 })
+            matrixPoints.push({ x: groupForbiddenArea.x1, y: groupForbiddenArea.y2 })
+            matrixPoints.push({ x: groupForbiddenArea.x2, y: groupForbiddenArea.y1 })
 
-          // 起点
-          matrixPoints.push({
-            ...fromAnchorPos,
-            type: 'from'
-          })
-          // 起点 出口
-          matrixPoints.push({ ...fromEntry, type: 'from-entry' })
+            // 起点
+            matrixPoints.push({
+              ...fromAnchorPos,
+              type: 'from'
+            })
+            // 起点 出口
+            matrixPoints.push({ ...fromEntry, type: 'from-entry' })
 
-          // 终点
-          matrixPoints.push({
-            ...toAnchorPos,
-            type: 'to'
-          })
-          // 终点 入口
-          matrixPoints.push({ ...toEntry, type: 'to-entry' })
+            // 终点
+            matrixPoints.push({
+              ...toAnchorPos,
+              type: 'to'
+            })
+            // 终点 入口
+            matrixPoints.push({ ...toEntry, type: 'to-entry' })
 
-          // 通过区域 中点
-          matrixPoints.push(this.getGroupPairCenter(fromGroupForbiddenArea, toGroupForbiddenArea))
+            // 通过区域 中点
+            matrixPoints.push(this.getGroupPairCenter(fromGroupForbiddenArea, toGroupForbiddenArea))
 
-          // 去重
-          matrixPoints = matrixPoints.reduce(
-            (arr, item) => {
-              if (item.type === void 0) {
-                if (arr.findIndex((o) => o.x === item.x && o.y === item.y) < 0) {
+            // 去重
+            matrixPoints = matrixPoints.reduce(
+              (arr, item) => {
+                if (item.type === void 0) {
+                  if (arr.findIndex((o) => o.x === item.x && o.y === item.y) < 0) {
+                    arr.push(item)
+                  }
+                } else {
+                  const idx = arr.findIndex((o) => o.x === item.x && o.y === item.y)
+                  if (idx > -1) {
+                    arr.splice(idx, 1)
+                  }
                   arr.push(item)
                 }
-              } else {
-                const idx = arr.findIndex((o) => o.x === item.x && o.y === item.y)
-                if (idx > -1) {
-                  arr.splice(idx, 1)
+
+                return arr
+              },
+              [] as typeof matrixPoints
+            )
+
+            const columns = [
+              ...matrixPoints.map((o) => o.x),
+              // 增加列
+              fromGroupForbiddenArea.x1,
+              fromGroupForbiddenArea.x2,
+              toGroupForbiddenArea.x1,
+              toGroupForbiddenArea.x2
+            ].sort((a, b) => a - b)
+
+            // 去重
+            for (let x = columns.length - 1; x > 0; x--) {
+              if (columns[x] === columns[x - 1]) {
+                columns.splice(x, 1)
+              }
+            }
+
+            if (this.render.debug) {
+              console.log('columns', columns)
+            }
+
+            const rows = [
+              ...matrixPoints.map((o) => o.y),
+              // 增加行
+              fromGroupForbiddenArea.y1,
+              fromGroupForbiddenArea.y2,
+              toGroupForbiddenArea.y1,
+              toGroupForbiddenArea.y2
+            ].sort((a, b) => a - b)
+
+            // 去重
+            for (let y = rows.length - 1; y > 0; y--) {
+              if (rows[y] === rows[y - 1]) {
+                rows.splice(y, 1)
+              }
+            }
+
+            if (this.render.debug) {
+              console.log('rows', rows)
+            }
+
+            // 屏蔽区域（序号）
+            const columnFromStart = columns.findIndex((o) => o === fromGroupForbiddenArea.x1)
+            const columnFromEnd = columns.findIndex((o) => o === fromGroupForbiddenArea.x2)
+            const rowFromStart = rows.findIndex((o) => o === fromGroupForbiddenArea.y1)
+            const rowFromEnd = rows.findIndex((o) => o === fromGroupForbiddenArea.y2)
+
+            const columnToStart = columns.findIndex((o) => o === toGroupForbiddenArea.x1)
+            const columnToEnd = columns.findIndex((o) => o === toGroupForbiddenArea.x2)
+            const rowToStart = rows.findIndex((o) => o === toGroupForbiddenArea.y1)
+            const rowToEnd = rows.findIndex((o) => o === toGroupForbiddenArea.y2)
+
+            // 算法矩阵起点、终点
+            let matrixStart: Konva.Vector2d | null = null
+            let matrixEnd: Konva.Vector2d | null = null
+
+            // 算法地图矩阵
+            const matrix: Array<number[]> = []
+
+            for (let y = 0; y < rows.length; y++) {
+              // 新增行
+              if (matrix[y] === void 0) {
+                matrix[y] = []
+              }
+
+              for (let x = 0; x < columns.length; x++) {
+                // 不可通过区域
+                if (
+                  x >= columnFromStart &&
+                  x <= columnFromEnd &&
+                  y >= rowFromStart &&
+                  y <= rowFromEnd
+                ) {
+                  matrix[y][x] = 2
+                } else if (
+                  x >= columnToStart &&
+                  x <= columnToEnd &&
+                  y >= rowToStart &&
+                  y <= rowToEnd
+                ) {
+                  matrix[y][x] = 2
+                } else {
+                  // 可通过区域
+                  matrix[y][x] = 0
                 }
-                arr.push(item)
-              }
 
-              return arr
-            },
-            [] as typeof matrixPoints
-          )
+                // 出口、入口 -> 算法 起点、终点
 
-          const columns = [
-            ...matrixPoints.map((o) => o.x),
-            // 增加列
-            fromGroupForbiddenArea.x1,
-            fromGroupForbiddenArea.x2,
-            toGroupForbiddenArea.x1,
-            toGroupForbiddenArea.x2
-          ].sort((a, b) => a - b)
+                if (columns[x] === fromEntry.x && rows[y] === fromEntry.y) {
+                  matrix[y][x] = 1
+                  matrixStart = { x, y }
+                }
 
-          // 去重
-          for (let x = columns.length - 1; x > 0; x--) {
-            if (columns[x] === columns[x - 1]) {
-              columns.splice(x, 1)
-            }
-          }
+                if (columns[x] === toEntry.x && rows[y] === toEntry.y) {
+                  matrix[y][x] = 1
+                  matrixEnd = { x, y }
+                }
 
-          if (this.render.debug) {
-            console.log('columns', columns)
-          }
-
-          const rows = [
-            ...matrixPoints.map((o) => o.y),
-            // 增加行
-            fromGroupForbiddenArea.y1,
-            fromGroupForbiddenArea.y2,
-            toGroupForbiddenArea.y1,
-            toGroupForbiddenArea.y2
-          ].sort((a, b) => a - b)
-
-          // 去重
-          for (let y = rows.length - 1; y > 0; y--) {
-            if (rows[y] === rows[y - 1]) {
-              rows.splice(y, 1)
-            }
-          }
-
-          if (this.render.debug) {
-            console.log('rows', rows)
-          }
-
-          // 屏蔽区域（序号）
-          const columnFromStart = columns.findIndex((o) => o === fromGroupForbiddenArea.x1)
-          const columnFromEnd = columns.findIndex((o) => o === fromGroupForbiddenArea.x2)
-          const rowFromStart = rows.findIndex((o) => o === fromGroupForbiddenArea.y1)
-          const rowFromEnd = rows.findIndex((o) => o === fromGroupForbiddenArea.y2)
-
-          const columnToStart = columns.findIndex((o) => o === toGroupForbiddenArea.x1)
-          const columnToEnd = columns.findIndex((o) => o === toGroupForbiddenArea.x2)
-          const rowToStart = rows.findIndex((o) => o === toGroupForbiddenArea.y1)
-          const rowToEnd = rows.findIndex((o) => o === toGroupForbiddenArea.y2)
-
-          // 算法矩阵起点、终点
-          let matrixStart: Konva.Vector2d | null = null
-          let matrixEnd: Konva.Vector2d | null = null
-
-          // 算法地图矩阵
-          const matrix: Array<number[]> = []
-
-          for (let y = 0; y < rows.length; y++) {
-            // 新增行
-            if (matrix[y] === void 0) {
-              matrix[y] = []
-            }
-
-            for (let x = 0; x < columns.length; x++) {
-              // 不可通过区域
-              if (
-                x >= columnFromStart &&
-                x <= columnFromEnd &&
-                y >= rowFromStart &&
-                y <= rowFromEnd
-              ) {
-                matrix[y][x] = 2
-              } else if (
-                x >= columnToStart &&
-                x <= columnToEnd &&
-                y >= rowToStart &&
-                y <= rowToEnd
-              ) {
-                matrix[y][x] = 2
-              } else {
-                // 可通过区域
-                matrix[y][x] = 0
-              }
-
-              // 出口、入口 -> 算法 起点、终点
-
-              if (columns[x] === fromEntry.x && rows[y] === fromEntry.y) {
-                matrix[y][x] = 1
-                matrixStart = { x, y }
-              }
-
-              if (columns[x] === toEntry.x && rows[y] === toEntry.y) {
-                matrix[y][x] = 1
-                matrixEnd = { x, y }
-              }
-
-              // 没有定义方向（给于十字可通过区域）
-              // 如，从：
-              // 1 1 1
-              // 1 0 1
-              // 1 1 1
-              // 变成：
-              // 1 0 1
-              // 0 0 0
-              // 1 0 1
-              if (!fromAnchor.attrs.direction) {
-                if (columns[x] === fromEntry.x || rows[y] === fromEntry.y) {
-                  if (
-                    x >= columnFromStart &&
-                    x <= columnFromEnd &&
-                    y >= rowFromStart &&
-                    y <= rowFromEnd
-                  ) {
-                    matrix[y][x] = 1
+                // 没有定义方向（给于十字可通过区域）
+                // 如，从：
+                // 1 1 1
+                // 1 0 1
+                // 1 1 1
+                // 变成：
+                // 1 0 1
+                // 0 0 0
+                // 1 0 1
+                if (!fromAnchor.attrs.direction) {
+                  if (columns[x] === fromEntry.x || rows[y] === fromEntry.y) {
+                    if (
+                      x >= columnFromStart &&
+                      x <= columnFromEnd &&
+                      y >= rowFromStart &&
+                      y <= rowFromEnd
+                    ) {
+                      matrix[y][x] = 1
+                    }
+                  }
+                }
+                if (!toAnchor.attrs.direction) {
+                  if (columns[x] === toEntry.x || rows[y] === toEntry.y) {
+                    if (
+                      x >= columnToStart &&
+                      x <= columnToEnd &&
+                      y >= rowToStart &&
+                      y <= rowToEnd
+                    ) {
+                      matrix[y][x] = 1
+                    }
                   }
                 }
               }
-              if (!toAnchor.attrs.direction) {
-                if (columns[x] === toEntry.x || rows[y] === toEntry.y) {
-                  if (x >= columnToStart && x <= columnToEnd && y >= rowToStart && y <= rowToEnd) {
-                    matrix[y][x] = 1
-                  }
-                }
+            }
+
+            if (this.render.debug) {
+              console.log('matrix', matrix)
+            }
+
+            if (this.render.debug) {
+              for (const point of matrixPoints) {
+                this.group.add(
+                  new Konva.Circle({
+                    name: 'link-route',
+                    id: nanoid(),
+                    x: this.render.toStageValue(point.x),
+                    y: this.render.toStageValue(point.y),
+                    radius: this.render.toStageValue(3),
+                    stroke:
+                      point.type === void 0
+                        ? 'rgba(0,0,255,1)'
+                        : ['from', 'to'].includes(point.type)
+                          ? 'rgba(255,0,0,1)'
+                          : 'rgba(0,120,0,1)',
+                    strokeWidth: this.render.toStageValue(1),
+                    listening: false
+                  })
+                )
               }
             }
-          }
 
-          if (this.render.debug) {
-            console.log('matrix', matrix)
-          }
+            // A Star 算法，“曼哈顿距离”作为启发
+            // const aStar = new AStarFinder({
+            //   diagonalAllowed: false,
+            //   heuristic: 'Manhattan',
+            //   grid: {
+            //     matrix,
+            //     maxCost: 2
+            //   },
+            //   includeStartNode: true,
+            //   includeEndNode: true
+            // })
 
-          if (this.render.debug) {
-            for (const point of matrixPoints) {
-              this.group.add(
-                new Konva.Circle({
-                  name: 'link-route',
-                  id: nanoid(),
-                  x: this.render.toStageValue(point.x),
-                  y: this.render.toStageValue(point.y),
-                  radius: this.render.toStageValue(3),
-                  stroke:
-                    point.type === void 0
-                      ? 'rgba(0,0,255,1)'
-                      : ['from', 'to'].includes(point.type)
-                        ? 'rgba(255,0,0,1)'
-                        : 'rgba(0,120,0,1)',
-                  strokeWidth: this.render.toStageValue(1),
-                  listening: false
-                })
-              )
-            }
-          }
+            // A Star 双向，不支持代价 Cost
+            // const aStarBi = new window.PF.BiAStarFinder()
 
-          // A Star 算法，“曼哈顿距离”作为启发
-          // const aStar = new AStarFinder({
-          //   diagonalAllowed: false,
-          //   heuristic: 'Manhattan',
-          //   grid: {
-          //     matrix,
-          //     maxCost: 2
-          //   },
-          //   includeStartNode: true,
-          //   includeEndNode: true
-          // })
+            if (matrixStart && matrixEnd) {
+              console.log('算法起点', matrixStart, '算法终点', matrixEnd)
 
-          // A Star 双向，不支持代价 Cost
-          // const aStarBi = new window.PF.BiAStarFinder()
+              // const way = aStar.findPath(matrixStart, matrixEnd)
 
-          if (matrixStart && matrixEnd) {
-            console.log('算法起点', matrixStart, '算法终点', matrixEnd)
+              // const way: number[][] = aStarBi.findPath(
+              //   matrixStart.x,
+              //   matrixStart.y,
+              //   matrixEnd.x,
+              //   matrixEnd.y,
+              //   new window.PF.Grid(columns.length, rows.length, matrix)
+              // )
 
-            // const way = aStar.findPath(matrixStart, matrixEnd)
+              const way = aStar({
+                from: matrixStart,
+                to: matrixEnd,
+                matrix,
+                maxCost: 2
+              })
 
-            // const way: number[][] = aStarBi.findPath(
-            //   matrixStart.x,
-            //   matrixStart.y,
-            //   matrixEnd.x,
-            //   matrixEnd.y,
-            //   new window.PF.Grid(columns.length, rows.length, matrix)
-            // )
-
-            const way = aStar({
-              from: matrixStart,
-              to: matrixEnd,
-              matrix,
-              maxCost: 2
-            })
-
-            this.group.add(
-              new Konva.Line({
+              const linkLine = new Konva.Line({
                 name: 'link-line',
                 // 用于删除连接线
                 groupId: fromGroup.id(),
@@ -727,7 +746,9 @@ export class LinkDraw extends Types.BaseDraw implements Types.Draw {
                 stroke: 'red',
                 strokeWidth: 2
               })
-            )
+
+              this.group.add(linkLine)
+            }
           }
         }
       }
@@ -802,18 +823,10 @@ export class LinkDraw extends Types.BaseDraw implements Types.Draw {
                 const toGroup = groups.find((o) => o.id() === circle.getAttr('groupId'))
 
                 if (toGroup) {
-                  const fromPoints = (
-                    Array.isArray(line.group.getAttr('points')) ? line.group.getAttr('points') : []
-                  ) as LinkDrawPoint[]
-
-                  const fromPoint = fromPoints.find((o) => o.id === line.circle.id())
+                  const fromPoint = points.find((o) => o.id === line.circle.id())
 
                   if (fromPoint) {
-                    const toPoints = (
-                      Array.isArray(toGroup.getAttr('points')) ? toGroup.getAttr('points') : []
-                    ) as LinkDrawPoint[]
-
-                    const toPoint = toPoints.find((o) => o.id === circle.id())
+                    const toPoint = points.find((o) => o.id === line.circle.id())
 
                     if (toPoint) {
                       if (Array.isArray(fromPoint.pairs)) {

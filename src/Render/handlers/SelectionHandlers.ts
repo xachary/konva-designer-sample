@@ -1,10 +1,7 @@
 import Konva from 'konva'
-import _ from 'lodash-es'
 //
 import { Render } from '../index'
 import * as Types from '../types'
-//
-import * as Draws from '../draws'
 
 export class SelectionHandlers implements Types.Handler {
   static readonly name = 'Selection'
@@ -284,7 +281,7 @@ export class SelectionHandlers implements Types.Handler {
 
         // 更新历史
         this.render.updateHistory()
-        
+       
         // 重绘
         this.render.redraw()
       },
@@ -317,7 +314,7 @@ export class SelectionHandlers implements Types.Handler {
 
         // 更新历史
         this.render.updateHistory()
-        
+       
         // 重绘
         this.render.redraw()
       },
