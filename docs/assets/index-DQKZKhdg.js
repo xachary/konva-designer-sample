@@ -9,7 +9,7 @@ var __publicField = (obj, key, value) => {
   return value;
 };
 var require_index_001 = __commonJS({
-  "assets/index-Bq_nG-bZ.js"(exports, module) {
+  "assets/index-DQKZKhdg.js"(exports, module) {
     (function polyfill() {
       const relList = document.createElement("link").relList;
       if (relList && relList.supports && relList.supports("modulepreload")) {
@@ -23118,8 +23118,9 @@ var require_index_001 = __commonJS({
       draw() {
       }
       clear() {
+        const name = this.group.name();
         this.group.destroy();
-        this.group = new Konva.Group();
+        this.group = new Konva.Group({ name });
         this.layer.add(this.group);
       }
     }
@@ -23497,8 +23498,21 @@ var require_index_001 = __commonJS({
               if (!e.evt.ctrlKey) {
                 const pos = this.render.stage.getPointerPosition();
                 if (pos && this.state.lastPos) {
+                  const linkGroup = this.render.layerCover.find(
+                    `.${LinkDraw.name}`
+                  )[0];
+                  let lineSelection = null;
+                  if (linkGroup) {
+                    const linkLines = linkGroup.find(".link-line");
+                    for (const line of linkLines) {
+                      if (Konva.Util.haveIntersection({ ...pos, width: 1, height: 1 }, line.getClientRect())) {
+                        lineSelection = line;
+                        break;
+                      }
+                    }
+                  }
                   if (pos.x === this.state.lastPos.x || pos.y === this.state.lastPos.y) {
-                    this.state.target = e.target;
+                    this.state.target = lineSelection ?? e.target;
                   } else {
                     this.state.target = null;
                   }
@@ -24313,199 +24327,205 @@ var require_index_001 = __commonJS({
       draw() {
         this.clear();
         const stageState = this.render.getStageState();
-        const groups = this.render.layer.find(".asset");
+        const groups = [
+          ...this.render.layer.find(".asset"),
+          ...this.render.layer.find(".sub-asset")
+        ];
         const points = groups.reduce((ps, group) => {
           return ps.concat(Array.isArray(group.getAttr("points")) ? group.getAttr("points") : []);
         }, []);
         const pairs = points.reduce((ps, point) => {
-          return ps.concat(point.pairs ? point.pairs : []);
+          return ps.concat(point.pairs ? point.pairs.filter((o) => !o.disabled) : []);
         }, []);
         if (this.render.debug && pairs.length > 0) {
           console.log("");
           console.log("link draw");
         }
         for (const pair of pairs) {
-          const fromGroup = groups.find((o) => o.id() === pair.from.groupId);
-          const fromPoint = points.find((o) => o.id === pair.from.pointId);
-          const toGroup = groups.find((o) => o.id() === pair.to.groupId);
-          const toPoint = points.find((o) => o.id === pair.to.pointId);
-          const fromGroupLinkArea = this.getGroupLinkArea(fromGroup);
-          const toGroupLinkArea = this.getGroupLinkArea(toGroup);
-          const groupDistance = this.getGroupPairDistance(fromGroupLinkArea, toGroupLinkArea);
-          const fromGroupForbiddenArea = this.getGroupForbiddenArea(
-            fromGroupLinkArea,
-            groupDistance - 2
-          );
-          const toGroupForbiddenArea = this.getGroupForbiddenArea(toGroupLinkArea, groupDistance - 2);
-          const groupForbiddenArea = this.getGroupPairArea(fromGroupForbiddenArea, toGroupForbiddenArea);
-          const groupAccessArea = this.getGroupPairArea(
-            this.getGroupAccessArea(fromGroupForbiddenArea, groupDistance),
-            this.getGroupAccessArea(toGroupForbiddenArea, groupDistance)
-          );
-          if (fromGroup && toGroup && fromPoint && toPoint) {
-            const fromAnchor = fromGroup.findOne(`#${fromPoint.id}`);
-            const toAnchor = toGroup.findOne(`#${toPoint.id}`);
-            const fromAnchorPos = this.getAnchorPos(fromAnchor);
-            const toAnchorPos = this.getAnchorPos(toAnchor);
-            if (fromAnchor && toAnchor) {
-              if (this.render.debug) {
-                console.log("distance", groupDistance);
-              }
-              const fromEntry = this.getEntry(
-                fromAnchor,
-                fromGroupForbiddenArea,
-                groupDistance
-              );
-              const toEntry = this.getEntry(
-                toAnchor,
-                toGroupForbiddenArea,
-                groupDistance
-              );
-              let matrixPoints = [];
-              matrixPoints.push({ x: groupAccessArea.x1, y: groupAccessArea.y1 });
-              matrixPoints.push({ x: groupAccessArea.x2, y: groupAccessArea.y2 });
-              matrixPoints.push({ x: groupAccessArea.x1, y: groupAccessArea.y2 });
-              matrixPoints.push({ x: groupAccessArea.x2, y: groupAccessArea.y1 });
-              matrixPoints.push({ x: groupForbiddenArea.x1, y: groupForbiddenArea.y1 });
-              matrixPoints.push({ x: groupForbiddenArea.x2, y: groupForbiddenArea.y2 });
-              matrixPoints.push({ x: groupForbiddenArea.x1, y: groupForbiddenArea.y2 });
-              matrixPoints.push({ x: groupForbiddenArea.x2, y: groupForbiddenArea.y1 });
-              matrixPoints.push({
-                ...fromAnchorPos,
-                type: "from"
-              });
-              matrixPoints.push({ ...fromEntry, type: "from-entry" });
-              matrixPoints.push({
-                ...toAnchorPos,
-                type: "to"
-              });
-              matrixPoints.push({ ...toEntry, type: "to-entry" });
-              matrixPoints.push(this.getGroupPairCenter(fromGroupForbiddenArea, toGroupForbiddenArea));
-              matrixPoints = matrixPoints.reduce(
-                (arr, item) => {
-                  if (item.type === void 0) {
-                    if (arr.findIndex((o) => o.x === item.x && o.y === item.y) < 0) {
+          if (pair.from.groupId !== pair.to.groupId && !pair.disabled) {
+            const fromGroup = groups.find((o) => o.id() === pair.from.groupId);
+            const fromPoint = points.find((o) => o.id === pair.from.pointId);
+            const toGroup = groups.find((o) => o.id() === pair.to.groupId);
+            const toPoint = points.find((o) => o.id === pair.to.pointId);
+            const fromGroupLinkArea = this.getGroupLinkArea(fromGroup);
+            const toGroupLinkArea = this.getGroupLinkArea(toGroup);
+            const groupDistance = this.getGroupPairDistance(fromGroupLinkArea, toGroupLinkArea);
+            const fromGroupForbiddenArea = this.getGroupForbiddenArea(
+              fromGroupLinkArea,
+              groupDistance - 2
+            );
+            const toGroupForbiddenArea = this.getGroupForbiddenArea(toGroupLinkArea, groupDistance - 2);
+            const groupForbiddenArea = this.getGroupPairArea(
+              fromGroupForbiddenArea,
+              toGroupForbiddenArea
+            );
+            const groupAccessArea = this.getGroupPairArea(
+              this.getGroupAccessArea(fromGroupForbiddenArea, groupDistance),
+              this.getGroupAccessArea(toGroupForbiddenArea, groupDistance)
+            );
+            if (fromGroup && toGroup && fromPoint && toPoint) {
+              const fromAnchor = fromGroup.findOne(`#${fromPoint.id}`);
+              const toAnchor = toGroup.findOne(`#${toPoint.id}`);
+              const fromAnchorPos = this.getAnchorPos(fromAnchor);
+              const toAnchorPos = this.getAnchorPos(toAnchor);
+              if (fromAnchor && toAnchor) {
+                if (this.render.debug) {
+                  console.log("distance", groupDistance);
+                }
+                const fromEntry = this.getEntry(
+                  fromAnchor,
+                  fromGroupForbiddenArea,
+                  groupDistance
+                );
+                const toEntry = this.getEntry(
+                  toAnchor,
+                  toGroupForbiddenArea,
+                  groupDistance
+                );
+                let matrixPoints = [];
+                matrixPoints.push({ x: groupAccessArea.x1, y: groupAccessArea.y1 });
+                matrixPoints.push({ x: groupAccessArea.x2, y: groupAccessArea.y2 });
+                matrixPoints.push({ x: groupAccessArea.x1, y: groupAccessArea.y2 });
+                matrixPoints.push({ x: groupAccessArea.x2, y: groupAccessArea.y1 });
+                matrixPoints.push({ x: groupForbiddenArea.x1, y: groupForbiddenArea.y1 });
+                matrixPoints.push({ x: groupForbiddenArea.x2, y: groupForbiddenArea.y2 });
+                matrixPoints.push({ x: groupForbiddenArea.x1, y: groupForbiddenArea.y2 });
+                matrixPoints.push({ x: groupForbiddenArea.x2, y: groupForbiddenArea.y1 });
+                matrixPoints.push({
+                  ...fromAnchorPos,
+                  type: "from"
+                });
+                matrixPoints.push({ ...fromEntry, type: "from-entry" });
+                matrixPoints.push({
+                  ...toAnchorPos,
+                  type: "to"
+                });
+                matrixPoints.push({ ...toEntry, type: "to-entry" });
+                matrixPoints.push(this.getGroupPairCenter(fromGroupForbiddenArea, toGroupForbiddenArea));
+                matrixPoints = matrixPoints.reduce(
+                  (arr, item) => {
+                    if (item.type === void 0) {
+                      if (arr.findIndex((o) => o.x === item.x && o.y === item.y) < 0) {
+                        arr.push(item);
+                      }
+                    } else {
+                      const idx = arr.findIndex((o) => o.x === item.x && o.y === item.y);
+                      if (idx > -1) {
+                        arr.splice(idx, 1);
+                      }
                       arr.push(item);
                     }
-                  } else {
-                    const idx = arr.findIndex((o) => o.x === item.x && o.y === item.y);
-                    if (idx > -1) {
-                      arr.splice(idx, 1);
+                    return arr;
+                  },
+                  []
+                );
+                const columns = [
+                  ...matrixPoints.map((o) => o.x),
+                  // 增加列
+                  fromGroupForbiddenArea.x1,
+                  fromGroupForbiddenArea.x2,
+                  toGroupForbiddenArea.x1,
+                  toGroupForbiddenArea.x2
+                ].sort((a, b) => a - b);
+                for (let x = columns.length - 1; x > 0; x--) {
+                  if (columns[x] === columns[x - 1]) {
+                    columns.splice(x, 1);
+                  }
+                }
+                if (this.render.debug) {
+                  console.log("columns", columns);
+                }
+                const rows = [
+                  ...matrixPoints.map((o) => o.y),
+                  // 增加行
+                  fromGroupForbiddenArea.y1,
+                  fromGroupForbiddenArea.y2,
+                  toGroupForbiddenArea.y1,
+                  toGroupForbiddenArea.y2
+                ].sort((a, b) => a - b);
+                for (let y = rows.length - 1; y > 0; y--) {
+                  if (rows[y] === rows[y - 1]) {
+                    rows.splice(y, 1);
+                  }
+                }
+                if (this.render.debug) {
+                  console.log("rows", rows);
+                }
+                const columnFromStart = columns.findIndex((o) => o === fromGroupForbiddenArea.x1);
+                const columnFromEnd = columns.findIndex((o) => o === fromGroupForbiddenArea.x2);
+                const rowFromStart = rows.findIndex((o) => o === fromGroupForbiddenArea.y1);
+                const rowFromEnd = rows.findIndex((o) => o === fromGroupForbiddenArea.y2);
+                const columnToStart = columns.findIndex((o) => o === toGroupForbiddenArea.x1);
+                const columnToEnd = columns.findIndex((o) => o === toGroupForbiddenArea.x2);
+                const rowToStart = rows.findIndex((o) => o === toGroupForbiddenArea.y1);
+                const rowToEnd = rows.findIndex((o) => o === toGroupForbiddenArea.y2);
+                let matrixStart = null;
+                let matrixEnd = null;
+                const matrix = [];
+                for (let y = 0; y < rows.length; y++) {
+                  if (matrix[y] === void 0) {
+                    matrix[y] = [];
+                  }
+                  for (let x = 0; x < columns.length; x++) {
+                    if (x >= columnFromStart && x <= columnFromEnd && y >= rowFromStart && y <= rowFromEnd) {
+                      matrix[y][x] = 2;
+                    } else if (x >= columnToStart && x <= columnToEnd && y >= rowToStart && y <= rowToEnd) {
+                      matrix[y][x] = 2;
+                    } else {
+                      matrix[y][x] = 0;
                     }
-                    arr.push(item);
-                  }
-                  return arr;
-                },
-                []
-              );
-              const columns = [
-                ...matrixPoints.map((o) => o.x),
-                // 增加列
-                fromGroupForbiddenArea.x1,
-                fromGroupForbiddenArea.x2,
-                toGroupForbiddenArea.x1,
-                toGroupForbiddenArea.x2
-              ].sort((a, b) => a - b);
-              for (let x = columns.length - 1; x > 0; x--) {
-                if (columns[x] === columns[x - 1]) {
-                  columns.splice(x, 1);
-                }
-              }
-              if (this.render.debug) {
-                console.log("columns", columns);
-              }
-              const rows = [
-                ...matrixPoints.map((o) => o.y),
-                // 增加行
-                fromGroupForbiddenArea.y1,
-                fromGroupForbiddenArea.y2,
-                toGroupForbiddenArea.y1,
-                toGroupForbiddenArea.y2
-              ].sort((a, b) => a - b);
-              for (let y = rows.length - 1; y > 0; y--) {
-                if (rows[y] === rows[y - 1]) {
-                  rows.splice(y, 1);
-                }
-              }
-              if (this.render.debug) {
-                console.log("rows", rows);
-              }
-              const columnFromStart = columns.findIndex((o) => o === fromGroupForbiddenArea.x1);
-              const columnFromEnd = columns.findIndex((o) => o === fromGroupForbiddenArea.x2);
-              const rowFromStart = rows.findIndex((o) => o === fromGroupForbiddenArea.y1);
-              const rowFromEnd = rows.findIndex((o) => o === fromGroupForbiddenArea.y2);
-              const columnToStart = columns.findIndex((o) => o === toGroupForbiddenArea.x1);
-              const columnToEnd = columns.findIndex((o) => o === toGroupForbiddenArea.x2);
-              const rowToStart = rows.findIndex((o) => o === toGroupForbiddenArea.y1);
-              const rowToEnd = rows.findIndex((o) => o === toGroupForbiddenArea.y2);
-              let matrixStart = null;
-              let matrixEnd = null;
-              const matrix = [];
-              for (let y = 0; y < rows.length; y++) {
-                if (matrix[y] === void 0) {
-                  matrix[y] = [];
-                }
-                for (let x = 0; x < columns.length; x++) {
-                  if (x >= columnFromStart && x <= columnFromEnd && y >= rowFromStart && y <= rowFromEnd) {
-                    matrix[y][x] = 2;
-                  } else if (x >= columnToStart && x <= columnToEnd && y >= rowToStart && y <= rowToEnd) {
-                    matrix[y][x] = 2;
-                  } else {
-                    matrix[y][x] = 0;
-                  }
-                  if (columns[x] === fromEntry.x && rows[y] === fromEntry.y) {
-                    matrix[y][x] = 1;
-                    matrixStart = { x, y };
-                  }
-                  if (columns[x] === toEntry.x && rows[y] === toEntry.y) {
-                    matrix[y][x] = 1;
-                    matrixEnd = { x, y };
-                  }
-                  if (!fromAnchor.attrs.direction) {
-                    if (columns[x] === fromEntry.x || rows[y] === fromEntry.y) {
-                      if (x >= columnFromStart && x <= columnFromEnd && y >= rowFromStart && y <= rowFromEnd) {
-                        matrix[y][x] = 1;
+                    if (columns[x] === fromEntry.x && rows[y] === fromEntry.y) {
+                      matrix[y][x] = 1;
+                      matrixStart = { x, y };
+                    }
+                    if (columns[x] === toEntry.x && rows[y] === toEntry.y) {
+                      matrix[y][x] = 1;
+                      matrixEnd = { x, y };
+                    }
+                    if (!fromAnchor.attrs.direction) {
+                      if (columns[x] === fromEntry.x || rows[y] === fromEntry.y) {
+                        if (x >= columnFromStart && x <= columnFromEnd && y >= rowFromStart && y <= rowFromEnd) {
+                          matrix[y][x] = 1;
+                        }
                       }
                     }
-                  }
-                  if (!toAnchor.attrs.direction) {
-                    if (columns[x] === toEntry.x || rows[y] === toEntry.y) {
-                      if (x >= columnToStart && x <= columnToEnd && y >= rowToStart && y <= rowToEnd) {
-                        matrix[y][x] = 1;
+                    if (!toAnchor.attrs.direction) {
+                      if (columns[x] === toEntry.x || rows[y] === toEntry.y) {
+                        if (x >= columnToStart && x <= columnToEnd && y >= rowToStart && y <= rowToEnd) {
+                          matrix[y][x] = 1;
+                        }
                       }
                     }
                   }
                 }
-              }
-              if (this.render.debug) {
-                console.log("matrix", matrix);
-              }
-              if (this.render.debug) {
-                for (const point of matrixPoints) {
-                  this.group.add(
-                    new Konva.Circle({
-                      name: "link-route",
-                      id: nanoid(),
-                      x: this.render.toStageValue(point.x),
-                      y: this.render.toStageValue(point.y),
-                      radius: this.render.toStageValue(3),
-                      stroke: point.type === void 0 ? "rgba(0,0,255,1)" : ["from", "to"].includes(point.type) ? "rgba(255,0,0,1)" : "rgba(0,120,0,1)",
-                      strokeWidth: this.render.toStageValue(1),
-                      listening: false
-                    })
-                  );
+                if (this.render.debug) {
+                  console.log("matrix", matrix);
                 }
-              }
-              if (matrixStart && matrixEnd) {
-                console.log("算法起点", matrixStart, "算法终点", matrixEnd);
-                const way = aStar({
-                  from: matrixStart,
-                  to: matrixEnd,
-                  matrix,
-                  maxCost: 2
-                });
-                this.group.add(
-                  new Konva.Line({
+                if (this.render.debug) {
+                  for (const point of matrixPoints) {
+                    this.group.add(
+                      new Konva.Circle({
+                        name: "link-route",
+                        id: nanoid(),
+                        x: this.render.toStageValue(point.x),
+                        y: this.render.toStageValue(point.y),
+                        radius: this.render.toStageValue(3),
+                        stroke: point.type === void 0 ? "rgba(0,0,255,1)" : ["from", "to"].includes(point.type) ? "rgba(255,0,0,1)" : "rgba(0,120,0,1)",
+                        strokeWidth: this.render.toStageValue(1),
+                        listening: false
+                      })
+                    );
+                  }
+                }
+                if (matrixStart && matrixEnd) {
+                  console.log("算法起点", matrixStart, "算法终点", matrixEnd);
+                  const way = aStar({
+                    from: matrixStart,
+                    to: matrixEnd,
+                    matrix,
+                    maxCost: 2
+                  });
+                  const linkLine = new Konva.Line({
                     name: "link-line",
                     // 用于删除连接线
                     groupId: fromGroup.id(),
@@ -24527,8 +24547,9 @@ var require_index_001 = __commonJS({
                     ]),
                     stroke: "red",
                     strokeWidth: 2
-                  })
-                );
+                  });
+                  this.group.add(linkLine);
+                }
               }
             }
           }
@@ -24589,11 +24610,9 @@ var require_index_001 = __commonJS({
                   if (line.circle.id() !== circle.id()) {
                     const toGroup = groups.find((o) => o.id() === circle.getAttr("groupId"));
                     if (toGroup) {
-                      const fromPoints = Array.isArray(line.group.getAttr("points")) ? line.group.getAttr("points") : [];
-                      const fromPoint = fromPoints.find((o) => o.id === line.circle.id());
+                      const fromPoint = points.find((o) => o.id === line.circle.id());
                       if (fromPoint) {
-                        const toPoints = Array.isArray(toGroup.getAttr("points")) ? toGroup.getAttr("points") : [];
-                        const toPoint = toPoints.find((o) => o.id === circle.id());
+                        const toPoint = points.find((o) => o.id === line.circle.id());
                         if (toPoint) {
                           if (Array.isArray(fromPoint.pairs)) {
                             fromPoint.pairs = [
@@ -24612,8 +24631,7 @@ var require_index_001 = __commonJS({
                             ];
                           }
                           this.render.updateHistory();
-                          this.draw();
-                          this.render.draws[PreviewDraw.name].draw();
+                          this.render.redraw();
                         }
                       }
                     }
@@ -24725,11 +24743,7 @@ var require_index_001 = __commonJS({
                     x: this.mousedownStagePos.x + offsetX,
                     y: this.mousedownStagePos.y + offsetY
                   });
-                  this.render.draws[BgDraw.name].draw();
-                  this.render.draws[LinkDraw.name].draw();
-                  this.render.draws[AttractDraw.name].draw();
-                  this.render.draws[RulerDraw.name].draw();
-                  this.render.draws[PreviewDraw.name].draw();
+                  this.render.redraw();
                 }
               }
             }
@@ -24766,11 +24780,7 @@ var require_index_001 = __commonJS({
                     x: pos.x - mousePointTo.x * newScale,
                     y: pos.y - mousePointTo.y * newScale
                   });
-                  this.render.draws[BgDraw.name].draw();
-                  this.render.draws[LinkDraw.name].draw();
-                  this.render.draws[AttractDraw.name].draw();
-                  this.render.draws[RulerDraw.name].draw();
-                  this.render.draws[PreviewDraw.name].draw();
+                  this.render.redraw();
                 }
               }
             }
@@ -24809,43 +24819,52 @@ var require_index_001 = __commonJS({
                 this.render.stage.setPointersPositions(e);
                 const pos = this.render.stage.getPointerPosition();
                 if (pos) {
-                  this.render.assetTool[type === "svg" ? `loadSvg` : type === "gif" ? "loadGif" : "loadImg"](src).then((image) => {
-                    const group = new Konva.Group({
-                      id: nanoid(),
-                      width: image.width(),
-                      height: image.height(),
-                      name: "asset"
-                    });
-                    this.render.layer.add(group);
-                    image.setAttrs({
+                  this.render.assetTool[type === "svg" ? `loadSvg` : type === "gif" ? "loadGif" : type === "json" ? "loadJson" : "loadImg"](src).then((target) => {
+                    let group = null;
+                    let points = [];
+                    if (target instanceof Konva.Image) {
+                      group = new Konva.Group({
+                        id: nanoid(),
+                        width: target.width(),
+                        height: target.height(),
+                        name: "asset"
+                      });
+                      group.add(target);
+                      points = [
+                        // 左
+                        { x: 0, y: group.height() / 2, direction: "left" },
+                        // 右
+                        {
+                          x: group.width(),
+                          y: group.height() / 2,
+                          direction: "right"
+                        },
+                        // 上
+                        { x: group.width() / 2, y: 0, direction: "top" },
+                        // 下
+                        {
+                          x: group.width() / 2,
+                          y: group.height(),
+                          direction: "bottom"
+                        }
+                      ];
+                    } else {
+                      target.id(nanoid());
+                      target.name("asset");
+                      group = target;
+                      this.render.linkTool.groupIdCover(group);
+                    }
+                    target.setAttrs({
                       x: 0,
                       y: 0
                     });
-                    group.add(image);
+                    this.render.layer.add(group);
                     const x = this.render.toStageValue(pos.x - stageState.x) - group.width() / 2;
                     const y = this.render.toStageValue(pos.y - stageState.y) - group.height() / 2;
                     group.setAttrs({
                       x,
                       y
                     });
-                    let points = [
-                      // 左
-                      { x: 0, y: group.height() / 2, direction: "left" },
-                      // 右
-                      {
-                        x: group.width(),
-                        y: group.height() / 2,
-                        direction: "right"
-                      },
-                      // 上
-                      { x: group.width() / 2, y: 0, direction: "top" },
-                      // 下
-                      {
-                        x: group.width() / 2,
-                        y: group.height(),
-                        direction: "bottom"
-                      }
-                    ];
                     if (Array.isArray(morePoints) && morePoints.length > 0) {
                       points = morePoints;
                     }
@@ -24882,8 +24901,8 @@ var require_index_001 = __commonJS({
                     group.add(
                       new Konva.Rect({
                         id: "hoverRect",
-                        width: image.width(),
-                        height: image.height(),
+                        width: target.width(),
+                        height: target.height(),
                         fill: "rgba(0,255,0,0.3)",
                         visible: false
                       })
@@ -24894,7 +24913,7 @@ var require_index_001 = __commonJS({
                       (_a2 = group.findOne("#hoverRect")) == null ? void 0 : _a2.visible(false);
                     });
                     this.render.updateHistory();
-                    this.render.draws[PreviewDraw.name].draw();
+                    this.render.redraw();
                   });
                 }
               }
@@ -25065,16 +25084,12 @@ var require_index_001 = __commonJS({
               }
             },
             transform: () => {
-              this.render.draws[LinkDraw.name].draw();
-              this.render.draws[AttractDraw.name].draw();
-              this.render.draws[PreviewDraw.name].draw();
+              this.render.redraw();
             },
             transformend: () => {
               this.reset();
               this.render.updateHistory();
-              this.render.draws[LinkDraw.name].draw();
-              this.render.draws[AttractDraw.name].draw();
-              this.render.draws[PreviewDraw.name].draw();
+              this.render.redraw();
             },
             //
             dragstart: () => {
@@ -25088,18 +25103,13 @@ var require_index_001 = __commonJS({
                   x: this.render.toStageValue(transformerPos.x - this.transformerMousedownPos.x),
                   y: this.render.toStageValue(transformerPos.y - this.transformerMousedownPos.y)
                 });
-                this.render.draws[PreviewDraw.name].draw();
               }
-              this.render.draws[LinkDraw.name].draw();
-              this.render.draws[AttractDraw.name].draw();
-              this.render.draws[PreviewDraw.name].draw();
+              this.render.redraw();
             },
             dragend: () => {
               this.reset();
               this.render.updateHistory();
-              this.render.draws[LinkDraw.name].draw();
-              this.render.draws[AttractDraw.name].draw();
-              this.render.draws[PreviewDraw.name].draw();
+              this.render.redraw();
             },
             // 子节点 hover
             mousemove: () => {
@@ -25241,9 +25251,7 @@ var require_index_001 = __commonJS({
                     this.speed++;
                   }
                   this.change();
-                  this.render.draws[LinkDraw.name].draw();
-                  this.render.draws[AttractDraw.name].draw();
-                  this.render.draws[PreviewDraw.name].draw();
+                  this.render.redraw();
                 }
               }
             },
@@ -25332,9 +25340,8 @@ var require_index_001 = __commonJS({
         __publicField(this, "render");
         this.render = render;
       }
-      // 加载 svg
-      async loadSvg(src) {
-        const svgXML = await (await fetch(src)).text();
+      // 加载 svg xml
+      async loadSvgXML(svgXML) {
         const blob = new Blob([svgXML], { type: "image/svg+xml" });
         const url = URL.createObjectURL(blob);
         return new Promise((resolve) => {
@@ -25345,6 +25352,11 @@ var require_index_001 = __commonJS({
             resolve(imageNode);
           });
         });
+      }
+      // 加载 svg
+      async loadSvg(src) {
+        const svgXML = await (await fetch(src)).text();
+        return this.loadSvgXML(svgXML);
       }
       // 加载 gif
       async loadGif(src) {
@@ -25373,6 +25385,71 @@ var require_index_001 = __commonJS({
             resolve(imageNode);
           });
         });
+      }
+      // 加载节点 json
+      async loadJson(src) {
+        var _a, _b, _c;
+        try {
+          const json = JSON.parse(await (await fetch(src)).text());
+          const assets = json.children;
+          this.render.linkTool.jsonIdCover(assets);
+          const stageEmpty = new Konva.Stage({
+            container: document.createElement("div")
+          });
+          const layerEmpty = new Konva.Layer();
+          stageEmpty.add(layerEmpty);
+          const jsonRoot = JSON.parse(stageEmpty.toJSON());
+          jsonRoot.children[0].children = [json];
+          const stageReload = Konva.Node.create(JSON.stringify(jsonRoot), document.createElement("div"));
+          const groupTarget = stageReload.children[0].children[0];
+          stageEmpty.destroy();
+          groupTarget.remove();
+          stageReload.destroy();
+          const nodes = [{ target: groupTarget }];
+          while (nodes.length > 0) {
+            const item = nodes.shift();
+            if (item) {
+              const node = item.target;
+              if (node instanceof Konva.Image) {
+                if (node.attrs.svgXML) {
+                  const n = await this.loadSvgXML(node.attrs.svgXML);
+                  n.listening(false);
+                  (_a = node.parent) == null ? void 0 : _a.add(n);
+                  node.remove();
+                } else if (node.attrs.gif) {
+                  const n = await this.loadGif(node.attrs.gif);
+                  n.listening(false);
+                  (_b = node.parent) == null ? void 0 : _b.add(n);
+                  node.remove();
+                } else if (node.attrs.src) {
+                  const n = await this.loadImg(node.attrs.src);
+                  n.listening(false);
+                  (_c = node.parent) == null ? void 0 : _c.add(n);
+                  node.remove();
+                }
+              }
+              if (node instanceof Konva.Stage || node instanceof Konva.Layer || node instanceof Konva.Group) {
+                nodes.push(
+                  ...node.getChildren().map((o) => ({
+                    target: o,
+                    parent: node
+                  }))
+                );
+              }
+            }
+          }
+          const clickMask = new Konva.Rect({
+            id: "click-mask",
+            width: groupTarget.width(),
+            height: groupTarget.height()
+          });
+          groupTarget.add(clickMask);
+          clickMask.zIndex(1);
+          return groupTarget;
+        } catch (e) {
+          console.error(e);
+          return new Konva.Group();
+        }
       }
     }
     __publicField(AssetTool, "name", "AssetTool");
@@ -25414,7 +25491,7 @@ var require_index_001 = __commonJS({
         this.selectingNodes = [];
         this.render.linkTool.pointsVisible(false);
         if (change) {
-          this.render.draws[PreviewDraw.name].draw();
+          this.render.redraw();
         }
       }
       // 选择节点
@@ -25443,9 +25520,7 @@ var require_index_001 = __commonJS({
               // 选择中
             });
             this.render.linkTool.pointsVisible(false, node);
-            this.render.draws[LinkDraw.name].draw();
-            this.render.draws[AttractDraw.name].draw();
-            this.render.draws[PreviewDraw.name].draw();
+            this.render.redraw();
           }
           for (const node of nodes.sort((a, b) => a.zIndex() - b.zIndex())) {
             node.setAttrs({
@@ -25508,6 +25583,119 @@ var require_index_001 = __commonJS({
           this.pasteCount++;
         }
       }
+      // 刷新 id、事件
+      nodesIdCover(nodes) {
+        let deepAssets = [...nodes];
+        const idMap = /* @__PURE__ */ new Map();
+        while (deepAssets.length > 0) {
+          const asset = deepAssets.shift();
+          if (asset) {
+            if (Array.isArray(asset.attrs.points)) {
+              for (const point of asset.attrs.points) {
+                if (Array.isArray(point.pairs)) {
+                  for (const pair of point.pairs) {
+                    if (pair.from.groupId && !idMap.has(pair.from.groupId)) {
+                      idMap.set(pair.from.groupId, "g:" + nanoid());
+                    }
+                    if (pair.to.groupId && !idMap.has(pair.to.groupId)) {
+                      idMap.set(pair.to.groupId, "g:" + nanoid());
+                    }
+                    if (pair.from.pointId && !idMap.has(pair.from.pointId)) {
+                      idMap.set(pair.from.pointId, "p:" + nanoid());
+                    }
+                    if (pair.to.pointId && !idMap.has(pair.to.pointId)) {
+                      idMap.set(pair.to.pointId, "p:" + nanoid());
+                    }
+                  }
+                }
+                if (point.id) {
+                  if (!idMap.has(point.id)) {
+                    idMap.set(point.id, "p:" + nanoid());
+                  }
+                }
+                if (point.groupId) {
+                  if (!idMap.has(point.groupId)) {
+                    idMap.set(point.groupId, "g:" + nanoid());
+                  }
+                }
+              }
+            }
+            if (asset.id()) {
+              if (!idMap.has(asset.id())) {
+                idMap.set(asset.id(), "n:" + nanoid());
+              }
+            }
+            if (asset instanceof Konva.Group && Array.isArray(asset.children)) {
+              deepAssets.push(...asset.children);
+            }
+          }
+        }
+        deepAssets = [...nodes];
+        while (deepAssets.length > 0) {
+          const asset = deepAssets.shift();
+          if (asset) {
+            if (idMap.has(asset.id())) {
+              asset.id(idMap.get(asset.id()));
+            }
+            if (Array.isArray(asset.attrs.points)) {
+              asset.attrs.points = lodash.cloneDeep(asset.attrs.points ?? []);
+              for (const point of asset.attrs.points) {
+                if (Array.isArray(point.pairs)) {
+                  for (const pair of point.pairs) {
+                    if (pair.id) {
+                      pair.id = "pr:" + nanoid();
+                    }
+                    if (idMap.has(pair.from.groupId)) {
+                      pair.from.groupId = idMap.get(pair.from.groupId);
+                    }
+                    if (idMap.has(pair.to.groupId)) {
+                      pair.to.groupId = idMap.get(pair.to.groupId);
+                    }
+                    if (idMap.has(pair.from.pointId)) {
+                      pair.from.pointId = idMap.get(pair.from.pointId);
+                    }
+                    if (idMap.has(pair.to.pointId)) {
+                      pair.to.pointId = idMap.get(pair.to.pointId);
+                    }
+                  }
+                }
+                if (idMap.has(point.id)) {
+                  if (asset instanceof Konva.Group) {
+                    const anchor = asset.findOne(`#${point.id}`);
+                    anchor == null ? void 0 : anchor.id(idMap.get(point.id));
+                  }
+                  point.id = idMap.get(point.id);
+                  point.visible = false;
+                }
+                if (idMap.has(point.groupId)) {
+                  point.groupId = idMap.get(point.groupId);
+                }
+              }
+            }
+            if (asset instanceof Konva.Group && Array.isArray(asset.children)) {
+              deepAssets.push(...asset.children);
+            }
+          }
+        }
+        for (const node of nodes) {
+          if (node instanceof Konva.Group) {
+            node.off("mouseenter");
+            node.on("mouseenter", () => {
+              this.render.linkTool.pointsVisible(true, node);
+            });
+            node.off("mouseleave");
+            node.on("mouseleave", () => {
+              var _a;
+              this.render.linkTool.pointsVisible(false, node);
+              (_a = node.findOne("#hoverRect")) == null ? void 0 : _a.visible(false);
+            });
+            node.setAttrs({
+              x: node.x() + this.render.toStageValue(this.render.bgSize) * this.pasteCount,
+              y: node.y() + this.render.toStageValue(this.render.bgSize) * this.pasteCount
+            });
+          }
+        }
+      }
       /**
        * 复制粘贴
        * @param nodes 节点数组
@@ -25526,56 +25714,11 @@ var require_index_001 = __commonJS({
             clones.push(node.clone());
           }
         }
-        const groupIdChanges = {};
-        const pointIdChanges = {};
-        for (const copy of clones) {
-          const gid = nanoid();
-          groupIdChanges[copy.id()] = gid;
-          copy.id(gid);
-          const pointsClone = lodash.cloneDeep(copy.getAttr("points") ?? []);
-          copy.setAttr("points", pointsClone);
-          for (const point of pointsClone) {
-            const pid = nanoid();
-            pointIdChanges[point.id] = pid;
-            const anchor = copy.findOne(`#${point.id}`);
-            anchor == null ? void 0 : anchor.id(pid);
-            point.id = pid;
-            point.groupId = copy.id();
-            point.visible = false;
-          }
-          copy.off("mouseenter");
-          copy.on("mouseenter", () => {
-            this.render.linkTool.pointsVisible(true, copy);
-          });
-          copy.off("mouseleave");
-          copy.on("mouseleave", () => {
-            var _a;
-            this.render.linkTool.pointsVisible(false, copy);
-            (_a = copy.findOne("#hoverRect")) == null ? void 0 : _a.visible(false);
-          });
-          copy.setAttrs({
-            x: copy.x() + this.render.toStageValue(this.render.bgSize) * this.pasteCount,
-            y: copy.y() + this.render.toStageValue(this.render.bgSize) * this.pasteCount
-          });
-        }
-        for (const copy of clones) {
-          const points = copy.getAttr("points") ?? [];
-          for (const point of points) {
-            for (const pair of point.pairs) {
-              pair.id = nanoid();
-              pair.from.groupId = groupIdChanges[pair.from.groupId];
-              pair.from.pointId = pointIdChanges[pair.from.pointId];
-              pair.to.groupId = groupIdChanges[pair.to.groupId];
-              pair.to.pointId = pointIdChanges[pair.to.pointId];
-            }
-          }
-        }
+        this.nodesIdCover(clones);
         this.render.layer.add(...clones);
         this.render.selectionTool.select(clones);
         this.render.updateHistory();
-        this.render.draws[LinkDraw.name].draw();
-        this.render.draws[AttractDraw.name].draw();
-        this.render.draws[PreviewDraw.name].draw();
+        this.render.redraw();
       }
     }
     __publicField(CopyTool, "name", "CopyTool");
@@ -25597,12 +25740,7 @@ var require_index_001 = __commonJS({
           x: this.render.rulerSize,
           y: this.render.rulerSize
         });
-        this.render.draws[BgDraw.name].draw();
-        this.render.draws[LinkDraw.name].draw();
-        this.render.draws[AttractDraw.name].draw();
-        this.render.draws[RulerDraw.name].draw();
-        this.render.draws[RefLineDraw.name].draw();
-        this.render.draws[PreviewDraw.name].draw();
+        this.render.redraw();
       }
       // 更新中心位置
       updateCenter(x = 0, y = 0) {
@@ -25626,12 +25764,7 @@ var require_index_001 = __commonJS({
           x: stageState.width / 2 - this.render.toBoardValue(minX) - this.render.toBoardValue(x) + this.render.rulerSize,
           y: stageState.height / 2 - this.render.toBoardValue(minY) - this.render.toBoardValue(y) + this.render.rulerSize
         });
-        this.render.draws[BgDraw.name].draw();
-        this.render.draws[LinkDraw.name].draw();
-        this.render.draws[AttractDraw.name].draw();
-        this.render.draws[RulerDraw.name].draw();
-        this.render.draws[RefLineDraw.name].draw();
-        this.render.draws[PreviewDraw.name].draw();
+        this.render.redraw();
       }
     }
     __publicField(PositionTool, "name", "PositionTool");
@@ -25716,9 +25849,7 @@ var require_index_001 = __commonJS({
           }
           this.updateLastZindex(sorted);
           this.render.updateHistory();
-          this.render.draws[LinkDraw.name].draw();
-          this.render.draws[AttractDraw.name].draw();
-          this.render.draws[PreviewDraw.name].draw();
+          this.render.redraw();
         }
       }
       // 下移
@@ -25746,9 +25877,7 @@ var require_index_001 = __commonJS({
           }
           this.updateLastZindex(sorted);
           this.render.updateHistory();
-          this.render.draws[LinkDraw.name].draw();
-          this.render.draws[AttractDraw.name].draw();
-          this.render.draws[PreviewDraw.name].draw();
+          this.render.redraw();
         }
       }
       // 置顶
@@ -25769,9 +25898,7 @@ var require_index_001 = __commonJS({
           }
           this.updateLastZindex(sorted);
           this.render.updateHistory();
-          this.render.draws[LinkDraw.name].draw();
-          this.render.draws[AttractDraw.name].draw();
-          this.render.draws[PreviewDraw.name].draw();
+          this.render.redraw();
         }
       }
       // 置底
@@ -25792,9 +25919,7 @@ var require_index_001 = __commonJS({
           }
           this.updateLastZindex(sorted);
           this.render.updateHistory();
-          this.render.draws[LinkDraw.name].draw();
-          this.render.draws[AttractDraw.name].draw();
-          this.render.draws[PreviewDraw.name].draw();
+          this.render.redraw();
         }
       }
     }
@@ -26543,12 +26668,20 @@ var require_index_001 = __commonJS({
         let nodes = main.getChildren((node) => {
           return !this.render.ignore(node);
         });
+        for (const node of nodes) {
+          for (const child of node.children) {
+            if (this.render.ignoreSelect(child)) {
+              child.remove();
+            }
+          }
+        }
         if (withLink) {
-          nodes = nodes.concat(
-            cover.getChildren((node) => {
-              return node.name() === LinkDraw.name;
-            })
+          const linkDraw = cover.children.find(
+            (o) => o.attrs.name === LinkDraw.name
           );
+          if (linkDraw) {
+            nodes = nodes.concat(linkDraw.children.filter((o) => o.attrs.name === "link-line"));
+          }
         }
         const layer = new Konva.Layer();
         layer.add(...nodes);
@@ -26652,6 +26785,15 @@ var require_index_001 = __commonJS({
             node.on("mouseenter", () => {
               this.render.linkTool.pointsVisible(true, node);
             });
+            node.add(
+              new Konva.Rect({
+                id: "hoverRect",
+                width: node.width(),
+                height: node.height(),
+                fill: "rgba(0,255,0,0.3)",
+                visible: false
+              })
+            );
             node.off("mouseleave");
             node.on("mouseleave", () => {
               var _a;
@@ -26666,9 +26808,7 @@ var require_index_001 = __commonJS({
             this.render.updateHistory();
           }
           this.render.linkTool.pointsVisible(false);
-          this.render.draws[LinkDraw.name].draw();
-          this.render.draws[AttractDraw.name].draw();
-          this.render.draws[PreviewDraw.name].draw();
+          this.render.redraw();
         } catch (e) {
           console.error(e);
         }
@@ -26676,6 +26816,29 @@ var require_index_001 = __commonJS({
       // 获取图片
       getImage(pixelRatio = 1, bgColor) {
         const copy = this.getView(true);
+        const bgLayer = new Konva.Layer();
+        const bg = new Konva.Rect({
+          listening: false
+        });
+        bg.setAttrs({
+          x: -copy.x(),
+          y: -copy.y(),
+          width: copy.width(),
+          height: copy.height(),
+          fill: bgColor
+        });
+        bgLayer.add(bg);
+        const children2 = copy.getChildren();
+        copy.removeChildren();
+        copy.add(bgLayer);
+        copy.add(children2[0], ...children2.slice(1));
+        const url = copy.toDataURL({ pixelRatio });
+        copy.destroy();
+        return url;
+      }
+      // 获取元素图片
+      getAssetImage(pixelRatio = 1, bgColor) {
+        const copy = this.getAssetView();
         const bgLayer = new Konva.Layer();
         const bg = new Konva.Rect({
           listening: false
@@ -26780,6 +26943,116 @@ var require_index_001 = __commonJS({
           `<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="0" height="0"></svg>`
         );
       }
+      /**
+       * 获得显示内容（用于另存为元素）
+       * @returns Konva.Stage
+       */
+      getAssetView() {
+        const copy = this.getView(true);
+        const children2 = copy.getChildren()[0].getChildren();
+        const nodes = [...children2];
+        let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity, minStartX = Infinity, minStartY = Infinity;
+        for (const node of nodes) {
+          if (node instanceof Konva.Group) {
+            if (node.x() < minX) {
+              minX = node.x();
+            }
+            if (node.x() + node.width() > maxX) {
+              maxX = node.x() + node.width();
+            }
+            if (node.y() < minY) {
+              minY = node.y();
+            }
+            if (node.y() + node.height() > maxY) {
+              maxY = node.y() + node.height();
+            }
+            if (node.x() < minStartX) {
+              minStartX = node.x();
+            }
+            if (node.y() < minStartY) {
+              minStartY = node.y();
+            }
+            if (node instanceof Konva.Group) {
+              const clickMask = node.findOne("#click-mask");
+              if (clickMask) {
+                clickMask.destroy();
+              }
+            }
+          } else if (node instanceof Konva.Line && node.name() === "link-line") {
+            const points = node.points();
+            for (let i = 0; i < points.length; i += 2) {
+              const [x, y] = [points[i], points[i + 1]];
+              if (x < minX) {
+                minX = x - 1;
+              }
+              if (x > maxX) {
+                maxX = x + 1;
+              }
+              if (y < minY) {
+                minY = y - 1;
+              }
+              if (y > maxY) {
+                maxY = y + 1;
+              }
+              if (x < minStartX) {
+                minStartX = x - 1;
+              }
+              if (y < minStartY) {
+                minStartY = y - 1;
+              }
+            }
+          }
+        }
+        for (const node of nodes) {
+          if (node instanceof Konva.Group) {
+            node.x(node.x() - minStartX);
+            node.y(node.y() - minStartY);
+          } else if (node instanceof Konva.Line && node.name() === "link-line") {
+            const points = node.points();
+            for (let i = 0; i < points.length; i += 2) {
+              points[i] = points[i] - minStartX;
+              points[i + 1] = points[i + 1] - minStartY;
+            }
+            node.points(points);
+          }
+        }
+        copy.x(0);
+        copy.y(0);
+        copy.width(maxX - minX);
+        copy.height(maxY - minY);
+        return copy;
+      }
+      /**
+       * 获得元素（用于另存为元素）
+       * @returns Konva.Stage
+       */
+      getAsset() {
+        const copy = this.getAssetView();
+        const json = copy.toJSON();
+        const obj = JSON.parse(json);
+        const assets = obj.children[0].children;
+        for (const asset of assets) {
+          if (asset.attrs.name === "asset") {
+            asset.attrs.name = "sub-asset";
+          }
+          if (asset.attrs.selected) {
+            asset.attrs.selected = false;
+          }
+        }
+        this.render.linkTool.jsonIdCover(assets);
+        const result2 = JSON.stringify({
+          ...obj.children[0],
+          className: "Group",
+          attrs: {
+            width: copy.width(),
+            height: copy.height(),
+            x: 0,
+            y: 0
+          }
+        });
+        copy.destroy();
+        return result2;
+      }
     }
     __publicField(ImportExportTool, "name", "ImportExportTool");
     class AlignTool {
@@ -26787,22 +27060,58 @@ var require_index_001 = __commonJS({
         __publicField(this, "render");
         this.render = render;
       }
+      calcNodeRotationInfo(node) {
+        const rotate = node.rotation();
+        const offsetLeft = node.height() * Math.sin(rotate * Math.PI / 180);
+        const offsetRight = node.width() * Math.cos(rotate * Math.PI / 180);
+        const offsetTop = node.height() * Math.cos(rotate * Math.PI / 180);
+        const offsetBottom = node.width() * Math.sin(rotate * Math.PI / 180);
+        const width = Math.abs(offsetLeft) + Math.abs(offsetRight);
+        const height = Math.abs(offsetTop) + Math.abs(offsetBottom);
+        let x = node.x();
+        if (rotate >= 0 && rotate < 90 || rotate >= -360 && rotate < -270) {
+          x = x - Math.abs(offsetLeft);
+        } else if (rotate >= 90 && rotate < 180 || rotate >= -270 && rotate < -180) {
+          x = x - width;
+        } else if (rotate >= 180 && rotate < 270 || rotate >= -180 && rotate < -90) {
+          x = x - Math.abs(offsetRight);
+        } else
+          ;
+        let y = node.y();
+        if (rotate >= 0 && rotate < 90 || rotate >= -360 && rotate < -270)
+          ;
+        else if (rotate >= 90 && rotate < 180 || rotate >= -270 && rotate < -180) {
+          y = y - Math.abs(offsetTop);
+        } else if (rotate >= 180 && rotate < 270 || rotate >= -180 && rotate < -90) {
+          y = y - height;
+        } else if (rotate >= 270 && rotate < 360 || rotate >= -90 && rotate < 0) {
+          y = y - Math.abs(offsetBottom);
+        }
+        return {
+          x,
+          y,
+          width,
+          height
+        };
+      }
       // 对齐参考点
-      getAlignPoints(target) {
+      getAlignPoints(node) {
         let width = 0, height = 0, x = 0, y = 0;
-        if (target instanceof Konva.Transformer) {
+        if (node instanceof Konva.Transformer) {
           const stageState = this.render.getStageState();
+          const result2 = this.calcNodeRotationInfo(node);
           [width, height] = [
-            this.render.toStageValue(target.width()),
-            this.render.toStageValue(target.height())
+            this.render.toStageValue(result2.width),
+            this.render.toStageValue(result2.height)
           ];
           [x, y] = [
-            this.render.toStageValue(target.x() - stageState.x),
-            this.render.toStageValue(target.y() - stageState.y)
+            this.render.toStageValue(result2.x - stageState.x),
+            this.render.toStageValue(result2.y - stageState.y)
           ];
-        } else if (target !== void 0) {
-          [width, height] = [target.width(), target.height()];
-          [x, y] = [target.x(), target.y()];
+        } else if (node !== void 0) {
+          const result2 = this.calcNodeRotationInfo(node);
+          [width, height] = [result2.width, result2.height];
+          [x, y] = [result2.x, result2.y];
         } else {
           return this.getAlignPoints(this.render.transformer);
         }
@@ -26819,42 +27128,49 @@ var require_index_001 = __commonJS({
         const points = this.getAlignPoints(target);
         const point = points[type];
         const nodes = this.render.transformer.nodes().filter((node) => node !== target);
-        switch (type) {
-          case AlignType.垂直居中:
-            for (const node of nodes) {
-              node.x(point - node.width() / 2);
-            }
-            break;
-          case AlignType.水平居中:
-            for (const node of nodes) {
-              node.y(point - node.height() / 2);
-            }
-            break;
-          case AlignType.左对齐:
-            for (const node of nodes) {
-              node.x(point);
-            }
-            break;
-          case AlignType.右对齐:
-            for (const node of nodes) {
-              node.x(point - node.width());
-            }
-            break;
-          case AlignType.上对齐:
-            for (const node of nodes) {
-              node.y(point);
-            }
-            break;
-          case AlignType.下对齐:
-            for (const node of nodes) {
-              node.y(point - node.height());
-            }
-            break;
+        for (const node of nodes) {
+          const { width, height, x, y } = this.calcNodeRotationInfo(node);
+          switch (type) {
+            case AlignType.垂直居中:
+              {
+                const cx = x + width / 2;
+                node.x(node.x() + (point - cx));
+              }
+              break;
+            case AlignType.水平居中:
+              {
+                const cy = y + height / 2;
+                node.y(node.y() + (point - cy));
+              }
+              break;
+            case AlignType.左对齐:
+              {
+                const cx = x;
+                node.x(node.x() + (point - cx));
+              }
+              break;
+            case AlignType.右对齐:
+              {
+                const cx = x + width;
+                node.x(node.x() + (point - cx));
+              }
+              break;
+            case AlignType.上对齐:
+              {
+                const cy = y;
+                node.y(node.y() + (point - cy));
+              }
+              break;
+            case AlignType.下对齐:
+              {
+                const cy = y + height;
+                node.y(node.y() + (point - cy));
+              }
+              break;
+          }
         }
         this.render.updateHistory();
-        this.render.draws[LinkDraw.name].draw();
-        this.render.draws[AttractDraw.name].draw();
-        this.render.draws[PreviewDraw.name].draw();
+        this.render.redraw();
       }
     }
     __publicField(AlignTool, "name", "AlignTool");
@@ -26863,24 +27179,19 @@ var require_index_001 = __commonJS({
         __publicField(this, "render");
         this.render = render;
       }
-      pointsVisibleEach(visible, group) {
-        const points = group.getAttr("points") ?? [];
-        group.setAttrs({
-          points: points.map((o) => ({ ...o, visible }))
-        });
-      }
       pointsVisible(visible, group) {
-        if (group) {
-          this.pointsVisibleEach(visible, group);
-        } else {
-          const groups = this.render.layer.find(".asset");
-          for (const group2 of groups) {
-            this.pointsVisibleEach(visible, group2);
-          }
+        const start = group ?? this.render.layer;
+        for (const asset of [
+          ...["asset", "sub-asset"].includes(start.name()) ? [start] : [],
+          ...start.find(".asset"),
+          ...start.find(".sub-asset")
+        ]) {
+          const points = asset.getAttr("points") ?? [];
+          asset.setAttrs({
+            points: points.map((o) => ({ ...o, visible }))
+          });
         }
-        this.render.draws[LinkDraw.name].draw();
-        this.render.draws[AttractDraw.name].draw();
-        this.render.draws[PreviewDraw.name].draw();
+        this.render.redraw();
       }
       remove(line) {
         const { groupId, pointId, pairId } = line.getAttrs();
@@ -26896,11 +27207,127 @@ var require_index_001 = __commonJS({
               if (pairIndex > -1) {
                 point.pairs.splice(pairIndex, 1);
                 group.setAttr("points", points);
-                this.render.draws[LinkDraw.name].draw();
-                this.render.draws[AttractDraw.name].draw();
-                this.render.draws[PreviewDraw.name].draw();
+                this.render.redraw();
               }
             }
+          }
+        }
+      }
+      // 刷新 json 的 id、事件
+      jsonIdCover(assets) {
+        let deepAssets = [...assets];
+        const idMap = /* @__PURE__ */ new Map();
+        while (deepAssets.length > 0) {
+          const asset = deepAssets.shift();
+          if (asset) {
+            if (Array.isArray(asset.attrs.points)) {
+              for (const point of asset.attrs.points) {
+                if (Array.isArray(point.pairs)) {
+                  for (const pair of point.pairs) {
+                    if (pair.from.groupId && !idMap.has(pair.from.groupId)) {
+                      idMap.set(pair.from.groupId, "g:" + nanoid());
+                    }
+                    if (pair.to.groupId && !idMap.has(pair.to.groupId)) {
+                      idMap.set(pair.to.groupId, "g:" + nanoid());
+                    }
+                    if (pair.from.pointId && !idMap.has(pair.from.pointId)) {
+                      idMap.set(pair.from.pointId, "p:" + nanoid());
+                    }
+                    if (pair.to.pointId && !idMap.has(pair.to.pointId)) {
+                      idMap.set(pair.to.pointId, "p:" + nanoid());
+                    }
+                  }
+                }
+                if (point.id) {
+                  if (!idMap.has(point.id)) {
+                    idMap.set(point.id, "p:" + nanoid());
+                  }
+                }
+                if (point.groupId) {
+                  if (!idMap.has(point.groupId)) {
+                    idMap.set(point.groupId, "g:" + nanoid());
+                  }
+                }
+              }
+            }
+            if (asset.attrs.id) {
+              if (!idMap.has(asset.attrs.id)) {
+                idMap.set(asset.attrs.id, "n:" + nanoid());
+              }
+            }
+            if (Array.isArray(asset.children)) {
+              deepAssets.push(...asset.children);
+            }
+          }
+        }
+        deepAssets = [...assets];
+        while (deepAssets.length > 0) {
+          const asset = deepAssets.shift();
+          if (asset) {
+            if (idMap.has(asset.attrs.id)) {
+              asset.attrs.id = idMap.get(asset.attrs.id);
+            }
+            if (Array.isArray(asset.attrs.points)) {
+              for (const point of asset.attrs.points) {
+                if (Array.isArray(point.pairs)) {
+                  for (const pair of point.pairs) {
+                    pair.disabled = true;
+                    if (pair.id) {
+                      pair.id = "pr:" + nanoid();
+                    }
+                    if (idMap.has(pair.from.groupId)) {
+                      pair.from.groupId = idMap.get(pair.from.groupId);
+                    }
+                    if (idMap.has(pair.to.groupId)) {
+                      pair.to.groupId = idMap.get(pair.to.groupId);
+                    }
+                    if (idMap.has(pair.from.pointId)) {
+                      pair.from.pointId = idMap.get(pair.from.pointId);
+                    }
+                    if (idMap.has(pair.to.pointId)) {
+                      pair.to.pointId = idMap.get(pair.to.pointId);
+                    }
+                  }
+                }
+                if (idMap.has(point.id)) {
+                  const anchor = asset.children.find((o) => o.attrs.id === point.id);
+                  point.id = idMap.get(point.id);
+                  if (anchor) {
+                    anchor.attrs.id = point.id;
+                  }
+                }
+                if (idMap.has(point.groupId)) {
+                  point.groupId = idMap.get(point.groupId);
+                }
+              }
+            }
+            if (Array.isArray(asset.children)) {
+              deepAssets.push(...asset.children);
+            }
+          }
+        }
+      }
+      // 把深层 group 的 id 统一为顶层 group 的 id
+      groupIdCover(group) {
+        const groupId = group.id();
+        const subGroups = group.find(".sub-asset");
+        while (subGroups.length > 0) {
+          const subGroup = subGroups.shift();
+          if (subGroup) {
+            const points = subGroup.attrs.points;
+            if (Array.isArray(points)) {
+              for (const point of points) {
+                point.rawGroupId = point.groupId;
+                point.groupId = groupId;
+                for (const pair of point.pairs) {
+                  pair.from.rawGroupId = pair.from.groupId;
+                  pair.from.groupId = groupId;
+                  pair.to.rawGroupId = pair.to.groupId;
+                  pair.to.groupId = groupId;
+                }
+              }
+            }
+            subGroups.push(...subGroup.find(".sub-asset"));
           }
         }
       }
@@ -27312,11 +27739,7 @@ var require_index_001 = __commonJS({
           width,
           height
         });
-        this.draws[BgDraw.name].draw();
-        this.draws[LinkDraw.name].draw();
-        this.draws[AttractDraw.name].draw();
-        this.draws[RulerDraw.name].draw();
-        this.draws[PreviewDraw.name].draw();
+        this.redraw();
       }
       // 移除元素
       remove(nodes) {
@@ -27330,9 +27753,7 @@ var require_index_001 = __commonJS({
         if (nodes.length > 0) {
           this.selectionTool.selectingClear();
           this.updateHistory();
-          this.draws[LinkDraw.name].draw();
-          this.draws[AttractDraw.name].draw();
-          this.draws[PreviewDraw.name].draw();
+          this.redraw();
         }
       }
       prevHistory() {
@@ -27449,7 +27870,11 @@ var require_index_001 = __commonJS({
       // 忽略非素材
       ignore(node) {
         const isGroup = node instanceof Konva.Group;
-        return !isGroup || node.id() === "selectRect" || node.id() === "hoverRect" || this.ignoreDraw(node) || this.ignoreLink(node);
+        return !isGroup || this.ignoreSelect(node) || this.ignoreDraw(node) || this.ignoreLink(node);
+      }
+      // 忽略 选择时 辅助元素
+      ignoreSelect(node) {
+        return node.id() === "selectRect" || node.id() === "hoverRect";
       }
       // 忽略各 draw 的根 group
       ignoreDraw(node) {
@@ -27458,6 +27883,16 @@ var require_index_001 = __commonJS({
       // 忽略各 draw 的根 group
       ignoreLink(node) {
         return node.name() === "link-anchor" || node.name() === "linking-line" || node.name() === "link-point" || node.name() === "link-line";
+      }
+      // 重绘（保留部分单独控制 draw）
+      redraw() {
+        this.draws[BgDraw.name].draw();
+        this.draws[LinkDraw.name].draw();
+        this.draws[AttractDraw.name].draw();
+        this.draws[RulerDraw.name].draw();
+        this.draws[RefLineDraw.name].draw();
+        this.draws[PreviewDraw.name].draw();
+        this.draws[ContextmenuDraw.name].draw();
       }
     }
     const attrs$2 = {
@@ -33843,7 +34278,7 @@ var require_index_001 = __commonJS({
       className,
       children
     };
-    const _withScopeId = (n) => (pushScopeId("data-v-d1bcc6f3"), n = n(), popScopeId(), n);
+    const _withScopeId = (n) => (pushScopeId("data-v-7db5e1d2"), n = n(), popScopeId(), n);
     const _hoisted_1 = { class: "page" };
     const _hoisted_2 = ["disabled"];
     const _hoisted_3 = ["disabled"];
@@ -33946,6 +34381,11 @@ var require_index_001 = __commonJS({
           init();
         });
         const assetsModules = [
+          { "url": "./json/1.json", avatar: "./json/1.png" },
+          { "url": "./json/2.json", avatar: "./json/2.png" },
+          { "url": "./json/3.json", avatar: "./json/3.png" },
+          { "url": "./json/4.json", avatar: "./json/4.png" },
+          //
           { "url": "./img/svg/ARRESTER_1.svg", points: [{ x: 101, y: 1, direction: "top" }, { x: 101, y: 199, direction: "bottom" }] },
           { "url": "./img/svg/ARRESTER_2.svg", points: [{ x: 101, y: 1, direction: "top" }, { x: 101, y: 199, direction: "bottom" }] },
           { "url": "./img/svg/ARRESTER_2_1.svg", points: [{ x: 101, y: 1, direction: "top" }, { x: 101, y: 199, direction: "bottom" }] },
@@ -34016,6 +34456,8 @@ var require_index_001 = __commonJS({
         const assetsInfos = computed(() => {
           return assetsModules.map((o) => ({
             url: o.url,
+            avatar: o.avatar,
+            // 子素材需要额外的封面
             points: Array.isArray(o.points) ? o.points : []
           }));
         });
@@ -34078,6 +34520,27 @@ var require_index_001 = __commonJS({
             a.remove();
           }
         }
+        function onSaveAsset() {
+          if (render) {
+            const a = document.createElement("a");
+            const event = new MouseEvent("click");
+            a.download = "asset.json";
+            a.href = window.URL.createObjectURL(new Blob([render.importExportTool.getAsset()]));
+            a.dispatchEvent(event);
+            a.remove();
+          }
+        }
+        function onSaveAssetPNG() {
+          if (render) {
+            const url = render.importExportTool.getAssetImage(3, "#ffffff");
+            const a = document.createElement("a");
+            const event = new MouseEvent("click");
+            a.download = "image";
+            a.href = url;
+            a.dispatchEvent(event);
+            a.remove();
+          }
+        }
         const selection = ref([]);
         const noAlign = computed(() => selection.value.length <= 1);
         function onAlign(type) {
@@ -34107,6 +34570,8 @@ var require_index_001 = __commonJS({
               createBaseVNode("button", { onClick: onSave }, "导出"),
               createBaseVNode("button", { onClick: onSavePNG }, "另存为图片"),
               createBaseVNode("button", { onClick: onSaveSvg }, "另存为Svg"),
+              createBaseVNode("button", { onClick: onSaveAsset }, "另存为元素"),
+              createBaseVNode("button", { onClick: onSaveAssetPNG }, "另存为元素图片"),
               createBaseVNode("button", {
                 onClick: onPrev,
                 disabled: historyIndex.value <= 0
@@ -34152,8 +34617,7 @@ var require_index_001 = __commonJS({
                       onDragstart: ($event) => onDragstart($event, item)
                     }, [
                       createBaseVNode("img", {
-                        src: item.url,
-                        style: { "object-fit": "contain", "width": "100%", "height": "100%" }
+                        src: item.avatar || item.url
                       }, null, 8, _hoisted_11)
                     ], 40, _hoisted_10);
                   }), 128))
@@ -34177,7 +34641,7 @@ var require_index_001 = __commonJS({
                 _hoisted_13,
                 createTextVNode(" 2、放大缩小，【Win】鼠标上滚动下滚动，【Mac】触控板双指放大、缩小；"),
                 _hoisted_14,
-                createTextVNode(" 3、画布拖动，在空白处，【Win】右键按下移动，【Mac】contril + 触控板三指移动；"),
+                createTextVNode(" 3、画布拖动，在空白处，【Win】右键按下移动，【Mac】control + 触控板三指移动；"),
                 _hoisted_15
               ], 4)
             ]),
@@ -34199,7 +34663,7 @@ var require_index_001 = __commonJS({
       }
       return target;
     };
-    const App = /* @__PURE__ */ _export_sfc(_sfc_main, [["__scopeId", "data-v-d1bcc6f3"]]);
+    const App = /* @__PURE__ */ _export_sfc(_sfc_main, [["__scopeId", "data-v-7db5e1d2"]]);
     const optionsDefault = {
       colors: ["purple", "blue", "green", "blueviolet", "goldenrod", "brown", "chocolate"],
       type: "log"
@@ -34224,7 +34688,7 @@ var require_index_001 = __commonJS({
         console.error(e);
       }
     };
-    var define_BUILD_INFO_default = { lastBuildTime: "2024-07-05 09:27:53", git: { branch: "master", hash: "bbec458fb88acd382fa5d709fdddfc5fae097648", tag: "chapter16" } };
+    var define_BUILD_INFO_default = { lastBuildTime: "2024-07-19 23:03:42", git: { branch: "master", hash: "64d703aac1eafe8a0d1293c591ff9a94404298ef", tag: "chapter16" } };
     const {
       lastBuildTime,
       git: { branch, tag, hash }
