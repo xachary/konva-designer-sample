@@ -243,8 +243,8 @@ export class ImportExportTool {
 
   // 获取图片
   getImage(pixelRatio = 1, bgColor?: string) {
-    // 获取可视节点和 layer
-    const copy = this.getView(true)
+    // 在 getAssetView 的基础上，增加背景即可
+    const copy = this.getAssetView()
 
     // 背景层
     const bgLayer = new Konva.Layer()
@@ -253,9 +253,10 @@ export class ImportExportTool {
     const bg = new Konva.Rect({
       listening: false
     })
+
     bg.setAttrs({
-      x: -copy.x(),
-      y: -copy.y(),
+      x: 0,
+      y: 0,
       width: copy.width(),
       height: copy.height(),
       fill: bgColor
@@ -264,8 +265,7 @@ export class ImportExportTool {
     // 添加背景
     bgLayer.add(bg)
 
-    // 插入背景
-    const children = copy.getChildren()
+    const children = copy.getChildren() as Konva.Layer[]
     copy.removeChildren()
     copy.add(bgLayer)
     copy.add(children[0], ...children.slice(1))
@@ -400,8 +400,8 @@ export class ImportExportTool {
 
   // 获取Svg
   async getSvg() {
-    // 获取可视节点和 layer
-    const copy = this.getView(true)
+    // 基于 getAssetView
+    const copy = this.getAssetView()
     // 获取 main layer
     const main = copy.children[0] as Konva.Layer
     // 获取 layer 的 canvas context
@@ -520,10 +520,13 @@ export class ImportExportTool {
       }
     }
 
+    const width = maxX - minX,
+      height = maxY - minY
+
     copy.x(0)
     copy.y(0)
-    copy.width(maxX - minX)
-    copy.height(maxY - minY)
+    copy.width(width)
+    copy.height(height)
 
     return copy
   }
