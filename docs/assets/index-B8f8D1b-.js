@@ -9,7 +9,7 @@ var __publicField = (obj, key, value) => {
   return value;
 };
 var require_index_001 = __commonJS({
-  "assets/index-DQKZKhdg.js"(exports, module) {
+  "assets/index-B8f8D1b-.js"(exports, module) {
     (function polyfill() {
       const relList = document.createElement("link").relList;
       if (relList && relList.supports && relList.supports("modulepreload")) {
@@ -26815,14 +26815,14 @@ var require_index_001 = __commonJS({
       }
       // 获取图片
       getImage(pixelRatio = 1, bgColor) {
-        const copy = this.getView(true);
+        const copy = this.getAssetView();
         const bgLayer = new Konva.Layer();
         const bg = new Konva.Rect({
           listening: false
         });
         bg.setAttrs({
-          x: -copy.x(),
-          y: -copy.y(),
+          x: 0,
+          y: 0,
           width: copy.width(),
           height: copy.height(),
           fill: bgColor
@@ -26925,7 +26925,7 @@ var require_index_001 = __commonJS({
       }
       // 获取Svg
       async getSvg() {
-        const copy = this.getView(true);
+        const copy = this.getAssetView();
         const main = copy.children[0];
         const ctx = main.canvas.context._context;
         if (ctx) {
@@ -27016,10 +27016,11 @@ var require_index_001 = __commonJS({
             node.points(points);
           }
         }
+        const width = maxX - minX, height = maxY - minY;
         copy.x(0);
         copy.y(0);
-        copy.width(maxX - minX);
-        copy.height(maxY - minY);
+        copy.width(width);
+        copy.height(height);
         return copy;
       }
       /**
@@ -34688,7 +34689,7 @@ var require_index_001 = __commonJS({
         console.error(e);
       }
     };
-    var define_BUILD_INFO_default = { lastBuildTime: "2024-07-19 23:03:42", git: { branch: "master", hash: "64d703aac1eafe8a0d1293c591ff9a94404298ef", tag: "chapter16" } };
+    var define_BUILD_INFO_default = { lastBuildTime: "2024-07-30 16:26:02", git: { branch: "master", hash: "56f5f07e10d911ba2b30867a643fea3be1170202", tag: "chapter17" } };
     const {
       lastBuildTime,
       git: { branch, tag, hash }
