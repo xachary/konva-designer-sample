@@ -121,10 +121,10 @@ export class Render {
 
     // 附加工具
     this.draws[Draws.BgDraw.name] = new Draws.BgDraw(this, this.layerFloor, {
-      size: this.bgSize
+      size: this.bgSize,
     })
     this.draws[Draws.LinkDraw.name] = new Draws.LinkDraw(this, this.layerCover, {
-      size: this.pointSize
+      size: this.pointSize,
     })
     this.draws[Draws.AttractDraw.name] = new Draws.AttractDraw(this, this.layerCover, {
       size: this.pointSize

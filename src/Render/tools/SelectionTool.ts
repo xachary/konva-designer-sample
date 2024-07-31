@@ -1,8 +1,6 @@
 import Konva from 'konva'
 //
 import { Render } from '../index'
-//
-import * as Draws from '../draws'
 
 export class SelectionTool {
   static readonly name = 'SelectionTool'

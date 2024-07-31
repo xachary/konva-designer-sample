@@ -2,8 +2,6 @@ import Konva from 'konva'
 //
 import { Render } from '../index'
 import * as Types from '../types'
-//
-import * as Draws from '../draws'
 
 export class ZoomHandlers implements Types.Handler {
   static readonly name = 'Zoom'
