@@ -9,7 +9,7 @@ var __publicField = (obj, key, value) => {
   return value;
 };
 var require_index_001 = __commonJS({
-  "assets/index-B8f8D1b-.js"(exports, module) {
+  "assets/index-Vdw_qKI1.js"(exports, module) {
     (function polyfill() {
       const relList = document.createElement("link").relList;
       if (relList && relList.supports && relList.supports("modulepreload")) {
@@ -23151,6 +23151,12 @@ var require_index_001 = __commonJS({
       AlignType2["下对齐"] = "Bottom";
       return AlignType2;
     })(AlignType || {});
+    var LinkType = /* @__PURE__ */ ((LinkType2) => {
+      LinkType2["auto"] = "auto";
+      LinkType2["straight"] = "straight";
+      LinkType2["manual"] = "manual";
+      return LinkType2;
+    })(LinkType || {});
     class BgDraw extends BaseDraw {
       constructor(render, layer, option) {
         super(render, layer);
@@ -24061,9 +24067,10 @@ var require_index_001 = __commonJS({
         super(render, layer);
         __publicField(this, "option");
         __publicField(this, "state", {
-          linkingLine: null
+          linkingLine: null,
+          linkType: LinkType.auto,
+          linkManualing: false
         });
-        __publicField(this, "on", {});
         this.option = option;
         this.group.name(this.constructor.name);
       }
@@ -24324,6 +24331,15 @@ var require_index_001 = __commonJS({
           y: anchor.absolutePosition().y - stageState.y
         } : { x: 0, y: 0 };
       }
+      /**
+       * 修改当前连接线类型
+       * @param linkType Types.LinkType
+       */
+      changeLinkType(linkType) {
+        var _a, _b, _c;
+        this.state.linkType = linkType;
+        (_c = (_b = (_a = this.render.config) == null ? void 0 : _a.on) == null ? void 0 : _b.linkTypeChange) == null ? void 0 : _c.call(_b, this.state.linkType);
+      }
       draw() {
         this.clear();
         const stageState = this.render.getStageState();
@@ -24347,208 +24363,432 @@ var require_index_001 = __commonJS({
             const fromPoint = points.find((o) => o.id === pair.from.pointId);
             const toGroup = groups.find((o) => o.id() === pair.to.groupId);
             const toPoint = points.find((o) => o.id === pair.to.pointId);
-            const fromGroupLinkArea = this.getGroupLinkArea(fromGroup);
-            const toGroupLinkArea = this.getGroupLinkArea(toGroup);
-            const groupDistance = this.getGroupPairDistance(fromGroupLinkArea, toGroupLinkArea);
-            const fromGroupForbiddenArea = this.getGroupForbiddenArea(
-              fromGroupLinkArea,
-              groupDistance - 2
-            );
-            const toGroupForbiddenArea = this.getGroupForbiddenArea(toGroupLinkArea, groupDistance - 2);
-            const groupForbiddenArea = this.getGroupPairArea(
-              fromGroupForbiddenArea,
-              toGroupForbiddenArea
-            );
-            const groupAccessArea = this.getGroupPairArea(
-              this.getGroupAccessArea(fromGroupForbiddenArea, groupDistance),
-              this.getGroupAccessArea(toGroupForbiddenArea, groupDistance)
-            );
-            if (fromGroup && toGroup && fromPoint && toPoint) {
-              const fromAnchor = fromGroup.findOne(`#${fromPoint.id}`);
-              const toAnchor = toGroup.findOne(`#${toPoint.id}`);
-              const fromAnchorPos = this.getAnchorPos(fromAnchor);
-              const toAnchorPos = this.getAnchorPos(toAnchor);
-              if (fromAnchor && toAnchor) {
-                if (this.render.debug) {
-                  console.log("distance", groupDistance);
+            if (pair.linkType === LinkType.manual) {
+              if (fromGroup && toGroup && fromPoint && toPoint) {
+                const fromAnchor = fromGroup.findOne(`#${fromPoint.id}`);
+                const toAnchor = toGroup.findOne(`#${toPoint.id}`);
+                const fromAnchorPos = this.getAnchorPos(fromAnchor);
+                const toAnchorPos = this.getAnchorPos(toAnchor);
+                const manualPoints = Array.isArray(
+                  fromGroup.getAttr("manualPoints")
+                ) ? fromGroup.getAttr("manualPoints") : [];
+                const linkPoints = [
+                  [
+                    this.render.toStageValue(fromAnchorPos.x),
+                    this.render.toStageValue(fromAnchorPos.y)
+                  ],
+                  ...manualPoints.map((o) => [o.x, o.y]),
+                  [this.render.toStageValue(toAnchorPos.x), this.render.toStageValue(toAnchorPos.y)]
+                ];
+                const linkLine = new Konva.Line({
+                  name: "link-line",
+                  // 用于删除连接线
+                  groupId: fromGroup.id(),
+                  pointId: fromPoint.id,
+                  pairId: pair.id,
+                  linkType: pair.linkType,
+                  points: lodash.flatten(linkPoints),
+                  stroke: "red",
+                  strokeWidth: 2
+                });
+                this.group.add(linkLine);
+                const manualingLine = new Konva.Line({
+                  stroke: "#ff0000",
+                  strokeWidth: 2,
+                  points: [],
+                  dash: [4, 4]
+                });
+                this.group.add(manualingLine);
+                for (let i = 0; i < linkPoints.length - 1; i++) {
+                  const circle = new Konva.Circle({
+                    id: nanoid(),
+                    pairId: pair.id,
+                    x: (linkPoints[i][0] + linkPoints[i + 1][0]) / 2,
+                    y: (linkPoints[i][1] + linkPoints[i + 1][1]) / 2,
+                    radius: this.render.toStageValue(this.render.bgSize / 2),
+                    stroke: "rgba(0,0,255,0.1)",
+                    strokeWidth: this.render.toStageValue(1),
+                    name: "link-manual-point",
+                    // opacity: 0,
+                    linkManualIndex: i
+                    // 当前拐点位置
+                  });
+                  circle.on("mouseenter", () => {
+                    circle.stroke("rgba(0,0,255,0.8)");
+                    document.body.style.cursor = "pointer";
+                  });
+                  circle.on("mouseleave", () => {
+                    if (!circle.attrs.dragStart) {
+                      circle.stroke("rgba(0,0,255,0.1)");
+                      document.body.style.cursor = "default";
+                    }
+                  });
+                  circle.on("mousedown", () => {
+                    const pos = circle.getAbsolutePosition();
+                    circle.setAttrs({
+                      // 开始坐标
+                      dragStartX: pos.x,
+                      dragStartY: pos.y,
+                      // 正在操作
+                      dragStart: true
+                    });
+                    this.state.linkManualing = true;
+                  });
+                  this.render.stage.on("mousemove", () => {
+                    if (circle.attrs.dragStart) {
+                      const pos = this.render.stage.getPointerPosition();
+                      if (pos) {
+                        const { pos: transformerPos } = this.render.attractTool.attract({
+                          x: pos.x,
+                          y: pos.y,
+                          width: 1,
+                          height: 1
+                        });
+                        circle.setAbsolutePosition(transformerPos);
+                        const tempPoints = [...linkPoints];
+                        tempPoints.splice(circle.attrs.linkManualIndex + 1, 0, [
+                          this.render.toStageValue(transformerPos.x - stageState.x),
+                          this.render.toStageValue(transformerPos.y - stageState.y)
+                        ]);
+                        manualingLine.points(lodash.flatten(tempPoints));
+                      }
+                    }
+                  });
+                  circle.on("mouseup", () => {
+                    const pos = circle.getAbsolutePosition();
+                    if (Math.abs(pos.x - circle.attrs.dragStartX) > this.option.size || Math.abs(pos.y - circle.attrs.dragStartY) > this.option.size) {
+                      const stageState2 = this.render.getStageState();
+                      manualPoints.splice(circle.attrs.linkManualIndex, 0, {
+                        x: this.render.toStageValue(pos.x - stageState2.x),
+                        y: this.render.toStageValue(pos.y - stageState2.y)
+                      });
+                      fromGroup.setAttr("manualPoints", manualPoints);
+                    }
+                    circle.setAttrs({
+                      dragStart: false
+                    });
+                    this.state.linkManualing = false;
+                    circle.destroy();
+                    manualingLine.destroy();
+                    this.render.updateHistory();
+                    this.render.redraw();
+                  });
+                  this.group.add(circle);
                 }
-                const fromEntry = this.getEntry(
-                  fromAnchor,
-                  fromGroupForbiddenArea,
-                  groupDistance
-                );
-                const toEntry = this.getEntry(
-                  toAnchor,
-                  toGroupForbiddenArea,
-                  groupDistance
-                );
-                let matrixPoints = [];
-                matrixPoints.push({ x: groupAccessArea.x1, y: groupAccessArea.y1 });
-                matrixPoints.push({ x: groupAccessArea.x2, y: groupAccessArea.y2 });
-                matrixPoints.push({ x: groupAccessArea.x1, y: groupAccessArea.y2 });
-                matrixPoints.push({ x: groupAccessArea.x2, y: groupAccessArea.y1 });
-                matrixPoints.push({ x: groupForbiddenArea.x1, y: groupForbiddenArea.y1 });
-                matrixPoints.push({ x: groupForbiddenArea.x2, y: groupForbiddenArea.y2 });
-                matrixPoints.push({ x: groupForbiddenArea.x1, y: groupForbiddenArea.y2 });
-                matrixPoints.push({ x: groupForbiddenArea.x2, y: groupForbiddenArea.y1 });
-                matrixPoints.push({
-                  ...fromAnchorPos,
-                  type: "from"
+                for (let i = 1; i < linkPoints.length - 1; i++) {
+                  const circle = new Konva.Circle({
+                    id: nanoid(),
+                    pairId: pair.id,
+                    x: linkPoints[i][0],
+                    y: linkPoints[i][1],
+                    radius: this.render.toStageValue(this.render.bgSize / 2),
+                    stroke: "rgba(0,100,0,0.1)",
+                    strokeWidth: this.render.toStageValue(1),
+                    name: "link-manual-point",
+                    // opacity: 0,
+                    linkManualIndex: i
+                    // 当前拐点位置
+                  });
+                  circle.on("mouseenter", () => {
+                    circle.stroke("rgba(0,100,0,1)");
+                    document.body.style.cursor = "pointer";
+                  });
+                  circle.on("mouseleave", () => {
+                    if (!circle.attrs.dragStart) {
+                      circle.stroke("rgba(0,100,0,0.1)");
+                      document.body.style.cursor = "default";
+                    }
+                  });
+                  circle.on("mousedown", () => {
+                    const pos = circle.getAbsolutePosition();
+                    circle.setAttrs({
+                      dragStartX: pos.x,
+                      dragStartY: pos.y,
+                      dragStart: true
+                    });
+                    this.state.linkManualing = true;
+                  });
+                  this.render.stage.on("mousemove", () => {
+                    if (circle.attrs.dragStart) {
+                      const pos = this.render.stage.getPointerPosition();
+                      if (pos) {
+                        const { pos: transformerPos } = this.render.attractTool.attract({
+                          x: pos.x,
+                          y: pos.y,
+                          width: 1,
+                          height: 1
+                        });
+                        circle.setAbsolutePosition(transformerPos);
+                        const tempPoints = [...linkPoints];
+                        tempPoints[circle.attrs.linkManualIndex] = [
+                          this.render.toStageValue(transformerPos.x - stageState.x),
+                          this.render.toStageValue(transformerPos.y - stageState.y)
+                        ];
+                        manualingLine.points(lodash.flatten(tempPoints));
+                      }
+                    }
+                  });
+                  circle.on("mouseup", () => {
+                    const pos = circle.getAbsolutePosition();
+                    if (Math.abs(pos.x - circle.attrs.dragStartX) > this.option.size || Math.abs(pos.y - circle.attrs.dragStartY) > this.option.size) {
+                      const stageState2 = this.render.getStageState();
+                      manualPoints[circle.attrs.linkManualIndex - 1] = {
+                        x: this.render.toStageValue(pos.x - stageState2.x),
+                        y: this.render.toStageValue(pos.y - stageState2.y)
+                      };
+                      fromGroup.setAttr("manualPoints", manualPoints);
+                    }
+                    circle.setAttrs({
+                      dragStart: false
+                    });
+                    this.state.linkManualing = false;
+                    circle.destroy();
+                    manualingLine.destroy();
+                    this.render.updateHistory();
+                    this.render.redraw();
+                  });
+                  this.group.add(circle);
+                }
+              }
+            } else if (pair.linkType === LinkType.straight) {
+              if (fromGroup && toGroup && fromPoint && toPoint) {
+                const fromAnchor = fromGroup.findOne(`#${fromPoint.id}`);
+                const toAnchor = toGroup.findOne(`#${toPoint.id}`);
+                const fromAnchorPos = this.getAnchorPos(fromAnchor);
+                const toAnchorPos = this.getAnchorPos(toAnchor);
+                const linkLine = new Konva.Line({
+                  name: "link-line",
+                  // 用于删除连接线
+                  groupId: fromGroup.id(),
+                  pointId: fromPoint.id,
+                  pairId: pair.id,
+                  linkType: pair.linkType,
+                  points: lodash.flatten([
+                    [
+                      this.render.toStageValue(fromAnchorPos.x),
+                      this.render.toStageValue(fromAnchorPos.y)
+                    ],
+                    [this.render.toStageValue(toAnchorPos.x), this.render.toStageValue(toAnchorPos.y)]
+                  ]),
+                  stroke: "red",
+                  strokeWidth: 2
                 });
-                matrixPoints.push({ ...fromEntry, type: "from-entry" });
-                matrixPoints.push({
-                  ...toAnchorPos,
-                  type: "to"
-                });
-                matrixPoints.push({ ...toEntry, type: "to-entry" });
-                matrixPoints.push(this.getGroupPairCenter(fromGroupForbiddenArea, toGroupForbiddenArea));
-                matrixPoints = matrixPoints.reduce(
-                  (arr, item) => {
-                    if (item.type === void 0) {
-                      if (arr.findIndex((o) => o.x === item.x && o.y === item.y) < 0) {
+                this.group.add(linkLine);
+              }
+            } else {
+              const fromGroupLinkArea = this.getGroupLinkArea(fromGroup);
+              const toGroupLinkArea = this.getGroupLinkArea(toGroup);
+              const groupDistance = this.getGroupPairDistance(fromGroupLinkArea, toGroupLinkArea);
+              const fromGroupForbiddenArea = this.getGroupForbiddenArea(
+                fromGroupLinkArea,
+                groupDistance - 2
+              );
+              const toGroupForbiddenArea = this.getGroupForbiddenArea(
+                toGroupLinkArea,
+                groupDistance - 2
+              );
+              const groupForbiddenArea = this.getGroupPairArea(
+                fromGroupForbiddenArea,
+                toGroupForbiddenArea
+              );
+              const groupAccessArea = this.getGroupPairArea(
+                this.getGroupAccessArea(fromGroupForbiddenArea, groupDistance),
+                this.getGroupAccessArea(toGroupForbiddenArea, groupDistance)
+              );
+              if (fromGroup && toGroup && fromPoint && toPoint) {
+                const fromAnchor = fromGroup.findOne(`#${fromPoint.id}`);
+                const toAnchor = toGroup.findOne(`#${toPoint.id}`);
+                const fromAnchorPos = this.getAnchorPos(fromAnchor);
+                const toAnchorPos = this.getAnchorPos(toAnchor);
+                if (fromAnchor && toAnchor) {
+                  if (this.render.debug) {
+                    console.log("distance", groupDistance);
+                  }
+                  const fromEntry = this.getEntry(
+                    fromAnchor,
+                    fromGroupForbiddenArea,
+                    groupDistance
+                  );
+                  const toEntry = this.getEntry(
+                    toAnchor,
+                    toGroupForbiddenArea,
+                    groupDistance
+                  );
+                  let matrixPoints = [];
+                  matrixPoints.push({ x: groupAccessArea.x1, y: groupAccessArea.y1 });
+                  matrixPoints.push({ x: groupAccessArea.x2, y: groupAccessArea.y2 });
+                  matrixPoints.push({ x: groupAccessArea.x1, y: groupAccessArea.y2 });
+                  matrixPoints.push({ x: groupAccessArea.x2, y: groupAccessArea.y1 });
+                  matrixPoints.push({ x: groupForbiddenArea.x1, y: groupForbiddenArea.y1 });
+                  matrixPoints.push({ x: groupForbiddenArea.x2, y: groupForbiddenArea.y2 });
+                  matrixPoints.push({ x: groupForbiddenArea.x1, y: groupForbiddenArea.y2 });
+                  matrixPoints.push({ x: groupForbiddenArea.x2, y: groupForbiddenArea.y1 });
+                  matrixPoints.push({
+                    ...fromAnchorPos,
+                    type: "from"
+                  });
+                  matrixPoints.push({ ...fromEntry, type: "from-entry" });
+                  matrixPoints.push({
+                    ...toAnchorPos,
+                    type: "to"
+                  });
+                  matrixPoints.push({ ...toEntry, type: "to-entry" });
+                  matrixPoints.push(
+                    this.getGroupPairCenter(fromGroupForbiddenArea, toGroupForbiddenArea)
+                  );
+                  matrixPoints = matrixPoints.reduce(
+                    (arr, item) => {
+                      if (item.type === void 0) {
+                        if (arr.findIndex((o) => o.x === item.x && o.y === item.y) < 0) {
+                          arr.push(item);
+                        }
+                      } else {
+                        const idx = arr.findIndex((o) => o.x === item.x && o.y === item.y);
+                        if (idx > -1) {
+                          arr.splice(idx, 1);
+                        }
                         arr.push(item);
                       }
-                    } else {
-                      const idx = arr.findIndex((o) => o.x === item.x && o.y === item.y);
-                      if (idx > -1) {
-                        arr.splice(idx, 1);
+                      return arr;
+                    },
+                    []
+                  );
+                  const columns = [
+                    ...matrixPoints.map((o) => o.x),
+                    // 增加列
+                    fromGroupForbiddenArea.x1,
+                    fromGroupForbiddenArea.x2,
+                    toGroupForbiddenArea.x1,
+                    toGroupForbiddenArea.x2
+                  ].sort((a, b) => a - b);
+                  for (let x = columns.length - 1; x > 0; x--) {
+                    if (columns[x] === columns[x - 1]) {
+                      columns.splice(x, 1);
+                    }
+                  }
+                  if (this.render.debug) {
+                    console.log("columns", columns);
+                  }
+                  const rows = [
+                    ...matrixPoints.map((o) => o.y),
+                    // 增加行
+                    fromGroupForbiddenArea.y1,
+                    fromGroupForbiddenArea.y2,
+                    toGroupForbiddenArea.y1,
+                    toGroupForbiddenArea.y2
+                  ].sort((a, b) => a - b);
+                  for (let y = rows.length - 1; y > 0; y--) {
+                    if (rows[y] === rows[y - 1]) {
+                      rows.splice(y, 1);
+                    }
+                  }
+                  if (this.render.debug) {
+                    console.log("rows", rows);
+                  }
+                  const columnFromStart = columns.findIndex((o) => o === fromGroupForbiddenArea.x1);
+                  const columnFromEnd = columns.findIndex((o) => o === fromGroupForbiddenArea.x2);
+                  const rowFromStart = rows.findIndex((o) => o === fromGroupForbiddenArea.y1);
+                  const rowFromEnd = rows.findIndex((o) => o === fromGroupForbiddenArea.y2);
+                  const columnToStart = columns.findIndex((o) => o === toGroupForbiddenArea.x1);
+                  const columnToEnd = columns.findIndex((o) => o === toGroupForbiddenArea.x2);
+                  const rowToStart = rows.findIndex((o) => o === toGroupForbiddenArea.y1);
+                  const rowToEnd = rows.findIndex((o) => o === toGroupForbiddenArea.y2);
+                  let matrixStart = null;
+                  let matrixEnd = null;
+                  const matrix = [];
+                  for (let y = 0; y < rows.length; y++) {
+                    if (matrix[y] === void 0) {
+                      matrix[y] = [];
+                    }
+                    for (let x = 0; x < columns.length; x++) {
+                      if (x >= columnFromStart && x <= columnFromEnd && y >= rowFromStart && y <= rowFromEnd) {
+                        matrix[y][x] = 2;
+                      } else if (x >= columnToStart && x <= columnToEnd && y >= rowToStart && y <= rowToEnd) {
+                        matrix[y][x] = 2;
+                      } else {
+                        matrix[y][x] = 0;
                       }
-                      arr.push(item);
-                    }
-                    return arr;
-                  },
-                  []
-                );
-                const columns = [
-                  ...matrixPoints.map((o) => o.x),
-                  // 增加列
-                  fromGroupForbiddenArea.x1,
-                  fromGroupForbiddenArea.x2,
-                  toGroupForbiddenArea.x1,
-                  toGroupForbiddenArea.x2
-                ].sort((a, b) => a - b);
-                for (let x = columns.length - 1; x > 0; x--) {
-                  if (columns[x] === columns[x - 1]) {
-                    columns.splice(x, 1);
-                  }
-                }
-                if (this.render.debug) {
-                  console.log("columns", columns);
-                }
-                const rows = [
-                  ...matrixPoints.map((o) => o.y),
-                  // 增加行
-                  fromGroupForbiddenArea.y1,
-                  fromGroupForbiddenArea.y2,
-                  toGroupForbiddenArea.y1,
-                  toGroupForbiddenArea.y2
-                ].sort((a, b) => a - b);
-                for (let y = rows.length - 1; y > 0; y--) {
-                  if (rows[y] === rows[y - 1]) {
-                    rows.splice(y, 1);
-                  }
-                }
-                if (this.render.debug) {
-                  console.log("rows", rows);
-                }
-                const columnFromStart = columns.findIndex((o) => o === fromGroupForbiddenArea.x1);
-                const columnFromEnd = columns.findIndex((o) => o === fromGroupForbiddenArea.x2);
-                const rowFromStart = rows.findIndex((o) => o === fromGroupForbiddenArea.y1);
-                const rowFromEnd = rows.findIndex((o) => o === fromGroupForbiddenArea.y2);
-                const columnToStart = columns.findIndex((o) => o === toGroupForbiddenArea.x1);
-                const columnToEnd = columns.findIndex((o) => o === toGroupForbiddenArea.x2);
-                const rowToStart = rows.findIndex((o) => o === toGroupForbiddenArea.y1);
-                const rowToEnd = rows.findIndex((o) => o === toGroupForbiddenArea.y2);
-                let matrixStart = null;
-                let matrixEnd = null;
-                const matrix = [];
-                for (let y = 0; y < rows.length; y++) {
-                  if (matrix[y] === void 0) {
-                    matrix[y] = [];
-                  }
-                  for (let x = 0; x < columns.length; x++) {
-                    if (x >= columnFromStart && x <= columnFromEnd && y >= rowFromStart && y <= rowFromEnd) {
-                      matrix[y][x] = 2;
-                    } else if (x >= columnToStart && x <= columnToEnd && y >= rowToStart && y <= rowToEnd) {
-                      matrix[y][x] = 2;
-                    } else {
-                      matrix[y][x] = 0;
-                    }
-                    if (columns[x] === fromEntry.x && rows[y] === fromEntry.y) {
-                      matrix[y][x] = 1;
-                      matrixStart = { x, y };
-                    }
-                    if (columns[x] === toEntry.x && rows[y] === toEntry.y) {
-                      matrix[y][x] = 1;
-                      matrixEnd = { x, y };
-                    }
-                    if (!fromAnchor.attrs.direction) {
-                      if (columns[x] === fromEntry.x || rows[y] === fromEntry.y) {
-                        if (x >= columnFromStart && x <= columnFromEnd && y >= rowFromStart && y <= rowFromEnd) {
-                          matrix[y][x] = 1;
+                      if (columns[x] === fromEntry.x && rows[y] === fromEntry.y) {
+                        matrix[y][x] = 1;
+                        matrixStart = { x, y };
+                      }
+                      if (columns[x] === toEntry.x && rows[y] === toEntry.y) {
+                        matrix[y][x] = 1;
+                        matrixEnd = { x, y };
+                      }
+                      if (!fromAnchor.attrs.direction) {
+                        if (columns[x] === fromEntry.x || rows[y] === fromEntry.y) {
+                          if (x >= columnFromStart && x <= columnFromEnd && y >= rowFromStart && y <= rowFromEnd) {
+                            matrix[y][x] = 1;
+                          }
                         }
                       }
-                    }
-                    if (!toAnchor.attrs.direction) {
-                      if (columns[x] === toEntry.x || rows[y] === toEntry.y) {
-                        if (x >= columnToStart && x <= columnToEnd && y >= rowToStart && y <= rowToEnd) {
-                          matrix[y][x] = 1;
+                      if (!toAnchor.attrs.direction) {
+                        if (columns[x] === toEntry.x || rows[y] === toEntry.y) {
+                          if (x >= columnToStart && x <= columnToEnd && y >= rowToStart && y <= rowToEnd) {
+                            matrix[y][x] = 1;
+                          }
                         }
                       }
                     }
                   }
-                }
-                if (this.render.debug) {
-                  console.log("matrix", matrix);
-                }
-                if (this.render.debug) {
-                  for (const point of matrixPoints) {
-                    this.group.add(
-                      new Konva.Circle({
-                        name: "link-route",
-                        id: nanoid(),
-                        x: this.render.toStageValue(point.x),
-                        y: this.render.toStageValue(point.y),
-                        radius: this.render.toStageValue(3),
-                        stroke: point.type === void 0 ? "rgba(0,0,255,1)" : ["from", "to"].includes(point.type) ? "rgba(255,0,0,1)" : "rgba(0,120,0,1)",
-                        strokeWidth: this.render.toStageValue(1),
-                        listening: false
-                      })
-                    );
+                  if (this.render.debug) {
+                    console.log("matrix", matrix);
                   }
-                }
-                if (matrixStart && matrixEnd) {
-                  console.log("算法起点", matrixStart, "算法终点", matrixEnd);
-                  const way = aStar({
-                    from: matrixStart,
-                    to: matrixEnd,
-                    matrix,
-                    maxCost: 2
-                  });
-                  const linkLine = new Konva.Line({
-                    name: "link-line",
-                    // 用于删除连接线
-                    groupId: fromGroup.id(),
-                    pointId: fromPoint.id,
-                    pairId: pair.id,
-                    //
-                    points: lodash.flatten([
-                      [
-                        this.render.toStageValue(fromAnchorPos.x),
-                        this.render.toStageValue(fromAnchorPos.y)
-                      ],
-                      // 补充 起点
-                      ...way.map((o) => [
-                        this.render.toStageValue(columns[o.x]),
-                        this.render.toStageValue(rows[o.y])
+                  if (this.render.debug) {
+                    for (const point of matrixPoints) {
+                      this.group.add(
+                        new Konva.Circle({
+                          name: "link-route",
+                          id: nanoid(),
+                          x: this.render.toStageValue(point.x),
+                          y: this.render.toStageValue(point.y),
+                          radius: this.render.toStageValue(3),
+                          stroke: point.type === void 0 ? "rgba(0,0,255,1)" : ["from", "to"].includes(point.type) ? "rgba(255,0,0,1)" : "rgba(0,120,0,1)",
+                          strokeWidth: this.render.toStageValue(1),
+                          listening: false
+                        })
+                      );
+                    }
+                  }
+                  if (matrixStart && matrixEnd) {
+                    console.log("算法起点", matrixStart, "算法终点", matrixEnd);
+                    const way = aStar({
+                      from: matrixStart,
+                      to: matrixEnd,
+                      matrix,
+                      maxCost: 2
+                    });
+                    const linkLine = new Konva.Line({
+                      name: "link-line",
+                      // 用于删除连接线
+                      groupId: fromGroup.id(),
+                      pointId: fromPoint.id,
+                      pairId: pair.id,
+                      linkType: pair.linkType,
+                      // 记录 连接线 类型
+                      //
+                      points: lodash.flatten([
+                        [
+                          this.render.toStageValue(fromAnchorPos.x),
+                          this.render.toStageValue(fromAnchorPos.y)
+                        ],
+                        // 补充 起点
+                        ...way.map((o) => [
+                          this.render.toStageValue(columns[o.x]),
+                          this.render.toStageValue(rows[o.y])
+                        ]),
+                        [
+                          this.render.toStageValue(toAnchorPos.x),
+                          this.render.toStageValue(toAnchorPos.y)
+                        ]
+                        // 补充 终点
                       ]),
-                      [this.render.toStageValue(toAnchorPos.x), this.render.toStageValue(toAnchorPos.y)]
-                      // 补充 终点
-                    ]),
-                    stroke: "red",
-                    strokeWidth: 2
-                  });
-                  this.group.add(linkLine);
+                      stroke: "red",
+                      strokeWidth: 2
+                    });
+                    this.group.add(linkLine);
+                  }
                 }
               }
             }
@@ -24626,7 +24866,9 @@ var require_index_001 = __commonJS({
                                 to: {
                                   groupId: circle.getAttr("groupId"),
                                   pointId: circle.id()
-                                }
+                                },
+                                linkType: this.state.linkType
+                                // 记录 连接线 类型
                               }
                             ];
                           }
@@ -24718,15 +24960,17 @@ var require_index_001 = __commonJS({
         __publicField(this, "handlers", {
           stage: {
             mousedown: (e) => {
-              if (e.evt.button === MouseButton.右键 || e.evt.ctrlKey && e.evt.button === MouseButton.左键) {
-                const stageState = this.render.getStageState();
-                this.mousedownRight = true;
-                this.mousedownStagePos = { x: stageState.x, y: stageState.y };
-                const pos = this.render.stage.getPointerPosition();
-                if (pos) {
-                  this.mousedownPointerPos = { x: pos.x, y: pos.y };
+              if (!this.render.draws[LinkDraw.name].state.linkManualing) {
+                if (e.evt.button === MouseButton.右键 || e.evt.ctrlKey && e.evt.button === MouseButton.左键) {
+                  const stageState = this.render.getStageState();
+                  this.mousedownRight = true;
+                  this.mousedownStagePos = { x: stageState.x, y: stageState.y };
+                  const pos = this.render.stage.getPointerPosition();
+                  if (pos) {
+                    this.mousedownPointerPos = { x: pos.x, y: pos.y };
+                  }
+                  document.body.style.cursor = "pointer";
                 }
-                document.body.style.cursor = "pointer";
               }
             },
             mouseup: () => {
@@ -27192,7 +27436,9 @@ var require_index_001 = __commonJS({
             points: points.map((o) => ({ ...o, visible }))
           });
         }
-        this.render.redraw();
+        if (!this.render.draws[LinkDraw.name].state.linkManualing) {
+          this.render.redraw();
+        }
       }
       remove(line) {
         const { groupId, pointId, pairId } = line.getAttrs();
@@ -27883,7 +28129,7 @@ var require_index_001 = __commonJS({
       }
       // 忽略各 draw 的根 group
       ignoreLink(node) {
-        return node.name() === "link-anchor" || node.name() === "linking-line" || node.name() === "link-point" || node.name() === "link-line";
+        return node.name() === "link-anchor" || node.name() === "linking-line" || node.name() === "link-point" || node.name() === "link-line" || node.name() === "link-manual-point";
       }
       // 重绘（保留部分单独控制 draw）
       redraw() {
@@ -34279,7 +34525,7 @@ var require_index_001 = __commonJS({
       className,
       children
     };
-    const _withScopeId = (n) => (pushScopeId("data-v-7db5e1d2"), n = n(), popScopeId(), n);
+    const _withScopeId = (n) => (pushScopeId("data-v-0dc3b0ef"), n = n(), popScopeId(), n);
     const _hoisted_1 = { class: "page" };
     const _hoisted_2 = ["disabled"];
     const _hoisted_3 = ["disabled"];
@@ -34289,12 +34535,15 @@ var require_index_001 = __commonJS({
     const _hoisted_7 = ["disabled"];
     const _hoisted_8 = ["disabled"];
     const _hoisted_9 = ["disabled"];
-    const _hoisted_10 = ["onDragstart"];
-    const _hoisted_11 = ["src"];
-    const _hoisted_12 = /* @__PURE__ */ _withScopeId(() => /* @__PURE__ */ createBaseVNode("br", null, null, -1));
-    const _hoisted_13 = /* @__PURE__ */ _withScopeId(() => /* @__PURE__ */ createBaseVNode("br", null, null, -1));
-    const _hoisted_14 = /* @__PURE__ */ _withScopeId(() => /* @__PURE__ */ createBaseVNode("br", null, null, -1));
+    const _hoisted_10 = ["disabled"];
+    const _hoisted_11 = ["disabled"];
+    const _hoisted_12 = ["disabled"];
+    const _hoisted_13 = ["onDragstart"];
+    const _hoisted_14 = ["src"];
     const _hoisted_15 = /* @__PURE__ */ _withScopeId(() => /* @__PURE__ */ createBaseVNode("br", null, null, -1));
+    const _hoisted_16 = /* @__PURE__ */ _withScopeId(() => /* @__PURE__ */ createBaseVNode("br", null, null, -1));
+    const _hoisted_17 = /* @__PURE__ */ _withScopeId(() => /* @__PURE__ */ createBaseVNode("br", null, null, -1));
+    const _hoisted_18 = /* @__PURE__ */ _withScopeId(() => /* @__PURE__ */ createBaseVNode("br", null, null, -1));
     const _sfc_main = /* @__PURE__ */ defineComponent({
       __name: "App",
       setup(__props) {
@@ -34369,6 +34618,9 @@ var require_index_001 = __commonJS({
                       },
                       debugChange: (v) => {
                         debug.value = v;
+                      },
+                      linkTypeChange: (type) => {
+                        currentLinkType.value = type;
                       }
                     }
                   });
@@ -34386,6 +34638,8 @@ var require_index_001 = __commonJS({
           { "url": "./json/2.json", avatar: "./json/2.png" },
           { "url": "./json/3.json", avatar: "./json/3.png" },
           { "url": "./json/4.json", avatar: "./json/4.png" },
+          { "url": "./json/5.json", avatar: "./json/5.png" },
+          { "url": "./json/6.json", avatar: "./json/6.png" },
           //
           { "url": "./img/svg/ARRESTER_1.svg", points: [{ x: 101, y: 1, direction: "top" }, { x: 101, y: 199, direction: "bottom" }] },
           { "url": "./img/svg/ARRESTER_2.svg", points: [{ x: 101, y: 1, direction: "top" }, { x: 101, y: 199, direction: "bottom" }] },
@@ -34562,6 +34816,10 @@ var require_index_001 = __commonJS({
         function onFull() {
           full.value = !full.value;
         }
+        const currentLinkType = ref(LinkType.auto);
+        function onLinkTypeChange(linkType) {
+          (render == null ? void 0 : render.draws[LinkDraw.name]).changeLinkType(linkType);
+        }
         return (_ctx, _cache) => {
           return openBlock(), createElementBlock("div", _hoisted_1, [
             createBaseVNode("header", {
@@ -34604,7 +34862,19 @@ var require_index_001 = __commonJS({
               createBaseVNode("button", {
                 onClick: _cache[5] || (_cache[5] = ($event) => onAlign(AlignType.下对齐)),
                 disabled: noAlign.value
-              }, "下对齐", 8, _hoisted_9)
+              }, "下对齐", 8, _hoisted_9),
+              createBaseVNode("button", {
+                onClick: _cache[6] || (_cache[6] = ($event) => onLinkTypeChange(LinkType.auto)),
+                disabled: currentLinkType.value === LinkType.auto
+              }, "连接线：自动", 8, _hoisted_10),
+              createBaseVNode("button", {
+                onClick: _cache[7] || (_cache[7] = ($event) => onLinkTypeChange(LinkType.straight)),
+                disabled: currentLinkType.value === LinkType.straight
+              }, "连接线：直线", 8, _hoisted_11),
+              createBaseVNode("button", {
+                onClick: _cache[8] || (_cache[8] = ($event) => onLinkTypeChange(LinkType.manual)),
+                disabled: currentLinkType.value === LinkType.manual
+              }, "连接线：手动", 8, _hoisted_12)
             ], 4),
             createBaseVNode("section", null, [
               createBaseVNode("header", {
@@ -34619,8 +34889,8 @@ var require_index_001 = __commonJS({
                     }, [
                       createBaseVNode("img", {
                         src: item.avatar || item.url
-                      }, null, 8, _hoisted_11)
-                    ], 40, _hoisted_10);
+                      }, null, 8, _hoisted_14)
+                    ], 40, _hoisted_13);
                   }), 128))
                 ])
               ], 4),
@@ -34637,13 +34907,13 @@ var require_index_001 = __commonJS({
                 style: normalizeStyle({ width: full.value ? 0 : void 0 })
               }, [
                 createTextVNode(" 快捷键："),
-                _hoisted_12,
+                _hoisted_15,
                 createTextVNode(" 1、复制、粘贴、多选、全选、删除、上一步、下一步等快捷键与一般文档编辑器类似；"),
-                _hoisted_13,
+                _hoisted_16,
                 createTextVNode(" 2、放大缩小，【Win】鼠标上滚动下滚动，【Mac】触控板双指放大、缩小；"),
-                _hoisted_14,
+                _hoisted_17,
                 createTextVNode(" 3、画布拖动，在空白处，【Win】右键按下移动，【Mac】control + 触控板三指移动；"),
-                _hoisted_15
+                _hoisted_18
               ], 4)
             ]),
             createBaseVNode("footer", null, [
@@ -34664,7 +34934,7 @@ var require_index_001 = __commonJS({
       }
       return target;
     };
-    const App = /* @__PURE__ */ _export_sfc(_sfc_main, [["__scopeId", "data-v-7db5e1d2"]]);
+    const App = /* @__PURE__ */ _export_sfc(_sfc_main, [["__scopeId", "data-v-0dc3b0ef"]]);
     const optionsDefault = {
       colors: ["purple", "blue", "green", "blueviolet", "goldenrod", "brown", "chocolate"],
       type: "log"
@@ -34689,7 +34959,7 @@ var require_index_001 = __commonJS({
         console.error(e);
       }
     };
-    var define_BUILD_INFO_default = { lastBuildTime: "2024-07-30 16:26:02", git: { branch: "master", hash: "56f5f07e10d911ba2b30867a643fea3be1170202", tag: "chapter17" } };
+    var define_BUILD_INFO_default = { lastBuildTime: "2024-08-01 21:55:03", git: { branch: "master", hash: "a7e9423fdf07d77b62e0d8976815f90c05477e6e", tag: "chapter17" } };
     const {
       lastBuildTime,
       git: { branch, tag, hash }
