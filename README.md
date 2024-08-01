@@ -64,6 +64,8 @@
 
 ![2](https://github.com/xachary/konva-designer-sample/assets/16830398/afb4b039-7478-4e3e-a1f5-2f7785f007e8)
 
+![image](https://github.com/user-attachments/assets/43370884-c94b-4b0a-a06e-af55bbd7c4ff)
+
 ## 功能点
 
 - 无限画布（√）
@@ -84,7 +86,8 @@
 - 导出、导入（√）
 - 实时预览窗（√）
 - 对齐效果（√）
-- 连接线（√）
+- 连接线[自动、直线、折线]（√）
+- 素材组合[深度]（√）
 
 ## 更多功能
 
