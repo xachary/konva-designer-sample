@@ -5,6 +5,8 @@ import { Render } from '../index'
 
 import type { LinkDrawPair, LinkDrawPoint } from '../draws/LinkDraw'
 
+import * as Draws from '../draws'
+
 export class LinkTool {
   static readonly name = 'LinkTool'
 
@@ -28,8 +30,11 @@ export class LinkTool {
       })
     }
 
-    // 重绘
-    this.render.redraw()
+    // 拐点操作中，此处不重绘
+    if (!(this.render.draws[Draws.LinkDraw.name] as Draws.LinkDraw).state.linkManualing) {
+      // 重绘
+      this.render.redraw()
+    }
   }
 
   remove(line: Konva.Line) {

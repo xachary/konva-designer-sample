@@ -19,6 +19,7 @@ export interface RenderConfig {
     historyChange?: (history: string[], historyIndex: number) => void
     selectionChange?: (selection: Konva.Node[]) => void
     debugChange?: (v: boolean) => void
+    linkTypeChange?: (type: LinkType) => void
   }
 }
 
@@ -125,4 +126,10 @@ export enum AlignType {
   水平居中 = 'Center',
   上对齐 = 'Top',
   下对齐 = 'Bottom'
+}
+
+export enum LinkType {
+  'auto' = 'auto',
+  'straight' = 'straight', // 直线
+  'manual' = 'manual' // 手动折线
 }

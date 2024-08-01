@@ -4,16 +4,18 @@ import { ref, type Ref, onMounted, computed } from 'vue'
 import { Render } from './Render'
 
 import * as Types from './Render/types'
+import * as Draws from './Render/draws'
 import type Konva from 'konva'
 
 // 连接线测试数据
-import linkTestData from './link.json'
-import rotateTestData from './rotate.json'
-import alignTestData from './align.json'
+import linkTestData from './test/link.json'
+import rotateTestData from './test/rotate.json'
+import alignTestData from './test/align.json'
 
-// import copyTestData from './copy.json'
-// import subAssetTestData from './sub-asset.json'
-// import hoverTestData from './hover.json'
+// import copyTestData from './test/copy.json'
+// import subAssetTestData from './test/sub-asset.json'
+// import hoverTestData from './test/hover.json'
+// import manualTestData from './test/manual.json'
 
 // 容器
 const boardElement = ref<HTMLDivElement>()
@@ -114,6 +116,9 @@ function init() {
               },
               debugChange: (v: boolean) => {
                 debug.value = v
+              },
+              linkTypeChange: (type: Types.LinkType) => {
+                currentLinkType.value = type
               }
             }
           })
@@ -131,7 +136,7 @@ function init() {
       // render?.importExportTool.restore(JSON.stringify(copyTestData))
       // render?.importExportTool.restore(JSON.stringify(subAssetTestData))
       // render?.importExportTool.restore(JSON.stringify(hoverTestData))
-
+      // render?.importExportTool.restore(JSON.stringify(manualTestData))
     // }, 1000)
   }
 }
@@ -159,6 +164,8 @@ const assetsModules: Array<Types.AssetInfo> = [
   { "url": "./json/2.json", avatar: './json/2.png' },
   { "url": "./json/3.json", avatar: './json/3.png' },
   { "url": "./json/4.json", avatar: './json/4.png' },
+  { "url": "./json/5.json", avatar: './json/5.png' },
+  { "url": "./json/6.json", avatar: './json/6.png' },
   //
   { "url": "./img/svg/ARRESTER_1.svg", points: [{ x: 101, y: 1, direction: 'top' }, { x: 101, y: 199, direction: 'bottom' }] },
   { "url": "./img/svg/ARRESTER_2.svg", points: [{ x: 101, y: 1, direction: 'top' }, { x: 101, y: 199, direction: 'bottom' }] },
@@ -364,6 +371,12 @@ function onAlignTest() {
 function onFull() {
   full.value = !full.value
 }
+
+const currentLinkType = ref(Types.LinkType.auto)
+
+function onLinkTypeChange(linkType: Types.LinkType) {
+  (render?.draws[Draws.LinkDraw.name] as Draws.LinkDraw).changeLinkType(linkType)
+}
 </script>
 
 <template>
@@ -383,6 +396,12 @@ function onFull() {
       <button @click="onAlign(Types.AlignType.水平居中)" :disabled="noAlign">水平居中</button>
       <button @click="onAlign(Types.AlignType.上对齐)" :disabled="noAlign">上对齐</button>
       <button @click="onAlign(Types.AlignType.下对齐)" :disabled="noAlign">下对齐</button>
+      <button @click="onLinkTypeChange(Types.LinkType.auto)"
+        :disabled="currentLinkType === Types.LinkType.auto">连接线：自动</button>
+      <button @click="onLinkTypeChange(Types.LinkType.straight)"
+        :disabled="currentLinkType === Types.LinkType.straight">连接线：直线</button>
+      <button @click="onLinkTypeChange(Types.LinkType.manual)"
+        :disabled="currentLinkType === Types.LinkType.manual">连接线：手动</button>
     </header>
     <section>
       <header :style="{ width: full ? 0 : undefined }">

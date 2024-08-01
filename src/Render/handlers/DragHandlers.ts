@@ -2,6 +2,7 @@ import Konva from 'konva'
 //
 import { Render } from '../index'
 import * as Types from '../types'
+import * as Draws from '../draws'
 
 export class DragHandlers implements Types.Handler {
   static readonly name = 'Drag'
@@ -21,24 +22,27 @@ export class DragHandlers implements Types.Handler {
   handlers = {
     stage: {
       mousedown: (e: Konva.KonvaEventObject<GlobalEventHandlersEventMap['mousedown']>) => {
-        if (
-          e.evt.button === Types.MouseButton.右键 ||
-          (e.evt.ctrlKey && e.evt.button === Types.MouseButton.左键) // mac 拖动画布快捷键
-        ) {
-          // stage 状态
-          const stageState = this.render.getStageState()
+        // 拐点操作中，防止异常拖动
+        if (!(this.render.draws[Draws.LinkDraw.name] as Draws.LinkDraw).state.linkManualing) {
+          if (
+            e.evt.button === Types.MouseButton.右键 ||
+            (e.evt.ctrlKey && e.evt.button === Types.MouseButton.左键) // mac 拖动画布快捷键
+          ) {
+            // stage 状态
+            const stageState = this.render.getStageState()
 
-          // 鼠标右键
-          this.mousedownRight = true
+            // 鼠标右键
+            this.mousedownRight = true
 
-          this.mousedownStagePos = { x: stageState.x, y: stageState.y }
+            this.mousedownStagePos = { x: stageState.x, y: stageState.y }
 
-          const pos = this.render.stage.getPointerPosition()
-          if (pos) {
-            this.mousedownPointerPos = { x: pos.x, y: pos.y }
+            const pos = this.render.stage.getPointerPosition()
+            if (pos) {
+              this.mousedownPointerPos = { x: pos.x, y: pos.y }
+            }
+
+            document.body.style.cursor = 'pointer'
           }
-
-          document.body.style.cursor = 'pointer'
         }
       },
       mouseup: () => {
