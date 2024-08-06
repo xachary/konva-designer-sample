@@ -38,24 +38,31 @@ export class AssetTool {
   // 加载 gif
   async loadGif(src: string) {
     return new Promise<Konva.Image>((resolve) => {
-      const canvas = document.createElement('canvas')
+      const img = document.createElement('img')
+      img.onload = ()=>{
+        const canvas = document.createElement('canvas')
 
-      gifler(src).frames(canvas, (ctx: CanvasRenderingContext2D, frame: any) => {
-        canvas.width = frame.width
-        canvas.height = frame.height
-        ctx.drawImage(frame.buffer, 0, 0)
+        canvas.width = img.naturalWidth
+        canvas.height = img.naturalWidth
 
-        this.render.layer.draw()
-        // 更新预览
-        this.render.draws[Draws.PreviewDraw.name].draw()
-      })
+        img.remove()
 
-      resolve(
-        new Konva.Image({
-          image: canvas,
-          gif: src
+        gifler(src).frames(canvas, (ctx: CanvasRenderingContext2D, frame: any) => {
+          ctx.drawImage(frame.buffer, 0, 0)
+  
+          this.render.layer.draw()
+          // 更新预览
+          this.render.draws[Draws.PreviewDraw.name].draw()
         })
-      )
+
+        resolve(
+          new Konva.Image({
+            image: canvas,
+            gif: src
+          })
+        )
+      }
+      img.src = src
     })
   }
 
