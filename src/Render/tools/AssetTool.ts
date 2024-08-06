@@ -48,14 +48,14 @@ export class AssetTool {
         this.render.layer.draw()
         // 更新预览
         this.render.draws[Draws.PreviewDraw.name].draw()
-
-        resolve(
-          new Konva.Image({
-            image: canvas,
-            gif: src
-          })
-        )
       })
+
+      resolve(
+        new Konva.Image({
+          image: canvas,
+          gif: src
+        })
+      )
     })
   }
 
