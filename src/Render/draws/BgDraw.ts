@@ -32,9 +32,9 @@ export class BgDraw extends Types.BaseDraw implements Types.Draw {
       const cellSize = this.option.size
 
       // 列数
-      const lenX = Math.ceil(this.render.toStageValue(stageState.width) / cellSize)
+      const lenX = Math.ceil(this.render.toStageValue(stageState.width + this.render.rulerSize) / cellSize)
       // 行数
-      const lenY = Math.ceil(this.render.toStageValue(stageState.height) / cellSize)
+      const lenY = Math.ceil(this.render.toStageValue(stageState.height + this.render.rulerSize) / cellSize)
 
       const startX = -Math.ceil(this.render.toStageValue(stageState.x) / cellSize)
       const startY = -Math.ceil(this.render.toStageValue(stageState.y) / cellSize)
