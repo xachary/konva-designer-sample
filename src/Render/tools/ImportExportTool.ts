@@ -22,25 +22,13 @@ export class ImportExportTool {
     // 复制画布
     const copy = this.render.stage.clone()
 
-    // 暂时清空所有 layer
-    copy.getChildren().filter((o) => !['main', 'cover'].includes(o.id()))
-
     // 提取 main layer 备用
-    let main: Konva.Layer | undefined, cover: Konva.Layer | undefined
+    const main = copy.find('#main')[0] as Konva.Layer
+    const cover = copy.find('#cover')[0] as Konva.Layer
 
-    copy.getChildren().forEach((o) => {
-      const id = o.id()
-      if (['main', 'cover'].includes(id)) {
-        if (id === 'main') {
-          main = o
-        } else if (id === 'cover') {
-          cover = o
-        }
-      } else {
-        // 销毁防止溢出
-        o.destroy()
-      }
-    })
+    // 暂时清空所有 layer
+    const copyChildren = copy.getChildren()
+    copy.removeChildren()
 
     if (main && cover) {
       // 提取节点
@@ -52,7 +40,7 @@ export class ImportExportTool {
       for (const node of nodes) {
         for (const child of (node as Konva.Group).children) {
           if (this.render.ignoreSelect(child)) {
-            child.destroy()
+            child.remove()
           }
         }
       }
@@ -116,7 +104,12 @@ export class ImportExportTool {
         width: maxX - minX,
         height: maxY - minY
       })
+
+      main.removeChildren()
+      cover.removeChildren()
     }
+
+    copyChildren.forEach((o) => o.destroy())
 
     // 返回可视节点和 layer
     return copy
@@ -195,6 +188,7 @@ export class ImportExportTool {
       this.render.layer.getChildren().forEach((o) => {
         o.destroy()
       })
+      this.render.layer.removeChildren()
 
       // 加载 json，提取节点
       const container = document.createElement('div')

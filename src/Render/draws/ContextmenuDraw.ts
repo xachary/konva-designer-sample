@@ -224,6 +224,8 @@ export class ContextmenuDraw extends Types.BaseDraw implements Types.Draw {
               this.group.getChildren().forEach((o) => {
                 o.destroy()
               })
+              this.group.removeChildren()
+
               this.state.target = null
             }
 
