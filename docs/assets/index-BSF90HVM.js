@@ -9,7 +9,7 @@ var __publicField = (obj, key, value) => {
   return value;
 };
 var require_index_001 = __commonJS({
-  "assets/index-Vdw_qKI1.js"(exports, module) {
+  "assets/index-BSF90HVM.js"(exports, module) {
     (function polyfill() {
       const relList = document.createElement("link").relList;
       if (relList && relList.supports && relList.supports("modulepreload")) {
@@ -11812,7 +11812,7 @@ var require_index_001 = __commonJS({
       exports2.glob = typeof commonjsGlobal !== "undefined" ? commonjsGlobal : typeof window !== "undefined" ? window : typeof WorkerGlobalScope !== "undefined" ? self : {};
       exports2.Konva = {
         _global: exports2.glob,
-        version: "9.3.6",
+        version: "9.3.14",
         isBrowser: detectBrowser(),
         isUnminified: /param/.test((function(param) {
         }).toString()),
@@ -11834,6 +11834,7 @@ var require_index_001 = __commonJS({
         _mouseDblClickPointerId: null,
         _touchDblClickPointerId: null,
         _pointerDblClickPointerId: null,
+        _fixTextRendering: false,
         pixelRatio: typeof window !== "undefined" && window.devicePixelRatio || 1,
         dragDistance: 3,
         angleDeg: true,
@@ -15752,6 +15753,7 @@ var require_index_001 = __commonJS({
             DragAndDrop_12.DD.justDragged = false;
             Global_12.Konva["_" + eventType + "ListenClick"] = true;
             if (!shape || !shape.isListening()) {
+              this[eventType + "ClickStartShape"] = void 0;
               return;
             }
             if (Global_12.Konva.capturePointerEventsEnabled) {
@@ -16049,6 +16051,13 @@ var require_index_001 = __commonJS({
       Stage2.prototype.nodeType = STAGE2;
       (0, Global_22._registerNode)(Stage2);
       Factory_12.Factory.addGetterSetter(Stage2, "container");
+      if (Global_12.Konva.isBrowser) {
+        document.addEventListener("visibilitychange", () => {
+          exports2.stages.forEach((stage) => {
+            stage.batchDraw();
+          });
+        });
+      }
     })(Stage);
     var Layer$1 = {};
     var Shape = {};
@@ -16088,7 +16097,12 @@ var require_index_001 = __commonJS({
         context.stroke();
       }
       function _fillFuncHit(context) {
-        context.fill();
+        const fillRule = this.attrs.fillRule;
+        if (fillRule) {
+          context.fill(fillRule);
+        } else {
+          context.fill();
+        }
       }
       function _strokeFuncHit(context) {
         context.stroke();
@@ -16301,8 +16315,17 @@ var require_index_001 = __commonJS({
           };
         }
         getClientRect(config = {}) {
+          let hasCachedParent = false;
+          let parent2 = this.getParent();
+          while (parent2) {
+            if (parent2.isCached()) {
+              hasCachedParent = true;
+              break;
+            }
+            parent2 = parent2.getParent();
+          }
           const skipTransform = config.skipTransform;
-          const relativeTo = config.relativeTo;
+          const relativeTo = config.relativeTo || hasCachedParent && this.getStage() || void 0;
           const fillRect = this.getSelfRect();
           const applyStroke = !config.skipStroke && this.hasStroke();
           const strokeWidth = applyStroke && this.strokeWidth() || 0;
@@ -17543,7 +17566,7 @@ var require_index_001 = __commonJS({
     const Shape_1$f = Shape;
     const Global_1$g = Global;
     const Validators_1$u = Validators;
-    const Global_2$2 = Global;
+    const Global_2$3 = Global;
     class Arc extends Shape_1$f.Shape {
       _sceneFunc(context) {
         var angle = Global_1$g.Konva.getAngle(this.angle()), clockwise = this.clockwise();
@@ -17590,7 +17613,7 @@ var require_index_001 = __commonJS({
     Arc.prototype._centroid = true;
     Arc.prototype.className = "Arc";
     Arc.prototype._attrsAffectingSize = ["innerRadius", "outerRadius"];
-    (0, Global_2$2._registerNode)(Arc);
+    (0, Global_2$3._registerNode)(Arc);
     Factory_1$v.Factory.addGetterSetter(Arc, "innerRadius", 0, (0, Validators_1$u.getNumberValidator)());
     Factory_1$v.Factory.addGetterSetter(Arc, "outerRadius", 0, (0, Validators_1$u.getNumberValidator)());
     Factory_1$v.Factory.addGetterSetter(Arc, "angle", 0, (0, Validators_1$u.getNumberValidator)());
@@ -18724,49 +18747,29 @@ var require_index_001 = __commonJS({
         return null;
       }
       static getPointOnLine(dist, P1x, P1y, P2x, P2y, fromX, fromY) {
-        if (fromX === void 0) {
-          fromX = P1x;
+        fromX = fromX !== null && fromX !== void 0 ? fromX : P1x;
+        fromY = fromY !== null && fromY !== void 0 ? fromY : P1y;
+        const len = this.getLineLength(P1x, P1y, P2x, P2y);
+        if (len < 1e-10) {
+          return { x: P1x, y: P1y };
         }
-        if (fromY === void 0) {
-          fromY = P1y;
-        }
-        var m = (P2y - P1y) / (P2x - P1x + 1e-8);
-        var run = Math.sqrt(dist * dist / (1 + m * m));
-        if (P2x < P1x) {
-          run *= -1;
-        }
-        var rise = m * run;
-        var pt;
         if (P2x === P1x) {
-          pt = {
-            x: fromX,
-            y: fromY + rise
-          };
-        } else if ((fromY - P1y) / (fromX - P1x + 1e-8) === m) {
-          pt = {
-            x: fromX + run,
-            y: fromY + rise
-          };
-        } else {
-          var ix, iy;
-          var len = this.getLineLength(P1x, P1y, P2x, P2y);
-          var u = (fromX - P1x) * (P2x - P1x) + (fromY - P1y) * (P2y - P1y);
-          u = u / (len * len);
-          ix = P1x + u * (P2x - P1x);
-          iy = P1y + u * (P2y - P1y);
-          var pRise = this.getLineLength(fromX, fromY, ix, iy);
-          var pRun = Math.sqrt(dist * dist - pRise * pRise);
-          run = Math.sqrt(pRun * pRun / (1 + m * m));
-          if (P2x < P1x) {
-            run *= -1;
-          }
-          rise = m * run;
-          pt = {
-            x: ix + run,
-            y: iy + rise
-          };
+          return { x: fromX, y: fromY + (P2y > P1y ? dist : -dist) };
         }
-        return pt;
+        const m = (P2y - P1y) / (P2x - P1x);
+        const run = Math.sqrt(dist * dist / (1 + m * m)) * (P2x < P1x ? -1 : 1);
+        const rise = m * run;
+        if (Math.abs(fromY - P1y - m * (fromX - P1x)) < 1e-10) {
+          return { x: fromX + run, y: fromY + rise };
+        }
+        const u = ((fromX - P1x) * (P2x - P1x) + (fromY - P1y) * (P2y - P1y)) / (len * len);
+        const ix = P1x + u * (P2x - P1x);
+        const iy = P1y + u * (P2y - P1y);
+        const pRise = this.getLineLength(fromX, fromY, ix, iy);
+        const pRun = Math.sqrt(dist * dist - pRise * pRise);
+        const adjustedRun = Math.sqrt(pRun * pRun / (1 + m * m)) * (P2x < P1x ? -1 : 1);
+        const adjustedRise = m * adjustedRun;
+        return { x: ix + adjustedRun, y: iy + adjustedRise };
       }
       static getPointOnCubicBezier(pct, P1x, P1y, P2x, P2y, P3x, P3y, P4x, P4y) {
         function CB1(t) {
@@ -19370,6 +19373,11 @@ var require_index_001 = __commonJS({
         }
       }
       _useBufferCanvas() {
+        const hasCornerRadius = !!this.cornerRadius();
+        const hasShadow = this.hasShadow();
+        if (hasCornerRadius && hasShadow) {
+          return true;
+        }
         return super._useBufferCanvas(true);
       }
       _sceneFunc(context) {
@@ -19910,8 +19918,9 @@ var require_index_001 = __commonJS({
     const Util_1$5 = Util;
     const Factory_1$i = Factory;
     const Shape_1$3 = Shape;
-    const Validators_1$i = Validators;
     const Global_1$3 = Global;
+    const Validators_1$i = Validators;
+    const Global_2$2 = Global;
     function stringToArray(string2) {
       return Array.from(string2);
     }
@@ -19983,15 +19992,20 @@ var require_index_001 = __commonJS({
         }
         var padding = this.padding(), fontSize = this.fontSize(), lineHeightPx = this.lineHeight() * fontSize, verticalAlign = this.verticalAlign(), direction = this.direction(), alignY = 0, align = this.align(), totalWidth = this.getWidth(), letterSpacing = this.letterSpacing(), fill2 = this.fill(), textDecoration = this.textDecoration(), shouldUnderline = textDecoration.indexOf("underline") !== -1, shouldLineThrough = textDecoration.indexOf("line-through") !== -1, n;
         direction = direction === INHERIT ? context.direction : direction;
-        var translateY = 0;
         var translateY = lineHeightPx / 2;
+        var baseline = MIDDLE;
+        if (Global_1$3.Konva._fixTextRendering) {
+          var metrics = this.measureSize("M");
+          baseline = "alphabetic";
+          translateY = (metrics.fontBoundingBoxAscent - metrics.fontBoundingBoxDescent) / 2 + lineHeightPx / 2;
+        }
         var lineTranslateX = 0;
         var lineTranslateY = 0;
         if (direction === RTL) {
           context.setAttr("direction", direction);
         }
         context.setAttr("font", this._getContextFont());
-        context.setAttr("textBaseline", MIDDLE);
+        context.setAttr("textBaseline", baseline);
         context.setAttr("textAlign", LEFT);
         if (verticalAlign === MIDDLE) {
           alignY = (this.getHeight() - textArrLen * lineHeightPx - padding * 2) / 2;
@@ -20012,11 +20026,14 @@ var require_index_001 = __commonJS({
           if (shouldUnderline) {
             context.save();
             context.beginPath();
-            context.moveTo(lineTranslateX, translateY + lineTranslateY + Math.round(fontSize / 2));
+            let yOffset = Global_1$3.Konva._fixTextRendering ? Math.round(fontSize / 4) : Math.round(fontSize / 2);
+            const x = lineTranslateX;
+            const y = translateY + lineTranslateY + yOffset;
+            context.moveTo(x, y);
             spacesNumber = text.split(" ").length - 1;
             oneWord = spacesNumber === 0;
             lineWidth = align === JUSTIFY && !lastLine ? totalWidth - padding * 2 : width;
-            context.lineTo(lineTranslateX + Math.round(lineWidth), translateY + lineTranslateY + Math.round(fontSize / 2));
+            context.lineTo(x + Math.round(lineWidth), y);
             context.lineWidth = fontSize / 15;
             const gradient = this._getLinearGradient();
             context.strokeStyle = gradient || fill2;
@@ -20026,11 +20043,12 @@ var require_index_001 = __commonJS({
           if (shouldLineThrough) {
             context.save();
             context.beginPath();
-            context.moveTo(lineTranslateX, translateY + lineTranslateY);
+            let yOffset = Global_1$3.Konva._fixTextRendering ? -Math.round(fontSize / 4) : 0;
+            context.moveTo(lineTranslateX, translateY + lineTranslateY + yOffset);
             spacesNumber = text.split(" ").length - 1;
             oneWord = spacesNumber === 0;
             lineWidth = align === JUSTIFY && lastLine && !oneWord ? totalWidth - padding * 2 : width;
-            context.lineTo(lineTranslateX + Math.round(lineWidth), translateY + lineTranslateY);
+            context.lineTo(lineTranslateX + Math.round(lineWidth), translateY + lineTranslateY + yOffset);
             context.lineWidth = fontSize / 15;
             const gradient = this._getLinearGradient();
             context.strokeStyle = gradient || fill2;
@@ -20094,12 +20112,25 @@ var require_index_001 = __commonJS({
         return this.textHeight;
       }
       measureSize(text) {
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l;
         var _context = getDummyContext(), fontSize = this.fontSize(), metrics;
         _context.save();
         _context.font = this._getContextFont();
         metrics = _context.measureText(text);
         _context.restore();
+        const scaleFactor = fontSize / 100;
         return {
+          actualBoundingBoxAscent: (_a = metrics.actualBoundingBoxAscent) !== null && _a !== void 0 ? _a : 71.58203125 * scaleFactor,
+          actualBoundingBoxDescent: (_b = metrics.actualBoundingBoxDescent) !== null && _b !== void 0 ? _b : 0,
+          actualBoundingBoxLeft: (_c = metrics.actualBoundingBoxLeft) !== null && _c !== void 0 ? _c : -7.421875 * scaleFactor,
+          actualBoundingBoxRight: (_d = metrics.actualBoundingBoxRight) !== null && _d !== void 0 ? _d : 75.732421875 * scaleFactor,
+          alphabeticBaseline: (_e = metrics.alphabeticBaseline) !== null && _e !== void 0 ? _e : 0,
+          emHeightAscent: (_f = metrics.emHeightAscent) !== null && _f !== void 0 ? _f : 100 * scaleFactor,
+          emHeightDescent: (_g = metrics.emHeightDescent) !== null && _g !== void 0 ? _g : -20 * scaleFactor,
+          fontBoundingBoxAscent: (_h = metrics.fontBoundingBoxAscent) !== null && _h !== void 0 ? _h : 91 * scaleFactor,
+          fontBoundingBoxDescent: (_j = metrics.fontBoundingBoxDescent) !== null && _j !== void 0 ? _j : 21 * scaleFactor,
+          hangingBaseline: (_k = metrics.hangingBaseline) !== null && _k !== void 0 ? _k : 72.80000305175781 * scaleFactor,
+          ideographicBaseline: (_l = metrics.ideographicBaseline) !== null && _l !== void 0 ? _l : -21 * scaleFactor,
           width: metrics.width,
           height: fontSize
         };
@@ -20246,7 +20277,7 @@ var require_index_001 = __commonJS({
       "lineHeight",
       "letterSpacing"
     ];
-    (0, Global_1$3._registerNode)(Text);
+    (0, Global_2$2._registerNode)(Text);
     Factory_1$i.Factory.overWriteSetter(Text, "width", (0, Validators_1$i.getNumberOrAutoValidator)());
     Factory_1$i.Factory.overWriteSetter(Text, "height", (0, Validators_1$i.getNumberOrAutoValidator)());
     Factory_1$i.Factory.addGetterSetter(Text, "direction", INHERIT);
@@ -20925,6 +20956,9 @@ var require_index_001 = __commonJS({
         });
       }
       _handleMouseDown(e) {
+        if (this._transforming) {
+          return;
+        }
         this._movingAnchorName = e.target.name().split(" ")[0];
         var attrs2 = this._getNodeRect();
         var width = attrs2.width;
@@ -23118,8 +23152,8 @@ var require_index_001 = __commonJS({
       draw() {
       }
       clear() {
-        const name = this.group.name();
         this.group.destroy();
+        const name = this.group.name();
         this.group = new Konva.Group({ name });
         this.layer.add(this.group);
       }
@@ -23700,7 +23734,9 @@ var require_index_001 = __commonJS({
               rect.on("click", (e) => {
                 if (e.evt.button === MouseButton.左键) {
                   menu.action(e);
-                  this.group.removeChildren();
+                  this.group.getChildren().forEach((o) => {
+                    o.destroy();
+                  });
                   this.state.target = null;
                 }
                 e.evt.preventDefault();
@@ -24062,7 +24098,7 @@ var require_index_001 = __commonJS({
         return neighbors;
       }
     }
-    class LinkDraw extends BaseDraw {
+    const _LinkDraw = class _LinkDraw extends BaseDraw {
       constructor(render, layer, option) {
         super(render, layer);
         __publicField(this, "option");
@@ -24471,7 +24507,7 @@ var require_index_001 = __commonJS({
                     circle.destroy();
                     manualingLine.destroy();
                     this.render.updateHistory();
-                    this.render.redraw();
+                    this.render.redraw([_LinkDraw.name]);
                   });
                   this.group.add(circle);
                 }
@@ -24545,7 +24581,7 @@ var require_index_001 = __commonJS({
                     circle.destroy();
                     manualingLine.destroy();
                     this.render.updateHistory();
-                    this.render.redraw();
+                    this.render.redraw([_LinkDraw.name]);
                   });
                   this.group.add(circle);
                 }
@@ -24873,7 +24909,7 @@ var require_index_001 = __commonJS({
                             ];
                           }
                           this.render.updateHistory();
-                          this.render.redraw();
+                          this.render.redraw([_LinkDraw.name]);
                         }
                       }
                     }
@@ -24887,8 +24923,9 @@ var require_index_001 = __commonJS({
           }
         }
       }
-    }
-    __publicField(LinkDraw, "name", "Link");
+    };
+    __publicField(_LinkDraw, "name", "Link");
+    let LinkDraw = _LinkDraw;
     class AttractDraw extends BaseDraw {
       constructor(render, layer, option) {
         super(render, layer);
@@ -24987,7 +25024,7 @@ var require_index_001 = __commonJS({
                     x: this.mousedownStagePos.x + offsetX,
                     y: this.mousedownStagePos.y + offsetY
                   });
-                  this.render.redraw();
+                  this.render.redraw([BgDraw.name, RulerDraw.name, PreviewDraw.name]);
                 }
               }
             }
@@ -25024,7 +25061,12 @@ var require_index_001 = __commonJS({
                     x: pos.x - mousePointTo.x * newScale,
                     y: pos.y - mousePointTo.y * newScale
                   });
-                  this.render.redraw();
+                  this.render.redraw([
+                    BgDraw.name,
+                    RulerDraw.name,
+                    RefLineDraw.name,
+                    PreviewDraw.name
+                  ]);
                 }
               }
             }
@@ -25041,11 +25083,11 @@ var require_index_001 = __commonJS({
           dom: {
             dragenter: (e) => {
               this.render.stage.setPointersPositions(e);
-              this.render.draws[RefLineDraw.name].draw();
+              this.render.redraw([RefLineDraw.name]);
             },
             dragover: (e) => {
               this.render.stage.setPointersPositions(e);
-              this.render.draws[RefLineDraw.name].draw();
+              this.render.redraw([RefLineDraw.name]);
             },
             drop: (e) => {
               var _a, _b, _c;
@@ -25157,7 +25199,7 @@ var require_index_001 = __commonJS({
                       (_a2 = group.findOne("#hoverRect")) == null ? void 0 : _a2.visible(false);
                     });
                     this.render.updateHistory();
-                    this.render.redraw();
+                    this.render.redraw([PreviewDraw.name]);
                   });
                 }
               }
@@ -25328,12 +25370,12 @@ var require_index_001 = __commonJS({
               }
             },
             transform: () => {
-              this.render.redraw();
+              this.render.redraw([LinkDraw.name, PreviewDraw.name]);
             },
             transformend: () => {
               this.reset();
               this.render.updateHistory();
-              this.render.redraw();
+              this.render.redraw([LinkDraw.name, PreviewDraw.name]);
             },
             //
             dragstart: () => {
@@ -25348,12 +25390,12 @@ var require_index_001 = __commonJS({
                   y: this.render.toStageValue(transformerPos.y - this.transformerMousedownPos.y)
                 });
               }
-              this.render.redraw();
+              this.render.redraw([LinkDraw.name, PreviewDraw.name]);
             },
             dragend: () => {
               this.reset();
               this.render.updateHistory();
-              this.render.redraw();
+              this.render.redraw([LinkDraw.name, PreviewDraw.name]);
             },
             // 子节点 hover
             mousemove: () => {
@@ -25495,7 +25537,7 @@ var require_index_001 = __commonJS({
                     this.speed++;
                   }
                   this.change();
-                  this.render.redraw();
+                  this.render.redraw([LinkDraw.name, PreviewDraw.name]);
                 }
               }
             },
@@ -25605,20 +25647,27 @@ var require_index_001 = __commonJS({
       // 加载 gif
       async loadGif(src) {
         return new Promise((resolve) => {
-          const canvas = document.createElement("canvas");
-          gifler(src).frames(canvas, (ctx, frame) => {
-            canvas.width = frame.width;
-            canvas.height = frame.height;
-            ctx.drawImage(frame.buffer, 0, 0);
-            this.render.layer.draw();
-            this.render.draws[PreviewDraw.name].draw();
+          const img = document.createElement("img");
+          img.onload = () => {
+            const canvas = document.createElement("canvas");
+            canvas.width = img.naturalWidth;
+            canvas.height = img.naturalWidth;
+            img.remove();
+            const gif = gifler(src);
+            gif.frames(canvas, (ctx, frame) => {
+              ctx.drawImage(frame.buffer, 0, 0);
+              this.render.layer.draw();
+              this.render.draws[PreviewDraw.name].layer.draw();
+            });
             resolve(
               new Konva.Image({
                 image: canvas,
+                // TODO: 拖动 gif 素材产生大量 JS event listeners
                 gif: src
               })
             );
-          });
+          };
+          img.src = src;
         });
       }
       // 加载图片
@@ -25711,9 +25760,6 @@ var require_index_001 = __commonJS({
           (_b = (_a = this.render.config.on) == null ? void 0 : _a.selectionChange) == null ? void 0 : _b.call(_a, []);
         }
         this.render.transformer.nodes([]);
-        const change = this.selectingNodes.findIndex(
-          (o) => o.attrs.lastZIndex !== void 0 && o.zIndex() !== o.attrs.lastZIndex
-        ) > -1;
         for (const node of [...this.selectingNodes].sort(
           (a, b) => a.attrs.lastZIndex - b.attrs.lastZIndex
         )) {
@@ -25734,9 +25780,6 @@ var require_index_001 = __commonJS({
         }
         this.selectingNodes = [];
         this.render.linkTool.pointsVisible(false);
-        if (change) {
-          this.render.redraw();
-        }
       }
       // 选择节点
       select(nodes) {
@@ -25764,7 +25807,6 @@ var require_index_001 = __commonJS({
               // 选择中
             });
             this.render.linkTool.pointsVisible(false, node);
-            this.render.redraw();
           }
           for (const node of nodes.sort((a, b) => a.zIndex() - b.zIndex())) {
             node.setAttrs({
@@ -25962,7 +26004,7 @@ var require_index_001 = __commonJS({
         this.render.layer.add(...clones);
         this.render.selectionTool.select(clones);
         this.render.updateHistory();
-        this.render.redraw();
+        this.render.redraw([LinkDraw.name, PreviewDraw.name]);
       }
     }
     __publicField(CopyTool, "name", "CopyTool");
@@ -25984,7 +26026,13 @@ var require_index_001 = __commonJS({
           x: this.render.rulerSize,
           y: this.render.rulerSize
         });
-        this.render.redraw();
+        this.render.redraw([
+          BgDraw.name,
+          LinkDraw.name,
+          RulerDraw.name,
+          RefLineDraw.name,
+          PreviewDraw.name
+        ]);
       }
       // 更新中心位置
       updateCenter(x = 0, y = 0) {
@@ -26008,7 +26056,13 @@ var require_index_001 = __commonJS({
           x: stageState.width / 2 - this.render.toBoardValue(minX) - this.render.toBoardValue(x) + this.render.rulerSize,
           y: stageState.height / 2 - this.render.toBoardValue(minY) - this.render.toBoardValue(y) + this.render.rulerSize
         });
-        this.render.redraw();
+        this.render.redraw([
+          BgDraw.name,
+          LinkDraw.name,
+          RulerDraw.name,
+          RefLineDraw.name,
+          PreviewDraw.name
+        ]);
       }
     }
     __publicField(PositionTool, "name", "PositionTool");
@@ -26093,7 +26147,7 @@ var require_index_001 = __commonJS({
           }
           this.updateLastZindex(sorted);
           this.render.updateHistory();
-          this.render.redraw();
+          this.render.redraw([LinkDraw.name, PreviewDraw.name]);
         }
       }
       // 下移
@@ -26121,7 +26175,7 @@ var require_index_001 = __commonJS({
           }
           this.updateLastZindex(sorted);
           this.render.updateHistory();
-          this.render.redraw();
+          this.render.redraw([LinkDraw.name, PreviewDraw.name]);
         }
       }
       // 置顶
@@ -26142,7 +26196,7 @@ var require_index_001 = __commonJS({
           }
           this.updateLastZindex(sorted);
           this.render.updateHistory();
-          this.render.redraw();
+          this.render.redraw([LinkDraw.name, PreviewDraw.name]);
         }
       }
       // 置底
@@ -26163,7 +26217,7 @@ var require_index_001 = __commonJS({
           }
           this.updateLastZindex(sorted);
           this.render.updateHistory();
-          this.render.redraw();
+          this.render.redraw([LinkDraw.name, PreviewDraw.name]);
         }
       }
     }
@@ -26906,65 +26960,78 @@ var require_index_001 = __commonJS({
        */
       getView(withLink = false) {
         const copy = this.render.stage.clone();
-        const main = copy.find("#main")[0];
-        const cover = copy.find("#cover")[0];
-        copy.removeChildren();
-        let nodes = main.getChildren((node) => {
-          return !this.render.ignore(node);
+        copy.getChildren().filter((o) => !["main", "cover"].includes(o.id()));
+        let main, cover;
+        copy.getChildren().forEach((o) => {
+          const id = o.id();
+          if (["main", "cover"].includes(id)) {
+            if (id === "main") {
+              main = o;
+            } else if (id === "cover") {
+              cover = o;
+            }
+          } else {
+            o.destroy();
+          }
         });
-        for (const node of nodes) {
-          for (const child of node.children) {
-            if (this.render.ignoreSelect(child)) {
-              child.remove();
+        if (main && cover) {
+          let nodes = main.getChildren((node) => {
+            return !this.render.ignore(node);
+          });
+          for (const node of nodes) {
+            for (const child of node.children) {
+              if (this.render.ignoreSelect(child)) {
+                child.destroy();
+              }
             }
           }
+          if (withLink) {
+            const linkDraw = cover.children.find(
+              (o) => o.attrs.name === LinkDraw.name
+            );
+            if (linkDraw) {
+              nodes = nodes.concat(linkDraw.children.filter((o) => o.attrs.name === "link-line"));
+            }
+          }
+          const layer = new Konva.Layer();
+          layer.add(...nodes);
+          nodes = layer.getChildren();
+          let minX = 0;
+          let maxX = copy.width() - this.render.rulerSize;
+          let minY = 0;
+          let maxY = copy.height() - this.render.rulerSize;
+          for (const node of nodes) {
+            const x = node.x();
+            const y = node.y();
+            const width = node.width();
+            const height = node.height();
+            if (x < minX) {
+              minX = x;
+            }
+            if (x + width > maxX) {
+              maxX = x + width;
+            }
+            if (y < minY) {
+              minY = y;
+            }
+            if (y + height > maxY) {
+              maxY = y + height;
+            }
+            if (node.attrs.nodeMousedownPos) {
+              node.setAttrs({
+                opacity: copy.attrs.lastOpacity ?? 1
+              });
+            }
+          }
+          copy.add(layer);
+          copy.setAttrs({
+            x: -minX,
+            y: -minY,
+            scale: { x: 1, y: 1 },
+            width: maxX - minX,
+            height: maxY - minY
+          });
         }
-        if (withLink) {
-          const linkDraw = cover.children.find(
-            (o) => o.attrs.name === LinkDraw.name
-          );
-          if (linkDraw) {
-            nodes = nodes.concat(linkDraw.children.filter((o) => o.attrs.name === "link-line"));
-          }
-        }
-        const layer = new Konva.Layer();
-        layer.add(...nodes);
-        nodes = layer.getChildren();
-        let minX = 0;
-        let maxX = copy.width() - this.render.rulerSize;
-        let minY = 0;
-        let maxY = copy.height() - this.render.rulerSize;
-        for (const node of nodes) {
-          const x = node.x();
-          const y = node.y();
-          const width = node.width();
-          const height = node.height();
-          if (x < minX) {
-            minX = x;
-          }
-          if (x + width > maxX) {
-            maxX = x + width;
-          }
-          if (y < minY) {
-            minY = y;
-          }
-          if (y + height > maxY) {
-            maxY = y + height;
-          }
-          if (node.attrs.nodeMousedownPos) {
-            node.setAttrs({
-              opacity: copy.attrs.lastOpacity ?? 1
-            });
-          }
-        }
-        copy.add(layer);
-        copy.setAttrs({
-          x: -minX,
-          y: -minY,
-          scale: { x: 1, y: 1 },
-          width: maxX - minX,
-          height: maxY - minY
-        });
         return copy;
       }
       // 保存
@@ -27018,7 +27085,9 @@ var require_index_001 = __commonJS({
       async restore(json, silent = false) {
         try {
           this.render.selectionTool.selectingClear();
-          this.render.layer.removeChildren();
+          this.render.layer.getChildren().forEach((o) => {
+            o.destroy();
+          });
           const container = document.createElement("div");
           const stage = Konva.Node.create(json, container);
           const main = stage.getChildren()[0];
@@ -27052,7 +27121,7 @@ var require_index_001 = __commonJS({
             this.render.updateHistory();
           }
           this.render.linkTool.pointsVisible(false);
-          this.render.redraw();
+          this.render.redraw([LinkDraw.name, PreviewDraw.name]);
         } catch (e) {
           console.error(e);
         }
@@ -27415,7 +27484,7 @@ var require_index_001 = __commonJS({
           }
         }
         this.render.updateHistory();
-        this.render.redraw();
+        this.render.redraw([LinkDraw.name, PreviewDraw.name]);
       }
     }
     __publicField(AlignTool, "name", "AlignTool");
@@ -27437,7 +27506,7 @@ var require_index_001 = __commonJS({
           });
         }
         if (!this.render.draws[LinkDraw.name].state.linkManualing) {
-          this.render.redraw();
+          this.render.redraw([LinkDraw.name]);
         }
       }
       remove(line) {
@@ -27454,7 +27523,7 @@ var require_index_001 = __commonJS({
               if (pairIndex > -1) {
                 point.pairs.splice(pairIndex, 1);
                 group.setAttr("points", points);
-                this.render.redraw();
+                this.render.redraw([LinkDraw.name, PreviewDraw.name]);
               }
             }
           }
@@ -28131,15 +28200,35 @@ var require_index_001 = __commonJS({
       ignoreLink(node) {
         return node.name() === "link-anchor" || node.name() === "linking-line" || node.name() === "link-point" || node.name() === "link-line" || node.name() === "link-manual-point";
       }
-      // 重绘（保留部分单独控制 draw）
-      redraw() {
-        this.draws[BgDraw.name].draw();
-        this.draws[LinkDraw.name].draw();
-        this.draws[AttractDraw.name].draw();
-        this.draws[RulerDraw.name].draw();
-        this.draws[RefLineDraw.name].draw();
-        this.draws[PreviewDraw.name].draw();
-        this.draws[ContextmenuDraw.name].draw();
+      // 重绘（可选择）
+      redraw(drawNames) {
+        const all = [
+          BgDraw.name,
+          // 更新背景
+          LinkDraw.name,
+          // 更新连线
+          AttractDraw.name,
+          // 更新磁贴
+          RulerDraw.name,
+          // 更新比例尺
+          RefLineDraw.name,
+          // 更新参考线
+          PreviewDraw.name,
+          // 更新预览
+          ContextmenuDraw.name
+          // 更新右键菜单
+        ];
+        if (Array.isArray(drawNames)) {
+          for (const name of all) {
+            if (drawNames.includes(name)) {
+              this.draws[name].draw();
+            }
+          }
+        } else {
+          for (const name of all) {
+            this.draws[name].draw();
+          }
+        }
       }
     }
     const attrs$2 = {
@@ -34959,7 +35048,7 @@ var require_index_001 = __commonJS({
         console.error(e);
       }
     };
-    var define_BUILD_INFO_default = { lastBuildTime: "2024-08-01 21:55:03", git: { branch: "master", hash: "a7e9423fdf07d77b62e0d8976815f90c05477e6e", tag: "chapter17" } };
+    var define_BUILD_INFO_default = { lastBuildTime: "2024-08-07 12:15:32", git: { branch: "master", hash: "131e1c77e8c5a4febdabde86808466435f46fec8", tag: "chapter19" } };
     const {
       lastBuildTime,
       git: { branch, tag, hash }
