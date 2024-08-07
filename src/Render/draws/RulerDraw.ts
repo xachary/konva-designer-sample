@@ -198,21 +198,6 @@ export class RulerDraw extends Types.BaseDraw implements Types.Draw {
           fill: '#ddd'
         })
       )
-      group.add(
-        // 倍率
-        new Konva.Text({
-          name: this.constructor.name,
-          x: this.render.toStageValue(-stageState.x),
-          y: this.render.toStageValue(-stageState.y),
-          text: `x${stageState.scale.toFixed(1)}`,
-          fontSize: this.render.toStageValue(14),
-          fill: 'blue',
-          align: 'center',
-          verticalAlign: 'middle',
-          width: this.render.toStageValue(this.option.size),
-          height: this.render.toStageValue(this.option.size)
-        })
-      )
 
       group.add(groupTop)
       group.add(groupLeft)

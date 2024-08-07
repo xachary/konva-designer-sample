@@ -1,4 +1,5 @@
 import _ from 'lodash-es'
+import mitt, { type Emitter } from 'mitt'
 //
 import Konva from 'konva'
 //
@@ -85,9 +86,14 @@ export class Render {
   // 调试模式
   debug = false
 
+  protected emitter: Emitter<Types.RenderEvents> = mitt()
+  on: Emitter<Types.RenderEvents>['on']
+  off: Emitter<Types.RenderEvents>['off']
+  emit: Emitter<Types.RenderEvents>['emit']
+
   changeDebug(v: boolean) {
     this.debug = v
-    this.config.on?.debugChange?.(this.debug)
+    this.emit('debug-change', this.debug)
 
     this.draws[Draws.LinkDraw.name].init()
     this.draws[Draws.AttractDraw.name].init()
@@ -101,6 +107,9 @@ export class Render {
 
   constructor(stageEle: HTMLDivElement, config: Types.RenderConfig) {
     this.config = config
+    this.on = this.emitter.on.bind(this.emitter)
+    this.off = this.emitter.off.bind(this.emitter)
+    this.emit = this.emitter.emit.bind(this.emitter)
 
     if (this.config.showRuler) {
       this.rulerSize = 40
@@ -245,8 +254,12 @@ export class Render {
     if (record) {
       this.importExportTool.restore(record, true)
       this.historyIndex--
+      
       // 历史变化事件
-      this.config.on?.historyChange?.(_.clone(this.history), this.historyIndex)
+      this.emit('history-change', {
+        records: _.clone(this.history),
+        index: this.historyIndex
+      })
     }
   }
 
@@ -256,7 +269,10 @@ export class Render {
       this.importExportTool.restore(record, true)
       this.historyIndex++
       // 历史变化事件
-      this.config.on?.historyChange?.(_.clone(this.history), this.historyIndex)
+      this.emit('history-change', {
+        records: _.clone(this.history),
+        index: this.historyIndex
+      })
     }
   }
 
@@ -265,7 +281,10 @@ export class Render {
     this.history.push(this.importExportTool.save())
     this.historyIndex = this.history.length - 1
     // 历史变化事件
-    this.config.on?.historyChange?.(_.clone(this.history), this.historyIndex)
+    this.emit('history-change', {
+      records: _.clone(this.history),
+      index: this.historyIndex
+    })
   }
 
   // 事件绑定

@@ -16,6 +16,8 @@ export class PositionTool {
       scale: { x: 1, y: 1 }
     })
 
+    this.render.emit('scale-change', 1)
+
     this.positionReset()
   }
 

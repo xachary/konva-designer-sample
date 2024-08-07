@@ -1,6 +1,7 @@
 import Konva from 'konva'
 //
 import { Render } from '../index'
+// import * as Draws from '../draws'
 
 export class SelectionTool {
   static readonly name = 'SelectionTool'
@@ -17,7 +18,7 @@ export class SelectionTool {
   selectingClear() {
     // 选择变化了
     if (this.selectingNodes.length > 0) {
-      this.render.config.on?.selectionChange?.([])
+      this.render.emit('selection-change', [])
     }
     // 清空选择
     this.render.transformer.nodes([])
@@ -55,8 +56,8 @@ export class SelectionTool {
     this.render.linkTool.pointsVisible(false)
 
     // if (change) {
-    // 重绘
-    // this.render.redraw([Draws.PreviewDraw.name])
+    //   // 重绘
+    //   this.render.redraw([])
     // }
   }
 
@@ -64,7 +65,7 @@ export class SelectionTool {
   select(nodes: Konva.Node[]) {
     // 选择变化了
     if (nodes.length !== this.selectingNodes.length) {
-      this.render.config.on?.selectionChange?.(nodes)
+      this.render.emit('selection-change', nodes)
     }
     // 选之前，清一下
     this.selectingClear()

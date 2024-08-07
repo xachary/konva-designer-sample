@@ -394,7 +394,7 @@ export class LinkDraw extends Types.BaseDraw implements Types.Draw {
    */
   changeLinkType(linkType: Types.LinkType) {
     this.state.linkType = linkType
-    this.render.config?.on?.linkTypeChange?.(this.state.linkType)
+    this.render.emit('link-type-change', this.state.linkType)
   }
 
   override draw() {
@@ -598,7 +598,11 @@ export class LinkDraw extends Types.BaseDraw implements Types.Draw {
                 this.render.attractTool.alignLinesClear()
 
                 // 重绘
-                this.render.redraw([Draws.LinkDraw.name, Draws.AttractDraw.name])
+                this.render.redraw([
+                  Draws.LinkDraw.name,
+                  Draws.AttractDraw.name,
+                  Draws.RulerDraw.name
+                ])
               })
 
               this.group.add(circle)

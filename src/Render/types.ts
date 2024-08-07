@@ -14,13 +14,14 @@ export interface RenderConfig {
   attractResize?: boolean
   attractBg?: boolean
   attractNode?: boolean
-  //
-  on?: {
-    historyChange?: (history: string[], historyIndex: number) => void
-    selectionChange?: (selection: Konva.Node[]) => void
-    debugChange?: (v: boolean) => void
-    linkTypeChange?: (type: LinkType) => void
-  }
+}
+
+export type RenderEvents = {
+  ['history-change']: { records: string[]; index: number }
+  ['selection-change']: Konva.Node[]
+  ['debug-change']: boolean
+  ['link-type-change']: LinkType
+  ['scale-change']: number
 }
 
 export interface Handler {
@@ -52,7 +53,7 @@ export enum MouseButton {
 
 export interface Draw {
   readonly layer: Konva.Layer
-  
+
   option: {
     [index: string]: any
   }

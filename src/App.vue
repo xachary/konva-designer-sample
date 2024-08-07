@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { ref, type Ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 
 import { Render } from './Render'
 
 import * as Types from './Render/types'
-import * as Draws from './Render/draws'
-import type Konva from 'konva'
+
+import MainHeader from '@/components/main-header/index.vue'
 
 // 连接线测试数据
 import linkTestData from './test/link.json'
@@ -24,6 +24,7 @@ const stageElement = ref<HTMLDivElement>()
 
 // 渲染器
 let render: Render | null = null
+const ready = ref(false)
 
 const resizer = (() => {
   // 监听器
@@ -69,24 +70,7 @@ const resizer = (() => {
   }
 })()
 
-// 历史记录
-const history = ref<string[]>([])
-const historyIndex = ref(-1)
-
-const debug = ref(false)
 const full = ref(false)
-
-function onPrev() {
-  if (render) {
-    render.prevHistory()
-  }
-}
-
-function onNext() {
-  if (render) {
-    render.nextHistory()
-  }
-}
 
 function init() {
   if (boardElement.value && stageElement.value) {
@@ -105,23 +89,9 @@ function init() {
             attractBg: true,
             showPreview: true,
             attractNode: true,
-            //
-            on: {
-              historyChange: (records: string[], index: number) => {
-                history.value = records
-                historyIndex.value = index
-              },
-              selectionChange: (nodes: Konva.Node[]) => {
-                selection.value = nodes
-              },
-              debugChange: (v: boolean) => {
-                debug.value = v
-              },
-              linkTypeChange: (type: Types.LinkType) => {
-                currentLinkType.value = type
-              }
-            }
           })
+
+          ready.value = true
         }
         render.resize(width, height)
       }
@@ -129,14 +99,14 @@ function init() {
 
     // onFull()
     // setTimeout(() => {
-      //   // onLinkTest()
-      //   // onRotateTest()
-      //   onAlignTest()
-      //   onDebug()
-      // render?.importExportTool.restore(JSON.stringify(copyTestData))
-      // render?.importExportTool.restore(JSON.stringify(subAssetTestData))
-      // render?.importExportTool.restore(JSON.stringify(hoverTestData))
-      // render?.importExportTool.restore(JSON.stringify(manualTestData))
+    //   // onLinkTest()
+    //   // onRotateTest()
+    //   onAlignTest()
+    //   onDebug()
+    // render?.importExportTool.restore(JSON.stringify(copyTestData))
+    // render?.importExportTool.restore(JSON.stringify(subAssetTestData))
+    // render?.importExportTool.restore(JSON.stringify(hoverTestData))
+    // render?.importExportTool.restore(JSON.stringify(manualTestData))
     // }, 1000)
   }
 }
@@ -251,111 +221,7 @@ function onDragstart(e: GlobalEventHandlersEventMap['dragstart'], item: Types.As
   }
 }
 
-// 保持 json 文件
-function onSave() {
-  if (render) {
-    const a = document.createElement('a')
-    const event = new MouseEvent('click')
-    a.download = 'data.json'
-    a.href = window.URL.createObjectURL(new Blob([render.importExportTool.save()]))
-    a.dispatchEvent(event)
-    a.remove()
-  }
-}
-
-// 从 json 文件恢复
-function onRestore() {
-  if (render) {
-    const input = document.createElement('input')
-    input.type = 'file'
-    const event = new MouseEvent('click')
-    input.dispatchEvent(event)
-    input.remove()
-    input.onchange = () => {
-      const files = input.files
-      if (files) {
-        let reader = new FileReader()
-        reader.onload = function () {
-          // 读取为 json 文本
-          render!.importExportTool.restore(this.result!.toString())
-        }
-        reader.readAsText(files[0])
-      }
-    }
-  }
-}
-
-// 另存为图片
-function onSavePNG() {
-  if (render) {
-    // 3倍尺寸、白色背景
-    const url = render.importExportTool.getImage(3, '#ffffff')
-
-    const a = document.createElement('a')
-    const event = new MouseEvent('click')
-    a.download = 'image'
-    a.href = url
-    a.dispatchEvent(event)
-    a.remove()
-  }
-}
-
-// 另存为Svg
-async function onSaveSvg() {
-  if (render) {
-    // 3倍尺寸、白色背景
-    const svg = await render.importExportTool.getSvg()
-
-    const a = document.createElement('a')
-    const event = new MouseEvent('click')
-    a.download = 'image.svg'
-    a.href = window.URL.createObjectURL(new Blob([svg]))
-    a.dispatchEvent(event)
-    a.remove()
-  }
-}
-
-// 另存为元素
-function onSaveAsset() {
-  if (render) {
-    const a = document.createElement('a')
-    const event = new MouseEvent('click')
-    a.download = 'asset.json'
-    a.href = window.URL.createObjectURL(new Blob([render.importExportTool.getAsset()]))
-    a.dispatchEvent(event)
-    a.remove()
-  }
-}
-
-// 另存为元素图片
-function onSaveAssetPNG() {
-  if (render) {
-    // 3倍尺寸、白色背景
-    const url = render.importExportTool.getAssetImage(3, '#ffffff')
-
-    const a = document.createElement('a')
-    const event = new MouseEvent('click')
-    a.download = 'image'
-    a.href = url
-    a.dispatchEvent(event)
-    a.remove()
-  }
-}
-
-// 选择项
-const selection: Ref<Konva.Node[]> = ref([])
-// 是否可以进行对齐
-const noAlign = computed(() => selection.value.length <= 1)
-// 对齐方法
-function onAlign(type: Types.AlignType) {
-  render?.alignTool.align(type)
-}
-
 // 测试
-function onDebug() {
-  debug.value = render?.changeDebug(!debug.value) ?? false
-}
-
 function onLinkTest() {
   render?.importExportTool.restore(JSON.stringify(linkTestData))
 }
@@ -371,37 +237,12 @@ function onAlignTest() {
 function onFull() {
   full.value = !full.value
 }
-
-const currentLinkType = ref(Types.LinkType.auto)
-
-function onLinkTypeChange(linkType: Types.LinkType) {
-  (render?.draws[Draws.LinkDraw.name] as Draws.LinkDraw).changeLinkType(linkType)
-}
 </script>
 
 <template>
   <div class="page">
     <header :style="{ height: full ? 0 : undefined, padding: full ? 0 : undefined }">
-      <button @click="onRestore">导入</button>
-      <button @click="onSave">导出</button>
-      <button @click="onSavePNG">另存为图片</button>
-      <button @click="onSaveSvg">另存为Svg</button>
-      <button @click="onSaveAsset">另存为元素</button>
-      <button @click="onSaveAssetPNG">另存为元素图片</button>
-      <button @click="onPrev" :disabled="historyIndex <= 0">上一步</button>
-      <button @click="onNext" :disabled="historyIndex >= history.length - 1">下一步</button>
-      <button @click="onAlign(Types.AlignType.垂直居中)" :disabled="noAlign">垂直居中</button>
-      <button @click="onAlign(Types.AlignType.左对齐)" :disabled="noAlign">左对齐</button>
-      <button @click="onAlign(Types.AlignType.右对齐)" :disabled="noAlign">右对齐</button>
-      <button @click="onAlign(Types.AlignType.水平居中)" :disabled="noAlign">水平居中</button>
-      <button @click="onAlign(Types.AlignType.上对齐)" :disabled="noAlign">上对齐</button>
-      <button @click="onAlign(Types.AlignType.下对齐)" :disabled="noAlign">下对齐</button>
-      <button @click="onLinkTypeChange(Types.LinkType.auto)"
-        :disabled="currentLinkType === Types.LinkType.auto">连接线：自动</button>
-      <button @click="onLinkTypeChange(Types.LinkType.straight)"
-        :disabled="currentLinkType === Types.LinkType.straight">连接线：直线</button>
-      <button @click="onLinkTypeChange(Types.LinkType.manual)"
-        :disabled="currentLinkType === Types.LinkType.manual">连接线：手动</button>
+      <MainHeader :render="render" v-if="ready" />
     </header>
     <section>
       <header :style="{ width: full ? 0 : undefined }">
@@ -425,8 +266,6 @@ function onLinkTypeChange(linkType: Types.LinkType) {
       <button @click="onLinkTest">“连接线”方向测试数据</button>
       <button @click="onRotateTest">“连接线”出入口测试数据</button>
       <button @click="onAlignTest">“对齐”测试数据</button>
-
-      <button @click="onDebug">{{ debug ? '关闭调试' : '开启调试' }}</button>
       <button @click="onFull">{{ full ? '显示工具栏' : '隐藏工具栏' }}</button>
     </footer>
   </div>
@@ -440,7 +279,6 @@ function onLinkTypeChange(linkType: Types.LinkType) {
 
   &>header,
   &>footer {
-    height: 64px;
     flex-shrink: 0;
     z-index: 2;
   }
@@ -448,10 +286,10 @@ function onLinkTypeChange(linkType: Types.LinkType) {
   &>header,
   &>footer {
     box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    display: flex;
-    padding: 12px;
-    align-items: center;
-    overflow: hidden;
+    // display: flex;
+    // padding: 12px;
+    // align-items: center;
+    // overflow: hidden;
 
     &>button {
       &+button {

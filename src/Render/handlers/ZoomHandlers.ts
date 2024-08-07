@@ -15,7 +15,7 @@ export class ZoomHandlers implements Types.Handler {
   // zoom 速度
   scaleBy = 0.1
   // zoom 范围
-  scaleMin = 0.5
+  scaleMin = 0.2
   scaleMax = 5
 
   handlers = {
@@ -41,6 +41,7 @@ export class ZoomHandlers implements Types.Handler {
           if (newScale >= this.scaleMin && newScale < this.scaleMax) {
             // 缩放 stage
             this.render.stage.scale({ x: newScale, y: newScale })
+            this.render.emit('scale-change', newScale)
 
             // 移动 stage
             this.render.stage.position({
