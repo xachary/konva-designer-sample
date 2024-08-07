@@ -22,13 +22,13 @@ export class DragOutsideHandlers implements Types.Handler {
         this.render.stage.setPointersPositions(e)
         
         // 更新参考线
-        this.render.draws[Draws.RefLineDraw.name].draw()
+        this.render.redraw([Draws.RefLineDraw.name])
       },
       dragover: (e: GlobalEventHandlersEventMap['dragover']) => {
         this.render.stage.setPointersPositions(e)
         
         // 更新参考线
-        this.render.draws[Draws.RefLineDraw.name].draw()
+        this.render.redraw([Draws.RefLineDraw.name])
       },
       drop: (e: GlobalEventHandlersEventMap['drop']) => {
         const src = e.dataTransfer?.getData('src')
@@ -183,7 +183,7 @@ export class DragOutsideHandlers implements Types.Handler {
               this.render.updateHistory()
               
               // 重绘
-              this.render.redraw()
+              this.render.redraw([Draws.PreviewDraw.name])
             })
           }
         }

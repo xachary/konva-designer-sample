@@ -2,6 +2,7 @@ import Konva from 'konva'
 //
 import { Render } from '../index'
 import * as Types from '../types'
+import * as Draws from '../draws'
 
 export class ZoomHandlers implements Types.Handler {
   static readonly name = 'Zoom'
@@ -48,7 +49,12 @@ export class ZoomHandlers implements Types.Handler {
             })
 
             // 重绘
-            this.render.redraw()
+            this.render.redraw([
+              Draws.BgDraw.name,
+              Draws.RulerDraw.name,
+              Draws.RefLineDraw.name,
+              Draws.PreviewDraw.name
+            ])
           }
         }
       }

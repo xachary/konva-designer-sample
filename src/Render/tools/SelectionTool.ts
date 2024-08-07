@@ -22,10 +22,10 @@ export class SelectionTool {
     // 清空选择
     this.render.transformer.nodes([])
 
-    const change =
-      this.selectingNodes.findIndex(
-        (o) => o.attrs.lastZIndex !== void 0 && o.zIndex() !== o.attrs.lastZIndex
-      ) > -1
+    // const change =
+    //   this.selectingNodes.findIndex(
+    //     (o) => o.attrs.lastZIndex !== void 0 && o.zIndex() !== o.attrs.lastZIndex
+    //   ) > -1
 
     // 恢复透明度、层次、可交互
     for (const node of [...this.selectingNodes].sort(
@@ -54,10 +54,10 @@ export class SelectionTool {
     // 隐藏 连接点
     this.render.linkTool.pointsVisible(false)
 
-    if (change) {
-      // 重绘
-      this.render.redraw()
-    }
+    // if (change) {
+    // 重绘
+    // this.render.redraw([Draws.PreviewDraw.name])
+    // }
   }
 
   // 选择节点
@@ -92,8 +92,8 @@ export class SelectionTool {
         // 隐藏 连接点
         this.render.linkTool.pointsVisible(false, node as Konva.Group)
 
-        // 重绘
-        this.render.redraw()
+        // // 重绘
+        // this.render.redraw()
       }
 
       // 设置透明度、提升层次、不可交互

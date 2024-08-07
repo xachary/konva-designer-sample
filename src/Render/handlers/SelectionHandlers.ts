@@ -2,6 +2,7 @@ import Konva from 'konva'
 //
 import { Render } from '../index'
 import * as Types from '../types'
+import * as Draws from '../draws'
 
 export class SelectionHandlers implements Types.Handler {
   static readonly name = 'Selection'
@@ -271,7 +272,7 @@ export class SelectionHandlers implements Types.Handler {
       },
       transform: () => {
         // 重绘
-        this.render.redraw()
+        this.render.redraw([Draws.LinkDraw.name, Draws.PreviewDraw.name])
       },
       transformend: () => {
         // 变换结束
@@ -281,9 +282,9 @@ export class SelectionHandlers implements Types.Handler {
 
         // 更新历史
         this.render.updateHistory()
-       
+
         // 重绘
-        this.render.redraw()
+        this.render.redraw([Draws.LinkDraw.name, Draws.PreviewDraw.name])
       },
       //
       dragstart: () => {
@@ -304,7 +305,7 @@ export class SelectionHandlers implements Types.Handler {
         }
 
         // 重绘
-        this.render.redraw()
+        this.render.redraw([Draws.LinkDraw.name, Draws.PreviewDraw.name])
       },
       dragend: () => {
         // 拖动结束
@@ -314,9 +315,9 @@ export class SelectionHandlers implements Types.Handler {
 
         // 更新历史
         this.render.updateHistory()
-       
+
         // 重绘
-        this.render.redraw()
+        this.render.redraw([Draws.LinkDraw.name, Draws.PreviewDraw.name])
       },
       // 子节点 hover
       mousemove: () => {

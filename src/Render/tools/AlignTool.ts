@@ -2,6 +2,7 @@ import { Render } from '../index'
 //
 import * as Types from '../types'
 import Konva from 'konva'
+import * as Draws from '../draws'
 
 export class AlignTool {
   static readonly name = 'AlignTool'
@@ -151,8 +152,8 @@ export class AlignTool {
 
     // 更新历史
     this.render.updateHistory()
-    
+
     // 重绘
-    this.render.redraw()
+    this.render.redraw([Draws.LinkDraw.name, Draws.PreviewDraw.name])
   }
 }

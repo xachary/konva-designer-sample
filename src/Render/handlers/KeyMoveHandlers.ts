@@ -2,6 +2,7 @@ import _ from 'lodash-es'
 //
 import { Render } from '../index'
 import * as Types from '../types'
+import * as Draws from '../draws'
 
 export class KeyMoveHandlers implements Types.Handler {
   static readonly name = 'KeyMove'
@@ -45,7 +46,7 @@ export class KeyMoveHandlers implements Types.Handler {
             this.change()
 
             // 重绘
-            this.render.redraw()
+            this.render.redraw([Draws.LinkDraw.name, Draws.PreviewDraw.name])
           }
         }
       },

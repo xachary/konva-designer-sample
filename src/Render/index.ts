@@ -402,21 +402,29 @@ export class Render {
     )
   }
 
-  // 重绘（保留部分单独控制 draw）
-  redraw() {
-    // 更新背景
-    this.draws[Draws.BgDraw.name].draw()
-    // 更新连线
-    this.draws[Draws.LinkDraw.name].draw()
-    // 更新磁贴
-    this.draws[Draws.AttractDraw.name].draw()
-    // 更新比例尺
-    this.draws[Draws.RulerDraw.name].draw()
-    // 更新参考线
-    this.draws[Draws.RefLineDraw.name].draw()
-    // 更新预览
-    this.draws[Draws.PreviewDraw.name].draw()
-    // 更新右键菜单
-    this.draws[Draws.ContextmenuDraw.name].draw()
+  // 重绘（可选择）
+  redraw(drawNames?: string[]) {
+    const all = [
+      Draws.BgDraw.name, // 更新背景
+      Draws.LinkDraw.name, // 更新连线
+      Draws.AttractDraw.name, // 更新磁贴
+      Draws.RulerDraw.name, // 更新比例尺
+      Draws.RefLineDraw.name, // 更新参考线
+      Draws.PreviewDraw.name, // 更新预览
+      Draws.ContextmenuDraw.name // 更新右键菜单
+    ]
+
+    if (Array.isArray(drawNames)) {
+      // 选择性 draw 也要保持顺序
+      for (const name of all) {
+        if (drawNames.includes(name)) {
+          this.draws[name].draw()
+        }
+      }
+    } else {
+      for (const name of all) {
+        this.draws[name].draw()
+      }
+    }
   }
 }

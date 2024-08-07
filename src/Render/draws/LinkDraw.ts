@@ -2,6 +2,8 @@ import _ from 'lodash-es'
 import Konva from 'konva'
 //
 import * as Types from '../types'
+import * as Draws from '../draws'
+
 import { nanoid } from 'nanoid'
 
 // import { AStarFinder } from 'astar-typescript-cost'
@@ -593,7 +595,7 @@ export class LinkDraw extends Types.BaseDraw implements Types.Draw {
                 this.render.updateHistory()
 
                 // 重绘
-                this.render.redraw()
+                this.render.redraw([Draws.LinkDraw.name])
               })
 
               this.group.add(circle)
@@ -702,7 +704,7 @@ export class LinkDraw extends Types.BaseDraw implements Types.Draw {
                 this.render.updateHistory()
 
                 // 重绘
-                this.render.redraw()
+                this.render.redraw([Draws.LinkDraw.name])
               })
 
               this.group.add(circle)
@@ -1183,7 +1185,7 @@ export class LinkDraw extends Types.BaseDraw implements Types.Draw {
                       this.render.updateHistory()
 
                       // 重绘
-                      this.render.redraw()
+                      this.render.redraw([Draws.LinkDraw.name])
                     }
                   }
                 }

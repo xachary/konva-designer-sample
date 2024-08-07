@@ -65,7 +65,7 @@ export class DragHandlers implements Types.Handler {
             })
 
             // 重绘
-            this.render.redraw()
+            this.render.redraw([Draws.BgDraw.name, Draws.RulerDraw.name, Draws.PreviewDraw.name])
           }
         }
       }

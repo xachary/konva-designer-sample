@@ -27,7 +27,13 @@ export class PositionTool {
     })
 
     // 重绘
-    this.render.redraw()
+    this.render.redraw([
+      Draws.BgDraw.name,
+      Draws.LinkDraw.name,
+      Draws.RulerDraw.name,
+      Draws.RefLineDraw.name,
+      Draws.PreviewDraw.name
+    ])
   }
 
   // 更新中心位置
@@ -70,6 +76,12 @@ export class PositionTool {
     })
 
     // 重绘
-    this.render.redraw()
+    this.render.redraw([
+      Draws.BgDraw.name,
+      Draws.LinkDraw.name,
+      Draws.RulerDraw.name,
+      Draws.RefLineDraw.name,
+      Draws.PreviewDraw.name
+    ])
   }
 }

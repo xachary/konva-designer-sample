@@ -22,86 +22,101 @@ export class ImportExportTool {
     // 复制画布
     const copy = this.render.stage.clone()
 
-    // 提取 main layer 备用
-    const main = copy.find('#main')[0] as Konva.Layer
-    const cover = copy.find('#cover')[0] as Konva.Layer
-
     // 暂时清空所有 layer
-    copy.removeChildren()
+    copy.getChildren().filter((o) => !['main', 'cover'].includes(o.id()))
 
-    // 提取节点
-    let nodes = main.getChildren((node) => {
-      return !this.render.ignore(node)
+    // 提取 main layer 备用
+    let main: Konva.Layer | undefined, cover: Konva.Layer | undefined
+
+    copy.getChildren().forEach((o) => {
+      const id = o.id()
+      if (['main', 'cover'].includes(id)) {
+        if (id === 'main') {
+          main = o
+        } else if (id === 'cover') {
+          cover = o
+        }
+      } else {
+        // 销毁防止溢出
+        o.destroy()
+      }
     })
 
-    // 移除多余结构
-    for (const node of nodes) {
-      for (const child of (node as Konva.Group).children) {
-        if (this.render.ignoreSelect(child)) {
-          child.remove()
+    if (main && cover) {
+      // 提取节点
+      let nodes = main.getChildren((node) => {
+        return !this.render.ignore(node)
+      })
+
+      // 移除多余结构
+      for (const node of nodes) {
+        for (const child of (node as Konva.Group).children) {
+          if (this.render.ignoreSelect(child)) {
+            child.destroy()
+          }
         }
       }
+
+      if (withLink) {
+        // 从 Link group 中提取 连接线
+        const linkDraw = cover.children.find(
+          (o) => o.attrs.name === Draws.LinkDraw.name
+        ) as Konva.Group
+
+        if (linkDraw) {
+          nodes = nodes.concat(linkDraw.children.filter((o) => o.attrs.name === 'link-line'))
+        }
+      }
+
+      // 重新装载节点
+      const layer = new Konva.Layer()
+      layer.add(...nodes)
+      nodes = layer.getChildren()
+
+      // 计算节点占用的区域
+      let minX = 0
+      let maxX = copy.width() - this.render.rulerSize
+      let minY = 0
+      let maxY = copy.height() - this.render.rulerSize
+      for (const node of nodes) {
+        const x = node.x()
+        const y = node.y()
+        const width = node.width()
+        const height = node.height()
+
+        if (x < minX) {
+          minX = x
+        }
+        if (x + width > maxX) {
+          maxX = x + width
+        }
+        if (y < minY) {
+          minY = y
+        }
+        if (y + height > maxY) {
+          maxY = y + height
+        }
+
+        if (node.attrs.nodeMousedownPos) {
+          // 修正正在选中的节点透明度
+          node.setAttrs({
+            opacity: copy.attrs.lastOpacity ?? 1
+          })
+        }
+      }
+
+      // 重新装载 layer
+      copy.add(layer)
+
+      // 节点占用的区域
+      copy.setAttrs({
+        x: -minX,
+        y: -minY,
+        scale: { x: 1, y: 1 },
+        width: maxX - minX,
+        height: maxY - minY
+      })
     }
-
-    if (withLink) {
-      // 从 Link group 中提取 连接线
-      const linkDraw = cover.children.find(
-        (o) => o.attrs.name === Draws.LinkDraw.name
-      ) as Konva.Group
-
-      if (linkDraw) {
-        nodes = nodes.concat(linkDraw.children.filter((o) => o.attrs.name === 'link-line'))
-      }
-    }
-
-    // 重新装载节点
-    const layer = new Konva.Layer()
-    layer.add(...nodes)
-    nodes = layer.getChildren()
-
-    // 计算节点占用的区域
-    let minX = 0
-    let maxX = copy.width() - this.render.rulerSize
-    let minY = 0
-    let maxY = copy.height() - this.render.rulerSize
-    for (const node of nodes) {
-      const x = node.x()
-      const y = node.y()
-      const width = node.width()
-      const height = node.height()
-
-      if (x < minX) {
-        minX = x
-      }
-      if (x + width > maxX) {
-        maxX = x + width
-      }
-      if (y < minY) {
-        minY = y
-      }
-      if (y + height > maxY) {
-        maxY = y + height
-      }
-
-      if (node.attrs.nodeMousedownPos) {
-        // 修正正在选中的节点透明度
-        node.setAttrs({
-          opacity: copy.attrs.lastOpacity ?? 1
-        })
-      }
-    }
-
-    // 重新装载 layer
-    copy.add(layer)
-
-    // 节点占用的区域
-    copy.setAttrs({
-      x: -minX,
-      y: -minY,
-      scale: { x: 1, y: 1 },
-      width: maxX - minX,
-      height: maxY - minY
-    })
 
     // 返回可视节点和 layer
     return copy
@@ -177,7 +192,9 @@ export class ImportExportTool {
       this.render.selectionTool.selectingClear()
 
       // 清空 main layer 节点
-      this.render.layer.removeChildren()
+      this.render.layer.getChildren().forEach((o) => {
+        o.destroy()
+      })
 
       // 加载 json，提取节点
       const container = document.createElement('div')
@@ -235,7 +252,7 @@ export class ImportExportTool {
       this.render.linkTool.pointsVisible(false)
 
       // 重绘
-      this.render.redraw()
+      this.render.redraw([Draws.LinkDraw.name, Draws.PreviewDraw.name])
     } catch (e) {
       console.error(e)
     }

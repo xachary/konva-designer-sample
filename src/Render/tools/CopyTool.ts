@@ -220,8 +220,8 @@ export class CopyTool {
 
     // 更新历史
     this.render.updateHistory()
-    
+
     // 重绘
-    this.render.redraw()
+    this.render.redraw([Draws.LinkDraw.name, Draws.PreviewDraw.name])
   }
 }

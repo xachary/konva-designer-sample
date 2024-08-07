@@ -51,6 +51,8 @@ export enum MouseButton {
 }
 
 export interface Draw {
+  readonly layer: Konva.Layer
+  
   option: {
     [index: string]: any
   }
@@ -80,8 +82,9 @@ export class BaseDraw {
 
   clear() {
     // 重置
-    const name = this.group.name()
     this.group.destroy()
+    //
+    const name = this.group.name()
     this.group = new Konva.Group({ name })
     this.layer.add(this.group)
   }
