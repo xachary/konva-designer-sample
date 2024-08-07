@@ -52,6 +52,7 @@ export class ZoomHandlers implements Types.Handler {
             // 重绘
             this.render.redraw([
               Draws.BgDraw.name,
+              Draws.LinkDraw.name,
               Draws.RulerDraw.name,
               Draws.RefLineDraw.name,
               Draws.PreviewDraw.name
