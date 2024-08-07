@@ -12,7 +12,9 @@
         </header>
         <footer class="main-header__action">
             <NDropdown trigger="hover" :options="scaleOptions" @select="scaleChange">
-                <NButton tag="div" size="tiny" quaternary>{{ scale.toFixed(0) }}%</NButton>
+                <NButton tag="div" size="tiny" quaternary>
+                    <span class="main-header__scale">{{ scale.toFixed(0) }}%</span>
+                </NButton>
             </NDropdown>
             <NDivider vertical />
             <NTooltip trigger="hover" :delay="1000">
@@ -584,6 +586,12 @@ watch(() => props.render, () => {
 
     &__action {
         //
+    }
+
+    &__scale {
+        width: 3em;
+        text-align: right;
+        font-variant-numeric: tabular-nums;
     }
 }
 </style>
