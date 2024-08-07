@@ -9,7 +9,7 @@ var __publicField = (obj, key, value) => {
   return value;
 };
 var require_index_001 = __commonJS({
-  "assets/index-BSF90HVM.js"(exports, module) {
+  "assets/index-CtxQtoMH.js"(exports, module) {
     (function polyfill() {
       const relList = document.createElement("link").relList;
       if (relList && relList.supports && relList.supports("modulepreload")) {
@@ -24507,7 +24507,8 @@ var require_index_001 = __commonJS({
                     circle.destroy();
                     manualingLine.destroy();
                     this.render.updateHistory();
-                    this.render.redraw([_LinkDraw.name]);
+                    this.render.attractTool.alignLinesClear();
+                    this.render.redraw([_LinkDraw.name, AttractDraw.name]);
                   });
                   this.group.add(circle);
                 }
@@ -24581,7 +24582,8 @@ var require_index_001 = __commonJS({
                     circle.destroy();
                     manualingLine.destroy();
                     this.render.updateHistory();
-                    this.render.redraw([_LinkDraw.name]);
+                    this.render.attractTool.alignLinesClear();
+                    this.render.redraw([_LinkDraw.name, AttractDraw.name]);
                   });
                   this.group.add(circle);
                 }
@@ -24909,7 +24911,8 @@ var require_index_001 = __commonJS({
                             ];
                           }
                           this.render.updateHistory();
-                          this.render.redraw([_LinkDraw.name]);
+                          this.render.attractTool.alignLinesClear();
+                          this.render.redraw([_LinkDraw.name, AttractDraw.name]);
                         }
                       }
                     }
@@ -35048,7 +35051,7 @@ var require_index_001 = __commonJS({
         console.error(e);
       }
     };
-    var define_BUILD_INFO_default = { lastBuildTime: "2024-08-07 12:15:32", git: { branch: "master", hash: "131e1c77e8c5a4febdabde86808466435f46fec8", tag: "chapter19" } };
+    var define_BUILD_INFO_default = { lastBuildTime: "2024-08-07 12:36:39", git: { branch: "master", hash: "c569bad2dca2ade691b381988c5cd0c0d7b80f35", tag: "chapter19" } };
     const {
       lastBuildTime,
       git: { branch, tag, hash }
