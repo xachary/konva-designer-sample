@@ -40566,7 +40566,7 @@ const Pulse20Regular = /* @__PURE__ */ defineComponent({
     return openBlock(), createElementBlock("svg", _hoisted_1$2, _hoisted_3$2);
   }
 });
-const _withScopeId$1 = (n) => (pushScopeId("data-v-f48605ce"), n = n(), popScopeId(), n);
+const _withScopeId$1 = (n) => (pushScopeId("data-v-5a2babed"), n = n(), popScopeId(), n);
 const _hoisted_1$1 = { class: "main-header" };
 const _hoisted_2$1 = /* @__PURE__ */ _withScopeId$1(() => /* @__PURE__ */ createBaseVNode("img", {
   class: "main-header__logo",
@@ -40576,6 +40576,7 @@ const _hoisted_2$1 = /* @__PURE__ */ _withScopeId$1(() => /* @__PURE__ */ create
 const _hoisted_3$1 = /* @__PURE__ */ _withScopeId$1(() => /* @__PURE__ */ createBaseVNode("div", { class: "main-header__title" }, "Designer Sample", -1));
 const _hoisted_4$1 = { class: "main-header__menu" };
 const _hoisted_5$1 = { class: "main-header__action" };
+const _hoisted_6$1 = { class: "main-header__scale" };
 const _sfc_main$1 = /* @__PURE__ */ defineComponent({
   ...{
     name: "MainHeader"
@@ -40916,7 +40917,7 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
                 quaternary: ""
               }, {
                 default: withCtx(() => [
-                  createTextVNode(toDisplayString(scale.value.toFixed(0)) + "%", 1)
+                  createBaseVNode("span", _hoisted_6$1, toDisplayString(scale.value.toFixed(0)) + "%", 1)
                 ]),
                 _: 1
               })
@@ -41276,7 +41277,7 @@ const _export_sfc = (sfc, props) => {
   }
   return target;
 };
-const MainHeader = /* @__PURE__ */ _export_sfc(_sfc_main$1, [["__scopeId", "data-v-f48605ce"]]);
+const MainHeader = /* @__PURE__ */ _export_sfc(_sfc_main$1, [["__scopeId", "data-v-5a2babed"]]);
 const attrs$2 = {
   width: 1541,
   height: 1103
@@ -47918,7 +47919,7 @@ const logArray = (words2) => {
     console.error(e);
   }
 };
-var define_BUILD_INFO_default = { lastBuildTime: "2024-08-07 18:50:13", git: { branch: "master", hash: "a18555ca9f6d6b5e885c48139c543c097b290471", tag: "chapter19" } };
+var define_BUILD_INFO_default = { lastBuildTime: "2024-08-07 18:56:11", git: { branch: "master", hash: "73a9808b7137b14d9aebfb262dc563a578d9150d", tag: "chapter19" } };
 const {
   lastBuildTime,
   git: { branch, tag, hash }
