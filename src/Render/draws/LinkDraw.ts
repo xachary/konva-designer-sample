@@ -594,8 +594,11 @@ export class LinkDraw extends Types.BaseDraw implements Types.Draw {
                 // 更新历史
                 this.render.updateHistory()
 
+                // 对齐线清除
+                this.render.attractTool.alignLinesClear()
+
                 // 重绘
-                this.render.redraw([Draws.LinkDraw.name])
+                this.render.redraw([Draws.LinkDraw.name, Draws.AttractDraw.name])
               })
 
               this.group.add(circle)
@@ -703,8 +706,11 @@ export class LinkDraw extends Types.BaseDraw implements Types.Draw {
                 // 更新历史
                 this.render.updateHistory()
 
+                // 对齐线清除
+                this.render.attractTool.alignLinesClear()
+
                 // 重绘
-                this.render.redraw([Draws.LinkDraw.name])
+                this.render.redraw([Draws.LinkDraw.name, Draws.AttractDraw.name])
               })
 
               this.group.add(circle)
@@ -1184,8 +1190,11 @@ export class LinkDraw extends Types.BaseDraw implements Types.Draw {
                       // 更新历史
                       this.render.updateHistory()
 
+                      // 对齐线清除
+                      this.render.attractTool.alignLinesClear()
+
                       // 重绘
-                      this.render.redraw([Draws.LinkDraw.name])
+                      this.render.redraw([Draws.LinkDraw.name, Draws.AttractDraw.name])
                     }
                   }
                 }
