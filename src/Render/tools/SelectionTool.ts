@@ -59,7 +59,6 @@ export class SelectionTool {
     //   // 重绘
     //   this.render.redraw([])
     // }
-    this.render.redraw([Draws.PreviewDraw.name])
   }
 
   // 选择节点
