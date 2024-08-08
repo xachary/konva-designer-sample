@@ -1681,9 +1681,9 @@ function renderComponentRoot(instance) {
     props,
     propsOptions: [propsOptions],
     slots,
-    attrs: attrs2,
+    attrs,
     emit: emit2,
-    render: render14,
+    render: render16,
     renderCache,
     data,
     setupState,
@@ -1707,7 +1707,7 @@ function renderComponentRoot(instance) {
         }
       }) : proxyToUse;
       result2 = normalizeVNode(
-        render14.call(
+        render16.call(
           thisProxy,
           proxyToUse,
           renderCache,
@@ -1717,7 +1717,7 @@ function renderComponentRoot(instance) {
           ctx2
         )
       );
-      fallthroughAttrs = attrs2;
+      fallthroughAttrs = attrs;
     } else {
       const render22 = Component;
       if (false)
@@ -1728,18 +1728,18 @@ function renderComponentRoot(instance) {
           false ? {
             get attrs() {
               markAttrsAccessed();
-              return attrs2;
+              return attrs;
             },
             slots,
             emit: emit2
-          } : { attrs: attrs2, slots, emit: emit2 }
+          } : { attrs, slots, emit: emit2 }
         ) : render22(
           props,
           null
           /* we know it doesn't need it */
         )
       );
-      fallthroughAttrs = Component.props ? attrs2 : getFunctionalFallthrough(attrs2);
+      fallthroughAttrs = Component.props ? attrs : getFunctionalFallthrough(attrs);
     }
   } catch (err) {
     blockStack.length = 0;
@@ -1775,20 +1775,20 @@ function renderComponentRoot(instance) {
   setCurrentRenderingInstance(prev);
   return result2;
 }
-const getFunctionalFallthrough = (attrs2) => {
+const getFunctionalFallthrough = (attrs) => {
   let res;
-  for (const key in attrs2) {
+  for (const key in attrs) {
     if (key === "class" || key === "style" || isOn(key)) {
-      (res || (res = {}))[key] = attrs2[key];
+      (res || (res = {}))[key] = attrs[key];
     }
   }
   return res;
 };
-const filterModelListeners = (attrs2, props) => {
+const filterModelListeners = (attrs, props) => {
   const res = {};
-  for (const key in attrs2) {
+  for (const key in attrs) {
     if (!isModelListener(key) || !(key.slice(9) in props)) {
-      res[key] = attrs2[key];
+      res[key] = attrs[key];
     }
   }
   return res;
@@ -2196,13 +2196,13 @@ const BaseTransitionImpl = {
     const instance = getCurrentInstance();
     const state = useTransitionState();
     return () => {
-      const children2 = slots.default && getTransitionRawChildren(slots.default(), true);
-      if (!children2 || !children2.length) {
+      const children = slots.default && getTransitionRawChildren(slots.default(), true);
+      if (!children || !children.length) {
         return;
       }
-      let child = children2[0];
-      if (children2.length > 1) {
-        for (const c2 of children2) {
+      let child = children[0];
+      if (children.length > 1) {
+        for (const c2 of children) {
           if (c2.type !== Comment) {
             child = c2;
             break;
@@ -2436,11 +2436,11 @@ function setTransitionHooks(vnode, hooks) {
     vnode.transition = hooks;
   }
 }
-function getTransitionRawChildren(children2, keepComment = false, parentKey) {
+function getTransitionRawChildren(children, keepComment = false, parentKey) {
   let ret = [];
   let keyedFragmentCount = 0;
-  for (let i = 0; i < children2.length; i++) {
-    let child = children2[i];
+  for (let i = 0; i < children.length; i++) {
+    let child = children[i];
     const key = parentKey == null ? child.key : String(parentKey) + String(child.key != null ? child.key : i);
     if (child.type === Fragment) {
       if (child.patchFlag & 128)
@@ -2791,7 +2791,7 @@ function applyOptions(instance) {
     beforeUnmount,
     destroyed,
     unmounted,
-    render: render14,
+    render: render16,
     renderTracked,
     renderTriggered,
     errorCaptured,
@@ -2890,8 +2890,8 @@ function applyOptions(instance) {
       instance.exposed = {};
     }
   }
-  if (render14 && instance.render === NOOP) {
-    instance.render = render14;
+  if (render16 && instance.render === NOOP) {
+    instance.render = render16;
   }
   if (inheritAttrs != null) {
     instance.inheritAttrs = inheritAttrs;
@@ -3122,7 +3122,7 @@ function createAppContext() {
   };
 }
 let uid$1 = 0;
-function createAppAPI(render14, hydrate) {
+function createAppAPI(render16, hydrate) {
   return function createApp2(rootComponent, rootProps = null) {
     if (!isFunction$1(rootComponent)) {
       rootComponent = extend$1({}, rootComponent);
@@ -3193,7 +3193,7 @@ function createAppAPI(render14, hydrate) {
           if (isHydrate && hydrate) {
             hydrate(vnode, rootContainer);
           } else {
-            render14(vnode, rootContainer, namespace2);
+            render16(vnode, rootContainer, namespace2);
           }
           isMounted2 = true;
           app._container = rootContainer;
@@ -3203,7 +3203,7 @@ function createAppAPI(render14, hydrate) {
       },
       unmount() {
         if (isMounted2) {
-          render14(null, app._container);
+          render16(null, app._container);
           delete app._container.__vue_app__;
         }
       },
@@ -3251,10 +3251,10 @@ function inject(key, defaultValue, treatDefaultAsFactory = false) {
 }
 function initProps(instance, rawProps, isStateful, isSSR = false) {
   const props = {};
-  const attrs2 = {};
-  def(attrs2, InternalObjectKey, 1);
+  const attrs = {};
+  def(attrs, InternalObjectKey, 1);
   instance.propsDefaults = /* @__PURE__ */ Object.create(null);
-  setFullProps(instance, rawProps, props, attrs2);
+  setFullProps(instance, rawProps, props, attrs);
   for (const key in instance.propsOptions[0]) {
     if (!(key in props)) {
       props[key] = void 0;
@@ -3264,17 +3264,17 @@ function initProps(instance, rawProps, isStateful, isSSR = false) {
     instance.props = isSSR ? props : shallowReactive(props);
   } else {
     if (!instance.type.props) {
-      instance.props = attrs2;
+      instance.props = attrs;
     } else {
       instance.props = props;
     }
   }
-  instance.attrs = attrs2;
+  instance.attrs = attrs;
 }
 function updateProps(instance, rawProps, rawPrevProps, optimized) {
   const {
     props,
-    attrs: attrs2,
+    attrs,
     vnode: { patchFlag }
   } = instance;
   const rawCurrentProps = toRaw(props);
@@ -3295,9 +3295,9 @@ function updateProps(instance, rawProps, rawPrevProps, optimized) {
         }
         const value = rawProps[key];
         if (options) {
-          if (hasOwn(attrs2, key)) {
-            if (value !== attrs2[key]) {
-              attrs2[key] = value;
+          if (hasOwn(attrs, key)) {
+            if (value !== attrs[key]) {
+              attrs[key] = value;
               hasAttrsChanged = true;
             }
           } else {
@@ -3312,15 +3312,15 @@ function updateProps(instance, rawProps, rawPrevProps, optimized) {
             );
           }
         } else {
-          if (value !== attrs2[key]) {
-            attrs2[key] = value;
+          if (value !== attrs[key]) {
+            attrs[key] = value;
             hasAttrsChanged = true;
           }
         }
       }
     }
   } else {
-    if (setFullProps(instance, rawProps, props, attrs2)) {
+    if (setFullProps(instance, rawProps, props, attrs)) {
       hasAttrsChanged = true;
     }
     let kebabKey;
@@ -3347,10 +3347,10 @@ function updateProps(instance, rawProps, rawPrevProps, optimized) {
         }
       }
     }
-    if (attrs2 !== rawCurrentProps) {
-      for (const key in attrs2) {
+    if (attrs !== rawCurrentProps) {
+      for (const key in attrs) {
         if (!rawProps || !hasOwn(rawProps, key) && true) {
-          delete attrs2[key];
+          delete attrs[key];
           hasAttrsChanged = true;
         }
       }
@@ -3360,7 +3360,7 @@ function updateProps(instance, rawProps, rawPrevProps, optimized) {
     trigger$1(instance, "set", "$attrs");
   }
 }
-function setFullProps(instance, rawProps, props, attrs2) {
+function setFullProps(instance, rawProps, props, attrs) {
   const [options, needCastKeys] = instance.propsOptions;
   let hasAttrsChanged = false;
   let rawCastValues;
@@ -3378,8 +3378,8 @@ function setFullProps(instance, rawProps, props, attrs2) {
           (rawCastValues || (rawCastValues = {}))[camelKey] = value;
         }
       } else if (!isEmitListener(instance.emitsOptions, key)) {
-        if (!(key in attrs2) || value !== attrs2[key]) {
-          attrs2[key] = value;
+        if (!(key in attrs) || value !== attrs[key]) {
+          attrs[key] = value;
           hasAttrsChanged = true;
         }
       }
@@ -3568,52 +3568,52 @@ const normalizeObjectSlots = (rawSlots, slots, instance) => {
     }
   }
 };
-const normalizeVNodeSlots = (instance, children2) => {
-  const normalized = normalizeSlotValue(children2);
+const normalizeVNodeSlots = (instance, children) => {
+  const normalized = normalizeSlotValue(children);
   instance.slots.default = () => normalized;
 };
-const initSlots = (instance, children2) => {
+const initSlots = (instance, children) => {
   if (instance.vnode.shapeFlag & 32) {
-    const type = children2._;
+    const type = children._;
     if (type) {
-      instance.slots = toRaw(children2);
-      def(children2, "_", type);
+      instance.slots = toRaw(children);
+      def(children, "_", type);
     } else {
       normalizeObjectSlots(
-        children2,
+        children,
         instance.slots = {}
       );
     }
   } else {
     instance.slots = {};
-    if (children2) {
-      normalizeVNodeSlots(instance, children2);
+    if (children) {
+      normalizeVNodeSlots(instance, children);
     }
   }
   def(instance.slots, InternalObjectKey, 1);
 };
-const updateSlots = (instance, children2, optimized) => {
+const updateSlots = (instance, children, optimized) => {
   const { vnode, slots } = instance;
   let needDeletionCheck = true;
   let deletionComparisonTarget = EMPTY_OBJ;
   if (vnode.shapeFlag & 32) {
-    const type = children2._;
+    const type = children._;
     if (type) {
       if (optimized && type === 1) {
         needDeletionCheck = false;
       } else {
-        extend$1(slots, children2);
+        extend$1(slots, children);
         if (!optimized && type === 1) {
           delete slots._;
         }
       }
     } else {
-      needDeletionCheck = !children2.$stable;
-      normalizeObjectSlots(children2, slots);
+      needDeletionCheck = !children.$stable;
+      normalizeObjectSlots(children, slots);
     }
-    deletionComparisonTarget = children2;
-  } else if (children2) {
-    normalizeVNodeSlots(instance, children2);
+    deletionComparisonTarget = children;
+  } else if (children) {
+    normalizeVNodeSlots(instance, children);
     deletionComparisonTarget = { default: 1 };
   }
   if (needDeletionCheck) {
@@ -3994,9 +3994,9 @@ function baseCreateRenderer(options, createHydrationFns) {
       }
     }
   };
-  const mountChildren = (children2, container, anchor, parentComponent, parentSuspense, namespace2, slotScopeIds, optimized, start = 0) => {
-    for (let i = start; i < children2.length; i++) {
-      const child = children2[i] = optimized ? cloneIfMounted(children2[i]) : normalizeVNode(children2[i]);
+  const mountChildren = (children, container, anchor, parentComponent, parentSuspense, namespace2, slotScopeIds, optimized, start = 0) => {
+    for (let i = start; i < children.length; i++) {
+      const child = children[i] = optimized ? cloneIfMounted(children[i]) : normalizeVNode(children[i]);
       patch(
         null,
         child,
@@ -4758,7 +4758,7 @@ function baseCreateRenderer(options, createHydrationFns) {
     }
   };
   const move2 = (vnode, container, anchor, moveType, parentSuspense = null) => {
-    const { el, type, transition, children: children2, shapeFlag } = vnode;
+    const { el, type, transition, children, shapeFlag } = vnode;
     if (shapeFlag & 6) {
       move2(vnode.component.subTree, container, anchor, moveType);
       return;
@@ -4773,8 +4773,8 @@ function baseCreateRenderer(options, createHydrationFns) {
     }
     if (type === Fragment) {
       hostInsert(el, container, anchor);
-      for (let i = 0; i < children2.length; i++) {
-        move2(children2[i], container, anchor, moveType);
+      for (let i = 0; i < children.length; i++) {
+        move2(children[i], container, anchor, moveType);
       }
       hostInsert(vnode.anchor, container, anchor);
       return;
@@ -4813,7 +4813,7 @@ function baseCreateRenderer(options, createHydrationFns) {
       type,
       props,
       ref: ref3,
-      children: children2,
+      children,
       dynamicChildren,
       shapeFlag,
       patchFlag,
@@ -4861,7 +4861,7 @@ function baseCreateRenderer(options, createHydrationFns) {
           true
         );
       } else if (type === Fragment && patchFlag & (128 | 256) || !optimized && shapeFlag & 16) {
-        unmountChildren(children2, parentComponent, parentSuspense);
+        unmountChildren(children, parentComponent, parentSuspense);
       }
       if (doRemove) {
         remove2(vnode);
@@ -4936,9 +4936,9 @@ function baseCreateRenderer(options, createHydrationFns) {
       }
     }
   };
-  const unmountChildren = (children2, parentComponent, parentSuspense, doRemove = false, optimized = false, start = 0) => {
-    for (let i = start; i < children2.length; i++) {
-      unmount2(children2[i], parentComponent, parentSuspense, doRemove, optimized);
+  const unmountChildren = (children, parentComponent, parentSuspense, doRemove = false, optimized = false, start = 0) => {
+    for (let i = start; i < children.length; i++) {
+      unmount2(children[i], parentComponent, parentSuspense, doRemove, optimized);
     }
   };
   const getNextHostNode = (vnode) => {
@@ -4951,7 +4951,7 @@ function baseCreateRenderer(options, createHydrationFns) {
     return hostNextSibling(vnode.anchor || vnode.el);
   };
   let isFlushing2 = false;
-  const render14 = (vnode, container, namespace2) => {
+  const render16 = (vnode, container, namespace2) => {
     if (vnode == null) {
       if (container._vnode) {
         unmount2(container._vnode, null, null, true);
@@ -4995,9 +4995,9 @@ function baseCreateRenderer(options, createHydrationFns) {
     );
   }
   return {
-    render: render14,
+    render: render16,
     hydrate,
-    createApp: createAppAPI(render14, hydrate)
+    createApp: createAppAPI(render16, hydrate)
   };
 }
 function resolveChildrenNamespace({ type, props }, currentNamespace) {
@@ -5108,7 +5108,7 @@ const TeleportImpl = {
       o: { insert, querySelector, createText, createComment }
     } = internals;
     const disabled = isTeleportDisabled(n2.props);
-    let { shapeFlag, children: children2, dynamicChildren } = n2;
+    let { shapeFlag, children, dynamicChildren } = n2;
     if (n1 == null) {
       const placeholder = n2.el = createText("");
       const mainAnchor = n2.anchor = createText("");
@@ -5127,7 +5127,7 @@ const TeleportImpl = {
       const mount2 = (container2, anchor2) => {
         if (shapeFlag & 16) {
           mountChildren(
-            children2,
+            children,
             container2,
             anchor2,
             parentComponent,
@@ -5223,15 +5223,15 @@ const TeleportImpl = {
     updateCssVars(n2);
   },
   remove(vnode, parentComponent, parentSuspense, optimized, { um: unmount2, o: { remove: hostRemove } }, doRemove) {
-    const { shapeFlag, children: children2, anchor, targetAnchor, target, props } = vnode;
+    const { shapeFlag, children, anchor, targetAnchor, target, props } = vnode;
     if (target) {
       hostRemove(targetAnchor);
     }
     doRemove && hostRemove(anchor);
     if (shapeFlag & 16) {
       const shouldRemove = doRemove || !isTeleportDisabled(props);
-      for (let i = 0; i < children2.length; i++) {
-        const child = children2[i];
+      for (let i = 0; i < children.length; i++) {
+        const child = children[i];
         unmount2(
           child,
           parentComponent,
@@ -5249,16 +5249,16 @@ function moveTeleport(vnode, container, parentAnchor, { o: { insert }, m: move2 
   if (moveType === 0) {
     insert(vnode.targetAnchor, container, parentAnchor);
   }
-  const { el, anchor, shapeFlag, children: children2, props } = vnode;
+  const { el, anchor, shapeFlag, children, props } = vnode;
   const isReorder = moveType === 2;
   if (isReorder) {
     insert(el, container, parentAnchor);
   }
   if (!isReorder || isTeleportDisabled(props)) {
     if (shapeFlag & 16) {
-      for (let i = 0; i < children2.length; i++) {
+      for (let i = 0; i < children.length; i++) {
         move2(
-          children2[i],
+          children[i],
           container,
           parentAnchor,
           2
@@ -5355,12 +5355,12 @@ function setupBlock(vnode) {
   }
   return vnode;
 }
-function createElementBlock(type, props, children2, patchFlag, dynamicProps, shapeFlag) {
+function createElementBlock(type, props, children, patchFlag, dynamicProps, shapeFlag) {
   return setupBlock(
     createBaseVNode(
       type,
       props,
-      children2,
+      children,
       patchFlag,
       dynamicProps,
       shapeFlag,
@@ -5368,12 +5368,12 @@ function createElementBlock(type, props, children2, patchFlag, dynamicProps, sha
     )
   );
 }
-function createBlock(type, props, children2, patchFlag, dynamicProps) {
+function createBlock(type, props, children, patchFlag, dynamicProps) {
   return setupBlock(
     createVNode(
       type,
       props,
-      children2,
+      children,
       patchFlag,
       dynamicProps,
       true
@@ -5398,7 +5398,7 @@ const normalizeRef = ({
   }
   return ref3 != null ? isString$1(ref3) || isRef(ref3) || isFunction$1(ref3) ? { i: currentRenderingInstance, r: ref3, k: ref_key, f: !!ref_for } : ref3 : null;
 };
-function createBaseVNode(type, props = null, children2 = null, patchFlag = 0, dynamicProps = null, shapeFlag = type === Fragment ? 0 : 1, isBlockNode = false, needFullChildrenNormalization = false) {
+function createBaseVNode(type, props = null, children = null, patchFlag = 0, dynamicProps = null, shapeFlag = type === Fragment ? 0 : 1, isBlockNode = false, needFullChildrenNormalization = false) {
   const vnode = {
     __v_isVNode: true,
     __v_skip: true,
@@ -5408,7 +5408,7 @@ function createBaseVNode(type, props = null, children2 = null, patchFlag = 0, dy
     ref: props && normalizeRef(props),
     scopeId: currentScopeId,
     slotScopeIds: null,
-    children: children2,
+    children,
     component: null,
     suspense: null,
     ssContent: null,
@@ -5428,12 +5428,12 @@ function createBaseVNode(type, props = null, children2 = null, patchFlag = 0, dy
     ctx: currentRenderingInstance
   };
   if (needFullChildrenNormalization) {
-    normalizeChildren(vnode, children2);
+    normalizeChildren(vnode, children);
     if (shapeFlag & 128) {
       type.normalize(vnode);
     }
-  } else if (children2) {
-    vnode.shapeFlag |= isString$1(children2) ? 8 : 16;
+  } else if (children) {
+    vnode.shapeFlag |= isString$1(children) ? 8 : 16;
   }
   if (isBlockTreeEnabled > 0 && // avoid a block node from tracking itself
   !isBlockNode && // has current parent block
@@ -5449,7 +5449,7 @@ function createBaseVNode(type, props = null, children2 = null, patchFlag = 0, dy
   return vnode;
 }
 const createVNode = _createVNode;
-function _createVNode(type, props = null, children2 = null, patchFlag = 0, dynamicProps = null, isBlockNode = false) {
+function _createVNode(type, props = null, children = null, patchFlag = 0, dynamicProps = null, isBlockNode = false) {
   if (!type || type === NULL_DYNAMIC_COMPONENT) {
     type = Comment;
   }
@@ -5460,8 +5460,8 @@ function _createVNode(type, props = null, children2 = null, patchFlag = 0, dynam
       true
       /* mergeRef: true */
     );
-    if (children2) {
-      normalizeChildren(cloned, children2);
+    if (children) {
+      normalizeChildren(cloned, children);
     }
     if (isBlockTreeEnabled > 0 && !isBlockNode && currentBlock) {
       if (cloned.shapeFlag & 6) {
@@ -5493,7 +5493,7 @@ function _createVNode(type, props = null, children2 = null, patchFlag = 0, dynam
   return createBaseVNode(
     type,
     props,
-    children2,
+    children,
     patchFlag,
     dynamicProps,
     shapeFlag,
@@ -5507,7 +5507,7 @@ function guardReactiveProps(props) {
   return isProxy(props) || InternalObjectKey in props ? extend$1({}, props) : props;
 }
 function cloneVNode(vnode, extraProps, mergeRef = false) {
-  const { props, ref: ref3, patchFlag, children: children2 } = vnode;
+  const { props, ref: ref3, patchFlag, children } = vnode;
   const mergedProps = extraProps ? mergeProps(props || {}, extraProps) : props;
   const cloned = {
     __v_isVNode: true,
@@ -5523,7 +5523,7 @@ function cloneVNode(vnode, extraProps, mergeRef = false) {
     ) : ref3,
     scopeId: vnode.scopeId,
     slotScopeIds: vnode.slotScopeIds,
-    children: children2,
+    children,
     target: vnode.target,
     targetAnchor: vnode.targetAnchor,
     staticCount: vnode.staticCount,
@@ -5578,16 +5578,16 @@ function normalizeVNode(child) {
 function cloneIfMounted(child) {
   return child.el === null && child.patchFlag !== -1 || child.memo ? child : cloneVNode(child);
 }
-function normalizeChildren(vnode, children2) {
+function normalizeChildren(vnode, children) {
   let type = 0;
   const { shapeFlag } = vnode;
-  if (children2 == null) {
-    children2 = null;
-  } else if (isArray$1(children2)) {
+  if (children == null) {
+    children = null;
+  } else if (isArray$1(children)) {
     type = 16;
-  } else if (typeof children2 === "object") {
+  } else if (typeof children === "object") {
     if (shapeFlag & (1 | 64)) {
-      const slot = children2.default;
+      const slot = children.default;
       if (slot) {
         slot._c && (slot._d = false);
         normalizeChildren(vnode, slot());
@@ -5596,31 +5596,31 @@ function normalizeChildren(vnode, children2) {
       return;
     } else {
       type = 32;
-      const slotFlag = children2._;
-      if (!slotFlag && !(InternalObjectKey in children2)) {
-        children2._ctx = currentRenderingInstance;
+      const slotFlag = children._;
+      if (!slotFlag && !(InternalObjectKey in children)) {
+        children._ctx = currentRenderingInstance;
       } else if (slotFlag === 3 && currentRenderingInstance) {
         if (currentRenderingInstance.slots._ === 1) {
-          children2._ = 1;
+          children._ = 1;
         } else {
-          children2._ = 2;
+          children._ = 2;
           vnode.patchFlag |= 1024;
         }
       }
     }
-  } else if (isFunction$1(children2)) {
-    children2 = { default: children2, _ctx: currentRenderingInstance };
+  } else if (isFunction$1(children)) {
+    children = { default: children, _ctx: currentRenderingInstance };
     type = 32;
   } else {
-    children2 = String(children2);
+    children = String(children);
     if (shapeFlag & 64) {
       type = 16;
-      children2 = [createTextVNode(children2)];
+      children = [createTextVNode(children)];
     } else {
       type = 8;
     }
   }
-  vnode.children = children2;
+  vnode.children = children;
   vnode.shapeFlag |= type;
 }
 function mergeProps(...args) {
@@ -5790,10 +5790,10 @@ function isStatefulComponent(instance) {
 let isInSSRComponentSetup = false;
 function setupComponent(instance, isSSR = false) {
   isSSR && setInSSRSetupState(isSSR);
-  const { props, children: children2 } = instance.vnode;
+  const { props, children } = instance.vnode;
   const isStateful = isStatefulComponent(instance);
   initProps(instance, props, isStateful, isSSR);
-  initSlots(instance, children2);
+  initSlots(instance, children);
   const setupResult = isStateful ? setupStatefulComponent(instance, isSSR) : void 0;
   isSSR && setInSSRSetupState(false);
   return setupResult;
@@ -5960,7 +5960,7 @@ const computed = (getterOrOptions, debugOptions) => {
   const c2 = computed$1(getterOrOptions, debugOptions, isInSSRComponentSetup);
   return c2;
 };
-function h(type, propsOrChildren, children2) {
+function h(type, propsOrChildren, children) {
   const l = arguments.length;
   if (l === 2) {
     if (isObject$1(propsOrChildren) && !isArray$1(propsOrChildren)) {
@@ -5973,11 +5973,11 @@ function h(type, propsOrChildren, children2) {
     }
   } else {
     if (l > 3) {
-      children2 = Array.prototype.slice.call(arguments, 2);
-    } else if (l === 3 && isVNode(children2)) {
-      children2 = [children2];
+      children = Array.prototype.slice.call(arguments, 2);
+    } else if (l === 3 && isVNode(children)) {
+      children = [children];
     }
-    return createVNode(type, propsOrChildren, children2);
+    return createVNode(type, propsOrChildren, children);
   }
 }
 const version = "3.4.21";
@@ -6671,7 +6671,7 @@ const TransitionGroupImpl = {
     const instance = getCurrentInstance();
     const state = useTransitionState();
     let prevChildren;
-    let children2;
+    let children;
     onUpdated(() => {
       if (!prevChildren.length) {
         return;
@@ -6710,10 +6710,10 @@ const TransitionGroupImpl = {
       const rawProps = toRaw(props);
       const cssTransitionProps = resolveTransitionProps(rawProps);
       let tag2 = rawProps.tag || Fragment;
-      prevChildren = children2;
-      children2 = slots.default ? getTransitionRawChildren(slots.default()) : [];
-      for (let i = 0; i < children2.length; i++) {
-        const child = children2[i];
+      prevChildren = children;
+      children = slots.default ? getTransitionRawChildren(slots.default()) : [];
+      for (let i = 0; i < children.length; i++) {
+        const child = children[i];
         if (child.key != null) {
           setTransitionHooks(
             child,
@@ -6731,7 +6731,7 @@ const TransitionGroupImpl = {
           positionMap.set(child, child.el.getBoundingClientRect());
         }
       }
-      return createVNode(tag2, null, children2);
+      return createVNode(tag2, null, children);
     };
   }
 };
@@ -8279,9 +8279,8 @@ function createCaseFirst(methodName) {
   };
 }
 var upperFirst = createCaseFirst("toUpperCase");
-const upperFirst$1 = upperFirst;
 function capitalize(string2) {
-  return upperFirst$1(toString(string2).toLowerCase());
+  return upperFirst(toString(string2).toLowerCase());
 }
 function arrayReduce(array2, iteratee2, accumulator, initAccum) {
   var index = -1, length = array2 == null ? 0 : array2.length;
@@ -11409,7 +11408,7 @@ function spread(func2, start) {
   });
 }
 var startCase = createCompounder(function(result2, word, index) {
-  return result2 + (index ? " " : "") + upperFirst$1(word);
+  return result2 + (index ? " " : "") + upperFirst(word);
 });
 const startCase$1 = startCase;
 function startsWith(string2, target, position) {
@@ -12322,7 +12321,7 @@ const string = {
   truncate,
   unescape,
   upperCase: upperCase$1,
-  upperFirst: upperFirst$1,
+  upperFirst,
   words
 };
 const util = {
@@ -15248,11 +15247,11 @@ class Node {
   }
   getAbsoluteZIndex() {
     var depth = this.getDepth(), that = this, index = 0, nodes, len, n, child;
-    function addChildren(children2) {
+    function addChildren(children) {
       nodes = [];
-      len = children2.length;
+      len = children.length;
       for (n = 0; n < len; n++) {
-        child = children2[n];
+        child = children[n];
         index++;
         if (child.nodeType !== SHAPE) {
           nodes = nodes.concat(child.getChildren().slice());
@@ -15499,21 +15498,21 @@ class Node {
     return this;
   }
   toObject() {
-    var attrs2 = this.getAttrs(), key, val, getter, defaultValue, nonPlainObject;
+    var attrs = this.getAttrs(), key, val, getter, defaultValue, nonPlainObject;
     const obj = {
       attrs: {},
       className: this.getClassName()
     };
-    for (key in attrs2) {
-      val = attrs2[key];
+    for (key in attrs) {
+      val = attrs[key];
       nonPlainObject = Util_1$c.Util.isObject(val) && !Util_1$c.Util._isPlainObject(val) && !Util_1$c.Util._isArray(val);
       if (nonPlainObject) {
         continue;
       }
       getter = typeof this[key] === "function" && this[key];
-      delete attrs2[key];
+      delete attrs[key];
       defaultValue = getter ? getter.call(this) : null;
-      attrs2[key] = val;
+      attrs[key] = val;
       if (defaultValue !== val) {
         obj.attrs[key] = val;
       }
@@ -15652,10 +15651,10 @@ class Node {
       parent2 = parent2.getParent();
     }
     const transform2 = this.getAbsoluteTransform(top);
-    const attrs2 = transform2.decompose();
+    const attrs = transform2.decompose();
     return {
-      x: attrs2.scaleX,
-      y: attrs2.scaleY
+      x: attrs.scaleX,
+      y: attrs.scaleY
     };
   }
   getAbsoluteRotation() {
@@ -15688,11 +15687,11 @@ class Node {
     return m;
   }
   clone(obj) {
-    var attrs2 = Util_1$c.Util.cloneObject(this.attrs), key, allListeners, len, n, listener;
+    var attrs = Util_1$c.Util.cloneObject(this.attrs), key, allListeners, len, n, listener;
     for (key in obj) {
-      attrs2[key] = obj[key];
+      attrs[key] = obj[key];
     }
-    var node = new this.constructor(attrs2);
+    var node = new this.constructor(attrs);
     for (key in this.eventListeners) {
       allListeners = this.eventListeners[key];
       len = allListeners.length;
@@ -16082,20 +16081,20 @@ class Node {
     return this._createNode(data, container);
   }
   static _createNode(obj, container) {
-    var className2 = Node.prototype.getClassName.call(obj), children2 = obj.children, no, len, n;
+    var className = Node.prototype.getClassName.call(obj), children = obj.children, no, len, n;
     if (container) {
       obj.attrs.container = container;
     }
-    if (!Global_1$m.Konva[className2]) {
-      Util_1$c.Util.warn('Can not find a node with class name "' + className2 + '". Fallback to "Shape".');
-      className2 = "Shape";
+    if (!Global_1$m.Konva[className]) {
+      Util_1$c.Util.warn('Can not find a node with class name "' + className + '". Fallback to "Shape".');
+      className = "Shape";
     }
-    const Class = Global_1$m.Konva[className2];
+    const Class = Global_1$m.Konva[className];
     no = new Class(obj.attrs);
-    if (children2) {
-      len = children2.length;
+    if (children) {
+      len = children.length;
       for (n = 0; n < len; n++) {
-        no.add(Node._createNode(children2[n]));
+        no.add(Node._createNode(children[n]));
       }
     }
     return no;
@@ -16176,9 +16175,9 @@ class Container extends Node_1$h.Node {
     if (!filterFunc) {
       return this.children || [];
     }
-    const children2 = this.children || [];
+    const children = this.children || [];
     var results = [];
-    children2.forEach(function(child) {
+    children.forEach(function(child) {
       if (filterFunc(child)) {
         results.push(child);
       }
@@ -16208,17 +16207,17 @@ class Container extends Node_1$h.Node {
     this._requestDraw();
     return this;
   }
-  add(...children2) {
-    if (children2.length === 0) {
+  add(...children) {
+    if (children.length === 0) {
       return this;
     }
-    if (children2.length > 1) {
-      for (var i = 0; i < children2.length; i++) {
-        this.add(children2[i]);
+    if (children.length > 1) {
+      for (var i = 0; i < children.length; i++) {
+        this.add(children[i]);
       }
       return this;
     }
-    const child = children2[0];
+    const child = children[0];
     if (child.getParent()) {
       child.moveTo(this);
       return this;
@@ -16264,8 +16263,8 @@ class Container extends Node_1$h.Node {
   }
   _descendants(fn) {
     let shouldStop = false;
-    const children2 = this.getChildren();
-    for (const child of children2) {
+    const children = this.getChildren();
+    for (const child of children) {
       shouldStop = fn(child);
       if (shouldStop) {
         return true;
@@ -16614,11 +16613,11 @@ PointerEvents.releaseCapture = releaseCapture;
       return EVENTS_MAP.mouse;
     }
   };
-  function checkNoClip(attrs2 = {}) {
-    if (attrs2.clipFunc || attrs2.clipWidth || attrs2.clipHeight) {
+  function checkNoClip(attrs = {}) {
+    if (attrs.clipFunc || attrs.clipWidth || attrs.clipHeight) {
       Util_12.Util.warn("Stage does not support clipping. Please use clip for Layers or Groups.");
     }
-    return attrs2;
+    return attrs;
   }
   const NO_POINTERS_MESSAGE = `Pointer position is missing and not registered by the stage. Looks like it is outside of the stage container. You can set it manually from event: stage.setPointersPositions(event);`;
   exports2.stages = [];
@@ -16655,8 +16654,8 @@ PointerEvents.releaseCapture = releaseCapture;
     setContainer(container) {
       if (typeof container === STRING) {
         if (container.charAt(0) === ".") {
-          var className2 = container.slice(1);
-          container = document.getElementsByClassName(className2)[0];
+          var className = container.slice(1);
+          container = document.getElementsByClassName(className)[0];
         } else {
           var id;
           if (container.charAt(0) !== "#") {
@@ -17800,10 +17799,10 @@ class Layer extends Container_1$1.Container {
     if (Node_1$g.Node.prototype.moveDown.call(this)) {
       var stage = this.getStage();
       if (stage) {
-        var children2 = stage.children;
+        var children = stage.children;
         if (stage.content) {
           stage.content.removeChild(this.getNativeCanvasElement());
-          stage.content.insertBefore(this.getNativeCanvasElement(), children2[this.index + 1].getCanvas()._canvas);
+          stage.content.insertBefore(this.getNativeCanvasElement(), children[this.index + 1].getCanvas()._canvas);
         }
       }
       return true;
@@ -17814,10 +17813,10 @@ class Layer extends Container_1$1.Container {
     if (Node_1$g.Node.prototype.moveToBottom.call(this)) {
       var stage = this.getStage();
       if (stage) {
-        var children2 = stage.children;
+        var children = stage.children;
         if (stage.content) {
           stage.content.removeChild(this.getNativeCanvasElement());
-          stage.content.insertBefore(this.getNativeCanvasElement(), children2[1].getCanvas()._canvas);
+          stage.content.insertBefore(this.getNativeCanvasElement(), children[1].getCanvas()._canvas);
         }
       }
       return true;
@@ -18014,8 +18013,8 @@ const Util_1$a = Util;
 const Layer_1 = Layer$1;
 const Global_1$j = Global;
 class FastLayer extends Layer_1.Layer {
-  constructor(attrs2) {
-    super(attrs2);
+  constructor(attrs) {
+    super(attrs);
     this.listening(false);
     Util_1$a.Util.warn('Konva.Fast layer is deprecated. Please use "new Konva.Layer({ listening: false })" instead.');
   }
@@ -18412,9 +18411,9 @@ var Tween = {};
       Tween2.tweens[nodeId][key] = this._id;
     }
     _tweenFunc(i) {
-      var node = this.node, attrs2 = Tween2.attrs[node._id][this._id], key, attr, start, diff, newVal, n, len, end;
-      for (key in attrs2) {
-        attr = attrs2[key];
+      var node = this.node, attrs = Tween2.attrs[node._id][this._id], key, attr, start, diff, newVal, n, len, end;
+      for (key in attrs) {
+        attr = attrs[key];
         start = attr.start;
         diff = attr.diff;
         end = attr.end;
@@ -18454,9 +18453,9 @@ var Tween = {};
       };
       this.tween.onFinish = () => {
         var node = this.node;
-        var attrs2 = Tween2.attrs[node._id][this._id];
-        if (attrs2.points && attrs2.points.trueEnd) {
-          node.setAttr("points", attrs2.points.trueEnd);
+        var attrs = Tween2.attrs[node._id][this._id];
+        if (attrs.points && attrs.points.trueEnd) {
+          node.setAttr("points", attrs.points.trueEnd);
         }
         if (this.onFinish) {
           this.onFinish.call(this);
@@ -18464,9 +18463,9 @@ var Tween = {};
       };
       this.tween.onReset = () => {
         var node = this.node;
-        var attrs2 = Tween2.attrs[node._id][this._id];
-        if (attrs2.points && attrs2.points.trueStart) {
-          node.points(attrs2.points.trueStart);
+        var attrs = Tween2.attrs[node._id][this._id];
+        if (attrs.points && attrs.points.trueStart) {
+          node.points(attrs.points.trueStart);
         }
         if (this.onReset) {
           this.onReset();
@@ -18503,9 +18502,9 @@ var Tween = {};
       return this;
     }
     destroy() {
-      var nodeId = this.node._id, thisId = this._id, attrs2 = Tween2.tweens[nodeId], key;
+      var nodeId = this.node._id, thisId = this._id, attrs = Tween2.tweens[nodeId], key;
       this.pause();
-      for (key in attrs2) {
+      for (key in attrs) {
         delete Tween2.tweens[nodeId][key];
       }
       delete Tween2.attrs[nodeId][thisId];
@@ -20502,8 +20501,8 @@ const Shape_1$a = Shape;
 const Global_1$a = Global;
 const Validators_1$p = Validators;
 let Image$1 = class Image2 extends Shape_1$a.Shape {
-  constructor(attrs2) {
-    super(attrs2);
+  constructor(attrs) {
+    super(attrs);
     this.on("imageChange.konva", () => {
       this._setImageLoad();
     });
@@ -22080,9 +22079,9 @@ class Transformer extends Group_1.Group {
   }
   _handleMouseDown(e) {
     this._movingAnchorName = e.target.name().split(" ")[0];
-    var attrs2 = this._getNodeRect();
-    var width = attrs2.width;
-    var height = attrs2.height;
+    var attrs = this._getNodeRect();
+    var width = attrs.width;
+    var height = attrs.height;
     var hypotenuse = Math.sqrt(Math.pow(width, 2) + Math.pow(height, 2));
     this.sin = Math.abs(height / hypotenuse);
     this.cos = Math.abs(width / hypotenuse);
@@ -22125,19 +22124,19 @@ class Transformer extends Group_1.Group {
       return;
     }
     if (this._movingAnchorName === "rotater") {
-      var attrs2 = this._getNodeRect();
-      x = anchorNode.x() - attrs2.width / 2;
-      y = -anchorNode.y() + attrs2.height / 2;
+      var attrs = this._getNodeRect();
+      x = anchorNode.x() - attrs.width / 2;
+      y = -anchorNode.y() + attrs.height / 2;
       let delta = Math.atan2(-y, x) + Math.PI / 2;
-      if (attrs2.height < 0) {
+      if (attrs.height < 0) {
         delta -= Math.PI;
       }
       var oldRotation = Global_1$1.Konva.getAngle(this.rotation());
       const newRotation = oldRotation + delta;
       const tol = Global_1$1.Konva.getAngle(this.rotationSnapTolerance());
       const snappedRot = getSnap(this.rotationSnaps(), newRotation, tol);
-      const diff = snappedRot - attrs2.rotation;
-      const shape = rotateAroundCenter(attrs2, diff);
+      const diff = snappedRot - attrs.rotation;
+      const shape = rotateAroundCenter(attrs, diff);
       this._fitNodesInto(shape, e);
       return;
     }
@@ -22385,8 +22384,8 @@ class Transformer extends Group_1.Group {
       localTransform.translate(node.offsetX(), node.offsetY());
       const newLocalTransform = new Util_1$3.Transform();
       newLocalTransform.multiply(parentTransform.copy().invert()).multiply(delta).multiply(parentTransform).multiply(localTransform);
-      const attrs2 = newLocalTransform.decompose();
-      node.setAttrs(attrs2);
+      const attrs = newLocalTransform.decompose();
+      node.setAttrs(attrs);
       (_a = node.getLayer()) === null || _a === void 0 ? void 0 : _a.batchDraw();
     });
     this.rotation(Util_1$3.Util._getRotation(newAttrs.rotation));
@@ -22402,16 +22401,16 @@ class Transformer extends Group_1.Group {
     this._resetTransformCache();
     this.update();
   }
-  _batchChangeChild(selector, attrs2) {
+  _batchChangeChild(selector, attrs) {
     const anchor = this.findOne(selector);
-    anchor.setAttrs(attrs2);
+    anchor.setAttrs(attrs);
   }
   update() {
     var _a;
-    var attrs2 = this._getNodeRect();
-    this.rotation(Util_1$3.Util._getRotation(attrs2.rotation));
-    var width = attrs2.width;
-    var height = attrs2.height;
+    var attrs = this._getNodeRect();
+    this.rotation(Util_1$3.Util._getRotation(attrs.rotation));
+    var width = attrs.width;
+    var height = attrs.height;
     var enabledAnchors = this.enabledAnchors();
     var resizeEnabled = this.resizeEnabled();
     var padding = this.padding();
@@ -24257,11 +24256,11 @@ var MouseButton = /* @__PURE__ */ ((MouseButton2) => {
   return MouseButton2;
 })(MouseButton || {});
 class BaseDraw {
-  constructor(render14, layer) {
+  constructor(render16, layer) {
     __publicField(this, "render");
     __publicField(this, "layer");
     __publicField(this, "group");
-    this.render = render14;
+    this.render = render16;
     this.layer = layer;
     this.group = new Konva.Group();
   }
@@ -24312,8 +24311,8 @@ var LinkType = /* @__PURE__ */ ((LinkType2) => {
   return LinkType2;
 })(LinkType || {});
 class BgDraw extends BaseDraw {
-  constructor(render14, layer, option) {
-    super(render14, layer);
+  constructor(render16, layer, option) {
+    super(render16, layer);
     __publicField(this, "option");
     this.option = option;
     this.group.listening(false);
@@ -24381,8 +24380,8 @@ class BgDraw extends BaseDraw {
 }
 __publicField(BgDraw, "name", "bg");
 class RulerDraw extends BaseDraw {
-  constructor(render14, layer, option) {
-    super(render14, layer);
+  constructor(render16, layer, option) {
+    super(render16, layer);
     __publicField(this, "option");
     this.option = option;
     this.group.listening(false);
@@ -24543,8 +24542,8 @@ class RulerDraw extends BaseDraw {
 }
 __publicField(RulerDraw, "name", "ruler");
 class RefLineDraw extends BaseDraw {
-  constructor(render14, layer, option) {
-    super(render14, layer);
+  constructor(render16, layer, option) {
+    super(render16, layer);
     __publicField(this, "option");
     __publicField(this, "handlers", {
       dom: {
@@ -24613,8 +24612,8 @@ class RefLineDraw extends BaseDraw {
 }
 __publicField(RefLineDraw, "name", "refLine");
 class ContextmenuDraw extends BaseDraw {
-  constructor(render14, layer, option) {
-    super(render14, layer);
+  constructor(render16, layer, option) {
+    super(render16, layer);
     __publicField(this, "option");
     __publicField(this, "state");
     __publicField(this, "handlers", {
@@ -24886,8 +24885,8 @@ class ContextmenuDraw extends BaseDraw {
 }
 __publicField(ContextmenuDraw, "name", "contextmenu");
 class PreviewDraw extends BaseDraw {
-  constructor(render14, layer, option) {
-    super(render14, layer);
+  constructor(render16, layer, option) {
+    super(render16, layer);
     __publicField(this, "option");
     __publicField(this, "state", {
       moving: false
@@ -25205,12 +25204,12 @@ function aStar(config) {
   }
 }
 const _LinkDraw = class _LinkDraw extends BaseDraw {
-  constructor(render14, layer, option) {
-    super(render14, layer);
+  constructor(render16, layer, option) {
+    super(render16, layer);
     __publicField(this, "option");
     __publicField(this, "state", {
       linkingLine: null,
-      linkType: LinkType.auto,
+      linkType: LinkType.manual,
       linkManualing: false
     });
     this.option = option;
@@ -26039,8 +26038,8 @@ const _LinkDraw = class _LinkDraw extends BaseDraw {
 __publicField(_LinkDraw, "name", "Link");
 let LinkDraw = _LinkDraw;
 class AttractDraw extends BaseDraw {
-  constructor(render14, layer, option) {
-    super(render14, layer);
+  constructor(render16, layer, option) {
+    super(render16, layer);
     __publicField(this, "option");
     __publicField(this, "on", {});
     this.option = option;
@@ -26098,7 +26097,7 @@ class AttractDraw extends BaseDraw {
 }
 __publicField(AttractDraw, "name", "Attract");
 class DragHandlers {
-  constructor(render14) {
+  constructor(render16) {
     __publicField(this, "render");
     // 右键是否按下
     __publicField(this, "mousedownRight", false);
@@ -26142,12 +26141,12 @@ class DragHandlers {
         }
       }
     });
-    this.render = render14;
+    this.render = render16;
   }
 }
 __publicField(DragHandlers, "name", "Drag");
 class ZoomHandlers {
-  constructor(render14) {
+  constructor(render16) {
     __publicField(this, "render");
     // zoom 速度
     __publicField(this, "scaleBy", 0.1);
@@ -26186,12 +26185,12 @@ class ZoomHandlers {
         }
       }
     });
-    this.render = render14;
+    this.render = render16;
   }
 }
 __publicField(ZoomHandlers, "name", "Zoom");
 class DragOutsideHandlers {
-  constructor(render14) {
+  constructor(render16) {
     __publicField(this, "render");
     __publicField(this, "handlers", {
       dom: {
@@ -26320,12 +26319,12 @@ class DragOutsideHandlers {
         }
       }
     });
-    this.render = render14;
+    this.render = render16;
   }
 }
 __publicField(DragOutsideHandlers, "name", "DragOutside");
 class SelectionHandlers {
-  constructor(render14) {
+  constructor(render16) {
     __publicField(this, "render");
     // selectRect 拉动的开始和结束坐标
     __publicField(this, "selectRectStartX", 0);
@@ -26587,7 +26586,7 @@ class SelectionHandlers {
         return newPos;
       }
     });
-    this.render = render14;
+    this.render = render16;
   }
   // 对齐线清除
   alignLinesClear() {
@@ -26626,7 +26625,7 @@ class SelectionHandlers {
 }
 __publicField(SelectionHandlers, "name", "Selection");
 class KeyMoveHandlers {
-  constructor(render14) {
+  constructor(render16) {
     __publicField(this, "render");
     __publicField(this, "speed", 1);
     __publicField(this, "speedMax", 20);
@@ -26660,12 +26659,12 @@ class KeyMoveHandlers {
         }
       }
     });
-    this.render = render14;
+    this.render = render16;
   }
 }
 __publicField(KeyMoveHandlers, "name", "KeyMove");
 class ShutcutHandlers {
-  constructor(render14) {
+  constructor(render16) {
     __publicField(this, "render");
     __publicField(this, "handlers", {
       dom: {
@@ -26694,12 +26693,12 @@ class ShutcutHandlers {
         }
       }
     });
-    this.render = render14;
+    this.render = render16;
   }
 }
 __publicField(ShutcutHandlers, "name", "Shutcut");
 class LinkHandlers {
-  constructor(render14) {
+  constructor(render16) {
     __publicField(this, "render");
     __publicField(this, "handlers", {
       stage: {
@@ -26730,15 +26729,15 @@ class LinkHandlers {
         }
       }
     });
-    this.render = render14;
+    this.render = render16;
   }
 }
 __publicField(LinkHandlers, "name", "Link");
 const gifler = window.gifler;
 class AssetTool {
-  constructor(render14) {
+  constructor(render16) {
     __publicField(this, "render");
-    this.render = render14;
+    this.render = render16;
   }
   // 加载 svg xml
   async loadSvgXML(svgXML) {
@@ -26861,11 +26860,11 @@ class AssetTool {
 }
 __publicField(AssetTool, "name", "AssetTool");
 class SelectionTool {
-  constructor(render14) {
+  constructor(render16) {
     __publicField(this, "render");
     // 【被选中的】
     __publicField(this, "selectingNodes", []);
-    this.render = render14;
+    this.render = render16;
   }
   // 清空已选
   selectingClear() {
@@ -26946,13 +26945,13 @@ class SelectionTool {
 }
 __publicField(SelectionTool, "name", "SelectionTool");
 class CopyTool {
-  constructor(render14) {
+  constructor(render16) {
     __publicField(this, "render");
     // 复制暂存
     __publicField(this, "pasteCache", []);
     // 粘贴次数（用于定义新节点的偏移距离）
     __publicField(this, "pasteCount", 1);
-    this.render = render14;
+    this.render = render16;
   }
   // 复制
   pasteStart() {
@@ -27121,9 +27120,9 @@ class CopyTool {
 }
 __publicField(CopyTool, "name", "CopyTool");
 class PositionTool {
-  constructor(render14) {
+  constructor(render16) {
     __publicField(this, "render");
-    this.render = render14;
+    this.render = render16;
   }
   // 恢复位置大小
   positionZoomReset() {
@@ -27180,9 +27179,9 @@ class PositionTool {
 }
 __publicField(PositionTool, "name", "PositionTool");
 class ZIndexTool {
-  constructor(render14) {
+  constructor(render16) {
     __publicField(this, "render");
-    this.render = render14;
+    this.render = render16;
   }
   // 获取移动节点
   getNodes(nodes) {
@@ -28062,9 +28061,9 @@ var canvas2svg = { exports: {} };
 var canvas2svgExports = canvas2svg.exports;
 const C2S = /* @__PURE__ */ getDefaultExportFromCjs(canvas2svgExports);
 class ImportExportTool {
-  constructor(render14) {
+  constructor(render16) {
     __publicField(this, "render");
-    this.render = render14;
+    this.render = render16;
   }
   /**
    * 获得显示内容
@@ -28248,10 +28247,10 @@ class ImportExportTool {
       fill: bgColor
     });
     bgLayer.add(bg);
-    const children2 = copy.getChildren();
+    const children = copy.getChildren();
     copy.removeChildren();
     copy.add(bgLayer);
-    copy.add(children2[0], ...children2.slice(1));
+    copy.add(children[0], ...children.slice(1));
     const url = copy.toDataURL({ pixelRatio });
     copy.destroy();
     return url;
@@ -28271,10 +28270,10 @@ class ImportExportTool {
       fill: bgColor
     });
     bgLayer.add(bg);
-    const children2 = copy.getChildren();
+    const children = copy.getChildren();
     copy.removeChildren();
     copy.add(bgLayer);
-    copy.add(children2[0], ...children2.slice(1));
+    copy.add(children[0], ...children.slice(1));
     const url = copy.toDataURL({ pixelRatio });
     copy.destroy();
     return url;
@@ -28369,8 +28368,8 @@ class ImportExportTool {
    */
   getAssetView() {
     const copy = this.getView(true);
-    const children2 = copy.getChildren()[0].getChildren();
-    const nodes = [...children2];
+    const children = copy.getChildren()[0].getChildren();
+    const nodes = [...children];
     let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity, minStartX = Infinity, minStartY = Infinity;
     for (const node of nodes) {
       if (node instanceof Konva.Group) {
@@ -28477,9 +28476,9 @@ class ImportExportTool {
 }
 __publicField(ImportExportTool, "name", "ImportExportTool");
 class AlignTool {
-  constructor(render14) {
+  constructor(render16) {
     __publicField(this, "render");
-    this.render = render14;
+    this.render = render16;
   }
   calcNodeRotationInfo(node) {
     const rotate = node.rotation();
@@ -28596,9 +28595,9 @@ class AlignTool {
 }
 __publicField(AlignTool, "name", "AlignTool");
 class LinkTool {
-  constructor(render14) {
+  constructor(render16) {
     __publicField(this, "render");
-    this.render = render14;
+    this.render = render16;
   }
   pointsVisible(visible, group) {
     const start = group ?? this.render.layer;
@@ -28757,7 +28756,7 @@ class LinkTool {
 }
 __publicField(LinkTool, "name", "LinkTool");
 class AttractTool {
-  constructor(render14) {
+  constructor(render16) {
     __publicField(this, "render");
     // 对齐线
     __publicField(this, "alignLines", []);
@@ -28931,7 +28930,7 @@ class AttractTool {
         isAttract
       };
     });
-    this.render = render14;
+    this.render = render16;
   }
   // 对齐线清除
   alignLinesClear() {
@@ -29337,7 +29336,7 @@ class Render {
       ContextmenuDraw.name
       // 更新右键菜单
     ];
-    if (Array.isArray(drawNames)) {
+    if (Array.isArray(drawNames) && !this.debug) {
       for (const name of all) {
         if (drawNames.includes(name)) {
           this.draws[name].draw();
@@ -29350,7 +29349,6 @@ class Render {
     }
   }
 }
-const _imports_0 = "" + new URL("../logo.png", import.meta.url).href;
 let onceCbs = [];
 const paramsMap = /* @__PURE__ */ new WeakMap();
 function flushOnceCallbacks() {
@@ -29654,9 +29652,19 @@ function ensureValidVNode(vnodes) {
     return true;
   }) ? vnodes : null;
 }
+function resolveSlot(slot, fallback) {
+  return slot && ensureValidVNode(slot()) || fallback();
+}
+function resolveSlotWithProps(slot, props, fallback) {
+  return slot && ensureValidVNode(slot(props)) || fallback(props);
+}
 function resolveWrappedSlot(slot, wrapper) {
-  const children2 = slot && ensureValidVNode(slot());
-  return wrapper(children2 || null);
+  const children = slot && ensureValidVNode(slot());
+  return wrapper(children || null);
+}
+function resolveWrappedSlotWithProps(slot, props, wrapper) {
+  const children = slot && ensureValidVNode(slot(props));
+  return wrapper(children || null);
 }
 function isSlotEmpty(slot) {
   return !(slot && ensureValidVNode(slot()));
@@ -29858,10 +29866,10 @@ ${unwrappedProps}
   }
   return statements.join("\n");
 }
-function loopCNodeListWithCallback(children2, options, callback) {
-  if (!children2)
+function loopCNodeListWithCallback(children, options, callback) {
+  if (!children)
     return;
-  children2.forEach((child) => {
+  children.forEach((child) => {
     if (Array.isArray(child)) {
       loopCNodeListWithCallback(child, options, callback);
     } else if (typeof child === "function") {
@@ -30046,25 +30054,25 @@ function wrappedUnmount(options = {}) {
   const { id, parent: parent2 } = options;
   unmount(this.instance, this, id, parent2);
 }
-const createCNode = function(instance, $, props, children2) {
+const createCNode = function(instance, $, props, children) {
   return {
     instance,
     $,
     props,
-    children: children2,
+    children,
     els: [],
     render: wrappedRender,
     mount: wrappedMount,
     unmount: wrappedUnmount
   };
 };
-const c$2 = function(instance, $, props, children2) {
+const c$2 = function(instance, $, props, children) {
   if (Array.isArray($)) {
     return createCNode(instance, { $: null }, null, $);
   } else if (Array.isArray(props)) {
     return createCNode(instance, $, null, props);
-  } else if (Array.isArray(children2)) {
-    return createCNode(instance, $, props, children2);
+  } else if (Array.isArray(children)) {
+    return createCNode(instance, $, props, children);
   } else {
     return createCNode(instance, $, props, null);
   }
@@ -31633,7 +31641,7 @@ function getOffset(placement, offsetRect, targetRect, offsetTopToStandardPlaceme
       };
   }
 }
-const style$b = c([
+const style$d = c([
   c(".v-binder-follower-container", {
     position: "absolute",
     left: "0",
@@ -31715,7 +31723,7 @@ const VFollower = /* @__PURE__ */ defineComponent({
       }
     });
     const ssrAdapter2 = useSsrAdapter();
-    style$b.mount({
+    style$d.mount({
       id: "vueuc/binder",
       head: true,
       anchorMetaName: cssrAnchorMetaName$1,
@@ -32443,7 +32451,7 @@ const VResizeObserver = /* @__PURE__ */ defineComponent({
   }
 });
 const hiddenAttr = "v-hidden";
-const style$a = c("[v-hidden]", {
+const style$c = c("[v-hidden]", {
   display: "none!important"
 });
 const VOverflow = /* @__PURE__ */ defineComponent({
@@ -32472,9 +32480,9 @@ const VOverflow = /* @__PURE__ */ defineComponent({
       if (counter.hasAttribute(hiddenAttr)) {
         counter.removeAttribute(hiddenAttr);
       }
-      const { children: children2 } = self2;
+      const { children } = self2;
       if (options.showAllItemsBeforeCalculate) {
-        for (const child of children2) {
+        for (const child of children) {
           if (child.hasAttribute(hiddenAttr)) {
             child.removeAttribute(hiddenAttr);
           }
@@ -32489,7 +32497,7 @@ const VOverflow = /* @__PURE__ */ defineComponent({
       for (let i = 0; i < len - 1; ++i) {
         if (i < 0)
           continue;
-        const child = children2[i];
+        const child = children[i];
         if (overflow) {
           if (!child.hasAttribute(hiddenAttr)) {
             child.setAttribute(hiddenAttr, "");
@@ -32544,7 +32552,7 @@ const VOverflow = /* @__PURE__ */ defineComponent({
       }
     }
     const ssrAdapter2 = useSsrAdapter();
-    style$a.mount({
+    style$c.mount({
       id: "vueuc/overflow",
       head: true,
       anchorMetaName: cssrAnchorMetaName$1,
@@ -33216,6 +33224,33 @@ function useRtl(mountId, rtlStateRef, clsPrefixRef) {
   }
   return componentRtlStateRef;
 }
+function replaceable(name, icon) {
+  return /* @__PURE__ */ defineComponent({
+    name: upperFirst(name),
+    setup() {
+      var _a;
+      const mergedIconsRef = (_a = inject(configProviderInjectionKey, null)) === null || _a === void 0 ? void 0 : _a.mergedIconsRef;
+      return () => {
+        var _a2;
+        const iconOverride = (_a2 = mergedIconsRef === null || mergedIconsRef === void 0 ? void 0 : mergedIconsRef.value) === null || _a2 === void 0 ? void 0 : _a2[name];
+        return iconOverride ? iconOverride() : icon;
+      };
+    }
+  });
+}
+const ChevronLeftIcon = /* @__PURE__ */ defineComponent({
+  name: "ChevronLeft",
+  render() {
+    return h("svg", {
+      viewBox: "0 0 16 16",
+      fill: "none",
+      xmlns: "http://www.w3.org/2000/svg"
+    }, h("path", {
+      d: "M10.3536 3.14645C10.5488 3.34171 10.5488 3.65829 10.3536 3.85355L6.20711 8L10.3536 12.1464C10.5488 12.3417 10.5488 12.6583 10.3536 12.8536C10.1583 13.0488 9.84171 13.0488 9.64645 12.8536L5.14645 8.35355C4.95118 8.15829 4.95118 7.84171 5.14645 7.64645L9.64645 3.14645C9.84171 2.95118 10.1583 2.95118 10.3536 3.14645Z",
+      fill: "currentColor"
+    }));
+  }
+});
 const ChevronRightIcon = /* @__PURE__ */ defineComponent({
   name: "ChevronRight",
   render() {
@@ -33229,6 +33264,22 @@ const ChevronRightIcon = /* @__PURE__ */ defineComponent({
     }));
   }
 });
+const ErrorIcon = replaceable("close", h("svg", {
+  viewBox: "0 0 12 12",
+  version: "1.1",
+  xmlns: "http://www.w3.org/2000/svg",
+  "aria-hidden": true
+}, h("g", {
+  stroke: "none",
+  "stroke-width": "1",
+  fill: "none",
+  "fill-rule": "evenodd"
+}, h("g", {
+  fill: "currentColor",
+  "fill-rule": "nonzero"
+}, h("path", {
+  d: "M2.08859116,2.2156945 L2.14644661,2.14644661 C2.32001296,1.97288026 2.58943736,1.95359511 2.7843055,2.08859116 L2.85355339,2.14644661 L6,5.293 L9.14644661,2.14644661 C9.34170876,1.95118446 9.65829124,1.95118446 9.85355339,2.14644661 C10.0488155,2.34170876 10.0488155,2.65829124 9.85355339,2.85355339 L6.707,6 L9.85355339,9.14644661 C10.0271197,9.32001296 10.0464049,9.58943736 9.91140884,9.7843055 L9.85355339,9.85355339 C9.67998704,10.0271197 9.41056264,10.0464049 9.2156945,9.91140884 L9.14644661,9.85355339 L6,6.707 L2.85355339,9.85355339 C2.65829124,10.0488155 2.34170876,10.0488155 2.14644661,9.85355339 C1.95118446,9.65829124 1.95118446,9.34170876 2.14644661,9.14644661 L5.293,6 L2.14644661,2.85355339 C1.97288026,2.67998704 1.95359511,2.41056264 2.08859116,2.2156945 L2.14644661,2.14644661 L2.08859116,2.2156945 Z"
+})))));
 const ChevronDownFilledIcon = /* @__PURE__ */ defineComponent({
   name: "ChevronDownFilled",
   render() {
@@ -33363,7 +33414,7 @@ const NFadeInExpandTransition = /* @__PURE__ */ defineComponent({
     };
   }
 });
-const style$9 = cB("base-icon", `
+const style$b = cB("base-icon", `
  height: 1em;
  width: 1em;
  line-height: 1em;
@@ -33398,7 +33449,7 @@ const NBaseIcon = /* @__PURE__ */ defineComponent({
     onMouseup: Function
   },
   setup(props) {
-    useStyle("-base-icon", style$9, toRef(props, "clsPrefix"));
+    useStyle("-base-icon", style$b, toRef(props, "clsPrefix"));
   },
   render() {
     return h("i", {
@@ -33440,7 +33491,7 @@ function iconSwitchTransition({
     transition
   })];
 }
-const style$8 = c$1([c$1("@keyframes rotator", `
+const style$a = c$1([c$1("@keyframes rotator", `
  0% {
  -webkit-transform: rotate(0deg);
  transform: rotate(0deg);
@@ -33504,7 +33555,7 @@ const NBaseLoading = /* @__PURE__ */ defineComponent({
     }
   }, exposedLoadingProps),
   setup(props) {
-    useStyle("-base-loading", style$8, toRef(props, "clsPrefix"));
+    useStyle("-base-loading", style$a, toRef(props, "clsPrefix"));
   },
   render() {
     const {
@@ -33948,14 +33999,14 @@ function rawGetParent(node) {
 }
 function getChild(node, options = {}) {
   const { reverse: reverse2 = false } = options;
-  const { children: children2 } = node;
-  if (children2) {
-    const { length } = children2;
+  const { children } = node;
+  if (children) {
+    const { length } = children;
     const start = reverse2 ? length - 1 : 0;
     const end = reverse2 ? -1 : length;
     const delta = reverse2 ? -1 : 1;
     for (let i = start; i !== end; i += delta) {
-      const child = children2[i];
+      const child = children[i];
       if (!child.disabled && !child.ignored) {
         if (child.isGroup) {
           const childInGroup = getChild(child, options);
@@ -34052,13 +34103,13 @@ function createTreeMate(rawNodes, options = {}) {
   const { getDisabled = isDisabled, getIgnored = isIgnored, getIsGroup = isGroup, getKey = defaultGetKey } = options;
   const _getChildren = (_a = options.getChildren) !== null && _a !== void 0 ? _a : defaultGetChildren;
   const getChildren = options.ignoreEmptyChildren ? (node) => {
-    const children2 = _getChildren(node);
-    if (Array.isArray(children2)) {
-      if (!children2.length)
+    const children = _getChildren(node);
+    if (Array.isArray(children)) {
+      if (!children.length)
         return null;
-      return children2;
+      return children;
     }
-    return children2;
+    return children;
   } : _getChildren;
   const nodeProto = Object.assign({
     get key() {
@@ -34367,7 +34418,7 @@ const commonVars$1 = {
   railInsetVertical: "2px 4px 2px auto",
   railColor: "transparent"
 };
-function self$8(vars) {
+function self$a(vars) {
   const {
     scrollbarColor,
     scrollbarColorHover,
@@ -34386,7 +34437,7 @@ function self$8(vars) {
 const scrollbarLight = {
   name: "Scrollbar",
   common: commonLight,
-  self: self$8
+  self: self$a
 };
 const scrollbarLight$1 = scrollbarLight;
 const {
@@ -34409,7 +34460,7 @@ function fadeInTransition({
     opacity: 1
   })];
 }
-const style$7 = cB("scrollbar", `
+const style$9 = cB("scrollbar", `
  overflow: hidden;
  position: relative;
  z-index: auto;
@@ -34526,7 +34577,7 @@ const Scrollbar = /* @__PURE__ */ defineComponent({
     let memoMouseX = 0;
     let memoMouseY = 0;
     const isIos2 = useIsIos();
-    const themeRef = useTheme("Scrollbar", "-scrollbar", style$7, scrollbarLight$1, props, mergedClsPrefixRef);
+    const themeRef = useTheme("Scrollbar", "-scrollbar", style$9, scrollbarLight$1, props, mergedClsPrefixRef);
     const yBarSizeRef = computed(() => {
       const {
         value: containerHeight
@@ -35116,10 +35167,10 @@ const Scrollbar = /* @__PURE__ */ defineComponent({
     if (!this.scrollable)
       return (_a = $slots.default) === null || _a === void 0 ? void 0 : _a.call($slots);
     const triggerIsNone = this.trigger === "none";
-    const createYRail = (className2, style2) => {
+    const createYRail = (className, style2) => {
       return h("div", {
         ref: "yRailRef",
-        class: [`${mergedClsPrefix}-scrollbar-rail`, `${mergedClsPrefix}-scrollbar-rail--vertical`, className2],
+        class: [`${mergedClsPrefix}-scrollbar-rail`, `${mergedClsPrefix}-scrollbar-rail--vertical`, className],
         "data-scrollbar-rail": true,
         style: [style2 || "", this.verticalRailStyle],
         "aria-hidden": true
@@ -35222,7 +35273,7 @@ function fadeInScaleUpTransition({
     transform: `${originalTransform} scale(1)`
   })];
 }
-const style$6 = cB("base-wave", `
+const style$8 = cB("base-wave", `
  position: absolute;
  left: 0;
  right: 0;
@@ -35239,7 +35290,7 @@ const NBaseWave = /* @__PURE__ */ defineComponent({
     }
   },
   setup(props) {
-    useStyle("-base-wave", style$6, toRef(props, "clsPrefix"));
+    useStyle("-base-wave", style$8, toRef(props, "clsPrefix"));
     const selfRef = ref(null);
     const activeRef = ref(false);
     let animationTimerId = null;
@@ -35288,7 +35339,7 @@ const commonVariables$2 = {
   arrowHeight: "6px",
   padding: "8px 14px"
 };
-function self$7(vars) {
+function self$9(vars) {
   const {
     boxShadow2,
     popoverColor,
@@ -35309,7 +35360,7 @@ function self$7(vars) {
 const popoverLight = {
   name: "Popover",
   common: commonLight,
-  self: self$7
+  self: self$9
 };
 const popoverLight$1 = popoverLight;
 const oppositePlacement = {
@@ -35319,7 +35370,7 @@ const oppositePlacement = {
   right: "left"
 };
 const arrowSize = "var(--n-arrow-height) * 1.414";
-const style$5 = c$1([cB("popover", `
+const style$7 = c$1([cB("popover", `
  transition:
  box-shadow .3s var(--n-bezier),
  background-color .3s var(--n-bezier),
@@ -35526,14 +35577,14 @@ const NPopoverBody = /* @__PURE__ */ defineComponent({
   props: popoverBodyProps,
   setup(props, {
     slots,
-    attrs: attrs2
+    attrs
   }) {
     const {
       namespaceRef,
       mergedClsPrefixRef,
       inlineThemeDisabled
     } = useConfig(props);
-    const themeRef = useTheme("Popover", "-popover", style$5, popoverLight$1, props, mergedClsPrefixRef);
+    const themeRef = useTheme("Popover", "-popover", style$7, popoverLight$1, props, mergedClsPrefixRef);
     const followerRef = ref(null);
     const NPopover2 = inject("NPopover");
     const bodyRef = ref(null);
@@ -35712,21 +35763,21 @@ const NPopoverBody = /* @__PURE__ */ defineComponent({
         const hasHeaderOrFooter = !isSlotEmpty(slots.header) || !isSlotEmpty(slots.footer);
         const renderContentInnerNode = () => {
           var _a, _b;
-          const body = hasHeaderOrFooter ? h(Fragment, null, resolveWrappedSlot(slots.header, (children2) => {
-            return children2 ? h("div", {
+          const body = hasHeaderOrFooter ? h(Fragment, null, resolveWrappedSlot(slots.header, (children) => {
+            return children ? h("div", {
               class: [`${mergedClsPrefix}-popover__header`, props.headerClass],
               style: props.headerStyle
-            }, children2) : null;
-          }), resolveWrappedSlot(slots.default, (children2) => {
-            return children2 ? h("div", {
+            }, children) : null;
+          }), resolveWrappedSlot(slots.default, (children) => {
+            return children ? h("div", {
               class: [`${mergedClsPrefix}-popover__content`, props.contentClass],
               style: props.contentStyle
             }, slots) : null;
-          }), resolveWrappedSlot(slots.footer, (children2) => {
-            return children2 ? h("div", {
+          }), resolveWrappedSlot(slots.footer, (children) => {
+            return children ? h("div", {
               class: [`${mergedClsPrefix}-popover__footer`, props.footerClass],
               style: props.footerStyle
-            }, children2) : null;
+            }, children) : null;
           })) : props.scrollable ? (_a = slots.default) === null || _a === void 0 ? void 0 : _a.call(slots) : h("div", {
             class: [`${mergedClsPrefix}-popover__content`, props.contentClass],
             style: props.contentStyle
@@ -35760,7 +35811,7 @@ const NPopoverBody = /* @__PURE__ */ defineComponent({
           onKeydown: NPopover2.handleKeydown,
           onMouseenter: handleMouseEnter,
           onMouseleave: handleMouseLeave
-        }, attrs2), internalTrapFocus ? h(FocusTrap, {
+        }, attrs), internalTrapFocus ? h(FocusTrap, {
           active: props.show,
           autoFocus: true
         }, {
@@ -36397,7 +36448,7 @@ const commonVariables$1 = {
   iconSizeLarge: "20px",
   rippleDuration: ".6s"
 };
-function self$6(vars) {
+function self$8(vars) {
   const {
     heightTiny,
     heightSmall,
@@ -36634,10 +36685,10 @@ function self$6(vars) {
 const buttonLight = {
   name: "Button",
   common: commonLight,
-  self: self$6
+  self: self$8
 };
 const buttonLight$1 = buttonLight;
-const style$4 = c$1([cB("button", `
+const style$6 = c$1([cB("button", `
  margin: 0;
  font-weight: var(--n-font-weight);
  line-height: 1;
@@ -36936,7 +36987,7 @@ const Button = /* @__PURE__ */ defineComponent({
       mergedClsPrefixRef,
       mergedRtlRef
     } = useConfig(props);
-    const themeRef = useTheme("Button", "-button", style$4, buttonLight$1, props, mergedClsPrefixRef);
+    const themeRef = useTheme("Button", "-button", style$6, buttonLight$1, props, mergedClsPrefixRef);
     const rtlEnabledRef = useRtl("Button", mergedRtlRef, mergedClsPrefixRef);
     const cssVarsRef = computed(() => {
       const theme = themeRef.value;
@@ -37217,9 +37268,9 @@ const Button = /* @__PURE__ */ defineComponent({
       onRender
     } = this;
     onRender === null || onRender === void 0 ? void 0 : onRender();
-    const children2 = resolveWrappedSlot(this.$slots.default, (children22) => children22 && h("span", {
+    const children = resolveWrappedSlot(this.$slots.default, (children2) => children2 && h("span", {
       class: `${mergedClsPrefix}-button__content`
-    }, children22));
+    }, children2));
     return h(Component, {
       ref: "selfElRef",
       class: [
@@ -37247,10 +37298,10 @@ const Button = /* @__PURE__ */ defineComponent({
       onMousedown: this.handleMousedown,
       onKeyup: this.handleKeyup,
       onKeydown: this.handleKeydown
-    }, this.iconPlacement === "right" && children2, h(NFadeInExpandTransition, {
+    }, this.iconPlacement === "right" && children, h(NFadeInExpandTransition, {
       width: true
     }, {
-      default: () => resolveWrappedSlot(this.$slots.icon, (children22) => (this.loading || this.renderIcon || children22) && h("span", {
+      default: () => resolveWrappedSlot(this.$slots.icon, (children2) => (this.loading || this.renderIcon || children2) && h("span", {
         class: `${mergedClsPrefix}-button__icon`,
         style: {
           margin: isSlotEmpty(this.$slots.default) ? "0" : ""
@@ -37265,9 +37316,9 @@ const Button = /* @__PURE__ */ defineComponent({
           key: "icon",
           class: `${mergedClsPrefix}-icon-slot`,
           role: "none"
-        }, this.renderIcon ? this.renderIcon() : children22)
+        }, this.renderIcon ? this.renderIcon() : children2)
       })))
-    }), this.iconPlacement === "left" && children2, !this.text ? h(NBaseWave, {
+    }), this.iconPlacement === "left" && children, !this.text ? h(NBaseWave, {
       ref: "waveElRef",
       clsPrefix: mergedClsPrefix
     }) : null, this.showBorder ? h("div", {
@@ -37282,10 +37333,443 @@ const Button = /* @__PURE__ */ defineComponent({
   }
 });
 const NButton = Button;
+function self$7(vars) {
+  const {
+    fontWeight,
+    textColor1,
+    textColor2,
+    textColorDisabled,
+    dividerColor,
+    fontSize: fontSize2
+  } = vars;
+  return {
+    titleFontSize: fontSize2,
+    titleFontWeight: fontWeight,
+    dividerColor,
+    titleTextColor: textColor1,
+    titleTextColorDisabled: textColorDisabled,
+    fontSize: fontSize2,
+    textColor: textColor2,
+    arrowColor: textColor2,
+    arrowColorDisabled: textColorDisabled,
+    itemMargin: "16px 0 0 0",
+    titlePadding: "16px 0 0 0"
+  };
+}
+const collapseLight = {
+  name: "Collapse",
+  common: commonLight,
+  self: self$7
+};
+const collapseLight$1 = collapseLight;
+const style$5 = cB("collapse", "width: 100%;", [cB("collapse-item", `
+ font-size: var(--n-font-size);
+ color: var(--n-text-color);
+ transition:
+ color .3s var(--n-bezier),
+ border-color .3s var(--n-bezier);
+ margin: var(--n-item-margin);
+ `, [cM("disabled", [cE("header", "cursor: not-allowed;", [cE("header-main", `
+ color: var(--n-title-text-color-disabled);
+ `), cB("collapse-item-arrow", `
+ color: var(--n-arrow-color-disabled);
+ `)])]), cB("collapse-item", "margin-left: 32px;"), c$1("&:first-child", "margin-top: 0;"), c$1("&:first-child >", [cE("header", "padding-top: 0;")]), cM("left-arrow-placement", [cE("header", [cB("collapse-item-arrow", "margin-right: 4px;")])]), cM("right-arrow-placement", [cE("header", [cB("collapse-item-arrow", "margin-left: 4px;")])]), cE("content-wrapper", [cE("content-inner", "padding-top: 16px;"), fadeInHeightExpandTransition({
+  duration: "0.15s"
+})]), cM("active", [cE("header", [cM("active", [cB("collapse-item-arrow", "transform: rotate(90deg);")])])]), c$1("&:not(:first-child)", "border-top: 1px solid var(--n-divider-color);"), cNotM("disabled", [cM("trigger-area-main", [cE("header", [cE("header-main", "cursor: pointer;"), cB("collapse-item-arrow", "cursor: default;")])]), cM("trigger-area-arrow", [cE("header", [cB("collapse-item-arrow", "cursor: pointer;")])]), cM("trigger-area-extra", [cE("header", [cE("header-extra", "cursor: pointer;")])])]), cE("header", `
+ font-size: var(--n-title-font-size);
+ display: flex;
+ flex-wrap: nowrap;
+ align-items: center;
+ transition: color .3s var(--n-bezier);
+ position: relative;
+ padding: var(--n-title-padding);
+ color: var(--n-title-text-color);
+ `, [cE("header-main", `
+ display: flex;
+ flex-wrap: nowrap;
+ align-items: center;
+ font-weight: var(--n-title-font-weight);
+ transition: color .3s var(--n-bezier);
+ flex: 1;
+ color: var(--n-title-text-color);
+ `), cE("header-extra", `
+ display: flex;
+ align-items: center;
+ transition: color .3s var(--n-bezier);
+ color: var(--n-text-color);
+ `), cB("collapse-item-arrow", `
+ display: flex;
+ transition:
+ transform .15s var(--n-bezier),
+ color .3s var(--n-bezier);
+ font-size: 18px;
+ color: var(--n-arrow-color);
+ `)])])]);
+const collapseProps = Object.assign(Object.assign({}, useTheme.props), {
+  defaultExpandedNames: {
+    type: [Array, String],
+    default: null
+  },
+  expandedNames: [Array, String],
+  arrowPlacement: {
+    type: String,
+    default: "left"
+  },
+  accordion: {
+    type: Boolean,
+    default: false
+  },
+  displayDirective: {
+    type: String,
+    default: "if"
+  },
+  triggerAreas: {
+    type: Array,
+    default: () => ["main", "extra", "arrow"]
+  },
+  onItemHeaderClick: [Function, Array],
+  "onUpdate:expandedNames": [Function, Array],
+  onUpdateExpandedNames: [Function, Array],
+  // deprecated
+  onExpandedNamesChange: {
+    type: [Function, Array],
+    validator: () => {
+      return true;
+    },
+    default: void 0
+  }
+});
+const collapseInjectionKey = createInjectionKey("n-collapse");
+const NCollapse = /* @__PURE__ */ defineComponent({
+  name: "Collapse",
+  props: collapseProps,
+  setup(props, {
+    slots
+  }) {
+    const {
+      mergedClsPrefixRef,
+      inlineThemeDisabled,
+      mergedRtlRef
+    } = useConfig(props);
+    const uncontrolledExpandedNamesRef = ref(props.defaultExpandedNames);
+    const controlledExpandedNamesRef = computed(() => props.expandedNames);
+    const mergedExpandedNamesRef = useMergedState(controlledExpandedNamesRef, uncontrolledExpandedNamesRef);
+    const themeRef = useTheme("Collapse", "-collapse", style$5, collapseLight$1, props, mergedClsPrefixRef);
+    function doUpdateExpandedNames(names) {
+      const {
+        "onUpdate:expandedNames": _onUpdateExpandedNames,
+        onUpdateExpandedNames,
+        onExpandedNamesChange
+      } = props;
+      if (onUpdateExpandedNames) {
+        call(onUpdateExpandedNames, names);
+      }
+      if (_onUpdateExpandedNames) {
+        call(_onUpdateExpandedNames, names);
+      }
+      if (onExpandedNamesChange) {
+        call(onExpandedNamesChange, names);
+      }
+      uncontrolledExpandedNamesRef.value = names;
+    }
+    function doItemHeaderClick(info) {
+      const {
+        onItemHeaderClick
+      } = props;
+      if (onItemHeaderClick) {
+        call(onItemHeaderClick, info);
+      }
+    }
+    function toggleItem(collapse, name, event) {
+      const {
+        accordion
+      } = props;
+      const {
+        value: expandedNames
+      } = mergedExpandedNamesRef;
+      if (accordion) {
+        if (collapse) {
+          doUpdateExpandedNames([name]);
+          doItemHeaderClick({
+            name,
+            expanded: true,
+            event
+          });
+        } else {
+          doUpdateExpandedNames([]);
+          doItemHeaderClick({
+            name,
+            expanded: false,
+            event
+          });
+        }
+      } else {
+        if (!Array.isArray(expandedNames)) {
+          doUpdateExpandedNames([name]);
+          doItemHeaderClick({
+            name,
+            expanded: true,
+            event
+          });
+        } else {
+          const activeNames = expandedNames.slice();
+          const index = activeNames.findIndex((activeName) => name === activeName);
+          if (~index) {
+            activeNames.splice(index, 1);
+            doUpdateExpandedNames(activeNames);
+            doItemHeaderClick({
+              name,
+              expanded: false,
+              event
+            });
+          } else {
+            activeNames.push(name);
+            doUpdateExpandedNames(activeNames);
+            doItemHeaderClick({
+              name,
+              expanded: true,
+              event
+            });
+          }
+        }
+      }
+    }
+    provide(collapseInjectionKey, {
+      props,
+      mergedClsPrefixRef,
+      expandedNamesRef: mergedExpandedNamesRef,
+      slots,
+      toggleItem
+    });
+    const rtlEnabledRef = useRtl("Collapse", mergedRtlRef, mergedClsPrefixRef);
+    const cssVarsRef = computed(() => {
+      const {
+        common: {
+          cubicBezierEaseInOut: cubicBezierEaseInOut2
+        },
+        self: {
+          titleFontWeight,
+          dividerColor,
+          titlePadding,
+          titleTextColor,
+          titleTextColorDisabled,
+          textColor,
+          arrowColor,
+          fontSize: fontSize2,
+          titleFontSize,
+          arrowColorDisabled,
+          itemMargin
+        }
+      } = themeRef.value;
+      return {
+        "--n-font-size": fontSize2,
+        "--n-bezier": cubicBezierEaseInOut2,
+        "--n-text-color": textColor,
+        "--n-divider-color": dividerColor,
+        "--n-title-padding": titlePadding,
+        "--n-title-font-size": titleFontSize,
+        "--n-title-text-color": titleTextColor,
+        "--n-title-text-color-disabled": titleTextColorDisabled,
+        "--n-title-font-weight": titleFontWeight,
+        "--n-arrow-color": arrowColor,
+        "--n-arrow-color-disabled": arrowColorDisabled,
+        "--n-item-margin": itemMargin
+      };
+    });
+    const themeClassHandle = inlineThemeDisabled ? useThemeClass("collapse", void 0, cssVarsRef, props) : void 0;
+    return {
+      rtlEnabled: rtlEnabledRef,
+      mergedTheme: themeRef,
+      mergedClsPrefix: mergedClsPrefixRef,
+      cssVars: inlineThemeDisabled ? void 0 : cssVarsRef,
+      themeClass: themeClassHandle === null || themeClassHandle === void 0 ? void 0 : themeClassHandle.themeClass,
+      onRender: themeClassHandle === null || themeClassHandle === void 0 ? void 0 : themeClassHandle.onRender
+    };
+  },
+  render() {
+    var _a;
+    (_a = this.onRender) === null || _a === void 0 ? void 0 : _a.call(this);
+    return h("div", {
+      class: [`${this.mergedClsPrefix}-collapse`, this.rtlEnabled && `${this.mergedClsPrefix}-collapse--rtl`, this.themeClass],
+      style: this.cssVars
+    }, this.$slots);
+  }
+});
+const NCollapseItemContent = /* @__PURE__ */ defineComponent({
+  name: "CollapseItemContent",
+  props: {
+    displayDirective: {
+      type: String,
+      required: true
+    },
+    show: Boolean,
+    clsPrefix: {
+      type: String,
+      required: true
+    }
+  },
+  setup(props) {
+    const onceTrueRef = useFalseUntilTruthy(toRef(props, "show"));
+    return {
+      onceTrue: onceTrueRef
+    };
+  },
+  render() {
+    return h(NFadeInExpandTransition, null, {
+      default: () => {
+        const {
+          show,
+          displayDirective,
+          onceTrue,
+          clsPrefix
+        } = this;
+        const useVShow = displayDirective === "show" && onceTrue;
+        const contentNode = h("div", {
+          class: `${clsPrefix}-collapse-item__content-wrapper`
+        }, h("div", {
+          class: `${clsPrefix}-collapse-item__content-inner`
+        }, this.$slots));
+        return useVShow ? withDirectives(contentNode, [[vShow, show]]) : show ? contentNode : null;
+      }
+    });
+  }
+});
+const collapseItemProps = {
+  title: String,
+  name: [String, Number],
+  disabled: Boolean,
+  displayDirective: String
+};
+const NCollapseItem = /* @__PURE__ */ defineComponent({
+  name: "CollapseItem",
+  props: collapseItemProps,
+  setup(props) {
+    const {
+      mergedRtlRef
+    } = useConfig(props);
+    const randomName = createId();
+    const mergedNameRef = useMemo(() => {
+      var _a;
+      return (_a = props.name) !== null && _a !== void 0 ? _a : randomName;
+    });
+    const NCollapse2 = inject(collapseInjectionKey);
+    if (!NCollapse2) {
+      throwError("collapse-item", "`n-collapse-item` must be placed inside `n-collapse`.");
+    }
+    const {
+      expandedNamesRef,
+      props: collapseProps2,
+      mergedClsPrefixRef,
+      slots: collapseSlots
+    } = NCollapse2;
+    const collapsedRef = computed(() => {
+      const {
+        value: expandedNames
+      } = expandedNamesRef;
+      if (Array.isArray(expandedNames)) {
+        const {
+          value: name
+        } = mergedNameRef;
+        return !~expandedNames.findIndex((expandedName) => expandedName === name);
+      } else if (expandedNames) {
+        const {
+          value: name
+        } = mergedNameRef;
+        return name !== expandedNames;
+      }
+      return true;
+    });
+    const rtlEnabledRef = useRtl("Collapse", mergedRtlRef, mergedClsPrefixRef);
+    return {
+      rtlEnabled: rtlEnabledRef,
+      collapseSlots,
+      randomName,
+      mergedClsPrefix: mergedClsPrefixRef,
+      collapsed: collapsedRef,
+      triggerAreas: toRef(collapseProps2, "triggerAreas"),
+      mergedDisplayDirective: computed(() => {
+        const {
+          displayDirective
+        } = props;
+        if (displayDirective) {
+          return displayDirective;
+        } else {
+          return collapseProps2.displayDirective;
+        }
+      }),
+      arrowPlacement: computed(() => {
+        return collapseProps2.arrowPlacement;
+      }),
+      handleClick(e) {
+        let happensInArea = "main";
+        if (happensIn(e, "arrow"))
+          happensInArea = "arrow";
+        if (happensIn(e, "extra"))
+          happensInArea = "extra";
+        if (!collapseProps2.triggerAreas.includes(happensInArea)) {
+          return;
+        }
+        if (NCollapse2 && !props.disabled) {
+          NCollapse2.toggleItem(collapsedRef.value, mergedNameRef.value, e);
+        }
+      }
+    };
+  },
+  render() {
+    const {
+      collapseSlots,
+      $slots,
+      arrowPlacement,
+      collapsed,
+      mergedDisplayDirective,
+      mergedClsPrefix,
+      disabled,
+      triggerAreas
+    } = this;
+    const headerNode = resolveSlotWithProps($slots.header, {
+      collapsed
+    }, () => [this.title]);
+    const headerExtraSlot = $slots["header-extra"] || collapseSlots["header-extra"];
+    const arrowSlot = $slots.arrow || collapseSlots.arrow;
+    return h("div", {
+      class: [`${mergedClsPrefix}-collapse-item`, `${mergedClsPrefix}-collapse-item--${arrowPlacement}-arrow-placement`, disabled && `${mergedClsPrefix}-collapse-item--disabled`, !collapsed && `${mergedClsPrefix}-collapse-item--active`, triggerAreas.map((area) => {
+        return `${mergedClsPrefix}-collapse-item--trigger-area-${area}`;
+      })]
+    }, h("div", {
+      class: [`${mergedClsPrefix}-collapse-item__header`, !collapsed && `${mergedClsPrefix}-collapse-item__header--active`]
+    }, h("div", {
+      class: `${mergedClsPrefix}-collapse-item__header-main`,
+      onClick: this.handleClick
+    }, arrowPlacement === "right" && headerNode, h("div", {
+      class: `${mergedClsPrefix}-collapse-item-arrow`,
+      key: this.rtlEnabled ? 0 : 1,
+      "data-arrow": true
+    }, resolveSlotWithProps(arrowSlot, {
+      collapsed
+    }, () => {
+      var _a;
+      return [h(NBaseIcon, {
+        clsPrefix: mergedClsPrefix
+      }, {
+        default: (_a = collapseSlots.expandIcon) !== null && _a !== void 0 ? _a : () => this.rtlEnabled ? h(ChevronLeftIcon, null) : h(ChevronRightIcon, null)
+      })];
+    })), arrowPlacement === "left" && headerNode), resolveWrappedSlotWithProps(headerExtraSlot, {
+      collapsed
+    }, (children) => h("div", {
+      class: `${mergedClsPrefix}-collapse-item__header-extra`,
+      onClick: this.handleClick,
+      "data-extra": true
+    }, children))), h(NCollapseItemContent, {
+      clsPrefix: mergedClsPrefix,
+      displayDirective: mergedDisplayDirective,
+      show: !collapsed
+    }, $slots));
+  }
+});
 const commonVars = {
   padding: "8px 14px"
 };
-function self$5(vars) {
+function self$6(vars) {
   const {
     borderRadius,
     boxShadow2,
@@ -37304,7 +37788,7 @@ const tooltipLight = createTheme({
   peers: {
     Popover: popoverLight$1
   },
-  self: self$5
+  self: self$6
 });
 const tooltipLight$1 = tooltipLight;
 const commonVariables = {
@@ -37330,7 +37814,7 @@ const commonVariables = {
   optionIconPrefixWidthLarge: "40px",
   optionIconPrefixWidthHuge: "40px"
 };
-function self$4(vars) {
+function self$5(vars) {
   const {
     primaryColor,
     textColor2,
@@ -37395,7 +37879,7 @@ const dropdownLight = createTheme({
   peers: {
     Popover: popoverLight$1
   },
-  self: self$4
+  self: self$5
 });
 const dropdownLight$1 = dropdownLight;
 const tooltipProps = Object.assign(Object.assign({}, popoverBaseProps), useTheme.props);
@@ -37453,7 +37937,7 @@ const NDropdownDivider = /* @__PURE__ */ defineComponent({
     });
   }
 });
-function self$3(vars) {
+function self$4(vars) {
   const {
     textColorBase,
     opacity1,
@@ -37474,10 +37958,10 @@ function self$3(vars) {
 const iconLight = {
   name: "Icon",
   common: commonLight,
-  self: self$3
+  self: self$4
 };
 const iconLight$1 = iconLight;
-const style$3 = cB("icon", `
+const style$4 = cB("icon", `
  height: 1em;
  width: 1em;
  line-height: 1em;
@@ -37513,7 +37997,7 @@ const NIcon = /* @__PURE__ */ defineComponent({
       mergedClsPrefixRef,
       inlineThemeDisabled
     } = useConfig(props);
-    const themeRef = useTheme("Icon", "-icon", style$3, iconLight$1, props, mergedClsPrefixRef);
+    const themeRef = useTheme("Icon", "-icon", style$4, iconLight$1, props, mergedClsPrefixRef);
     const cssVarsRef = computed(() => {
       const {
         depth
@@ -37986,13 +38470,13 @@ const NDropdownGroup = /* @__PURE__ */ defineComponent({
       clsPrefix
     } = this;
     const {
-      children: children2
+      children
     } = tmNode;
     return h(Fragment, null, h(NDropdownGroupHeader, {
       clsPrefix,
       tmNode,
       key: tmNode.key
-    }), children2 === null || children2 === void 0 ? void 0 : children2.map((child) => {
+    }), children === null || children === void 0 ? void 0 : children.map((child) => {
       const {
         rawNode
       } = child;
@@ -38028,11 +38512,11 @@ const NDropdownRenderOption = /* @__PURE__ */ defineComponent({
   render() {
     const {
       rawNode: {
-        render: render14,
+        render: render16,
         props
       }
     } = this.tmNode;
-    return h("div", props, [render14 === null || render14 === void 0 ? void 0 : render14()]);
+    return h("div", props, [render16 === null || render16 === void 0 ? void 0 : render16()]);
   }
 });
 const NDropdownMenu = /* @__PURE__ */ defineComponent({
@@ -38158,7 +38642,7 @@ const NDropdownMenu = /* @__PURE__ */ defineComponent({
     }) : null);
   }
 });
-const style$2 = cB("dropdown-menu", `
+const style$3 = cB("dropdown-menu", `
  transform-origin: var(--v-transform-origin);
  background-color: var(--n-color);
  border-radius: var(--n-border-radius);
@@ -38392,7 +38876,7 @@ const NDropdown = /* @__PURE__ */ defineComponent({
       mergedClsPrefixRef,
       inlineThemeDisabled
     } = useConfig(props);
-    const themeRef = useTheme("Dropdown", "-dropdown", style$2, dropdownLight$1, props, mergedClsPrefixRef);
+    const themeRef = useTheme("Dropdown", "-dropdown", style$3, dropdownLight$1, props, mergedClsPrefixRef);
     provide(dropdownInjectionKey, {
       labelFieldRef: toRef(props, "labelField"),
       childrenFieldRef: toRef(props, "childrenField"),
@@ -38599,7 +39083,7 @@ const NDropdown = /* @__PURE__ */ defineComponent({
     };
   },
   render() {
-    const renderPopoverBody = (className2, ref2, style2, onMouseenter, onMouseleave) => {
+    const renderPopoverBody = (className, ref2, style2, onMouseenter, onMouseleave) => {
       var _a;
       const {
         mergedClsPrefix,
@@ -38609,7 +39093,7 @@ const NDropdown = /* @__PURE__ */ defineComponent({
       const menuNodeProps = (menuProps2 === null || menuProps2 === void 0 ? void 0 : menuProps2(void 0, this.tmNodes.map((v) => v.rawNode))) || {};
       const dropdownProps2 = {
         ref: createRefSetter(ref2),
-        class: [className2, `${mergedClsPrefix}-dropdown`, this.themeClass],
+        class: [className, `${mergedClsPrefix}-dropdown`, this.themeClass],
         clsPrefix: mergedClsPrefix,
         tmNodes: this.tmNodes,
         style: [...style2, this.cssVars],
@@ -38641,7 +39125,7 @@ const NDropdown = /* @__PURE__ */ defineComponent({
     });
   }
 });
-function self$2(vars) {
+function self$3(vars) {
   const {
     textColor1,
     dividerColor,
@@ -38656,10 +39140,10 @@ function self$2(vars) {
 const dividerLight = {
   name: "Divider",
   common: commonLight,
-  self: self$2
+  self: self$3
 };
 const dividerLight$1 = dividerLight;
-const style$1 = cB("divider", `
+const style$2 = cB("divider", `
  position: relative;
  display: flex;
  width: 100%;
@@ -38727,7 +39211,7 @@ const NDivider = /* @__PURE__ */ defineComponent({
       mergedClsPrefixRef,
       inlineThemeDisabled
     } = useConfig(props);
-    const themeRef = useTheme("Divider", "-divider", style$1, dividerLight$1, props, mergedClsPrefixRef);
+    const themeRef = useTheme("Divider", "-divider", style$2, dividerLight$1, props, mergedClsPrefixRef);
     const cssVarsRef = computed(() => {
       const {
         common: {
@@ -38823,7 +39307,7 @@ function createPartialInvertedVars(color, activeItemColor, activeTextColor, grou
     groupTextColorInverted: groupTextColor
   };
 }
-function self$1(vars) {
+function self$2(vars) {
   const {
     borderRadius,
     textColor3,
@@ -38894,9 +39378,333 @@ const menuLight = createTheme({
     Tooltip: tooltipLight$1,
     Dropdown: dropdownLight$1
   },
-  self: self$1
+  self: self$2
 });
 const menuLight$1 = menuLight;
+Object.assign(Object.assign({}, useTheme.props), {
+  left: [Number, String],
+  right: [Number, String],
+  top: [Number, String],
+  bottom: [Number, String],
+  shape: {
+    type: String,
+    default: "circle"
+  },
+  position: {
+    type: String,
+    default: "fixed"
+  }
+});
+const floatButtonGroupInjectionKey = createInjectionKey("n-float-button-group");
+function self$1(vars) {
+  const {
+    popoverColor,
+    textColor2,
+    buttonColor2Hover,
+    buttonColor2Pressed,
+    primaryColor,
+    primaryColorHover,
+    primaryColorPressed,
+    borderRadius
+  } = vars;
+  return {
+    color: popoverColor,
+    colorHover: buttonColor2Hover,
+    colorPressed: buttonColor2Pressed,
+    colorPrimary: primaryColor,
+    colorPrimaryHover: primaryColorHover,
+    colorPrimaryPressed: primaryColorPressed,
+    textColor: textColor2,
+    boxShadow: "0 2px 8px 0px rgba(0, 0, 0, .16)",
+    boxShadowHover: "0 2px 12px 0px rgba(0, 0, 0, .24)",
+    boxShadowPressed: "0 2px 12px 0px rgba(0, 0, 0, .24)",
+    textColorPrimary: "#fff",
+    borderRadiusSquare: borderRadius
+  };
+}
+const themeLight = {
+  name: "FloatButton",
+  common: commonLight,
+  self: self$1
+};
+const floatButtonLight = themeLight;
+const style$1 = cB("float-button", `
+ user-select: none;
+ cursor: pointer;
+ color: var(--n-text-color);
+ background-color: var(--n-color);
+ font-size: 18px;
+ transition:
+ color .3s var(--n-bezier),
+ border-color .3s var(--n-bezier),
+ box-shadow .3s var(--n-bezier),
+ background-color .3s var(--n-bezier);
+ box-shadow: var(--n-box-shadow);
+ display: flex;
+ align-items: stretch;
+ box-sizing: border-box;
+`, [cM("circle-shape", `
+ border-radius: 4096px;
+ `), cM("square-shape", `
+ border-radius: var(--n-border-radius-square);
+ `), cE("fill", `
+ position: absolute;
+ inset: 0;
+ transition: background-color .3s var(--n-bezier);
+ border-radius: inherit;
+ `), cE("body", `
+ position: relative;
+ flex-grow: 1;
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ transition: transform .3s var(--n-bezier), opacity .3s var(--n-bezier);
+ border-radius: inherit;
+ flex-direction: column;
+ box-sizing: border-box;
+ padding: 2px 4px;
+ gap: 2px;
+ transform: scale(1);
+ `, [cE("description", `
+ font-size: 12px;
+ text-align: center;
+ line-height: 14px;
+ `)]), c$1("&:hover", "box-shadow: var(--n-box-shadow-hover);", [c$1(">", [cE("fill", `
+ background-color: var(--n-color-hover);
+ `)])]), c$1("&:active", "box-shadow: var(--n-box-shadow-pressed);", [c$1(">", [cE("fill", `
+ background-color: var(--n-color-pressed);
+ `)])]), cM("show-menu", [c$1(">", [cE("menu", `
+ pointer-events: all;
+ bottom: 100%;
+ opacity: 1;
+ `), cE("close", `
+ transform: scale(1);
+ opacity: 1;
+ `), cE("body", `
+ transform: scale(0.75);
+ opacity: 0;
+ `)])]), cE("close", `
+ opacity: 0;
+ transform: scale(0.75);
+ position: absolute;
+ inset: 0;
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ transition: transform .3s var(--n-bezier), opacity .3s var(--n-bezier);
+ `), cE("menu", `
+ position: absolute;
+ bottom: calc(100% - 8px);
+ display: flex;
+ flex-direction: column;
+ opacity: 0;
+ pointer-events: none;
+ transition:
+ opacity .3s var(--n-bezier),
+ bottom .3s var(--n-bezier); 
+ `, [c$1("> *", `
+ margin-bottom: 16px;
+ `), cB("float-button", `
+ position: relative !important;
+ `)])]);
+const floatButtonProps = Object.assign(Object.assign({}, useTheme.props), {
+  width: {
+    type: [Number, String],
+    default: 40
+  },
+  height: {
+    type: [Number, String],
+    default: 40
+  },
+  left: [Number, String],
+  right: [Number, String],
+  top: [Number, String],
+  bottom: [Number, String],
+  shape: {
+    type: String,
+    default: "circle"
+  },
+  position: {
+    type: String,
+    default: "fixed"
+  },
+  type: {
+    type: String,
+    default: "default"
+  },
+  menuTrigger: String,
+  showMenu: {
+    type: Boolean,
+    default: void 0
+  },
+  onUpdateShowMenu: {
+    type: [Function, Array],
+    default: void 0
+  },
+  "onUpdate:showMenu": {
+    type: [Function, Array],
+    default: void 0
+  }
+});
+const NFloatButton = /* @__PURE__ */ defineComponent({
+  name: "FloatButton",
+  props: floatButtonProps,
+  setup(props) {
+    const {
+      mergedClsPrefixRef,
+      inlineThemeDisabled
+    } = useConfig(props);
+    const themeRef = useTheme("FloatButton", "-float-button", style$1, floatButtonLight, props, mergedClsPrefixRef);
+    const floatButtonGroupInjection = inject(floatButtonGroupInjectionKey, null);
+    const uncontrolledShowMenuRef = ref(false);
+    const controlledShoeMenuRef = toRef(props, "showMenu");
+    const mergedShowMenuRef = useMergedState(controlledShoeMenuRef, uncontrolledShowMenuRef);
+    function doUpdateShowMenu(value) {
+      const {
+        onUpdateShowMenu,
+        "onUpdate:showMenu": _onUpdateShowMenu
+      } = props;
+      uncontrolledShowMenuRef.value = value;
+      if (onUpdateShowMenu) {
+        call(onUpdateShowMenu, value);
+      }
+      if (_onUpdateShowMenu) {
+        call(_onUpdateShowMenu, value);
+      }
+    }
+    const cssVarsRef = computed(() => {
+      const {
+        self: {
+          color,
+          textColor,
+          boxShadow,
+          boxShadowHover,
+          boxShadowPressed,
+          colorHover,
+          colorPrimary,
+          colorPrimaryHover,
+          textColorPrimary,
+          borderRadiusSquare,
+          colorPressed,
+          colorPrimaryPressed
+        },
+        common: {
+          cubicBezierEaseInOut: cubicBezierEaseInOut2
+        }
+      } = themeRef.value;
+      const {
+        type
+      } = props;
+      return {
+        "--n-bezier": cubicBezierEaseInOut2,
+        "--n-box-shadow": boxShadow,
+        "--n-box-shadow-hover": boxShadowHover,
+        "--n-box-shadow-pressed": boxShadowPressed,
+        "--n-color": type === "primary" ? colorPrimary : color,
+        "--n-text-color": type === "primary" ? textColorPrimary : textColor,
+        "--n-color-hover": type === "primary" ? colorPrimaryHover : colorHover,
+        "--n-color-pressed": type === "primary" ? colorPrimaryPressed : colorPressed,
+        "--n-border-radius-square": borderRadiusSquare
+      };
+    });
+    const inlineStyle = computed(() => {
+      const {
+        width,
+        height
+      } = props;
+      return Object.assign({
+        position: floatButtonGroupInjection ? void 0 : props.position,
+        width: formatLength(width),
+        minHeight: formatLength(height)
+      }, floatButtonGroupInjection ? null : {
+        left: formatLength(props.left),
+        right: formatLength(props.right),
+        top: formatLength(props.top),
+        bottom: formatLength(props.bottom)
+      });
+    });
+    const mergedShapeRef = computed(() => {
+      return floatButtonGroupInjection ? floatButtonGroupInjection.shapeRef.value : props.shape;
+    });
+    const Mouseenter = () => {
+      if (props.menuTrigger === "hover") {
+        doUpdateShowMenu(true);
+      }
+    };
+    const handleMouseleave = () => {
+      if (props.menuTrigger === "hover" && mergedShowMenuRef.value) {
+        doUpdateShowMenu(false);
+      }
+    };
+    const handleClick = () => {
+      if (props.menuTrigger === "click") {
+        doUpdateShowMenu(!mergedShowMenuRef.value);
+      }
+    };
+    const themeClassHandle = inlineThemeDisabled ? useThemeClass("float-button", computed(() => props.type[0]), cssVarsRef, props) : void 0;
+    return {
+      inlineStyle,
+      cssVars: inlineThemeDisabled ? void 0 : cssVarsRef,
+      mergedClsPrefix: mergedClsPrefixRef,
+      mergedShape: mergedShapeRef,
+      mergedShowMenu: mergedShowMenuRef,
+      themeClass: themeClassHandle === null || themeClassHandle === void 0 ? void 0 : themeClassHandle.themeClass,
+      onRender: themeClassHandle === null || themeClassHandle === void 0 ? void 0 : themeClassHandle.onRender,
+      Mouseenter,
+      handleMouseleave,
+      handleClick
+    };
+  },
+  render() {
+    var _a;
+    const {
+      mergedClsPrefix,
+      cssVars,
+      mergedShape,
+      type,
+      menuTrigger,
+      mergedShowMenu,
+      themeClass,
+      $slots,
+      inlineStyle,
+      onRender
+    } = this;
+    const dirs = [[mousemoveoutside$1, this.handleMouseleave]];
+    onRender === null || onRender === void 0 ? void 0 : onRender();
+    return withDirectives(h("div", {
+      class: [`${mergedClsPrefix}-float-button`, `${mergedClsPrefix}-float-button--${mergedShape}-shape`, `${mergedClsPrefix}-float-button--${type}-type`, mergedShowMenu && `${mergedClsPrefix}-float-button--show-menu`, themeClass],
+      style: [cssVars, inlineStyle],
+      onMouseenter: this.Mouseenter,
+      onMouseleave: this.handleMouseleave,
+      onClick: this.handleClick,
+      role: "button"
+    }, h("div", {
+      class: `${mergedClsPrefix}-float-button__fill`,
+      "aria-hidden": true
+    }), h("div", {
+      class: `${mergedClsPrefix}-float-button__body`
+    }, (_a = $slots.default) === null || _a === void 0 ? void 0 : _a.call($slots), resolveWrappedSlot($slots.description, (children) => {
+      if (children) {
+        return h("div", {
+          class: `${mergedClsPrefix}-float-button__description`
+        }, children);
+      }
+      return null;
+    })), menuTrigger ? h("div", {
+      class: `${mergedClsPrefix}-float-button__close`
+    }, h(NBaseIcon, {
+      clsPrefix: mergedClsPrefix
+    }, {
+      default: () => h(ErrorIcon, null)
+    })) : null, menuTrigger ? h("div", {
+      onClick: (e) => {
+        e.stopPropagation();
+      },
+      "data-float-button-menu": true,
+      class: `${mergedClsPrefix}-float-button__menu`
+    }, resolveSlot($slots.menu, () => [])) : null), dirs);
+  }
+});
 const layoutSiderInjectionKey = createInjectionKey("n-layout-sider");
 const menuInjectionKey = createInjectionKey("n-menu");
 const submenuInjectionKey = createInjectionKey("n-submenu");
@@ -39036,13 +39844,13 @@ const NMenuOptionGroup = /* @__PURE__ */ defineComponent({
       const {
         nodeProps
       } = menuProps2;
-      const attrs2 = nodeProps === null || nodeProps === void 0 ? void 0 : nodeProps(props.tmNode.rawNode);
+      const attrs = nodeProps === null || nodeProps === void 0 ? void 0 : nodeProps(props.tmNode.rawNode);
       return h("div", {
         class: `${mergedClsPrefix}-menu-item-group`,
         role: "group"
-      }, h("div", Object.assign({}, attrs2, {
-        class: [`${mergedClsPrefix}-menu-item-group-title`, attrs2 === null || attrs2 === void 0 ? void 0 : attrs2.class],
-        style: [(attrs2 === null || attrs2 === void 0 ? void 0 : attrs2.style) || "", paddingLeft !== void 0 ? `padding-left: ${paddingLeft}px;` : ""]
+      }, h("div", Object.assign({}, attrs, {
+        class: [`${mergedClsPrefix}-menu-item-group-title`, attrs === null || attrs === void 0 ? void 0 : attrs.class],
+        style: [(attrs === null || attrs === void 0 ? void 0 : attrs.style) || "", paddingLeft !== void 0 ? `padding-left: ${paddingLeft}px;` : ""]
       }), render$1(props.title), props.extra ? h(Fragment, null, " ", render$1(props.extra)) : null), h("div", null, props.tmNodes.map((tmNode) => itemRenderer(tmNode, menuProps2))));
     };
   }
@@ -39292,9 +40100,9 @@ const NSubmenu = /* @__PURE__ */ defineComponent({
         isEllipsisPlaceholder,
         extra
       } = this;
-      const attrs2 = nodeProps === null || nodeProps === void 0 ? void 0 : nodeProps(tmNode.rawNode);
-      return h("div", Object.assign({}, attrs2, {
-        class: [`${mergedClsPrefix2}-menu-item`, attrs2 === null || attrs2 === void 0 ? void 0 : attrs2.class],
+      const attrs = nodeProps === null || nodeProps === void 0 ? void 0 : nodeProps(tmNode.rawNode);
+      return h("div", Object.assign({}, attrs, {
+        class: [`${mergedClsPrefix2}-menu-item`, attrs === null || attrs === void 0 ? void 0 : attrs.class],
         role: "menuitem"
       }), h(NMenuOptionContent, {
         tmNode,
@@ -39439,10 +40247,10 @@ const NMenuOption = /* @__PURE__ */ defineComponent({
         nodeProps
       }
     } = this;
-    const attrs2 = nodeProps === null || nodeProps === void 0 ? void 0 : nodeProps(tmNode.rawNode);
-    return h("div", Object.assign({}, attrs2, {
+    const attrs = nodeProps === null || nodeProps === void 0 ? void 0 : nodeProps(tmNode.rawNode);
+    return h("div", Object.assign({}, attrs, {
       role: "menuitem",
-      class: [`${mergedClsPrefix}-menu-item`, attrs2 === null || attrs2 === void 0 ? void 0 : attrs2.class]
+      class: [`${mergedClsPrefix}-menu-item`, attrs === null || attrs === void 0 ? void 0 : attrs.class]
     }), h(NTooltip, {
       theme: mergedTheme.peers.Tooltip,
       themeOverrides: mergedTheme.peerOverrides.Tooltip,
@@ -39732,8 +40540,8 @@ const style = c$1([cB("menu", `
  height: 1px;
  margin: 6px 18px;
  `)]);
-function hoverStyle(props, children2) {
-  return [cM("hover", props, children2), c$1("&:hover", props, children2)];
+function hoverStyle(props, children) {
+  return [cM("hover", props, children), c$1("&:hover", props, children)];
 }
 const menuProps = Object.assign(Object.assign({}, useTheme.props), {
   options: {
@@ -40250,59 +41058,133 @@ const NMenu = /* @__PURE__ */ defineComponent({
     }) : renderMainNode();
   }
 });
-const _hoisted_1$d = {
-  version: "1.1",
+const _hoisted_1$g = {
   xmlns: "http://www.w3.org/2000/svg",
   "xmlns:xlink": "http://www.w3.org/1999/xlink",
-  x: "0px",
-  y: "0px",
-  viewBox: "0 0 512 512",
-  "enable-background": "new 0 0 512 512",
-  "xml:space": "preserve"
+  viewBox: "0 0 16 16"
+};
+const _hoisted_2$g = /* @__PURE__ */ createBaseVNode(
+  "g",
+  {
+    fill: "none"
+  },
+  [
+    /* @__PURE__ */ createBaseVNode("path", {
+      d: "M1.5 14a.5.5 0 0 1 0-1h13a.5.5 0 0 1 0 1h-13zm.5-3.75c0 .966.784 1.75 1.75 1.75h1.5A1.75 1.75 0 0 0 7 10.25v-6.5A1.75 1.75 0 0 0 5.25 2h-1.5A1.75 1.75 0 0 0 2 3.75v6.5zm1.75.75a.75.75 0 0 1-.75-.75v-6.5A.75.75 0 0 1 3.75 3h1.5a.75.75 0 0 1 .75.75v6.5a.75.75 0 0 1-.75.75h-1.5zM9 10.25c0 .966.784 1.75 1.75 1.75h1.5A1.75 1.75 0 0 0 14 10.25v-4.5A1.75 1.75 0 0 0 12.25 4h-1.5A1.75 1.75 0 0 0 9 5.75v4.5zm1.75.75a.75.75 0 0 1-.75-.75v-4.5a.75.75 0 0 1 .75-.75h1.5a.75.75 0 0 1 .75.75v4.5a.75.75 0 0 1-.75.75h-1.5z",
+      fill: "currentColor"
+    })
+  ],
+  -1
+  /* HOISTED */
+);
+const _hoisted_3$g = [_hoisted_2$g];
+const AlignBottom16Regular = /* @__PURE__ */ defineComponent({
+  name: "AlignBottom16Regular",
+  render: function render2(_ctx, _cache) {
+    return openBlock(), createElementBlock("svg", _hoisted_1$g, _hoisted_3$g);
+  }
+});
+const _hoisted_1$f = {
+  xmlns: "http://www.w3.org/2000/svg",
+  "xmlns:xlink": "http://www.w3.org/1999/xlink",
+  viewBox: "0 0 16 16"
+};
+const _hoisted_2$f = /* @__PURE__ */ createBaseVNode(
+  "g",
+  {
+    fill: "none"
+  },
+  [
+    /* @__PURE__ */ createBaseVNode("path", {
+      d: "M15 7.5a.5.5 0 0 1-.5.5H14v1.25A1.75 1.75 0 0 1 12.25 11h-1.5A1.75 1.75 0 0 1 9 9.25V8H7v2.25A1.75 1.75 0 0 1 5.25 12h-1.5A1.75 1.75 0 0 1 2 10.25V8h-.5a.5.5 0 0 1 0-1H2V4.75C2 3.784 2.784 3 3.75 3h1.5C6.216 3 7 3.784 7 4.75V7h2V5.75C9 4.784 9.784 4 10.75 4h1.5c.966 0 1.75.784 1.75 1.75V7h.5a.5.5 0 0 1 .5.5zM3 10.25c0 .414.336.75.75.75h1.5a.75.75 0 0 0 .75-.75v-5.5A.75.75 0 0 0 5.25 4h-1.5a.75.75 0 0 0-.75.75v5.5zm7-1c0 .414.336.75.75.75h1.5a.75.75 0 0 0 .75-.75v-3.5a.75.75 0 0 0-.75-.75h-1.5a.75.75 0 0 0-.75.75v3.5z",
+      fill: "currentColor"
+    })
+  ],
+  -1
+  /* HOISTED */
+);
+const _hoisted_3$f = [_hoisted_2$f];
+const AlignCenterHorizontal16Regular = /* @__PURE__ */ defineComponent({
+  name: "AlignCenterHorizontal16Regular",
+  render: function render3(_ctx, _cache) {
+    return openBlock(), createElementBlock("svg", _hoisted_1$f, _hoisted_3$f);
+  }
+});
+const _hoisted_1$e = {
+  xmlns: "http://www.w3.org/2000/svg",
+  "xmlns:xlink": "http://www.w3.org/1999/xlink",
+  viewBox: "0 0 16 16"
+};
+const _hoisted_2$e = /* @__PURE__ */ createBaseVNode(
+  "g",
+  {
+    fill: "none"
+  },
+  [
+    /* @__PURE__ */ createBaseVNode("path", {
+      d: "M8.5 15a.5.5 0 0 1-.5-.5V14H6.75A1.75 1.75 0 0 1 5 12.25v-1.5C5 9.784 5.784 9 6.75 9H8V7H5.75A1.75 1.75 0 0 1 4 5.25v-1.5C4 2.784 4.784 2 5.75 2H8v-.5a.5.5 0 0 1 1 0V2h2.25c.966 0 1.75.784 1.75 1.75v1.5A1.75 1.75 0 0 1 11.25 7H9v2h1.25c.966 0 1.75.784 1.75 1.75v1.5A1.75 1.75 0 0 1 10.25 14H9v.5a.5.5 0 0 1-.5.5zM5.75 3a.75.75 0 0 0-.75.75v1.5c0 .414.336.75.75.75h5.5a.75.75 0 0 0 .75-.75v-1.5a.75.75 0 0 0-.75-.75h-5.5zm1 7a.75.75 0 0 0-.75.75v1.5c0 .414.336.75.75.75h3.5a.75.75 0 0 0 .75-.75v-1.5a.75.75 0 0 0-.75-.75h-3.5z",
+      fill: "currentColor"
+    })
+  ],
+  -1
+  /* HOISTED */
+);
+const _hoisted_3$e = [_hoisted_2$e];
+const AlignCenterVertical16Regular = /* @__PURE__ */ defineComponent({
+  name: "AlignCenterVertical16Regular",
+  render: function render4(_ctx, _cache) {
+    return openBlock(), createElementBlock("svg", _hoisted_1$e, _hoisted_3$e);
+  }
+});
+const _hoisted_1$d = {
+  xmlns: "http://www.w3.org/2000/svg",
+  "xmlns:xlink": "http://www.w3.org/1999/xlink",
+  viewBox: "0 0 16 16"
 };
 const _hoisted_2$d = /* @__PURE__ */ createBaseVNode(
   "g",
-  null,
+  {
+    fill: "none"
+  },
   [
     /* @__PURE__ */ createBaseVNode("path", {
-      d: "M32,432h2.9c1.8,0,3.5-1.1,4.1-2.8c2.2-5.7,8.3-19.8,21.4-39.7c21.5-32.7,58.4-67.4,94.5-83.5c27.6-12.4,53-21.5,97.1-23.2\n		c2.3-0.1,4.2,1.7,4.2,4v81.6c0,3.2,3.6,5.1,6.2,3.4l215.9-142.2c2.4-1.6,2.4-5.1,0-6.7L262.3,80.7c-2.7-1.8-6.2,0.1-6.2,3.4v82.6\n		c0,2.2-1.7,3.9-3.8,4c-71.6,3.8-123.1,24.8-163.4,65.5c-61,61.6-56.8,139.1-56.8,158.7C32.1,405.2,32,420.2,32,432z"
+      d: "M2 1.5a.5.5 0 0 1 1 0v13a.5.5 0 0 1-1 0v-13zm3.75.5A1.75 1.75 0 0 0 4 3.75v1.5C4 6.216 4.784 7 5.75 7h6.5A1.75 1.75 0 0 0 14 5.25v-1.5A1.75 1.75 0 0 0 12.25 2h-6.5zM5 3.75A.75.75 0 0 1 5.75 3h6.5a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-.75.75h-6.5A.75.75 0 0 1 5 5.25v-1.5zM5.75 9A1.75 1.75 0 0 0 4 10.75v1.5c0 .966.784 1.75 1.75 1.75h4.5A1.75 1.75 0 0 0 12 12.25v-1.5A1.75 1.75 0 0 0 10.25 9h-4.5zM5 10.75a.75.75 0 0 1 .75-.75h4.5a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-.75.75h-4.5a.75.75 0 0 1-.75-.75v-1.5z",
+      fill: "currentColor"
     })
   ],
   -1
   /* HOISTED */
 );
 const _hoisted_3$d = [_hoisted_2$d];
-const IosRedo = /* @__PURE__ */ defineComponent({
-  name: "IosRedo",
-  render: function render2(_ctx, _cache) {
+const AlignLeft16Regular = /* @__PURE__ */ defineComponent({
+  name: "AlignLeft16Regular",
+  render: function render5(_ctx, _cache) {
     return openBlock(), createElementBlock("svg", _hoisted_1$d, _hoisted_3$d);
   }
 });
 const _hoisted_1$c = {
-  version: "1.1",
   xmlns: "http://www.w3.org/2000/svg",
   "xmlns:xlink": "http://www.w3.org/1999/xlink",
-  x: "0px",
-  y: "0px",
-  viewBox: "0 0 512 512",
-  "enable-background": "new 0 0 512 512",
-  "xml:space": "preserve"
+  viewBox: "0 0 16 16"
 };
 const _hoisted_2$c = /* @__PURE__ */ createBaseVNode(
   "g",
-  null,
+  {
+    fill: "none"
+  },
   [
     /* @__PURE__ */ createBaseVNode("path", {
-      d: "M479.9,394.9c0-19.6,4.2-97.1-56.8-158.7c-40.4-40.7-91.9-61.7-163.4-65.5c-2.1-0.1-3.8-1.9-3.8-4V84\n		c0-3.2-3.5-5.1-6.2-3.4L33.8,222.8c-2.4,1.6-2.4,5.1,0,6.7l215.9,142.2c2.7,1.8,6.2-0.1,6.2-3.4v-81.6c0-2.3,1.9-4.1,4.2-4\n		c44.1,1.7,69.5,10.9,97.1,23.2c36.1,16.2,72.9,50.9,94.5,83.5c13.1,19.9,19.2,33.9,21.4,39.7c0.7,1.7,2.3,2.8,4.1,2.8h2.9\n		C480,420.2,479.9,405.2,479.9,394.9z"
+      d: "M14 1.5a.5.5 0 0 0-1 0v13a.5.5 0 0 0 1 0v-13zm-3.75.5c.966 0 1.75.784 1.75 1.75v1.5A1.75 1.75 0 0 1 10.25 7h-6.5A1.75 1.75 0 0 1 2 5.25v-1.5C2 2.784 2.784 2 3.75 2h6.5zM11 3.75a.75.75 0 0 0-.75-.75h-6.5a.75.75 0 0 0-.75.75v1.5c0 .414.336.75.75.75h6.5a.75.75 0 0 0 .75-.75v-1.5zM10.25 9c.966 0 1.75.784 1.75 1.75v1.5A1.75 1.75 0 0 1 10.25 14h-4.5A1.75 1.75 0 0 1 4 12.25v-1.5C4 9.784 4.784 9 5.75 9h4.5zm.75 1.75a.75.75 0 0 0-.75-.75h-4.5a.75.75 0 0 0-.75.75v1.5c0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75v-1.5z",
+      fill: "currentColor"
     })
   ],
   -1
   /* HOISTED */
 );
 const _hoisted_3$c = [_hoisted_2$c];
-const IosUndo = /* @__PURE__ */ defineComponent({
-  name: "IosUndo",
-  render: function render3(_ctx, _cache) {
+const AlignRight16Regular = /* @__PURE__ */ defineComponent({
+  name: "AlignRight16Regular",
+  render: function render6(_ctx, _cache) {
     return openBlock(), createElementBlock("svg", _hoisted_1$c, _hoisted_3$c);
   }
 });
@@ -40318,7 +41200,7 @@ const _hoisted_2$b = /* @__PURE__ */ createBaseVNode(
   },
   [
     /* @__PURE__ */ createBaseVNode("path", {
-      d: "M1.5 14a.5.5 0 0 1 0-1h13a.5.5 0 0 1 0 1h-13zm.5-3.75c0 .966.784 1.75 1.75 1.75h1.5A1.75 1.75 0 0 0 7 10.25v-6.5A1.75 1.75 0 0 0 5.25 2h-1.5A1.75 1.75 0 0 0 2 3.75v6.5zm1.75.75a.75.75 0 0 1-.75-.75v-6.5A.75.75 0 0 1 3.75 3h1.5a.75.75 0 0 1 .75.75v6.5a.75.75 0 0 1-.75.75h-1.5zM9 10.25c0 .966.784 1.75 1.75 1.75h1.5A1.75 1.75 0 0 0 14 10.25v-4.5A1.75 1.75 0 0 0 12.25 4h-1.5A1.75 1.75 0 0 0 9 5.75v4.5zm1.75.75a.75.75 0 0 1-.75-.75v-4.5a.75.75 0 0 1 .75-.75h1.5a.75.75 0 0 1 .75.75v4.5a.75.75 0 0 1-.75.75h-1.5z",
+      d: "M1.5 2a.5.5 0 0 0 0 1h13a.5.5 0 0 0 0-1h-13zM2 5.75C2 4.784 2.784 4 3.75 4h1.5C6.216 4 7 4.784 7 5.75v6.5A1.75 1.75 0 0 1 5.25 14h-1.5A1.75 1.75 0 0 1 2 12.25v-6.5zM3.75 5a.75.75 0 0 0-.75.75v6.5c0 .414.336.75.75.75h1.5a.75.75 0 0 0 .75-.75v-6.5A.75.75 0 0 0 5.25 5h-1.5zM9 5.75C9 4.784 9.784 4 10.75 4h1.5c.966 0 1.75.784 1.75 1.75v4.5A1.75 1.75 0 0 1 12.25 12h-1.5A1.75 1.75 0 0 1 9 10.25v-4.5zM10.75 5a.75.75 0 0 0-.75.75v4.5c0 .414.336.75.75.75h1.5a.75.75 0 0 0 .75-.75v-4.5a.75.75 0 0 0-.75-.75h-1.5z",
       fill: "currentColor"
     })
   ],
@@ -40326,9 +41208,9 @@ const _hoisted_2$b = /* @__PURE__ */ createBaseVNode(
   /* HOISTED */
 );
 const _hoisted_3$b = [_hoisted_2$b];
-const AlignBottom16Regular = /* @__PURE__ */ defineComponent({
-  name: "AlignBottom16Regular",
-  render: function render4(_ctx, _cache) {
+const AlignTop16Regular = /* @__PURE__ */ defineComponent({
+  name: "AlignTop16Regular",
+  render: function render7(_ctx, _cache) {
     return openBlock(), createElementBlock("svg", _hoisted_1$b, _hoisted_3$b);
   }
 });
@@ -40344,136 +41226,6 @@ const _hoisted_2$a = /* @__PURE__ */ createBaseVNode(
   },
   [
     /* @__PURE__ */ createBaseVNode("path", {
-      d: "M15 7.5a.5.5 0 0 1-.5.5H14v1.25A1.75 1.75 0 0 1 12.25 11h-1.5A1.75 1.75 0 0 1 9 9.25V8H7v2.25A1.75 1.75 0 0 1 5.25 12h-1.5A1.75 1.75 0 0 1 2 10.25V8h-.5a.5.5 0 0 1 0-1H2V4.75C2 3.784 2.784 3 3.75 3h1.5C6.216 3 7 3.784 7 4.75V7h2V5.75C9 4.784 9.784 4 10.75 4h1.5c.966 0 1.75.784 1.75 1.75V7h.5a.5.5 0 0 1 .5.5zM3 10.25c0 .414.336.75.75.75h1.5a.75.75 0 0 0 .75-.75v-5.5A.75.75 0 0 0 5.25 4h-1.5a.75.75 0 0 0-.75.75v5.5zm7-1c0 .414.336.75.75.75h1.5a.75.75 0 0 0 .75-.75v-3.5a.75.75 0 0 0-.75-.75h-1.5a.75.75 0 0 0-.75.75v3.5z",
-      fill: "currentColor"
-    })
-  ],
-  -1
-  /* HOISTED */
-);
-const _hoisted_3$a = [_hoisted_2$a];
-const AlignCenterHorizontal16Regular = /* @__PURE__ */ defineComponent({
-  name: "AlignCenterHorizontal16Regular",
-  render: function render5(_ctx, _cache) {
-    return openBlock(), createElementBlock("svg", _hoisted_1$a, _hoisted_3$a);
-  }
-});
-const _hoisted_1$9 = {
-  xmlns: "http://www.w3.org/2000/svg",
-  "xmlns:xlink": "http://www.w3.org/1999/xlink",
-  viewBox: "0 0 16 16"
-};
-const _hoisted_2$9 = /* @__PURE__ */ createBaseVNode(
-  "g",
-  {
-    fill: "none"
-  },
-  [
-    /* @__PURE__ */ createBaseVNode("path", {
-      d: "M8.5 15a.5.5 0 0 1-.5-.5V14H6.75A1.75 1.75 0 0 1 5 12.25v-1.5C5 9.784 5.784 9 6.75 9H8V7H5.75A1.75 1.75 0 0 1 4 5.25v-1.5C4 2.784 4.784 2 5.75 2H8v-.5a.5.5 0 0 1 1 0V2h2.25c.966 0 1.75.784 1.75 1.75v1.5A1.75 1.75 0 0 1 11.25 7H9v2h1.25c.966 0 1.75.784 1.75 1.75v1.5A1.75 1.75 0 0 1 10.25 14H9v.5a.5.5 0 0 1-.5.5zM5.75 3a.75.75 0 0 0-.75.75v1.5c0 .414.336.75.75.75h5.5a.75.75 0 0 0 .75-.75v-1.5a.75.75 0 0 0-.75-.75h-5.5zm1 7a.75.75 0 0 0-.75.75v1.5c0 .414.336.75.75.75h3.5a.75.75 0 0 0 .75-.75v-1.5a.75.75 0 0 0-.75-.75h-3.5z",
-      fill: "currentColor"
-    })
-  ],
-  -1
-  /* HOISTED */
-);
-const _hoisted_3$9 = [_hoisted_2$9];
-const AlignCenterVertical16Regular = /* @__PURE__ */ defineComponent({
-  name: "AlignCenterVertical16Regular",
-  render: function render6(_ctx, _cache) {
-    return openBlock(), createElementBlock("svg", _hoisted_1$9, _hoisted_3$9);
-  }
-});
-const _hoisted_1$8 = {
-  xmlns: "http://www.w3.org/2000/svg",
-  "xmlns:xlink": "http://www.w3.org/1999/xlink",
-  viewBox: "0 0 16 16"
-};
-const _hoisted_2$8 = /* @__PURE__ */ createBaseVNode(
-  "g",
-  {
-    fill: "none"
-  },
-  [
-    /* @__PURE__ */ createBaseVNode("path", {
-      d: "M2 1.5a.5.5 0 0 1 1 0v13a.5.5 0 0 1-1 0v-13zm3.75.5A1.75 1.75 0 0 0 4 3.75v1.5C4 6.216 4.784 7 5.75 7h6.5A1.75 1.75 0 0 0 14 5.25v-1.5A1.75 1.75 0 0 0 12.25 2h-6.5zM5 3.75A.75.75 0 0 1 5.75 3h6.5a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-.75.75h-6.5A.75.75 0 0 1 5 5.25v-1.5zM5.75 9A1.75 1.75 0 0 0 4 10.75v1.5c0 .966.784 1.75 1.75 1.75h4.5A1.75 1.75 0 0 0 12 12.25v-1.5A1.75 1.75 0 0 0 10.25 9h-4.5zM5 10.75a.75.75 0 0 1 .75-.75h4.5a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-.75.75h-4.5a.75.75 0 0 1-.75-.75v-1.5z",
-      fill: "currentColor"
-    })
-  ],
-  -1
-  /* HOISTED */
-);
-const _hoisted_3$8 = [_hoisted_2$8];
-const AlignLeft16Regular = /* @__PURE__ */ defineComponent({
-  name: "AlignLeft16Regular",
-  render: function render7(_ctx, _cache) {
-    return openBlock(), createElementBlock("svg", _hoisted_1$8, _hoisted_3$8);
-  }
-});
-const _hoisted_1$7 = {
-  xmlns: "http://www.w3.org/2000/svg",
-  "xmlns:xlink": "http://www.w3.org/1999/xlink",
-  viewBox: "0 0 16 16"
-};
-const _hoisted_2$7 = /* @__PURE__ */ createBaseVNode(
-  "g",
-  {
-    fill: "none"
-  },
-  [
-    /* @__PURE__ */ createBaseVNode("path", {
-      d: "M14 1.5a.5.5 0 0 0-1 0v13a.5.5 0 0 0 1 0v-13zm-3.75.5c.966 0 1.75.784 1.75 1.75v1.5A1.75 1.75 0 0 1 10.25 7h-6.5A1.75 1.75 0 0 1 2 5.25v-1.5C2 2.784 2.784 2 3.75 2h6.5zM11 3.75a.75.75 0 0 0-.75-.75h-6.5a.75.75 0 0 0-.75.75v1.5c0 .414.336.75.75.75h6.5a.75.75 0 0 0 .75-.75v-1.5zM10.25 9c.966 0 1.75.784 1.75 1.75v1.5A1.75 1.75 0 0 1 10.25 14h-4.5A1.75 1.75 0 0 1 4 12.25v-1.5C4 9.784 4.784 9 5.75 9h4.5zm.75 1.75a.75.75 0 0 0-.75-.75h-4.5a.75.75 0 0 0-.75.75v1.5c0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75v-1.5z",
-      fill: "currentColor"
-    })
-  ],
-  -1
-  /* HOISTED */
-);
-const _hoisted_3$7 = [_hoisted_2$7];
-const AlignRight16Regular = /* @__PURE__ */ defineComponent({
-  name: "AlignRight16Regular",
-  render: function render8(_ctx, _cache) {
-    return openBlock(), createElementBlock("svg", _hoisted_1$7, _hoisted_3$7);
-  }
-});
-const _hoisted_1$6 = {
-  xmlns: "http://www.w3.org/2000/svg",
-  "xmlns:xlink": "http://www.w3.org/1999/xlink",
-  viewBox: "0 0 16 16"
-};
-const _hoisted_2$6 = /* @__PURE__ */ createBaseVNode(
-  "g",
-  {
-    fill: "none"
-  },
-  [
-    /* @__PURE__ */ createBaseVNode("path", {
-      d: "M1.5 2a.5.5 0 0 0 0 1h13a.5.5 0 0 0 0-1h-13zM2 5.75C2 4.784 2.784 4 3.75 4h1.5C6.216 4 7 4.784 7 5.75v6.5A1.75 1.75 0 0 1 5.25 14h-1.5A1.75 1.75 0 0 1 2 12.25v-6.5zM3.75 5a.75.75 0 0 0-.75.75v6.5c0 .414.336.75.75.75h1.5a.75.75 0 0 0 .75-.75v-6.5A.75.75 0 0 0 5.25 5h-1.5zM9 5.75C9 4.784 9.784 4 10.75 4h1.5c.966 0 1.75.784 1.75 1.75v4.5A1.75 1.75 0 0 1 12.25 12h-1.5A1.75 1.75 0 0 1 9 10.25v-4.5zM10.75 5a.75.75 0 0 0-.75.75v4.5c0 .414.336.75.75.75h1.5a.75.75 0 0 0 .75-.75v-4.5a.75.75 0 0 0-.75-.75h-1.5z",
-      fill: "currentColor"
-    })
-  ],
-  -1
-  /* HOISTED */
-);
-const _hoisted_3$6 = [_hoisted_2$6];
-const AlignTop16Regular = /* @__PURE__ */ defineComponent({
-  name: "AlignTop16Regular",
-  render: function render9(_ctx, _cache) {
-    return openBlock(), createElementBlock("svg", _hoisted_1$6, _hoisted_3$6);
-  }
-});
-const _hoisted_1$5 = {
-  xmlns: "http://www.w3.org/2000/svg",
-  "xmlns:xlink": "http://www.w3.org/1999/xlink",
-  viewBox: "0 0 16 16"
-};
-const _hoisted_2$5 = /* @__PURE__ */ createBaseVNode(
-  "g",
-  {
-    fill: "none"
-  },
-  [
-    /* @__PURE__ */ createBaseVNode("path", {
       d: "M7.3 1.5a.5.5 0 0 0-1 0v.8c0 .289.072.561.2.8A2.504 2.504 0 0 0 4.76 4.946A1.1 1.1 0 0 1 4 3.9V2.5a.5.5 0 0 0-1 0v1.4a2.1 2.1 0 0 0 1.7 2.062V7H2.5a.5.5 0 0 0 0 1h2.2v1.7c0 .108.005.215.015.32A2 2 0 0 0 3 12v1.5a.5.5 0 0 0 1 0V12a1 1 0 0 1 .966-1a3.3 3.3 0 0 0 6.068 0A1 1 0 0 1 12 12v1.5a.5.5 0 0 0 1 0V12a2 2 0 0 0-1.715-1.98a3.32 3.32 0 0 0 .015-.32V8h2.2a.5.5 0 0 0 0-1h-2.2V5.962A2.1 2.1 0 0 0 13 3.9V2.5a.5.5 0 0 0-1 0v1.4c0 .49-.32.904-.761 1.047A2.504 2.504 0 0 0 9.5 3.1c.127-.239.199-.511.199-.8v-.8a.5.5 0 0 0-1 0v.8a.7.7 0 1 1-1.4 0v-.8zm-1.6 6V5.491A1.5 1.5 0 0 1 7.2 4h1.6a1.5 1.5 0 0 1 1.5 1.5v4.2a2.3 2.3 0 0 1-4.6 0V7.5z",
       fill: "currentColor"
     })
@@ -40481,19 +41233,19 @@ const _hoisted_2$5 = /* @__PURE__ */ createBaseVNode(
   -1
   /* HOISTED */
 );
-const _hoisted_3$5 = [_hoisted_2$5];
+const _hoisted_3$a = [_hoisted_2$a];
 const Bug16Regular = /* @__PURE__ */ defineComponent({
   name: "Bug16Regular",
-  render: function render10(_ctx, _cache) {
-    return openBlock(), createElementBlock("svg", _hoisted_1$5, _hoisted_3$5);
+  render: function render8(_ctx, _cache) {
+    return openBlock(), createElementBlock("svg", _hoisted_1$a, _hoisted_3$a);
   }
 });
-const _hoisted_1$4 = {
+const _hoisted_1$9 = {
   xmlns: "http://www.w3.org/2000/svg",
   "xmlns:xlink": "http://www.w3.org/1999/xlink",
   viewBox: "0 0 20 20"
 };
-const _hoisted_2$4 = /* @__PURE__ */ createBaseVNode(
+const _hoisted_2$9 = /* @__PURE__ */ createBaseVNode(
   "g",
   {
     fill: "none"
@@ -40507,19 +41259,71 @@ const _hoisted_2$4 = /* @__PURE__ */ createBaseVNode(
   -1
   /* HOISTED */
 );
-const _hoisted_3$4 = [_hoisted_2$4];
+const _hoisted_3$9 = [_hoisted_2$9];
 const Flowchart20Regular = /* @__PURE__ */ defineComponent({
   name: "Flowchart20Regular",
-  render: function render11(_ctx, _cache) {
-    return openBlock(), createElementBlock("svg", _hoisted_1$4, _hoisted_3$4);
+  render: function render9(_ctx, _cache) {
+    return openBlock(), createElementBlock("svg", _hoisted_1$9, _hoisted_3$9);
   }
 });
-const _hoisted_1$3 = {
+const _hoisted_1$8 = {
+  xmlns: "http://www.w3.org/2000/svg",
+  "xmlns:xlink": "http://www.w3.org/1999/xlink",
+  viewBox: "0 0 24 24"
+};
+const _hoisted_2$8 = /* @__PURE__ */ createBaseVNode(
+  "g",
+  {
+    fill: "none"
+  },
+  [
+    /* @__PURE__ */ createBaseVNode("path", {
+      d: "M4.5 5.75c0-.69.56-1.25 1.25-1.25h2a.75.75 0 0 0 0-1.5h-2A2.75 2.75 0 0 0 3 5.75v2a.75.75 0 0 0 1.5 0v-2zm0 12.5c0 .69.56 1.25 1.25 1.25h2a.75.75 0 0 1 0 1.5h-2A2.75 2.75 0 0 1 3 18.25v-2a.75.75 0 0 1 1.5 0v2zM18.25 4.5c.69 0 1.25.56 1.25 1.25v2a.75.75 0 0 0 1.5 0v-2A2.75 2.75 0 0 0 18.25 3h-2a.75.75 0 0 0 0 1.5h2zm1.25 13.75c0 .69-.56 1.25-1.25 1.25h-2a.75.75 0 0 0 0 1.5h2A2.75 2.75 0 0 0 21 18.25v-2a.75.75 0 0 0-1.5 0v2z",
+      fill: "currentColor"
+    })
+  ],
+  -1
+  /* HOISTED */
+);
+const _hoisted_3$8 = [_hoisted_2$8];
+const FullScreenMaximize24Regular = /* @__PURE__ */ defineComponent({
+  name: "FullScreenMaximize24Regular",
+  render: function render10(_ctx, _cache) {
+    return openBlock(), createElementBlock("svg", _hoisted_1$8, _hoisted_3$8);
+  }
+});
+const _hoisted_1$7 = {
+  xmlns: "http://www.w3.org/2000/svg",
+  "xmlns:xlink": "http://www.w3.org/1999/xlink",
+  viewBox: "0 0 24 24"
+};
+const _hoisted_2$7 = /* @__PURE__ */ createBaseVNode(
+  "g",
+  {
+    fill: "none"
+  },
+  [
+    /* @__PURE__ */ createBaseVNode("path", {
+      d: "M8.5 3.75a.75.75 0 0 0-1.5 0v2.5a.75.75 0 0 1-.75.75h-2.5a.75.75 0 0 0 0 1.5h2.5A2.25 2.25 0 0 0 8.5 6.25v-2.5zm0 16.5a.75.75 0 0 1-1.5 0v-2.5a.75.75 0 0 0-.75-.75h-2.5a.75.75 0 0 1 0-1.5h2.5a2.25 2.25 0 0 1 2.25 2.25v2.5zM16.25 3a.75.75 0 0 0-.75.75v2.5a2.25 2.25 0 0 0 2.25 2.25h2.5a.75.75 0 0 0 0-1.5h-2.5a.75.75 0 0 1-.75-.75v-2.5a.75.75 0 0 0-.75-.75zm-.75 17.25a.75.75 0 0 0 1.5 0v-2.5a.75.75 0 0 1 .75-.75h2.5a.75.75 0 0 0 0-1.5h-2.5a2.25 2.25 0 0 0-2.25 2.25v2.5z",
+      fill: "currentColor"
+    })
+  ],
+  -1
+  /* HOISTED */
+);
+const _hoisted_3$7 = [_hoisted_2$7];
+const FullScreenMinimize24Regular = /* @__PURE__ */ defineComponent({
+  name: "FullScreenMinimize24Regular",
+  render: function render11(_ctx, _cache) {
+    return openBlock(), createElementBlock("svg", _hoisted_1$7, _hoisted_3$7);
+  }
+});
+const _hoisted_1$6 = {
   xmlns: "http://www.w3.org/2000/svg",
   "xmlns:xlink": "http://www.w3.org/1999/xlink",
   viewBox: "0 0 20 20"
 };
-const _hoisted_2$3 = /* @__PURE__ */ createBaseVNode(
+const _hoisted_2$6 = /* @__PURE__ */ createBaseVNode(
   "g",
   {
     fill: "none"
@@ -40533,19 +41337,19 @@ const _hoisted_2$3 = /* @__PURE__ */ createBaseVNode(
   -1
   /* HOISTED */
 );
-const _hoisted_3$3 = [_hoisted_2$3];
+const _hoisted_3$6 = [_hoisted_2$6];
 const Line20Regular = /* @__PURE__ */ defineComponent({
   name: "Line20Regular",
   render: function render12(_ctx, _cache) {
-    return openBlock(), createElementBlock("svg", _hoisted_1$3, _hoisted_3$3);
+    return openBlock(), createElementBlock("svg", _hoisted_1$6, _hoisted_3$6);
   }
 });
-const _hoisted_1$2 = {
+const _hoisted_1$5 = {
   xmlns: "http://www.w3.org/2000/svg",
   "xmlns:xlink": "http://www.w3.org/1999/xlink",
   viewBox: "0 0 20 20"
 };
-const _hoisted_2$2 = /* @__PURE__ */ createBaseVNode(
+const _hoisted_2$5 = /* @__PURE__ */ createBaseVNode(
   "g",
   {
     fill: "none"
@@ -40559,33 +41363,93 @@ const _hoisted_2$2 = /* @__PURE__ */ createBaseVNode(
   -1
   /* HOISTED */
 );
-const _hoisted_3$2 = [_hoisted_2$2];
+const _hoisted_3$5 = [_hoisted_2$5];
 const Pulse20Regular = /* @__PURE__ */ defineComponent({
   name: "Pulse20Regular",
   render: function render13(_ctx, _cache) {
-    return openBlock(), createElementBlock("svg", _hoisted_1$2, _hoisted_3$2);
+    return openBlock(), createElementBlock("svg", _hoisted_1$5, _hoisted_3$5);
   }
 });
-const _withScopeId$1 = (n) => (pushScopeId("data-v-5a2babed"), n = n(), popScopeId(), n);
-const _hoisted_1$1 = { class: "main-header" };
-const _hoisted_2$1 = /* @__PURE__ */ _withScopeId$1(() => /* @__PURE__ */ createBaseVNode("img", {
+const _imports_0 = "" + new URL("../logo.png", import.meta.url).href;
+const _hoisted_1$4 = {
+  version: "1.1",
+  xmlns: "http://www.w3.org/2000/svg",
+  "xmlns:xlink": "http://www.w3.org/1999/xlink",
+  x: "0px",
+  y: "0px",
+  viewBox: "0 0 512 512",
+  "enable-background": "new 0 0 512 512",
+  "xml:space": "preserve"
+};
+const _hoisted_2$4 = /* @__PURE__ */ createBaseVNode(
+  "g",
+  null,
+  [
+    /* @__PURE__ */ createBaseVNode("path", {
+      d: "M32,432h2.9c1.8,0,3.5-1.1,4.1-2.8c2.2-5.7,8.3-19.8,21.4-39.7c21.5-32.7,58.4-67.4,94.5-83.5c27.6-12.4,53-21.5,97.1-23.2\n		c2.3-0.1,4.2,1.7,4.2,4v81.6c0,3.2,3.6,5.1,6.2,3.4l215.9-142.2c2.4-1.6,2.4-5.1,0-6.7L262.3,80.7c-2.7-1.8-6.2,0.1-6.2,3.4v82.6\n		c0,2.2-1.7,3.9-3.8,4c-71.6,3.8-123.1,24.8-163.4,65.5c-61,61.6-56.8,139.1-56.8,158.7C32.1,405.2,32,420.2,32,432z"
+    })
+  ],
+  -1
+  /* HOISTED */
+);
+const _hoisted_3$4 = [_hoisted_2$4];
+const IosRedo = /* @__PURE__ */ defineComponent({
+  name: "IosRedo",
+  render: function render14(_ctx, _cache) {
+    return openBlock(), createElementBlock("svg", _hoisted_1$4, _hoisted_3$4);
+  }
+});
+const _hoisted_1$3 = {
+  version: "1.1",
+  xmlns: "http://www.w3.org/2000/svg",
+  "xmlns:xlink": "http://www.w3.org/1999/xlink",
+  x: "0px",
+  y: "0px",
+  viewBox: "0 0 512 512",
+  "enable-background": "new 0 0 512 512",
+  "xml:space": "preserve"
+};
+const _hoisted_2$3 = /* @__PURE__ */ createBaseVNode(
+  "g",
+  null,
+  [
+    /* @__PURE__ */ createBaseVNode("path", {
+      d: "M479.9,394.9c0-19.6,4.2-97.1-56.8-158.7c-40.4-40.7-91.9-61.7-163.4-65.5c-2.1-0.1-3.8-1.9-3.8-4V84\n		c0-3.2-3.5-5.1-6.2-3.4L33.8,222.8c-2.4,1.6-2.4,5.1,0,6.7l215.9,142.2c2.7,1.8,6.2-0.1,6.2-3.4v-81.6c0-2.3,1.9-4.1,4.2-4\n		c44.1,1.7,69.5,10.9,97.1,23.2c36.1,16.2,72.9,50.9,94.5,83.5c13.1,19.9,19.2,33.9,21.4,39.7c0.7,1.7,2.3,2.8,4.1,2.8h2.9\n		C480,420.2,479.9,405.2,479.9,394.9z"
+    })
+  ],
+  -1
+  /* HOISTED */
+);
+const _hoisted_3$3 = [_hoisted_2$3];
+const IosUndo = /* @__PURE__ */ defineComponent({
+  name: "IosUndo",
+  render: function render15(_ctx, _cache) {
+    return openBlock(), createElementBlock("svg", _hoisted_1$3, _hoisted_3$3);
+  }
+});
+const _withScopeId$1 = (n) => (pushScopeId("data-v-7f4ef1d5"), n = n(), popScopeId(), n);
+const _hoisted_1$2 = { class: "main-header" };
+const _hoisted_2$2 = /* @__PURE__ */ _withScopeId$1(() => /* @__PURE__ */ createBaseVNode("img", {
   class: "main-header__logo",
   src: _imports_0,
   alt: ""
 }, null, -1));
-const _hoisted_3$1 = /* @__PURE__ */ _withScopeId$1(() => /* @__PURE__ */ createBaseVNode("div", { class: "main-header__title" }, "Designer Sample", -1));
-const _hoisted_4$1 = { class: "main-header__menu" };
-const _hoisted_5$1 = { class: "main-header__action" };
-const _hoisted_6$1 = { class: "main-header__scale" };
-const _sfc_main$1 = /* @__PURE__ */ defineComponent({
+const _hoisted_3$2 = /* @__PURE__ */ _withScopeId$1(() => /* @__PURE__ */ createBaseVNode("div", { class: "main-header__title" }, "Designer Sample", -1));
+const _hoisted_4$2 = { class: "main-header__menu" };
+const _hoisted_5$2 = { class: "main-header__action" };
+const _hoisted_6$2 = { class: "main-header__scale" };
+const _sfc_main$2 = /* @__PURE__ */ defineComponent({
   ...{
     name: "MainHeader"
   },
   __name: "index",
   props: {
-    render: {}
+    render: {},
+    full: { type: Boolean, default: () => false }
   },
-  setup(__props) {
+  emits: ["update:full"],
+  setup(__props, { emit: __emit }) {
+    const emit2 = __emit;
     const props = __props;
     function onRestore() {
       if (props.render) {
@@ -40637,9 +41501,20 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
         a.remove();
       }
     }
-    function onSaveAssetPNG() {
+    function onSavePNG() {
       if (props.render) {
         const url = props.render.importExportTool.getAssetImage(3, "#ffffff");
+        const a = document.createElement("a");
+        const event = new MouseEvent("click");
+        a.download = "image";
+        a.href = url;
+        a.dispatchEvent(event);
+        a.remove();
+      }
+    }
+    function onSaveAssetPNG() {
+      if (props.render) {
+        const url = props.render.importExportTool.getAssetImage(3);
         const a = document.createElement("a");
         const event = new MouseEvent("click");
         a.download = "image";
@@ -40666,7 +41541,7 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
       var _a;
       (_a = props.render) == null ? void 0 : _a.alignTool.align(type);
     }
-    const currentLinkType = ref(LinkType.auto);
+    const currentLinkType = ref(LinkType.manual);
     function onLinkTypeChange(linkType) {
       var _a;
       ((_a = props.render) == null ? void 0 : _a.draws[LinkDraw.name]).changeLinkType(linkType);
@@ -40715,7 +41590,7 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
               {
                 target: "_blank",
                 rel: "noopenner noreferrer",
-                onClick: onSaveAssetPNG
+                onClick: onSavePNG
               },
               "另存为图片"
             ),
@@ -40747,6 +41622,67 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
               "另存为素材"
             ),
             key: "json"
+          },
+          {
+            label: () => h(
+              "a",
+              {
+                target: "_blank",
+                rel: "noopenner noreferrer",
+                onClick: onSaveAssetPNG
+              },
+              "另存为素材封面"
+            ),
+            key: "png"
+          }
+        ]
+      },
+      {
+        label: "示例",
+        key: "sample",
+        children: [
+          {
+            type: "group",
+            label: "测试数据",
+            key: "test",
+            children: [
+              {
+                label: () => h(
+                  "a",
+                  {
+                    target: "_blank",
+                    rel: "noopenner noreferrer",
+                    onClick: onLinkTest
+                  },
+                  "连接线方向"
+                ),
+                key: "连接线方向"
+              },
+              {
+                label: () => h(
+                  "a",
+                  {
+                    target: "_blank",
+                    rel: "noopenner noreferrer",
+                    onClick: onRotateTest
+                  },
+                  "连接线出入口"
+                ),
+                key: "连接线出入口"
+              },
+              {
+                label: () => h(
+                  "a",
+                  {
+                    target: "_blank",
+                    rel: "noopenner noreferrer",
+                    onClick: onAlignTest
+                  },
+                  "对齐"
+                ),
+                key: "对齐"
+              }
+            ]
           }
         ]
       },
@@ -40886,13 +41822,31 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
     }, {
       immediate: true
     });
+    async function onLinkTest() {
+      var _a;
+      const json = await (await fetch("/test/link.json")).text();
+      (_a = props.render) == null ? void 0 : _a.importExportTool.restore(json);
+    }
+    async function onRotateTest() {
+      var _a;
+      const json = await (await fetch("/test/rotate.json")).text();
+      (_a = props.render) == null ? void 0 : _a.importExportTool.restore(json);
+    }
+    async function onAlignTest() {
+      var _a;
+      const json = await (await fetch("/test/align.json")).text();
+      (_a = props.render) == null ? void 0 : _a.importExportTool.restore(json);
+    }
+    function onFull() {
+      emit2("update:full", !props.full);
+    }
     return (_ctx, _cache) => {
-      return openBlock(), createElementBlock("div", _hoisted_1$1, [
+      return openBlock(), createElementBlock("div", _hoisted_1$2, [
         createBaseVNode("header", null, [
-          _hoisted_2$1,
+          _hoisted_2$2,
           createBaseVNode("div", null, [
-            _hoisted_3$1,
-            createBaseVNode("div", _hoisted_4$1, [
+            _hoisted_3$2,
+            createBaseVNode("div", _hoisted_4$2, [
               createVNode(unref(NMenu), {
                 mode: "horizontal",
                 responsive: "",
@@ -40904,367 +41858,417 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
             ])
           ])
         ]),
-        createBaseVNode("footer", _hoisted_5$1, [
-          createVNode(unref(NDropdown), {
-            trigger: "hover",
-            options: scaleOptions,
-            onSelect: scaleChange
-          }, {
-            default: withCtx(() => [
-              createVNode(unref(NButton), {
-                tag: "div",
-                size: "tiny",
-                quaternary: ""
-              }, {
-                default: withCtx(() => [
-                  createBaseVNode("span", _hoisted_6$1, toDisplayString(scale.value.toFixed(0)) + "%", 1)
-                ]),
-                _: 1
-              })
-            ]),
-            _: 1
-          }),
-          createVNode(unref(NDivider), { vertical: "" }),
-          createVNode(unref(NTooltip), {
-            trigger: "hover",
-            delay: 1e3
-          }, {
-            trigger: withCtx(() => [
-              createVNode(unref(NButton), {
-                tag: "div",
-                size: "tiny",
-                quaternary: "",
-                onClick: onPrev,
-                disabled: historyIndex.value <= 0
-              }, {
-                icon: withCtx(() => [
-                  createVNode(unref(NIcon), null, {
-                    default: withCtx(() => [
-                      createVNode(unref(IosUndo))
-                    ]),
-                    _: 1
-                  })
-                ]),
-                _: 1
-              }, 8, ["disabled"])
-            ]),
-            default: withCtx(() => [
-              createTextVNode(" 撤销 ")
-            ]),
-            _: 1
-          }),
-          createVNode(unref(NTooltip), {
-            trigger: "hover",
-            delay: 1e3
-          }, {
-            trigger: withCtx(() => [
-              createVNode(unref(NButton), {
-                tag: "div",
-                size: "tiny",
-                quaternary: "",
-                onClick: onNext,
-                disabled: historyIndex.value >= history.value.length - 1
-              }, {
-                icon: withCtx(() => [
-                  createVNode(unref(NIcon), null, {
-                    default: withCtx(() => [
-                      createVNode(unref(IosRedo))
-                    ]),
-                    _: 1
-                  })
-                ]),
-                _: 1
-              }, 8, ["disabled"])
-            ]),
-            default: withCtx(() => [
-              createTextVNode(" 恢复 ")
-            ]),
-            _: 1
-          }),
-          createVNode(unref(NDivider), { vertical: "" }),
-          createVNode(unref(NTooltip), {
-            trigger: "hover",
-            delay: 1e3
-          }, {
-            trigger: withCtx(() => [
-              createVNode(unref(NButton), {
-                tag: "div",
-                size: "tiny",
-                quaternary: "",
-                onClick: _cache[1] || (_cache[1] = ($event) => onAlign(AlignType.垂直居中)),
-                disabled: noAlign.value
-              }, {
-                icon: withCtx(() => [
-                  createVNode(unref(NIcon), null, {
-                    default: withCtx(() => [
-                      createVNode(unref(AlignCenterVertical16Regular))
-                    ]),
-                    _: 1
-                  })
-                ]),
-                _: 1
-              }, 8, ["disabled"])
-            ]),
-            default: withCtx(() => [
-              createTextVNode(" 垂直居中 ")
-            ]),
-            _: 1
-          }),
-          createVNode(unref(NTooltip), {
-            trigger: "hover",
-            delay: 1e3
-          }, {
-            trigger: withCtx(() => [
-              createVNode(unref(NButton), {
-                tag: "div",
-                size: "tiny",
-                quaternary: "",
-                onClick: _cache[2] || (_cache[2] = ($event) => onAlign(AlignType.水平居中)),
-                disabled: noAlign.value
-              }, {
-                icon: withCtx(() => [
-                  createVNode(unref(NIcon), null, {
-                    default: withCtx(() => [
-                      createVNode(unref(AlignCenterHorizontal16Regular))
-                    ]),
-                    _: 1
-                  })
-                ]),
-                _: 1
-              }, 8, ["disabled"])
-            ]),
-            default: withCtx(() => [
-              createTextVNode(" 水平居中 ")
-            ]),
-            _: 1
-          }),
-          createVNode(unref(NTooltip), {
-            trigger: "hover",
-            delay: 1e3
-          }, {
-            trigger: withCtx(() => [
-              createVNode(unref(NButton), {
-                tag: "div",
-                size: "tiny",
-                quaternary: "",
-                onClick: _cache[3] || (_cache[3] = ($event) => onAlign(AlignType.左对齐)),
-                disabled: noAlign.value
-              }, {
-                icon: withCtx(() => [
-                  createVNode(unref(NIcon), null, {
-                    default: withCtx(() => [
-                      createVNode(unref(AlignLeft16Regular))
-                    ]),
-                    _: 1
-                  })
-                ]),
-                _: 1
-              }, 8, ["disabled"])
-            ]),
-            default: withCtx(() => [
-              createTextVNode(" 左对齐 ")
-            ]),
-            _: 1
-          }),
-          createVNode(unref(NTooltip), {
-            trigger: "hover",
-            delay: 1e3
-          }, {
-            trigger: withCtx(() => [
-              createVNode(unref(NButton), {
-                tag: "div",
-                size: "tiny",
-                quaternary: "",
-                onClick: _cache[4] || (_cache[4] = ($event) => onAlign(AlignType.右对齐)),
-                disabled: noAlign.value
-              }, {
-                icon: withCtx(() => [
-                  createVNode(unref(NIcon), null, {
-                    default: withCtx(() => [
-                      createVNode(unref(AlignRight16Regular))
-                    ]),
-                    _: 1
-                  })
-                ]),
-                _: 1
-              }, 8, ["disabled"])
-            ]),
-            default: withCtx(() => [
-              createTextVNode(" 右对齐 ")
-            ]),
-            _: 1
-          }),
-          createVNode(unref(NTooltip), {
-            trigger: "hover",
-            delay: 1e3
-          }, {
-            trigger: withCtx(() => [
-              createVNode(unref(NButton), {
-                tag: "div",
-                size: "tiny",
-                quaternary: "",
-                onClick: _cache[5] || (_cache[5] = ($event) => onAlign(AlignType.上对齐)),
-                disabled: noAlign.value
-              }, {
-                icon: withCtx(() => [
-                  createVNode(unref(NIcon), null, {
-                    default: withCtx(() => [
-                      createVNode(unref(AlignTop16Regular))
-                    ]),
-                    _: 1
-                  })
-                ]),
-                _: 1
-              }, 8, ["disabled"])
-            ]),
-            default: withCtx(() => [
-              createTextVNode(" 上对齐 ")
-            ]),
-            _: 1
-          }),
-          createVNode(unref(NTooltip), {
-            trigger: "hover",
-            delay: 1e3
-          }, {
-            trigger: withCtx(() => [
-              createVNode(unref(NButton), {
-                tag: "div",
-                size: "tiny",
-                quaternary: "",
-                onClick: _cache[6] || (_cache[6] = ($event) => onAlign(AlignType.下对齐)),
-                disabled: noAlign.value
-              }, {
-                icon: withCtx(() => [
-                  createVNode(unref(NIcon), null, {
-                    default: withCtx(() => [
-                      createVNode(unref(AlignBottom16Regular))
-                    ]),
-                    _: 1
-                  })
-                ]),
-                _: 1
-              }, 8, ["disabled"])
-            ]),
-            default: withCtx(() => [
-              createTextVNode(" 下对齐 ")
-            ]),
-            _: 1
-          }),
-          createVNode(unref(NDivider), { vertical: "" }),
-          createVNode(unref(NTooltip), {
-            trigger: "hover",
-            delay: 1e3
-          }, {
-            trigger: withCtx(() => [
-              createVNode(unref(NButton), {
-                tag: "div",
-                size: "tiny",
-                quaternary: "",
-                onClick: _cache[7] || (_cache[7] = ($event) => onLinkTypeChange(LinkType.auto)),
-                disabled: currentLinkType.value === LinkType.auto
-              }, {
-                icon: withCtx(() => [
-                  createVNode(unref(NIcon), null, {
-                    default: withCtx(() => [
-                      createVNode(unref(Pulse20Regular))
-                    ]),
-                    _: 1
-                  })
-                ]),
-                _: 1
-              }, 8, ["disabled"])
-            ]),
-            default: withCtx(() => [
-              createTextVNode(" 连接线：自动 ")
-            ]),
-            _: 1
-          }),
-          createVNode(unref(NTooltip), {
-            trigger: "hover",
-            delay: 1e3
-          }, {
-            trigger: withCtx(() => [
-              createVNode(unref(NButton), {
-                tag: "div",
-                size: "tiny",
-                quaternary: "",
-                onClick: _cache[8] || (_cache[8] = ($event) => onLinkTypeChange(LinkType.straight)),
-                disabled: currentLinkType.value === LinkType.straight
-              }, {
-                icon: withCtx(() => [
-                  createVNode(unref(NIcon), null, {
-                    default: withCtx(() => [
-                      createVNode(unref(Line20Regular))
-                    ]),
-                    _: 1
-                  })
-                ]),
-                _: 1
-              }, 8, ["disabled"])
-            ]),
-            default: withCtx(() => [
-              createTextVNode(" 连接线：直线 ")
-            ]),
-            _: 1
-          }),
-          createVNode(unref(NTooltip), {
-            trigger: "hover",
-            delay: 1e3
-          }, {
-            trigger: withCtx(() => [
-              createVNode(unref(NButton), {
-                tag: "div",
-                size: "tiny",
-                quaternary: "",
-                onClick: _cache[9] || (_cache[9] = ($event) => onLinkTypeChange(LinkType.manual)),
-                disabled: currentLinkType.value === LinkType.manual
-              }, {
-                icon: withCtx(() => [
-                  createVNode(unref(NIcon), null, {
-                    default: withCtx(() => [
-                      createVNode(unref(Flowchart20Regular))
-                    ]),
-                    _: 1
-                  })
-                ]),
-                _: 1
-              }, 8, ["disabled"])
-            ]),
-            default: withCtx(() => [
-              createTextVNode(" 连接线：手动 ")
-            ]),
-            _: 1
-          }),
-          createVNode(unref(NDivider), { vertical: "" }),
-          createVNode(unref(NTooltip), {
-            trigger: "hover",
-            delay: 1e3
-          }, {
-            trigger: withCtx(() => [
-              createVNode(unref(NButton), {
-                tag: "div",
-                size: "tiny",
-                quaternary: "",
-                onClick: onDebug
-              }, {
-                icon: withCtx(() => [
-                  createVNode(unref(NIcon), {
-                    depth: debug.value ? 1 : 3
-                  }, {
-                    default: withCtx(() => [
-                      createVNode(unref(Bug16Regular))
-                    ]),
-                    _: 1
-                  }, 8, ["depth"])
-                ]),
-                _: 1
-              })
-            ]),
-            default: withCtx(() => [
-              createTextVNode(" " + toDisplayString(debug.value ? "关闭调试" : "开启调试"), 1)
-            ]),
-            _: 1
-          })
+        createBaseVNode("footer", _hoisted_5$2, [
+          createBaseVNode("section", null, [
+            createVNode(unref(NDropdown), {
+              trigger: "hover",
+              options: scaleOptions,
+              onSelect: scaleChange
+            }, {
+              default: withCtx(() => [
+                createVNode(unref(NButton), {
+                  tag: "div",
+                  size: "tiny",
+                  quaternary: "",
+                  focusable: false
+                }, {
+                  default: withCtx(() => [
+                    createBaseVNode("span", _hoisted_6$2, toDisplayString(scale.value.toFixed(0)) + "%", 1)
+                  ]),
+                  _: 1
+                })
+              ]),
+              _: 1
+            }),
+            createVNode(unref(NDivider), { vertical: "" }),
+            createVNode(unref(NTooltip), {
+              trigger: "hover",
+              delay: 1e3
+            }, {
+              trigger: withCtx(() => [
+                createVNode(unref(NButton), {
+                  tag: "div",
+                  size: "tiny",
+                  quaternary: "",
+                  focusable: false,
+                  onClick: onPrev,
+                  disabled: historyIndex.value <= 0
+                }, {
+                  icon: withCtx(() => [
+                    createVNode(unref(NIcon), null, {
+                      default: withCtx(() => [
+                        createVNode(unref(IosUndo))
+                      ]),
+                      _: 1
+                    })
+                  ]),
+                  _: 1
+                }, 8, ["disabled"])
+              ]),
+              default: withCtx(() => [
+                createTextVNode(" 撤销 ")
+              ]),
+              _: 1
+            }),
+            createVNode(unref(NTooltip), {
+              trigger: "hover",
+              delay: 1e3
+            }, {
+              trigger: withCtx(() => [
+                createVNode(unref(NButton), {
+                  tag: "div",
+                  size: "tiny",
+                  quaternary: "",
+                  focusable: false,
+                  onClick: onNext,
+                  disabled: historyIndex.value >= history.value.length - 1
+                }, {
+                  icon: withCtx(() => [
+                    createVNode(unref(NIcon), null, {
+                      default: withCtx(() => [
+                        createVNode(unref(IosRedo))
+                      ]),
+                      _: 1
+                    })
+                  ]),
+                  _: 1
+                }, 8, ["disabled"])
+              ]),
+              default: withCtx(() => [
+                createTextVNode(" 恢复 ")
+              ]),
+              _: 1
+            }),
+            createVNode(unref(NDivider), { vertical: "" }),
+            createVNode(unref(NTooltip), {
+              trigger: "hover",
+              delay: 1e3
+            }, {
+              trigger: withCtx(() => [
+                createVNode(unref(NButton), {
+                  tag: "div",
+                  size: "tiny",
+                  quaternary: "",
+                  focusable: false,
+                  onClick: _cache[1] || (_cache[1] = ($event) => onAlign(AlignType.垂直居中)),
+                  disabled: noAlign.value
+                }, {
+                  icon: withCtx(() => [
+                    createVNode(unref(NIcon), null, {
+                      default: withCtx(() => [
+                        createVNode(unref(AlignCenterVertical16Regular))
+                      ]),
+                      _: 1
+                    })
+                  ]),
+                  _: 1
+                }, 8, ["disabled"])
+              ]),
+              default: withCtx(() => [
+                createTextVNode(" 垂直居中 ")
+              ]),
+              _: 1
+            }),
+            createVNode(unref(NTooltip), {
+              trigger: "hover",
+              delay: 1e3
+            }, {
+              trigger: withCtx(() => [
+                createVNode(unref(NButton), {
+                  tag: "div",
+                  size: "tiny",
+                  quaternary: "",
+                  focusable: false,
+                  onClick: _cache[2] || (_cache[2] = ($event) => onAlign(AlignType.水平居中)),
+                  disabled: noAlign.value
+                }, {
+                  icon: withCtx(() => [
+                    createVNode(unref(NIcon), null, {
+                      default: withCtx(() => [
+                        createVNode(unref(AlignCenterHorizontal16Regular))
+                      ]),
+                      _: 1
+                    })
+                  ]),
+                  _: 1
+                }, 8, ["disabled"])
+              ]),
+              default: withCtx(() => [
+                createTextVNode(" 水平居中 ")
+              ]),
+              _: 1
+            }),
+            createVNode(unref(NTooltip), {
+              trigger: "hover",
+              delay: 1e3
+            }, {
+              trigger: withCtx(() => [
+                createVNode(unref(NButton), {
+                  tag: "div",
+                  size: "tiny",
+                  quaternary: "",
+                  focusable: false,
+                  onClick: _cache[3] || (_cache[3] = ($event) => onAlign(AlignType.左对齐)),
+                  disabled: noAlign.value
+                }, {
+                  icon: withCtx(() => [
+                    createVNode(unref(NIcon), null, {
+                      default: withCtx(() => [
+                        createVNode(unref(AlignLeft16Regular))
+                      ]),
+                      _: 1
+                    })
+                  ]),
+                  _: 1
+                }, 8, ["disabled"])
+              ]),
+              default: withCtx(() => [
+                createTextVNode(" 左对齐 ")
+              ]),
+              _: 1
+            }),
+            createVNode(unref(NTooltip), {
+              trigger: "hover",
+              delay: 1e3
+            }, {
+              trigger: withCtx(() => [
+                createVNode(unref(NButton), {
+                  tag: "div",
+                  size: "tiny",
+                  quaternary: "",
+                  focusable: false,
+                  onClick: _cache[4] || (_cache[4] = ($event) => onAlign(AlignType.右对齐)),
+                  disabled: noAlign.value
+                }, {
+                  icon: withCtx(() => [
+                    createVNode(unref(NIcon), null, {
+                      default: withCtx(() => [
+                        createVNode(unref(AlignRight16Regular))
+                      ]),
+                      _: 1
+                    })
+                  ]),
+                  _: 1
+                }, 8, ["disabled"])
+              ]),
+              default: withCtx(() => [
+                createTextVNode(" 右对齐 ")
+              ]),
+              _: 1
+            }),
+            createVNode(unref(NTooltip), {
+              trigger: "hover",
+              delay: 1e3
+            }, {
+              trigger: withCtx(() => [
+                createVNode(unref(NButton), {
+                  tag: "div",
+                  size: "tiny",
+                  quaternary: "",
+                  focusable: false,
+                  onClick: _cache[5] || (_cache[5] = ($event) => onAlign(AlignType.上对齐)),
+                  disabled: noAlign.value
+                }, {
+                  icon: withCtx(() => [
+                    createVNode(unref(NIcon), null, {
+                      default: withCtx(() => [
+                        createVNode(unref(AlignTop16Regular))
+                      ]),
+                      _: 1
+                    })
+                  ]),
+                  _: 1
+                }, 8, ["disabled"])
+              ]),
+              default: withCtx(() => [
+                createTextVNode(" 上对齐 ")
+              ]),
+              _: 1
+            }),
+            createVNode(unref(NTooltip), {
+              trigger: "hover",
+              delay: 1e3
+            }, {
+              trigger: withCtx(() => [
+                createVNode(unref(NButton), {
+                  tag: "div",
+                  size: "tiny",
+                  quaternary: "",
+                  focusable: false,
+                  onClick: _cache[6] || (_cache[6] = ($event) => onAlign(AlignType.下对齐)),
+                  disabled: noAlign.value
+                }, {
+                  icon: withCtx(() => [
+                    createVNode(unref(NIcon), null, {
+                      default: withCtx(() => [
+                        createVNode(unref(AlignBottom16Regular))
+                      ]),
+                      _: 1
+                    })
+                  ]),
+                  _: 1
+                }, 8, ["disabled"])
+              ]),
+              default: withCtx(() => [
+                createTextVNode(" 下对齐 ")
+              ]),
+              _: 1
+            }),
+            createVNode(unref(NDivider), { vertical: "" }),
+            createVNode(unref(NTooltip), {
+              trigger: "hover",
+              delay: 1e3
+            }, {
+              trigger: withCtx(() => [
+                createVNode(unref(NButton), {
+                  tag: "div",
+                  size: "tiny",
+                  quaternary: "",
+                  focusable: false,
+                  onClick: _cache[7] || (_cache[7] = ($event) => onLinkTypeChange(LinkType.manual)),
+                  disabled: currentLinkType.value === LinkType.manual
+                }, {
+                  icon: withCtx(() => [
+                    createVNode(unref(NIcon), null, {
+                      default: withCtx(() => [
+                        createVNode(unref(Flowchart20Regular))
+                      ]),
+                      _: 1
+                    })
+                  ]),
+                  _: 1
+                }, 8, ["disabled"])
+              ]),
+              default: withCtx(() => [
+                createTextVNode(" 连接线：手动 ")
+              ]),
+              _: 1
+            }),
+            createVNode(unref(NTooltip), {
+              trigger: "hover",
+              delay: 1e3
+            }, {
+              trigger: withCtx(() => [
+                createVNode(unref(NButton), {
+                  tag: "div",
+                  size: "tiny",
+                  quaternary: "",
+                  focusable: false,
+                  onClick: _cache[8] || (_cache[8] = ($event) => onLinkTypeChange(LinkType.auto)),
+                  disabled: currentLinkType.value === LinkType.auto
+                }, {
+                  icon: withCtx(() => [
+                    createVNode(unref(NIcon), null, {
+                      default: withCtx(() => [
+                        createVNode(unref(Pulse20Regular))
+                      ]),
+                      _: 1
+                    })
+                  ]),
+                  _: 1
+                }, 8, ["disabled"])
+              ]),
+              default: withCtx(() => [
+                createTextVNode(" 连接线：自动 ")
+              ]),
+              _: 1
+            }),
+            createVNode(unref(NTooltip), {
+              trigger: "hover",
+              delay: 1e3
+            }, {
+              trigger: withCtx(() => [
+                createVNode(unref(NButton), {
+                  tag: "div",
+                  size: "tiny",
+                  quaternary: "",
+                  focusable: false,
+                  onClick: _cache[9] || (_cache[9] = ($event) => onLinkTypeChange(LinkType.straight)),
+                  disabled: currentLinkType.value === LinkType.straight
+                }, {
+                  icon: withCtx(() => [
+                    createVNode(unref(NIcon), null, {
+                      default: withCtx(() => [
+                        createVNode(unref(Line20Regular))
+                      ]),
+                      _: 1
+                    })
+                  ]),
+                  _: 1
+                }, 8, ["disabled"])
+              ]),
+              default: withCtx(() => [
+                createTextVNode(" 连接线：直线 ")
+              ]),
+              _: 1
+            }),
+            createVNode(unref(NDivider), { vertical: "" }),
+            createVNode(unref(NTooltip), {
+              trigger: "hover",
+              delay: 1e3
+            }, {
+              trigger: withCtx(() => [
+                createVNode(unref(NButton), {
+                  tag: "div",
+                  size: "tiny",
+                  quaternary: "",
+                  focusable: false,
+                  onClick: onDebug
+                }, {
+                  icon: withCtx(() => [
+                    createVNode(unref(NIcon), {
+                      depth: debug.value ? 1 : 3
+                    }, {
+                      default: withCtx(() => [
+                        createVNode(unref(Bug16Regular))
+                      ]),
+                      _: 1
+                    }, 8, ["depth"])
+                  ]),
+                  _: 1
+                })
+              ]),
+              default: withCtx(() => [
+                createTextVNode(" " + toDisplayString(debug.value ? "关闭调试" : "开启调试"), 1)
+              ]),
+              _: 1
+            })
+          ]),
+          createBaseVNode("section", null, [
+            createVNode(unref(NTooltip), {
+              trigger: "hover",
+              delay: 1e3
+            }, {
+              trigger: withCtx(() => [
+                createVNode(unref(NButton), {
+                  tag: "div",
+                  size: "tiny",
+                  quaternary: "",
+                  focusable: false,
+                  onClick: onFull
+                }, {
+                  icon: withCtx(() => [
+                    createVNode(unref(NIcon), null, {
+                      default: withCtx(() => [
+                        withDirectives(createVNode(unref(FullScreenMaximize24Regular), null, null, 512), [
+                          [vShow, !_ctx.full]
+                        ]),
+                        withDirectives(createVNode(unref(FullScreenMinimize24Regular), null, null, 512), [
+                          [vShow, _ctx.full]
+                        ])
+                      ]),
+                      _: 1
+                    })
+                  ]),
+                  _: 1
+                })
+              ]),
+              default: withCtx(() => [
+                createTextVNode(" " + toDisplayString(_ctx.full ? "最小化" : "最大化"), 1)
+              ]),
+              _: 1
+            })
+          ])
         ])
       ]);
     };
@@ -41277,6404 +42281,495 @@ const _export_sfc = (sfc, props) => {
   }
   return target;
 };
-const MainHeader = /* @__PURE__ */ _export_sfc(_sfc_main$1, [["__scopeId", "data-v-5a2babed"]]);
-const attrs$2 = {
-  width: 1541,
-  height: 1103
+const MainHeader = /* @__PURE__ */ _export_sfc(_sfc_main$2, [["__scopeId", "data-v-7f4ef1d5"]]);
+const assetsModules = {
+  svg: [
+    {
+      url: "./img/svg/ARRESTER_1.svg",
+      points: [
+        { x: 101, y: 1, direction: "top" },
+        { x: 101, y: 199, direction: "bottom" }
+      ]
+    },
+    {
+      url: "./img/svg/ARRESTER_2.svg",
+      points: [
+        { x: 101, y: 1, direction: "top" },
+        { x: 101, y: 199, direction: "bottom" }
+      ]
+    },
+    {
+      url: "./img/svg/ARRESTER_2_1.svg",
+      points: [
+        { x: 101, y: 1, direction: "top" },
+        { x: 101, y: 199, direction: "bottom" }
+      ]
+    },
+    {
+      url: "./img/svg/BREAKER_CLOSE.svg",
+      points: [
+        { x: 100, y: 1, direction: "top" },
+        { x: 100, y: 199, direction: "bottom" }
+      ]
+    },
+    {
+      url: "./img/svg/BREAKER_OPEN.svg",
+      points: [
+        { x: 100, y: 1, direction: "top" },
+        { x: 100, y: 199, direction: "bottom" }
+      ]
+    },
+    {
+      url: "./img/svg/CAPACITOR.svg",
+      points: [
+        { x: 99, y: 1, direction: "top" },
+        { x: 99, y: 199, direction: "bottom" }
+      ]
+    },
+    {
+      url: "./img/svg/CT_1.svg",
+      points: [
+        { x: 100, y: 1, direction: "top" },
+        { x: 100, y: 199, direction: "bottom" }
+      ]
+    },
+    {
+      url: "./img/svg/CT_2.svg",
+      points: [
+        { x: 100, y: 1, direction: "top" },
+        { x: 100, y: 199, direction: "bottom" }
+      ]
+    },
+    {
+      url: "./img/svg/HL.svg",
+      points: [
+        { x: 100, y: 1, direction: "top" },
+        { x: 100, y: 199, direction: "bottom" }
+      ]
+    },
+    {
+      url: "./img/svg/POTENTIAL_TRANSFORMER_2.svg",
+      points: [
+        { x: 100, y: 1, direction: "top" },
+        { x: 100, y: 199, direction: "bottom" }
+      ]
+    },
+    {
+      url: "./img/svg/POT_TRANS_3_WINDINGS.svg",
+      points: [
+        { x: 100, y: 1, direction: "top" },
+        { x: 70, y: 199, direction: "bottom" },
+        { x: 130, y: 199, direction: "bottom" }
+      ]
+    },
+    {
+      url: "./img/svg/PT.svg",
+      points: [
+        { x: 34, y: 100, direction: "left" },
+        { x: 98, y: 100, direction: "right" }
+      ]
+    },
+    {
+      url: "./img/svg/PT_1.svg",
+      points: [
+        { x: 101, y: 1, direction: "top" },
+        { x: 101, y: 199, direction: "bottom" }
+      ]
+    },
+    {
+      url: "./img/svg/REACTOR.svg",
+      points: [
+        { x: 98, y: 1, direction: "left" },
+        { x: 98, y: 199, direction: "right" }
+      ]
+    },
+    {
+      url: "./img/svg/REGYCAPACITOR.svg",
+      points: [
+        { x: 1, y: 101, direction: "left" },
+        { x: 199, y: 101, direction: "right" }
+      ]
+    },
+    {
+      url: "./img/svg/SERIES_CAPACITOR.svg",
+      points: [
+        { x: 1, y: 101, direction: "left" },
+        { x: 199, y: 101, direction: "right" }
+      ]
+    },
+    {
+      url: "./img/svg/SHUNT_REACTOR.svg",
+      points: [
+        { x: 98, y: 1, direction: "top" },
+        { x: 98, y: 199, direction: "bottom" }
+      ]
+    },
+    {
+      url: "./img/svg/SHUNT_REACTOR_1.svg",
+      points: [
+        { x: 98, y: 1, direction: "top" },
+        { x: 98, y: 199, direction: "bottom" }
+      ]
+    },
+    {
+      url: "./img/svg/SIX_CIRCLE.svg",
+      points: [
+        { x: 99, y: 1, direction: "top" },
+        { x: 99, y: 199, direction: "bottom" }
+      ]
+    },
+    {
+      url: "./img/svg/ST.svg",
+      points: [
+        { x: 100, y: 1, direction: "top" },
+        { x: 100, y: 199, direction: "bottom" }
+      ]
+    },
+    {
+      url: "./img/svg/THERR_CIRCLE.svg",
+      points: [
+        { x: 99, y: 43, direction: "top" },
+        { x: 99, y: 157, direction: "bottom" }
+      ]
+    },
+    {
+      url: "./img/svg/combin.svg",
+      points: [
+        { x: 100, y: 1, direction: "top" },
+        { x: 100, y: 199, direction: "bottom" }
+      ]
+    },
+    {
+      url: "./img/svg/combin3.svg",
+      points: [
+        { x: 100, y: 1, direction: "top" },
+        { x: 100, y: 199, direction: "bottom" }
+      ]
+    },
+    {
+      url: "./img/svg/combin4.svg",
+      points: [
+        { x: 101, y: 1, direction: "top" },
+        { x: 101, y: 199, direction: "bottom" }
+      ]
+    },
+    {
+      url: "./img/svg/combin5.svg",
+      points: [
+        { x: 99, y: 1, direction: "top" },
+        { x: 99, y: 199, direction: "bottom" }
+      ]
+    },
+    {
+      url: "./img/svg/xianshideng.svg",
+      points: [
+        { x: 100, y: 1, direction: "top" },
+        { x: 100, y: 199, direction: "bottom" }
+      ]
+    },
+    {
+      url: "./img/svg/MEMRISTOR_1.svg",
+      points: [
+        { x: 1, y: 101, direction: "left" },
+        { x: 199, y: 101, direction: "right" }
+      ]
+    },
+    {
+      url: "./img/svg/guangfufadian.svg",
+      points: [
+        { x: 100, y: 62, direction: "top" },
+        { x: 100, y: 138, direction: "bottom" },
+        { x: 27, y: 100, direction: "left" },
+        { x: 173, y: 100, direction: "right" }
+      ]
+    },
+    {
+      url: "./img/svg/REGUINDUCTOR.svg",
+      points: [
+        { x: 100, y: 66, direction: "top" },
+        { x: 100, y: 134, direction: "bottom" },
+        { x: 1, y: 100, direction: "left" },
+        { x: 199, y: 100, direction: "right" }
+      ]
+    },
+    {
+      url: "./img/svg/AC_2.svg",
+      points: [
+        { x: 100, y: 1, direction: "top" },
+        { x: 100, y: 199, direction: "bottom" },
+        { x: 1, y: 100, direction: "left" },
+        { x: 199, y: 100, direction: "right" }
+      ]
+    },
+    {
+      url: "./img/svg/AC_SOURCE.svg",
+      points: [
+        { x: 100, y: 1, direction: "top" },
+        { x: 100, y: 199, direction: "bottom" },
+        { x: 1, y: 100, direction: "left" },
+        { x: 199, y: 100, direction: "right" }
+      ]
+    },
+    { url: "./img/svg/EQUIVALENTSOURCE.svg", points: [{ x: 100, y: 100 }] }
+  ],
+  image: [
+    {
+      url: "./img/png/1.png",
+      points: [
+        { x: 52, y: 2, direction: "top" },
+        { x: 52, y: 100, direction: "bottom" },
+        { x: 2, y: 51, direction: "left" },
+        { x: 101, y: 51, direction: "right" }
+      ]
+    },
+    { url: "./img/png/2.png" }
+  ],
+  gif: [
+    { url: "./img/gif/5.gif", points: [{ x: 100, y: 100 }] },
+    { url: "./img/gif/6.gif" },
+    { url: "./img/gif/8.gif" }
+  ],
+  json: [
+    { url: "./json/1.json", avatar: "./json/1.png" },
+    { url: "./json/2.json", avatar: "./json/2.png" },
+    { url: "./json/3.json", avatar: "./json/3.png" },
+    { url: "./json/4.json", avatar: "./json/4.png" },
+    { url: "./json/5.json", avatar: "./json/5.png" }
+  ],
+  more: [
+    { url: "./img/svg/a-CT2xianghu.svg" },
+    { url: "./img/svg/a-CTsanxiang.svg" },
+    { url: "./img/svg/combin2.svg" },
+    { url: "./img/svg/ARCSUPPCOIL.svg" },
+    { url: "./img/svg/INDUCTOR.svg" },
+    { url: "./img/svg/IRONCOREGAPINDUCTOR.svg" },
+    { url: "./img/svg/IRONCOREINDUCTOR.svg" },
+    { url: "./img/svg/IRONCOREVARINDUCTOR.svg" },
+    { url: "./img/svg/CT.svg" },
+    { url: "./img/svg/GROUND.svg" },
+    { url: "./img/svg/LOAD.svg" },
+    { url: "./img/svg/PROTECT_GROUND.svg" },
+    { url: "./img/svg/CT_3.svg" },
+    { url: "./img/svg/DDCT.svg" },
+    { url: "./img/svg/FLANGED_CONNECTION.svg" },
+    { url: "./img/svg/jiedidaozha.svg" },
+    { url: "./img/svg/sukeduanluqi.svg" },
+    { url: "./img/svg/DELTAWINDING.svg" },
+    { url: "./img/svg/MULTIPLIER.svg" },
+    { url: "./img/svg/WINDING.svg" },
+    { url: "./img/svg/WINDINGX.svg" },
+    { url: "./img/svg/YWINDING.svg" },
+    { url: "./img/png/3.png" },
+    { url: "./img/png/7.png" },
+    { url: "./img/png/9.png" }
+  ]
 };
-const className$2 = "Stage";
-const children$2 = [
-  {
-    attrs: {},
-    className: "Layer",
-    children: [
-      {
-        attrs: {
-          id: "o88zTXfaOXLREftOHdhV6",
-          width: 64,
-          height: 64,
-          name: "asset",
-          x: 100,
-          y: 96,
-          points: [
-            {
-              x: 0,
-              y: 32,
-              direction: "left",
-              id: "2nh3gXmTfmnkpd0I_irag",
-              groupId: "o88zTXfaOXLREftOHdhV6",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 64,
-              y: 32,
-              direction: "right",
-              id: "ceNiyGog5VyMLemLgaqSg",
-              groupId: "o88zTXfaOXLREftOHdhV6",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 0,
-              direction: "top",
-              id: "5rcyW5zAti9VkSn0a0EwU",
-              groupId: "o88zTXfaOXLREftOHdhV6",
-              visible: false,
-              pairs: [
-                {
-                  id: "eNhtxuKVeKSb5vjP5lA4u",
-                  from: {
-                    groupId: "o88zTXfaOXLREftOHdhV6",
-                    pointId: "5rcyW5zAti9VkSn0a0EwU"
-                  },
-                  to: {
-                    groupId: "YPZmpG46bcrgaeLzFagWe",
-                    pointId: "76aFK1xeoTb8O24a6MNsJ"
-                  }
-                }
-              ]
-            },
-            {
-              x: 32,
-              y: 64,
-              direction: "bottom",
-              id: "TVcmT_F8eKVGeD3FW8Gda",
-              groupId: "o88zTXfaOXLREftOHdhV6",
-              visible: false,
-              pairs: []
-            }
-          ],
-          selected: false
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              src: "./img/png/2.png"
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "2nh3gXmTfmnkpd0I_irag",
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "left"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "ceNiyGog5VyMLemLgaqSg",
-              x: 64,
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "right"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "5rcyW5zAti9VkSn0a0EwU",
-              x: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "top"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "TVcmT_F8eKVGeD3FW8Gda",
-              x: 32,
-              y: 64,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "bottom"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 64,
-              height: 64,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
-      },
-      {
-        attrs: {
-          id: "YPZmpG46bcrgaeLzFagWe",
-          width: 64,
-          height: 64,
-          name: "asset",
-          x: 260,
-          y: 96,
-          points: [
-            {
-              x: 0,
-              y: 32,
-              direction: "left",
-              id: "G3txzS_qd34KUUMa3p-bX",
-              groupId: "YPZmpG46bcrgaeLzFagWe",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 64,
-              y: 32,
-              direction: "right",
-              id: "DBhBolcVk02JmiF2Bxp9X",
-              groupId: "YPZmpG46bcrgaeLzFagWe",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 0,
-              direction: "top",
-              id: "76aFK1xeoTb8O24a6MNsJ",
-              groupId: "YPZmpG46bcrgaeLzFagWe",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 64,
-              direction: "bottom",
-              id: "nYB_fBgJ8ATseG75bcmwR",
-              groupId: "YPZmpG46bcrgaeLzFagWe",
-              visible: false,
-              pairs: []
-            }
-          ],
-          selected: false
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              src: "./img/png/2.png"
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "G3txzS_qd34KUUMa3p-bX",
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "left"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "DBhBolcVk02JmiF2Bxp9X",
-              x: 64,
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "right"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "76aFK1xeoTb8O24a6MNsJ",
-              x: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "top"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "nYB_fBgJ8ATseG75bcmwR",
-              x: 32,
-              y: 64,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "bottom"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 64,
-              height: 64,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
-      },
-      {
-        attrs: {
-          id: "K8C32cASh1Y3BGHdpSfIl",
-          width: 64,
-          height: 64,
-          name: "asset",
-          x: 420,
-          y: 96,
-          points: [
-            {
-              x: 0,
-              y: 32,
-              direction: "left",
-              id: "JxDqH_LQoTLzu5vqsYS-e",
-              groupId: "K8C32cASh1Y3BGHdpSfIl",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 64,
-              y: 32,
-              direction: "right",
-              id: "PcDMpY1LX-y-ectwzQU4S",
-              groupId: "K8C32cASh1Y3BGHdpSfIl",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 0,
-              direction: "top",
-              id: "4KnH8TgqQr38GRp_soKSx",
-              groupId: "K8C32cASh1Y3BGHdpSfIl",
-              visible: false,
-              pairs: [
-                {
-                  id: "n01Fzb9I3UDewamiAk3nZ",
-                  from: {
-                    groupId: "K8C32cASh1Y3BGHdpSfIl",
-                    pointId: "4KnH8TgqQr38GRp_soKSx"
-                  },
-                  to: {
-                    groupId: "cd_csnGC1TQ3Incorj9fh",
-                    pointId: "y-yJXM9ik7pLa2G45xVIi"
-                  }
-                }
-              ]
-            },
-            {
-              x: 32,
-              y: 64,
-              direction: "bottom",
-              id: "u0iCvPxw610gjcKXo36tt",
-              groupId: "K8C32cASh1Y3BGHdpSfIl",
-              visible: false,
-              pairs: []
-            }
-          ],
-          selected: false
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              src: "./img/png/2.png"
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "JxDqH_LQoTLzu5vqsYS-e",
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "left"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "PcDMpY1LX-y-ectwzQU4S",
-              x: 64,
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "right"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "4KnH8TgqQr38GRp_soKSx",
-              x: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "top"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "u0iCvPxw610gjcKXo36tt",
-              x: 32,
-              y: 64,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "bottom"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 64,
-              height: 64,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
-      },
-      {
-        attrs: {
-          id: "cd_csnGC1TQ3Incorj9fh",
-          width: 64,
-          height: 64,
-          name: "asset",
-          x: 580,
-          y: 96,
-          points: [
-            {
-              x: 0,
-              y: 32,
-              direction: "left",
-              id: "SENAFgC0XCQtSoXfoCs7F",
-              groupId: "cd_csnGC1TQ3Incorj9fh",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 64,
-              y: 32,
-              direction: "right",
-              id: "y-yJXM9ik7pLa2G45xVIi",
-              groupId: "cd_csnGC1TQ3Incorj9fh",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 0,
-              direction: "top",
-              id: "Mx7C4SWz0jkQTodCfijdc",
-              groupId: "cd_csnGC1TQ3Incorj9fh",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 64,
-              direction: "bottom",
-              id: "rQk28r65oNT7nXiRIJ9WP",
-              groupId: "cd_csnGC1TQ3Incorj9fh",
-              visible: false,
-              pairs: []
-            }
-          ],
-          selected: false
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              src: "./img/png/2.png"
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "SENAFgC0XCQtSoXfoCs7F",
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "left"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "y-yJXM9ik7pLa2G45xVIi",
-              x: 64,
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "right"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "Mx7C4SWz0jkQTodCfijdc",
-              x: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "top"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "rQk28r65oNT7nXiRIJ9WP",
-              x: 32,
-              y: 64,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "bottom"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 64,
-              height: 64,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
-      },
-      {
-        attrs: {
-          id: "5EasaRGLNi1C09OmVXT5S",
-          width: 64,
-          height: 64,
-          name: "asset",
-          x: 740,
-          y: 96,
-          points: [
-            {
-              x: 0,
-              y: 32,
-              direction: "left",
-              id: "pIOXDFqlXADnGUwYtAQyC",
-              groupId: "5EasaRGLNi1C09OmVXT5S",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 64,
-              y: 32,
-              direction: "right",
-              id: "47BHwUCNqlbA6WfX-1FF4",
-              groupId: "5EasaRGLNi1C09OmVXT5S",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 0,
-              direction: "top",
-              id: "_veyAhCgCNz1ICD-GYWwI",
-              groupId: "5EasaRGLNi1C09OmVXT5S",
-              visible: false,
-              pairs: [
-                {
-                  id: "jjTIGhILo209ywSjdfTCs",
-                  from: {
-                    groupId: "5EasaRGLNi1C09OmVXT5S",
-                    pointId: "_veyAhCgCNz1ICD-GYWwI"
-                  },
-                  to: {
-                    groupId: "FqhXWP30O15r5Rwn7tW0S",
-                    pointId: "QU3xcjmqniWH4gEcXVg9B"
-                  }
-                }
-              ]
-            },
-            {
-              x: 32,
-              y: 64,
-              direction: "bottom",
-              id: "M8WHbtgr5ezUYWmqR6Kjs",
-              groupId: "5EasaRGLNi1C09OmVXT5S",
-              visible: false,
-              pairs: []
-            }
-          ],
-          selected: false
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              src: "./img/png/2.png"
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "pIOXDFqlXADnGUwYtAQyC",
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "left"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "47BHwUCNqlbA6WfX-1FF4",
-              x: 64,
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "right"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "_veyAhCgCNz1ICD-GYWwI",
-              x: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "top"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "M8WHbtgr5ezUYWmqR6Kjs",
-              x: 32,
-              y: 64,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "bottom"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 64,
-              height: 64,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
-      },
-      {
-        attrs: {
-          id: "FqhXWP30O15r5Rwn7tW0S",
-          width: 64,
-          height: 64,
-          name: "asset",
-          x: 900,
-          y: 96,
-          points: [
-            {
-              x: 0,
-              y: 32,
-              direction: "left",
-              id: "oseGJNDi8fdKdlSIw3A8e",
-              groupId: "FqhXWP30O15r5Rwn7tW0S",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 64,
-              y: 32,
-              direction: "right",
-              id: "LGTiKJKDKphETfhfRp3FJ",
-              groupId: "FqhXWP30O15r5Rwn7tW0S",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 0,
-              direction: "top",
-              id: "OL-K9nOeH8NRZQgvqNcS8",
-              groupId: "FqhXWP30O15r5Rwn7tW0S",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 64,
-              direction: "bottom",
-              id: "QU3xcjmqniWH4gEcXVg9B",
-              groupId: "FqhXWP30O15r5Rwn7tW0S",
-              visible: false,
-              pairs: []
-            }
-          ],
-          selected: false
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              src: "./img/png/2.png"
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "oseGJNDi8fdKdlSIw3A8e",
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "left"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "LGTiKJKDKphETfhfRp3FJ",
-              x: 64,
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "right"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "OL-K9nOeH8NRZQgvqNcS8",
-              x: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "top"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "QU3xcjmqniWH4gEcXVg9B",
-              x: 32,
-              y: 64,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "bottom"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 64,
-              height: 64,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
-      },
-      {
-        attrs: {
-          id: "gdK4L_s0JiT4GMXsIbMRm",
-          width: 64,
-          height: 64,
-          name: "asset",
-          x: 1060,
-          y: 96,
-          points: [
-            {
-              x: 0,
-              y: 32,
-              direction: "left",
-              id: "0dah6w1SuoRzDJ5sDCVri",
-              groupId: "gdK4L_s0JiT4GMXsIbMRm",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 64,
-              y: 32,
-              direction: "right",
-              id: "VpUcYSK7g1ID-wK_x2wrz",
-              groupId: "gdK4L_s0JiT4GMXsIbMRm",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 0,
-              direction: "top",
-              id: "9fqUY8y5mbyey2eACPus7",
-              groupId: "gdK4L_s0JiT4GMXsIbMRm",
-              visible: false,
-              pairs: [
-                {
-                  id: "BVcD7FQmC7dKhDRxuJJJw",
-                  from: {
-                    groupId: "gdK4L_s0JiT4GMXsIbMRm",
-                    pointId: "9fqUY8y5mbyey2eACPus7"
-                  },
-                  to: {
-                    groupId: "4v3R1STS8UxSi4_P9uzT4",
-                    pointId: "i0kz7xoBZNvvhLldJsJLH"
-                  }
-                }
-              ]
-            },
-            {
-              x: 32,
-              y: 64,
-              direction: "bottom",
-              id: "pcmrjfs0WTd0hQ4j8a0rI",
-              groupId: "gdK4L_s0JiT4GMXsIbMRm",
-              visible: false,
-              pairs: []
-            }
-          ],
-          selected: false
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              src: "./img/png/2.png"
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "0dah6w1SuoRzDJ5sDCVri",
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "left"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "VpUcYSK7g1ID-wK_x2wrz",
-              x: 64,
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "right"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "9fqUY8y5mbyey2eACPus7",
-              x: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "top"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "pcmrjfs0WTd0hQ4j8a0rI",
-              x: 32,
-              y: 64,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "bottom"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 64,
-              height: 64,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
-      },
-      {
-        attrs: {
-          id: "4v3R1STS8UxSi4_P9uzT4",
-          width: 64,
-          height: 64,
-          name: "asset",
-          x: 1220,
-          y: 96,
-          points: [
-            {
-              x: 0,
-              y: 32,
-              direction: "left",
-              id: "i0kz7xoBZNvvhLldJsJLH",
-              groupId: "4v3R1STS8UxSi4_P9uzT4",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 64,
-              y: 32,
-              direction: "right",
-              id: "PuMQ4euV2bUdwbxlxQA7q",
-              groupId: "4v3R1STS8UxSi4_P9uzT4",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 0,
-              direction: "top",
-              id: "z_9mO6SbwSa2K1tML1ZFH",
-              groupId: "4v3R1STS8UxSi4_P9uzT4",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 64,
-              direction: "bottom",
-              id: "zr0bsvJYyI5bCdluQw2M2",
-              groupId: "4v3R1STS8UxSi4_P9uzT4",
-              visible: false,
-              pairs: []
-            }
-          ],
-          selected: false
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              src: "./img/png/2.png"
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "i0kz7xoBZNvvhLldJsJLH",
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "left"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "PuMQ4euV2bUdwbxlxQA7q",
-              x: 64,
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "right"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "z_9mO6SbwSa2K1tML1ZFH",
-              x: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "top"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "zr0bsvJYyI5bCdluQw2M2",
-              x: 32,
-              y: 64,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "bottom"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 64,
-              height: 64,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
-      },
-      {
-        attrs: {
-          id: "hF8MMis5wH-z-HVeoq-P2",
-          width: 64,
-          height: 64,
-          name: "asset",
-          x: 100,
-          y: 260,
-          points: [
-            {
-              x: 0,
-              y: 32,
-              direction: "left",
-              id: "50IMC04Q4uoOeoyyqi3_H",
-              groupId: "hF8MMis5wH-z-HVeoq-P2",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 64,
-              y: 32,
-              direction: "right",
-              id: "I3hB-EqOVKBAezJCbicev",
-              groupId: "hF8MMis5wH-z-HVeoq-P2",
-              visible: false,
-              pairs: [
-                {
-                  id: "5NYzgfaa1b_Z3h4xvJgl8",
-                  from: {
-                    groupId: "hF8MMis5wH-z-HVeoq-P2",
-                    pointId: "I3hB-EqOVKBAezJCbicev"
-                  },
-                  to: {
-                    groupId: "BkzxLuFb-BPKZqltOlgmH",
-                    pointId: "Km6E8ngZkhxaVZy6ZHFbN"
-                  }
-                }
-              ]
-            },
-            {
-              x: 32,
-              y: 0,
-              direction: "top",
-              id: "pU8Pnvr_rEdf-6KLStXdY",
-              groupId: "hF8MMis5wH-z-HVeoq-P2",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 64,
-              direction: "bottom",
-              id: "Ca6cX4CF-g14UBVQ9abKw",
-              groupId: "hF8MMis5wH-z-HVeoq-P2",
-              visible: false,
-              pairs: []
-            }
-          ],
-          selected: false
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              src: "./img/png/2.png"
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "50IMC04Q4uoOeoyyqi3_H",
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "left"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "I3hB-EqOVKBAezJCbicev",
-              x: 64,
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "right"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "pU8Pnvr_rEdf-6KLStXdY",
-              x: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "top"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "Ca6cX4CF-g14UBVQ9abKw",
-              x: 32,
-              y: 64,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "bottom"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 64,
-              height: 64,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
-      },
-      {
-        attrs: {
-          id: "BkzxLuFb-BPKZqltOlgmH",
-          width: 64,
-          height: 64,
-          name: "asset",
-          x: 260,
-          y: 260,
-          points: [
-            {
-              x: 0,
-              y: 32,
-              direction: "left",
-              id: "RBRPGlTvWN9FP3exr5rIY",
-              groupId: "BkzxLuFb-BPKZqltOlgmH",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 64,
-              y: 32,
-              direction: "right",
-              id: "6xpJ9xDcJTUZMo1b2jmLh",
-              groupId: "BkzxLuFb-BPKZqltOlgmH",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 0,
-              direction: "top",
-              id: "Km6E8ngZkhxaVZy6ZHFbN",
-              groupId: "BkzxLuFb-BPKZqltOlgmH",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 64,
-              direction: "bottom",
-              id: "_QZWuXe5Ub4bgcND-Zwbu",
-              groupId: "BkzxLuFb-BPKZqltOlgmH",
-              visible: false,
-              pairs: []
-            }
-          ],
-          selected: false
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              src: "./img/png/2.png"
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "RBRPGlTvWN9FP3exr5rIY",
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "left"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "6xpJ9xDcJTUZMo1b2jmLh",
-              x: 64,
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "right"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "Km6E8ngZkhxaVZy6ZHFbN",
-              x: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "top"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "_QZWuXe5Ub4bgcND-Zwbu",
-              x: 32,
-              y: 64,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "bottom"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 64,
-              height: 64,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
-      },
-      {
-        attrs: {
-          id: "odg45cVZYFI5SdBGw10Zc",
-          width: 64,
-          height: 64,
-          name: "asset",
-          x: 420,
-          y: 260,
-          points: [
-            {
-              x: 0,
-              y: 32,
-              direction: "left",
-              id: "DLISJc_68U2EZw4yN5LI3",
-              groupId: "odg45cVZYFI5SdBGw10Zc",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 64,
-              y: 32,
-              direction: "right",
-              id: "J24H6u6ZP6tdp8Fnj7xiO",
-              groupId: "odg45cVZYFI5SdBGw10Zc",
-              visible: false,
-              pairs: [
-                {
-                  id: "ooSc6fhmAtxnPQkaNwrBS",
-                  from: {
-                    groupId: "odg45cVZYFI5SdBGw10Zc",
-                    pointId: "J24H6u6ZP6tdp8Fnj7xiO"
-                  },
-                  to: {
-                    groupId: "0QzuNhhpSOUcA_cam0VdB",
-                    pointId: "46EK7KaU5stUcYFv09CQv"
-                  }
-                }
-              ]
-            },
-            {
-              x: 32,
-              y: 0,
-              direction: "top",
-              id: "SOVCms7offbfWhwWzS6rq",
-              groupId: "odg45cVZYFI5SdBGw10Zc",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 64,
-              direction: "bottom",
-              id: "aXaYncV_zRRrB4aTJ6LJx",
-              groupId: "odg45cVZYFI5SdBGw10Zc",
-              visible: false,
-              pairs: []
-            }
-          ],
-          selected: false
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              src: "./img/png/2.png"
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "DLISJc_68U2EZw4yN5LI3",
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "left"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "J24H6u6ZP6tdp8Fnj7xiO",
-              x: 64,
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "right"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "SOVCms7offbfWhwWzS6rq",
-              x: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "top"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "aXaYncV_zRRrB4aTJ6LJx",
-              x: 32,
-              y: 64,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "bottom"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 64,
-              height: 64,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
-      },
-      {
-        attrs: {
-          id: "0QzuNhhpSOUcA_cam0VdB",
-          width: 64,
-          height: 64,
-          name: "asset",
-          x: 580,
-          y: 260,
-          points: [
-            {
-              x: 0,
-              y: 32,
-              direction: "left",
-              id: "MR6HihTWDeSVrNmgwIRDz",
-              groupId: "0QzuNhhpSOUcA_cam0VdB",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 64,
-              y: 32,
-              direction: "right",
-              id: "46EK7KaU5stUcYFv09CQv",
-              groupId: "0QzuNhhpSOUcA_cam0VdB",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 0,
-              direction: "top",
-              id: "SNQl_AhhPzqIZ_yO4ycvr",
-              groupId: "0QzuNhhpSOUcA_cam0VdB",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 64,
-              direction: "bottom",
-              id: "zMvX5pLZ3Ee6crN3au2wC",
-              groupId: "0QzuNhhpSOUcA_cam0VdB",
-              visible: false,
-              pairs: []
-            }
-          ],
-          selected: false
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              src: "./img/png/2.png"
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "MR6HihTWDeSVrNmgwIRDz",
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "left"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "46EK7KaU5stUcYFv09CQv",
-              x: 64,
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "right"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "SNQl_AhhPzqIZ_yO4ycvr",
-              x: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "top"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "zMvX5pLZ3Ee6crN3au2wC",
-              x: 32,
-              y: 64,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "bottom"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 64,
-              height: 64,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
-      },
-      {
-        attrs: {
-          id: "xPo-rbhmjvNBalSi2e1Pa",
-          width: 64,
-          height: 64,
-          name: "asset",
-          x: 740,
-          y: 260,
-          points: [
-            {
-              x: 0,
-              y: 32,
-              direction: "left",
-              id: "yPuZjcpc7zkdLCc_i0LXF",
-              groupId: "xPo-rbhmjvNBalSi2e1Pa",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 64,
-              y: 32,
-              direction: "right",
-              id: "nnHHg9nQOvdxfT2Qss7Zj",
-              groupId: "xPo-rbhmjvNBalSi2e1Pa",
-              visible: false,
-              pairs: [
-                {
-                  id: "mKBQox_9IBNrW5ifmqGId",
-                  from: {
-                    groupId: "xPo-rbhmjvNBalSi2e1Pa",
-                    pointId: "nnHHg9nQOvdxfT2Qss7Zj"
-                  },
-                  to: {
-                    groupId: "f0EdnxiswGVNzkW_349D-",
-                    pointId: "F6Ee4sYRf0RcfHOBy7wpt"
-                  }
-                }
-              ]
-            },
-            {
-              x: 32,
-              y: 0,
-              direction: "top",
-              id: "F4Y53ehHNkvUPGc58l6T8",
-              groupId: "xPo-rbhmjvNBalSi2e1Pa",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 64,
-              direction: "bottom",
-              id: "5pwSy37Gs0R5wTAQ69iem",
-              groupId: "xPo-rbhmjvNBalSi2e1Pa",
-              visible: false,
-              pairs: []
-            }
-          ],
-          selected: false
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              src: "./img/png/2.png"
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "yPuZjcpc7zkdLCc_i0LXF",
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "left"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "nnHHg9nQOvdxfT2Qss7Zj",
-              x: 64,
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "right"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "F4Y53ehHNkvUPGc58l6T8",
-              x: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "top"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "5pwSy37Gs0R5wTAQ69iem",
-              x: 32,
-              y: 64,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "bottom"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 64,
-              height: 64,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
-      },
-      {
-        attrs: {
-          id: "f0EdnxiswGVNzkW_349D-",
-          width: 64,
-          height: 64,
-          name: "asset",
-          x: 900,
-          y: 260,
-          points: [
-            {
-              x: 0,
-              y: 32,
-              direction: "left",
-              id: "uIs7sIRq8GABOKjPeP1iT",
-              groupId: "f0EdnxiswGVNzkW_349D-",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 64,
-              y: 32,
-              direction: "right",
-              id: "Crl9jtWwKAe1mAZBpuoo-",
-              groupId: "f0EdnxiswGVNzkW_349D-",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 0,
-              direction: "top",
-              id: "Oo3e_EjEC_2jR_qQUs_9d",
-              groupId: "f0EdnxiswGVNzkW_349D-",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 64,
-              direction: "bottom",
-              id: "F6Ee4sYRf0RcfHOBy7wpt",
-              groupId: "f0EdnxiswGVNzkW_349D-",
-              visible: false,
-              pairs: []
-            }
-          ],
-          selected: false
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              src: "./img/png/2.png"
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "uIs7sIRq8GABOKjPeP1iT",
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "left"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "Crl9jtWwKAe1mAZBpuoo-",
-              x: 64,
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "right"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "Oo3e_EjEC_2jR_qQUs_9d",
-              x: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "top"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "F6Ee4sYRf0RcfHOBy7wpt",
-              x: 32,
-              y: 64,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "bottom"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 64,
-              height: 64,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
-      },
-      {
-        attrs: {
-          id: "1Pp5Ts4sHNlYy2YBjmBrJ",
-          width: 64,
-          height: 64,
-          name: "asset",
-          x: 1060,
-          y: 260,
-          points: [
-            {
-              x: 0,
-              y: 32,
-              direction: "left",
-              id: "tKVMhSrr2xPq-xq6xCjWT",
-              groupId: "1Pp5Ts4sHNlYy2YBjmBrJ",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 64,
-              y: 32,
-              direction: "right",
-              id: "SrYFEB8aUE68PqBe3s6SO",
-              groupId: "1Pp5Ts4sHNlYy2YBjmBrJ",
-              visible: false,
-              pairs: [
-                {
-                  id: "gB6iHIClsKesgn4NTb3SV",
-                  from: {
-                    groupId: "1Pp5Ts4sHNlYy2YBjmBrJ",
-                    pointId: "SrYFEB8aUE68PqBe3s6SO"
-                  },
-                  to: {
-                    groupId: "NbHZLypFcML8SFESy_QUZ",
-                    pointId: "7CbquuVrj11Jc3dMSoD-y"
-                  }
-                }
-              ]
-            },
-            {
-              x: 32,
-              y: 0,
-              direction: "top",
-              id: "yHqCCujjPlgsm4lBmnng1",
-              groupId: "1Pp5Ts4sHNlYy2YBjmBrJ",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 64,
-              direction: "bottom",
-              id: "w4gZOPNxSwfmWpWrWjUrI",
-              groupId: "1Pp5Ts4sHNlYy2YBjmBrJ",
-              visible: false,
-              pairs: []
-            }
-          ],
-          selected: false
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              src: "./img/png/2.png"
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "tKVMhSrr2xPq-xq6xCjWT",
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "left"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "SrYFEB8aUE68PqBe3s6SO",
-              x: 64,
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "right"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "yHqCCujjPlgsm4lBmnng1",
-              x: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "top"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "w4gZOPNxSwfmWpWrWjUrI",
-              x: 32,
-              y: 64,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "bottom"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 64,
-              height: 64,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
-      },
-      {
-        attrs: {
-          id: "NbHZLypFcML8SFESy_QUZ",
-          width: 64,
-          height: 64,
-          name: "asset",
-          x: 1220,
-          y: 260,
-          points: [
-            {
-              x: 0,
-              y: 32,
-              direction: "left",
-              id: "7CbquuVrj11Jc3dMSoD-y",
-              groupId: "NbHZLypFcML8SFESy_QUZ",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 64,
-              y: 32,
-              direction: "right",
-              id: "hdkd8GZ91-6d52sq4Y1ob",
-              groupId: "NbHZLypFcML8SFESy_QUZ",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 0,
-              direction: "top",
-              id: "pO3rhji7xucrp6d2ZZ9gj",
-              groupId: "NbHZLypFcML8SFESy_QUZ",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 64,
-              direction: "bottom",
-              id: "DIJastIDjCRI-E_MXL2pQ",
-              groupId: "NbHZLypFcML8SFESy_QUZ",
-              visible: false,
-              pairs: []
-            }
-          ],
-          selected: false
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              src: "./img/png/2.png"
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "7CbquuVrj11Jc3dMSoD-y",
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "left"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "hdkd8GZ91-6d52sq4Y1ob",
-              x: 64,
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "right"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "pO3rhji7xucrp6d2ZZ9gj",
-              x: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "top"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "DIJastIDjCRI-E_MXL2pQ",
-              x: 32,
-              y: 64,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "bottom"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 64,
-              height: 64,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
-      },
-      {
-        attrs: {
-          id: "UT7WXrz9XLGFXlr635HJ0",
-          width: 64,
-          height: 64,
-          name: "asset",
-          x: 100,
-          y: 420,
-          points: [
-            {
-              x: 0,
-              y: 32,
-              direction: "left",
-              id: "-fwq2oP4_s8O_9_on2pro",
-              groupId: "UT7WXrz9XLGFXlr635HJ0",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 64,
-              y: 32,
-              direction: "right",
-              id: "AY7diyqIoPWrB56SCOlb-",
-              groupId: "UT7WXrz9XLGFXlr635HJ0",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 0,
-              direction: "top",
-              id: "9M9DPZ5sHpu_aLeqquwxG",
-              groupId: "UT7WXrz9XLGFXlr635HJ0",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 64,
-              direction: "bottom",
-              id: "SJB-cxt3yCjdfTh0GSHYG",
-              groupId: "UT7WXrz9XLGFXlr635HJ0",
-              visible: false,
-              pairs: [
-                {
-                  id: "5HbQmLeJcQwwB1CjbtNAe",
-                  from: {
-                    groupId: "UT7WXrz9XLGFXlr635HJ0",
-                    pointId: "SJB-cxt3yCjdfTh0GSHYG"
-                  },
-                  to: {
-                    groupId: "UZ4ZSD0Uno8EqIQACwys4",
-                    pointId: "Y_mdnaHhkn4DlDpsUGwbq"
-                  }
-                }
-              ]
-            }
-          ],
-          selected: false
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              src: "./img/png/2.png"
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "-fwq2oP4_s8O_9_on2pro",
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "left"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "AY7diyqIoPWrB56SCOlb-",
-              x: 64,
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "right"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "9M9DPZ5sHpu_aLeqquwxG",
-              x: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "top"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "SJB-cxt3yCjdfTh0GSHYG",
-              x: 32,
-              y: 64,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "bottom"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 64,
-              height: 64,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
-      },
-      {
-        attrs: {
-          id: "UZ4ZSD0Uno8EqIQACwys4",
-          width: 64,
-          height: 64,
-          name: "asset",
-          x: 260,
-          y: 420,
-          points: [
-            {
-              x: 0,
-              y: 32,
-              direction: "left",
-              id: "DaD5r378aIs1ju0XjeI4Q",
-              groupId: "UZ4ZSD0Uno8EqIQACwys4",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 64,
-              y: 32,
-              direction: "right",
-              id: "VFSU-YTYO-TDh6MgRbD2X",
-              groupId: "UZ4ZSD0Uno8EqIQACwys4",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 0,
-              direction: "top",
-              id: "Y_mdnaHhkn4DlDpsUGwbq",
-              groupId: "UZ4ZSD0Uno8EqIQACwys4",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 64,
-              direction: "bottom",
-              id: "r91rBSOOxxO2PKfwtwkS1",
-              groupId: "UZ4ZSD0Uno8EqIQACwys4",
-              visible: false,
-              pairs: []
-            }
-          ],
-          selected: false
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              src: "./img/png/2.png"
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "DaD5r378aIs1ju0XjeI4Q",
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "left"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "VFSU-YTYO-TDh6MgRbD2X",
-              x: 64,
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "right"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "Y_mdnaHhkn4DlDpsUGwbq",
-              x: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "top"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "r91rBSOOxxO2PKfwtwkS1",
-              x: 32,
-              y: 64,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "bottom"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 64,
-              height: 64,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
-      },
-      {
-        attrs: {
-          id: "VW70bTElkXS0ZuitJFVId",
-          width: 64,
-          height: 64,
-          name: "asset",
-          x: 420,
-          y: 420,
-          points: [
-            {
-              x: 0,
-              y: 32,
-              direction: "left",
-              id: "VKuQAc21UPq8NzCQwzcyw",
-              groupId: "VW70bTElkXS0ZuitJFVId",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 64,
-              y: 32,
-              direction: "right",
-              id: "_x3rnw_LU7tLir-Xz8nKz",
-              groupId: "VW70bTElkXS0ZuitJFVId",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 0,
-              direction: "top",
-              id: "dQ3M9wp0JFFHLrZ5-RY_z",
-              groupId: "VW70bTElkXS0ZuitJFVId",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 64,
-              direction: "bottom",
-              id: "dXpQAi16V61sPESxC8FsZ",
-              groupId: "VW70bTElkXS0ZuitJFVId",
-              visible: false,
-              pairs: [
-                {
-                  id: "0Kif01g5ipvfvpFGQtOFd",
-                  from: {
-                    groupId: "VW70bTElkXS0ZuitJFVId",
-                    pointId: "dXpQAi16V61sPESxC8FsZ"
-                  },
-                  to: {
-                    groupId: "EzufdHXgJieLHK9CikdiU",
-                    pointId: "nltRbglOUrCox10miZolU"
-                  }
-                }
-              ]
-            }
-          ],
-          selected: false
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              src: "./img/png/2.png"
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "VKuQAc21UPq8NzCQwzcyw",
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "left"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "_x3rnw_LU7tLir-Xz8nKz",
-              x: 64,
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "right"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "dQ3M9wp0JFFHLrZ5-RY_z",
-              x: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "top"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "dXpQAi16V61sPESxC8FsZ",
-              x: 32,
-              y: 64,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "bottom"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 64,
-              height: 64,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
-      },
-      {
-        attrs: {
-          id: "EzufdHXgJieLHK9CikdiU",
-          width: 64,
-          height: 64,
-          name: "asset",
-          x: 580,
-          y: 420,
-          points: [
-            {
-              x: 0,
-              y: 32,
-              direction: "left",
-              id: "BsOfcHl5RWWJEDe1Udzm_",
-              groupId: "EzufdHXgJieLHK9CikdiU",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 64,
-              y: 32,
-              direction: "right",
-              id: "nltRbglOUrCox10miZolU",
-              groupId: "EzufdHXgJieLHK9CikdiU",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 0,
-              direction: "top",
-              id: "WSvdRzP3YrxwwHix6hLGx",
-              groupId: "EzufdHXgJieLHK9CikdiU",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 64,
-              direction: "bottom",
-              id: "DoZmT82MnnsIq7SbyruHe",
-              groupId: "EzufdHXgJieLHK9CikdiU",
-              visible: false,
-              pairs: []
-            }
-          ],
-          selected: false
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              src: "./img/png/2.png"
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "BsOfcHl5RWWJEDe1Udzm_",
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "left"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "nltRbglOUrCox10miZolU",
-              x: 64,
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "right"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "WSvdRzP3YrxwwHix6hLGx",
-              x: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "top"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "DoZmT82MnnsIq7SbyruHe",
-              x: 32,
-              y: 64,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "bottom"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 64,
-              height: 64,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
-      },
-      {
-        attrs: {
-          id: "rtuOXqzKFqPgnl_pBNnPB",
-          width: 64,
-          height: 64,
-          name: "asset",
-          x: 740,
-          y: 420,
-          points: [
-            {
-              x: 0,
-              y: 32,
-              direction: "left",
-              id: "zz3wRQrWXh2Qn9K75K58d",
-              groupId: "rtuOXqzKFqPgnl_pBNnPB",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 64,
-              y: 32,
-              direction: "right",
-              id: "tmzknw5gFxVyDv6LyQ_WF",
-              groupId: "rtuOXqzKFqPgnl_pBNnPB",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 0,
-              direction: "top",
-              id: "b72cDc_kFULVxok8h05Qf",
-              groupId: "rtuOXqzKFqPgnl_pBNnPB",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 64,
-              direction: "bottom",
-              id: "kV4EP3jgfdRXNREj8njNW",
-              groupId: "rtuOXqzKFqPgnl_pBNnPB",
-              visible: false,
-              pairs: [
-                {
-                  id: "p9sPq9dVuzsoayot_QQvP",
-                  from: {
-                    groupId: "rtuOXqzKFqPgnl_pBNnPB",
-                    pointId: "kV4EP3jgfdRXNREj8njNW"
-                  },
-                  to: {
-                    groupId: "S1P2JqpHWR-0Tus6nojje",
-                    pointId: "Htkcw0kXFYTWMAG1CB0GQ"
-                  }
-                }
-              ]
-            }
-          ],
-          selected: false
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              src: "./img/png/2.png"
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "zz3wRQrWXh2Qn9K75K58d",
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "left"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "tmzknw5gFxVyDv6LyQ_WF",
-              x: 64,
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "right"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "b72cDc_kFULVxok8h05Qf",
-              x: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "top"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "kV4EP3jgfdRXNREj8njNW",
-              x: 32,
-              y: 64,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "bottom"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 64,
-              height: 64,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
-      },
-      {
-        attrs: {
-          id: "S1P2JqpHWR-0Tus6nojje",
-          width: 64,
-          height: 64,
-          name: "asset",
-          x: 900,
-          y: 420,
-          points: [
-            {
-              x: 0,
-              y: 32,
-              direction: "left",
-              id: "o3FlndTyvnIwDsfMi4lJ0",
-              groupId: "S1P2JqpHWR-0Tus6nojje",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 64,
-              y: 32,
-              direction: "right",
-              id: "Gly1tc5iwRnY6GK7y2T4h",
-              groupId: "S1P2JqpHWR-0Tus6nojje",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 0,
-              direction: "top",
-              id: "pvuiT5x2GVasyR6pUYqkV",
-              groupId: "S1P2JqpHWR-0Tus6nojje",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 64,
-              direction: "bottom",
-              id: "Htkcw0kXFYTWMAG1CB0GQ",
-              groupId: "S1P2JqpHWR-0Tus6nojje",
-              visible: false,
-              pairs: []
-            }
-          ],
-          selected: false
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              src: "./img/png/2.png"
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "o3FlndTyvnIwDsfMi4lJ0",
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "left"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "Gly1tc5iwRnY6GK7y2T4h",
-              x: 64,
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "right"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "pvuiT5x2GVasyR6pUYqkV",
-              x: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "top"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "Htkcw0kXFYTWMAG1CB0GQ",
-              x: 32,
-              y: 64,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "bottom"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 64,
-              height: 64,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
-      },
-      {
-        attrs: {
-          id: "SCQ7B49EGUj8HfKv9vDez",
-          width: 64,
-          height: 64,
-          name: "asset",
-          x: 1060,
-          y: 420,
-          points: [
-            {
-              x: 0,
-              y: 32,
-              direction: "left",
-              id: "9a26hSxH7jvmPsOSaxC-x",
-              groupId: "SCQ7B49EGUj8HfKv9vDez",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 64,
-              y: 32,
-              direction: "right",
-              id: "g_p53wkuQRYnSIMgfeGXc",
-              groupId: "SCQ7B49EGUj8HfKv9vDez",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 0,
-              direction: "top",
-              id: "caMHhWaw6ZIfM5ZHrL6Et",
-              groupId: "SCQ7B49EGUj8HfKv9vDez",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 64,
-              direction: "bottom",
-              id: "7LWoS0UgrW2Ae1xtCa3aE",
-              groupId: "SCQ7B49EGUj8HfKv9vDez",
-              visible: false,
-              pairs: [
-                {
-                  id: "FRFEaIW3rRX5CD8psJ7_w",
-                  from: {
-                    groupId: "SCQ7B49EGUj8HfKv9vDez",
-                    pointId: "7LWoS0UgrW2Ae1xtCa3aE"
-                  },
-                  to: {
-                    groupId: "eWtw43kS6v_NjbDF6RAsi",
-                    pointId: "3XVYHvymHZCm3WmT5Rj6P"
-                  }
-                }
-              ]
-            }
-          ],
-          selected: false
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              src: "./img/png/2.png"
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "9a26hSxH7jvmPsOSaxC-x",
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "left"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "g_p53wkuQRYnSIMgfeGXc",
-              x: 64,
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "right"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "caMHhWaw6ZIfM5ZHrL6Et",
-              x: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "top"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "7LWoS0UgrW2Ae1xtCa3aE",
-              x: 32,
-              y: 64,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "bottom"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 64,
-              height: 64,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
-      },
-      {
-        attrs: {
-          id: "eWtw43kS6v_NjbDF6RAsi",
-          width: 64,
-          height: 64,
-          name: "asset",
-          x: 1220,
-          y: 420,
-          points: [
-            {
-              x: 0,
-              y: 32,
-              direction: "left",
-              id: "3XVYHvymHZCm3WmT5Rj6P",
-              groupId: "eWtw43kS6v_NjbDF6RAsi",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 64,
-              y: 32,
-              direction: "right",
-              id: "kCSWZ85W3Sx-vjQt3plfH",
-              groupId: "eWtw43kS6v_NjbDF6RAsi",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 0,
-              direction: "top",
-              id: "g-0u67yFK9V_emxg8P9Bj",
-              groupId: "eWtw43kS6v_NjbDF6RAsi",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 64,
-              direction: "bottom",
-              id: "gtqTX1H6BlgHUmOzuzr6i",
-              groupId: "eWtw43kS6v_NjbDF6RAsi",
-              visible: false,
-              pairs: []
-            }
-          ],
-          selected: false
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              src: "./img/png/2.png"
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "3XVYHvymHZCm3WmT5Rj6P",
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "left"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "kCSWZ85W3Sx-vjQt3plfH",
-              x: 64,
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "right"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "g-0u67yFK9V_emxg8P9Bj",
-              x: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "top"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "gtqTX1H6BlgHUmOzuzr6i",
-              x: 32,
-              y: 64,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "bottom"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 64,
-              height: 64,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
-      },
-      {
-        attrs: {
-          id: "tzXUEs0mWnX74gZdUp3dy",
-          width: 64,
-          height: 64,
-          name: "asset",
-          x: 100,
-          y: 580,
-          points: [
-            {
-              x: 0,
-              y: 32,
-              direction: "left",
-              id: "THQN2Hjg075i0Qn81rRoR",
-              groupId: "tzXUEs0mWnX74gZdUp3dy",
-              visible: false,
-              pairs: [
-                {
-                  id: "f4viro9cdXEFaShRM3-tc",
-                  from: {
-                    groupId: "tzXUEs0mWnX74gZdUp3dy",
-                    pointId: "THQN2Hjg075i0Qn81rRoR"
-                  },
-                  to: {
-                    groupId: "d-t2OpeTydVI0KU3Jpaiu",
-                    pointId: "oSuRcQX3WkuENmgacFWg2"
-                  }
-                }
-              ]
-            },
-            {
-              x: 64,
-              y: 32,
-              direction: "right",
-              id: "9uqCIyNg99_nYMy5Tzk7y",
-              groupId: "tzXUEs0mWnX74gZdUp3dy",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 0,
-              direction: "top",
-              id: "mGbAcFJxY31KMaKYvUZ9q",
-              groupId: "tzXUEs0mWnX74gZdUp3dy",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 64,
-              direction: "bottom",
-              id: "QpPF6g7iSiSg8IVU2l-fM",
-              groupId: "tzXUEs0mWnX74gZdUp3dy",
-              visible: false,
-              pairs: []
-            }
-          ],
-          selected: false
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              src: "./img/png/2.png"
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "THQN2Hjg075i0Qn81rRoR",
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "left"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "9uqCIyNg99_nYMy5Tzk7y",
-              x: 64,
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "right"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "mGbAcFJxY31KMaKYvUZ9q",
-              x: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "top"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "QpPF6g7iSiSg8IVU2l-fM",
-              x: 32,
-              y: 64,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "bottom"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 64,
-              height: 64,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
-      },
-      {
-        attrs: {
-          id: "d-t2OpeTydVI0KU3Jpaiu",
-          width: 64,
-          height: 64,
-          name: "asset",
-          x: 260,
-          y: 580,
-          points: [
-            {
-              x: 0,
-              y: 32,
-              direction: "left",
-              id: "jxrsfyHzJZq3Fxkagmg79",
-              groupId: "d-t2OpeTydVI0KU3Jpaiu",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 64,
-              y: 32,
-              direction: "right",
-              id: "LNhMsDL74Lhdamu7zaEwW",
-              groupId: "d-t2OpeTydVI0KU3Jpaiu",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 0,
-              direction: "top",
-              id: "oSuRcQX3WkuENmgacFWg2",
-              groupId: "d-t2OpeTydVI0KU3Jpaiu",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 64,
-              direction: "bottom",
-              id: "LU6tuQvxalxatmw4sEpZB",
-              groupId: "d-t2OpeTydVI0KU3Jpaiu",
-              visible: false,
-              pairs: []
-            }
-          ],
-          selected: false
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              src: "./img/png/2.png"
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "jxrsfyHzJZq3Fxkagmg79",
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "left"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "LNhMsDL74Lhdamu7zaEwW",
-              x: 64,
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "right"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "oSuRcQX3WkuENmgacFWg2",
-              x: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "top"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "LU6tuQvxalxatmw4sEpZB",
-              x: 32,
-              y: 64,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "bottom"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 64,
-              height: 64,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
-      },
-      {
-        attrs: {
-          id: "VFK2vy_3JP-bm3iEdwaiL",
-          width: 64,
-          height: 64,
-          name: "asset",
-          x: 420,
-          y: 580,
-          points: [
-            {
-              x: 0,
-              y: 32,
-              direction: "left",
-              id: "XK3IplOnLKj81Xr5t3SXg",
-              groupId: "VFK2vy_3JP-bm3iEdwaiL",
-              visible: false,
-              pairs: [
-                {
-                  id: "DrqaDvKIzl2AqWG7shSk1",
-                  from: {
-                    groupId: "VFK2vy_3JP-bm3iEdwaiL",
-                    pointId: "XK3IplOnLKj81Xr5t3SXg"
-                  },
-                  to: {
-                    groupId: "v2SoQJ6v0Cw2uNPyDiSIX",
-                    pointId: "NS7hymrFdvgmL8y710SyH"
-                  }
-                }
-              ]
-            },
-            {
-              x: 64,
-              y: 32,
-              direction: "right",
-              id: "b9BsySCBLm9OFvENw7Ogl",
-              groupId: "VFK2vy_3JP-bm3iEdwaiL",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 0,
-              direction: "top",
-              id: "NVAm3Q6QniqBotBBOxZOx",
-              groupId: "VFK2vy_3JP-bm3iEdwaiL",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 64,
-              direction: "bottom",
-              id: "81nWTdN383J9uD1FZcytN",
-              groupId: "VFK2vy_3JP-bm3iEdwaiL",
-              visible: false,
-              pairs: []
-            }
-          ],
-          selected: false
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              src: "./img/png/2.png"
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "XK3IplOnLKj81Xr5t3SXg",
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "left"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "b9BsySCBLm9OFvENw7Ogl",
-              x: 64,
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "right"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "NVAm3Q6QniqBotBBOxZOx",
-              x: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "top"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "81nWTdN383J9uD1FZcytN",
-              x: 32,
-              y: 64,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "bottom"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 64,
-              height: 64,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
-      },
-      {
-        attrs: {
-          id: "v2SoQJ6v0Cw2uNPyDiSIX",
-          width: 64,
-          height: 64,
-          name: "asset",
-          x: 580,
-          y: 580,
-          points: [
-            {
-              x: 0,
-              y: 32,
-              direction: "left",
-              id: "8HOz8kdgjfJedaMVlfSQV",
-              groupId: "v2SoQJ6v0Cw2uNPyDiSIX",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 64,
-              y: 32,
-              direction: "right",
-              id: "NS7hymrFdvgmL8y710SyH",
-              groupId: "v2SoQJ6v0Cw2uNPyDiSIX",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 0,
-              direction: "top",
-              id: "7WTXeNEEgbwNy4coQXHrX",
-              groupId: "v2SoQJ6v0Cw2uNPyDiSIX",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 64,
-              direction: "bottom",
-              id: "SfRo1Yu7fsrhc-2Z0NHml",
-              groupId: "v2SoQJ6v0Cw2uNPyDiSIX",
-              visible: false,
-              pairs: []
-            }
-          ],
-          selected: false
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              src: "./img/png/2.png"
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "8HOz8kdgjfJedaMVlfSQV",
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "left"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "NS7hymrFdvgmL8y710SyH",
-              x: 64,
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "right"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "7WTXeNEEgbwNy4coQXHrX",
-              x: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "top"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "SfRo1Yu7fsrhc-2Z0NHml",
-              x: 32,
-              y: 64,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "bottom"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 64,
-              height: 64,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
-      },
-      {
-        attrs: {
-          id: "XdJ42EmAVKLxsVIfMVgTs",
-          width: 64,
-          height: 64,
-          name: "asset",
-          x: 740,
-          y: 580,
-          points: [
-            {
-              x: 0,
-              y: 32,
-              direction: "left",
-              id: "lSFwuskvWaGIcOQU2JXVF",
-              groupId: "XdJ42EmAVKLxsVIfMVgTs",
-              visible: false,
-              pairs: [
-                {
-                  id: "fMNBzoVJxexQMz3y_XItY",
-                  from: {
-                    groupId: "XdJ42EmAVKLxsVIfMVgTs",
-                    pointId: "lSFwuskvWaGIcOQU2JXVF"
-                  },
-                  to: {
-                    groupId: "SppzfM1tK5NCOpGwREy6f",
-                    pointId: "2nkkqtJOhDmk4eDaaG4fR"
-                  }
-                }
-              ]
-            },
-            {
-              x: 64,
-              y: 32,
-              direction: "right",
-              id: "YNMCM1DJaEitV-IdKrWNO",
-              groupId: "XdJ42EmAVKLxsVIfMVgTs",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 0,
-              direction: "top",
-              id: "cqmezU06gaUIDYXLC9vM-",
-              groupId: "XdJ42EmAVKLxsVIfMVgTs",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 64,
-              direction: "bottom",
-              id: "tI0VN8v49U36pBNsuCNuN",
-              groupId: "XdJ42EmAVKLxsVIfMVgTs",
-              visible: false,
-              pairs: []
-            }
-          ],
-          selected: false
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              src: "./img/png/2.png"
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "lSFwuskvWaGIcOQU2JXVF",
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "left"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "YNMCM1DJaEitV-IdKrWNO",
-              x: 64,
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "right"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "cqmezU06gaUIDYXLC9vM-",
-              x: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "top"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "tI0VN8v49U36pBNsuCNuN",
-              x: 32,
-              y: 64,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "bottom"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 64,
-              height: 64,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
-      },
-      {
-        attrs: {
-          id: "SppzfM1tK5NCOpGwREy6f",
-          width: 64,
-          height: 64,
-          name: "asset",
-          x: 900,
-          y: 580,
-          points: [
-            {
-              x: 0,
-              y: 32,
-              direction: "left",
-              id: "8hDFJukyT_hnd-nOL3R6j",
-              groupId: "SppzfM1tK5NCOpGwREy6f",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 64,
-              y: 32,
-              direction: "right",
-              id: "A_TBCpxGCxX-PwwwwBzYa",
-              groupId: "SppzfM1tK5NCOpGwREy6f",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 0,
-              direction: "top",
-              id: "zMmkE-pwwpfyjXtTapppY",
-              groupId: "SppzfM1tK5NCOpGwREy6f",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 64,
-              direction: "bottom",
-              id: "2nkkqtJOhDmk4eDaaG4fR",
-              groupId: "SppzfM1tK5NCOpGwREy6f",
-              visible: false,
-              pairs: []
-            }
-          ],
-          selected: false
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              src: "./img/png/2.png"
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "8hDFJukyT_hnd-nOL3R6j",
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "left"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "A_TBCpxGCxX-PwwwwBzYa",
-              x: 64,
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "right"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "zMmkE-pwwpfyjXtTapppY",
-              x: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "top"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "2nkkqtJOhDmk4eDaaG4fR",
-              x: 32,
-              y: 64,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "bottom"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 64,
-              height: 64,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
-      },
-      {
-        attrs: {
-          id: "DDVbtvzi5Li4A6NhEsr_A",
-          width: 64,
-          height: 64,
-          name: "asset",
-          x: 1060,
-          y: 580,
-          points: [
-            {
-              x: 0,
-              y: 32,
-              direction: "left",
-              id: "YB9eebvAQNCOe03pyQqaI",
-              groupId: "DDVbtvzi5Li4A6NhEsr_A",
-              visible: false,
-              pairs: [
-                {
-                  id: "PvZ82KVfO3yBPBEme-axc",
-                  from: {
-                    groupId: "DDVbtvzi5Li4A6NhEsr_A",
-                    pointId: "YB9eebvAQNCOe03pyQqaI"
-                  },
-                  to: {
-                    groupId: "WXwb_RGExsBryMQ1cW9ne",
-                    pointId: "SGJw6qw2ZlVHQBs44-oe0"
-                  }
-                }
-              ]
-            },
-            {
-              x: 64,
-              y: 32,
-              direction: "right",
-              id: "o38hEaaQD5dTWlkSdmVs-",
-              groupId: "DDVbtvzi5Li4A6NhEsr_A",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 0,
-              direction: "top",
-              id: "HrGg8Ryw29r3DPILmYtRo",
-              groupId: "DDVbtvzi5Li4A6NhEsr_A",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 64,
-              direction: "bottom",
-              id: "0WeSGtHX8BsTE0QaZXdqT",
-              groupId: "DDVbtvzi5Li4A6NhEsr_A",
-              visible: false,
-              pairs: []
-            }
-          ],
-          selected: false
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              src: "./img/png/2.png"
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "YB9eebvAQNCOe03pyQqaI",
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "left"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "o38hEaaQD5dTWlkSdmVs-",
-              x: 64,
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "right"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "HrGg8Ryw29r3DPILmYtRo",
-              x: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "top"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "0WeSGtHX8BsTE0QaZXdqT",
-              x: 32,
-              y: 64,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "bottom"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 64,
-              height: 64,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
-      },
-      {
-        attrs: {
-          id: "WXwb_RGExsBryMQ1cW9ne",
-          width: 64,
-          height: 64,
-          name: "asset",
-          x: 1220,
-          y: 580,
-          points: [
-            {
-              x: 0,
-              y: 32,
-              direction: "left",
-              id: "SGJw6qw2ZlVHQBs44-oe0",
-              groupId: "WXwb_RGExsBryMQ1cW9ne",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 64,
-              y: 32,
-              direction: "right",
-              id: "veXBGE2GYjAewyENCC66Q",
-              groupId: "WXwb_RGExsBryMQ1cW9ne",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 0,
-              direction: "top",
-              id: "Jm3C9i5gk-ygicug2qH2R",
-              groupId: "WXwb_RGExsBryMQ1cW9ne",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 64,
-              direction: "bottom",
-              id: "JohTH7Il0plukNpXCo2CD",
-              groupId: "WXwb_RGExsBryMQ1cW9ne",
-              visible: false,
-              pairs: []
-            }
-          ],
-          selected: false
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              src: "./img/png/2.png"
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "SGJw6qw2ZlVHQBs44-oe0",
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "left"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "veXBGE2GYjAewyENCC66Q",
-              x: 64,
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "right"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "Jm3C9i5gk-ygicug2qH2R",
-              x: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "top"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "JohTH7Il0plukNpXCo2CD",
-              x: 32,
-              y: 64,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "bottom"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 64,
-              height: 64,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
+const _hoisted_1$1 = { class: "asset-bar" };
+const _hoisted_2$1 = { class: "asset-bar__list" };
+const _hoisted_3$1 = ["onDragstart"];
+const _hoisted_4$1 = ["src"];
+const _hoisted_5$1 = { class: "asset-bar__list" };
+const _hoisted_6$1 = ["onDragstart"];
+const _hoisted_7 = ["src"];
+const _hoisted_8 = { class: "asset-bar__list" };
+const _hoisted_9 = ["onDragstart"];
+const _hoisted_10 = ["src"];
+const _hoisted_11 = { class: "asset-bar__list" };
+const _hoisted_12 = ["onDragstart"];
+const _hoisted_13 = ["src"];
+const _hoisted_14 = { class: "asset-bar__list" };
+const _hoisted_15 = ["onDragstart"];
+const _hoisted_16 = ["src"];
+const _sfc_main$1 = /* @__PURE__ */ defineComponent({
+  ...{
+    name: "AssetBar"
+  },
+  __name: "index",
+  props: {
+    render: {}
+  },
+  setup(__props) {
+    const assetsSvg = computed(() => {
+      return assetsModules.svg.map((o) => ({
+        url: o.url,
+        avatar: o.avatar,
+        // 子素材需要额外的封面
+        points: Array.isArray(o.points) ? o.points : []
+      }));
+    });
+    const assetsImage = computed(() => {
+      return assetsModules.image.map((o) => ({
+        url: o.url,
+        avatar: o.avatar,
+        // 子素材需要额外的封面
+        points: Array.isArray(o.points) ? o.points : []
+      }));
+    });
+    const assetsGif = computed(() => {
+      return assetsModules.gif.map((o) => ({
+        url: o.url,
+        avatar: o.avatar,
+        // 子素材需要额外的封面
+        points: Array.isArray(o.points) ? o.points : []
+      }));
+    });
+    const assetsJson = computed(() => {
+      return assetsModules.json.map((o) => ({
+        url: o.url,
+        avatar: o.avatar,
+        // 子素材需要额外的封面
+        points: Array.isArray(o.points) ? o.points : []
+      }));
+    });
+    const assetsMore = computed(() => {
+      return assetsModules.more.map((o) => ({
+        url: o.url,
+        avatar: o.avatar,
+        // 子素材需要额外的封面
+        points: Array.isArray(o.points) ? o.points : []
+      }));
+    });
+    function onDragstart(e, item) {
+      var _a;
+      if (e.dataTransfer) {
+        e.dataTransfer.setData("src", item.url);
+        e.dataTransfer.setData("points", JSON.stringify(item.points));
+        e.dataTransfer.setData("type", ((_a = item.url.match(/([^./]+)\.([^./]+)$/)) == null ? void 0 : _a[2]) ?? "");
       }
-    ]
+    }
+    return (_ctx, _cache) => {
+      return openBlock(), createElementBlock("div", _hoisted_1$1, [
+        createVNode(unref(NCollapse), {
+          "arrow-placement": "right",
+          "default-expanded-names": ["svg", "image", "gif", "json"]
+        }, {
+          default: withCtx(() => [
+            createVNode(unref(NCollapseItem), {
+              name: "svg",
+              title: "矢量图"
+            }, {
+              default: withCtx(() => [
+                createBaseVNode("ul", _hoisted_2$1, [
+                  (openBlock(true), createElementBlock(Fragment, null, renderList(assetsSvg.value, (item, idx) => {
+                    return openBlock(), createElementBlock("li", {
+                      key: idx,
+                      draggable: "true",
+                      onDragstart: ($event) => onDragstart($event, item)
+                    }, [
+                      createBaseVNode("img", {
+                        src: item.avatar || item.url
+                      }, null, 8, _hoisted_4$1)
+                    ], 40, _hoisted_3$1);
+                  }), 128))
+                ])
+              ]),
+              _: 1
+            }),
+            createVNode(unref(NCollapseItem), {
+              name: "image",
+              title: "图片"
+            }, {
+              default: withCtx(() => [
+                createBaseVNode("ul", _hoisted_5$1, [
+                  (openBlock(true), createElementBlock(Fragment, null, renderList(assetsImage.value, (item, idx) => {
+                    return openBlock(), createElementBlock("li", {
+                      key: idx,
+                      draggable: "true",
+                      onDragstart: ($event) => onDragstart($event, item)
+                    }, [
+                      createBaseVNode("img", {
+                        src: item.avatar || item.url
+                      }, null, 8, _hoisted_7)
+                    ], 40, _hoisted_6$1);
+                  }), 128))
+                ])
+              ]),
+              _: 1
+            }),
+            createVNode(unref(NCollapseItem), {
+              name: "gif",
+              title: "GIF"
+            }, {
+              default: withCtx(() => [
+                createBaseVNode("ul", _hoisted_8, [
+                  (openBlock(true), createElementBlock(Fragment, null, renderList(assetsGif.value, (item, idx) => {
+                    return openBlock(), createElementBlock("li", {
+                      key: idx,
+                      draggable: "true",
+                      onDragstart: ($event) => onDragstart($event, item)
+                    }, [
+                      createBaseVNode("img", {
+                        src: item.avatar || item.url
+                      }, null, 8, _hoisted_10)
+                    ], 40, _hoisted_9);
+                  }), 128))
+                ])
+              ]),
+              _: 1
+            }),
+            createVNode(unref(NCollapseItem), {
+              name: "json",
+              title: "图形组合"
+            }, {
+              default: withCtx(() => [
+                createBaseVNode("ul", _hoisted_11, [
+                  (openBlock(true), createElementBlock(Fragment, null, renderList(assetsJson.value, (item, idx) => {
+                    return openBlock(), createElementBlock("li", {
+                      key: idx,
+                      draggable: "true",
+                      onDragstart: ($event) => onDragstart($event, item)
+                    }, [
+                      createBaseVNode("img", {
+                        src: item.avatar || item.url
+                      }, null, 8, _hoisted_13)
+                    ], 40, _hoisted_12);
+                  }), 128))
+                ])
+              ]),
+              _: 1
+            }),
+            createVNode(unref(NCollapseItem), {
+              name: "more",
+              title: "更多"
+            }, {
+              default: withCtx(() => [
+                createBaseVNode("ul", _hoisted_14, [
+                  (openBlock(true), createElementBlock(Fragment, null, renderList(assetsMore.value, (item, idx) => {
+                    return openBlock(), createElementBlock("li", {
+                      key: idx,
+                      draggable: "true",
+                      onDragstart: ($event) => onDragstart($event, item)
+                    }, [
+                      createBaseVNode("img", {
+                        src: item.avatar || item.url
+                      }, null, 8, _hoisted_16)
+                    ], 40, _hoisted_15);
+                  }), 128))
+                ])
+              ]),
+              _: 1
+            })
+          ]),
+          _: 1
+        })
+      ]);
+    };
   }
-];
-const linkTestData = {
-  attrs: attrs$2,
-  className: className$2,
-  children: children$2
-};
-const attrs$1 = {
-  width: 1541,
-  height: 1103
-};
-const className$1 = "Stage";
-const children$1 = [
-  {
-    attrs: {},
-    className: "Layer",
-    children: [
-      {
-        attrs: {
-          id: "QZcEsyjGeyCWBmBouCA1V",
-          width: 200,
-          height: 200,
-          name: "asset",
-          points: [
-            {
-              x: 100,
-              y: 100,
-              id: "SoWa5HNyPqhkM4csPdVfv",
-              groupId: "QZcEsyjGeyCWBmBouCA1V",
-              visible: false,
-              pairs: []
-            }
-          ],
-          selected: false
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              svgXML: '<?xml version="1.0" standalone="no"?><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd"><svg class="icon" width="200px" height="200.00px" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"><path d="M512 0c282.763636 0 512 229.236364 512 512S794.763636 1024 512 1024 0 794.763636 0 512 229.236364 0 512 0z m0 11.636364C235.659636 11.636364 11.636364 235.659636 11.636364 512s224.023273 500.363636 500.363636 500.363636 500.363636-224.023273 500.363636-500.363636S788.340364 11.636364 512 11.636364z" /></svg>'
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "SoWa5HNyPqhkM4csPdVfv",
-              x: 100,
-              y: 100,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 200,
-              height: 200,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
-      },
-      {
-        attrs: {
-          id: "o_hDzYXmXyWh3UBeZh0sM",
-          width: 64,
-          height: 64,
-          name: "asset",
-          x: 218.34621420304975,
-          y: 188.85403688163862,
-          points: [
-            {
-              x: 0,
-              y: 32,
-              direction: "left",
-              id: "vyDoejQ0u271R65JbNVa7",
-              groupId: "o_hDzYXmXyWh3UBeZh0sM",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 64,
-              y: 32,
-              direction: "right",
-              id: "YIc32HywZ_R2iVOWBUpz2",
-              groupId: "o_hDzYXmXyWh3UBeZh0sM",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 0,
-              direction: "top",
-              id: "TNQOWl77_Ov0BmEX6mVgh",
-              groupId: "o_hDzYXmXyWh3UBeZh0sM",
-              visible: false,
-              pairs: [
-                {
-                  id: "dHUpgqtvgMdRMGchQIG3f",
-                  from: {
-                    groupId: "o_hDzYXmXyWh3UBeZh0sM",
-                    pointId: "TNQOWl77_Ov0BmEX6mVgh"
-                  },
-                  to: {
-                    groupId: "QZcEsyjGeyCWBmBouCA1V",
-                    pointId: "SoWa5HNyPqhkM4csPdVfv"
-                  }
-                }
-              ]
-            },
-            {
-              x: 32,
-              y: 64,
-              direction: "bottom",
-              id: "wMcOeoIXJgxiQyc_St_M2",
-              groupId: "o_hDzYXmXyWh3UBeZh0sM",
-              visible: false,
-              pairs: []
-            }
-          ],
-          selected: false,
-          rotation: 27.439727948198534,
-          scaleX: 0.9999999999999991,
-          scaleY: 1.0000000000000042,
-          skewX: 4996003610813188e-31
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              src: "./img/png/2.png"
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "vyDoejQ0u271R65JbNVa7",
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "left"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "YIc32HywZ_R2iVOWBUpz2",
-              x: 64,
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "right"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "TNQOWl77_Ov0BmEX6mVgh",
-              x: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "top"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "wMcOeoIXJgxiQyc_St_M2",
-              x: 32,
-              y: 64,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "bottom"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 64,
-              height: 64,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
-      },
-      {
-        attrs: {
-          id: "nNWXn9YRHUdPVHphvsPU9",
-          width: 64,
-          height: 64,
-          name: "asset",
-          x: 373.5907130565449,
-          y: 192.2276338432074,
-          points: [
-            {
-              x: 0,
-              y: 32,
-              direction: "left",
-              id: "igKJ4J8ua3AfLIoI8B-rg",
-              groupId: "nNWXn9YRHUdPVHphvsPU9",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 64,
-              y: 32,
-              direction: "right",
-              id: "uab89L0kK0aEeItNzf1N6",
-              groupId: "nNWXn9YRHUdPVHphvsPU9",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 0,
-              direction: "top",
-              id: "zFqbuMX7pdJqIgdAUAqi4",
-              groupId: "nNWXn9YRHUdPVHphvsPU9",
-              visible: false,
-              pairs: [
-                {
-                  id: "VJtFyn7Fs6Vx88qF7ubz4",
-                  from: {
-                    groupId: "nNWXn9YRHUdPVHphvsPU9",
-                    pointId: "zFqbuMX7pdJqIgdAUAqi4"
-                  },
-                  to: {
-                    groupId: "QZcEsyjGeyCWBmBouCA1V",
-                    pointId: "SoWa5HNyPqhkM4csPdVfv"
-                  }
-                }
-              ]
-            },
-            {
-              x: 32,
-              y: 64,
-              direction: "bottom",
-              id: "R7Rn2AbQoMVmKoxC_gXXT",
-              groupId: "nNWXn9YRHUdPVHphvsPU9",
-              visible: false,
-              pairs: []
-            }
-          ],
-          selected: false,
-          rotation: 73.49563861824491,
-          scaleX: 0.9999999999999911,
-          scaleY: 1.0000000000000053,
-          skewX: -5551115123125802e-31
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              src: "./img/png/2.png"
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "igKJ4J8ua3AfLIoI8B-rg",
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "left"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "uab89L0kK0aEeItNzf1N6",
-              x: 64,
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "right"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "zFqbuMX7pdJqIgdAUAqi4",
-              x: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "top"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "R7Rn2AbQoMVmKoxC_gXXT",
-              x: 32,
-              y: 64,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "bottom"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 64,
-              height: 64,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
-      },
-      {
-        attrs: {
-          id: "su1eerWX2sjdpyq0fNNey",
-          width: 64,
-          height: 64,
-          name: "asset",
-          x: 515.6202484365797,
-          y: 244.0529633837916,
-          points: [
-            {
-              x: 0,
-              y: 32,
-              direction: "left",
-              id: "dawCnWr-S3Mppf7lFt7c_",
-              groupId: "su1eerWX2sjdpyq0fNNey",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 64,
-              y: 32,
-              direction: "right",
-              id: "-Z8ANo1f8njS8gQBZDtfZ",
-              groupId: "su1eerWX2sjdpyq0fNNey",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 0,
-              direction: "top",
-              id: "PN1C7oMDq1uXJ9n1W3Pre",
-              groupId: "su1eerWX2sjdpyq0fNNey",
-              visible: false,
-              pairs: [
-                {
-                  id: "8ymh_RDrQaDHZ3lhKvCfT",
-                  from: {
-                    groupId: "su1eerWX2sjdpyq0fNNey",
-                    pointId: "PN1C7oMDq1uXJ9n1W3Pre"
-                  },
-                  to: {
-                    groupId: "QZcEsyjGeyCWBmBouCA1V",
-                    pointId: "SoWa5HNyPqhkM4csPdVfv"
-                  }
-                }
-              ]
-            },
-            {
-              x: 32,
-              y: 64,
-              direction: "bottom",
-              id: "hkmScgRqVhJnsUlLQcB2u",
-              groupId: "su1eerWX2sjdpyq0fNNey",
-              visible: false,
-              pairs: []
-            }
-          ],
-          selected: false,
-          rotation: 150.44631636769228,
-          scaleX: 0.9999999999999974,
-          scaleY: 1.0000000000000053,
-          skewX: -11102230246251536e-32
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              src: "./img/png/2.png"
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "dawCnWr-S3Mppf7lFt7c_",
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "left"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "-Z8ANo1f8njS8gQBZDtfZ",
-              x: 64,
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "right"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "PN1C7oMDq1uXJ9n1W3Pre",
-              x: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "top"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "hkmScgRqVhJnsUlLQcB2u",
-              x: 32,
-              y: 64,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "bottom"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 64,
-              height: 64,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
-      },
-      {
-        attrs: {
-          id: "IpSdk9e7e7TfFHgvS_m3o",
-          width: 64,
-          height: 64,
-          name: "asset",
-          x: 548.9105740113671,
-          y: 245.83117377412898,
-          points: [
-            {
-              x: 0,
-              y: 32,
-              direction: "left",
-              id: "tnY5A53DXdQ2wQtt5vq5c",
-              groupId: "IpSdk9e7e7TfFHgvS_m3o",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 64,
-              y: 32,
-              direction: "right",
-              id: "BQ35rkP_zxYgtX4jsTPrD",
-              groupId: "IpSdk9e7e7TfFHgvS_m3o",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 0,
-              direction: "top",
-              id: "rhorSzsE2sUK5LPDry3qN",
-              groupId: "IpSdk9e7e7TfFHgvS_m3o",
-              visible: false,
-              pairs: [
-                {
-                  id: "fOKhCNV7O_JS25Oyai8rz",
-                  from: {
-                    groupId: "IpSdk9e7e7TfFHgvS_m3o",
-                    pointId: "rhorSzsE2sUK5LPDry3qN"
-                  },
-                  to: {
-                    groupId: "QZcEsyjGeyCWBmBouCA1V",
-                    pointId: "SoWa5HNyPqhkM4csPdVfv"
-                  }
-                }
-              ]
-            },
-            {
-              x: 32,
-              y: 64,
-              direction: "bottom",
-              id: "zf-l_Z2OeHC6qBnYCNNhT",
-              groupId: "IpSdk9e7e7TfFHgvS_m3o",
-              visible: false,
-              pairs: []
-            }
-          ],
-          selected: false,
-          rotation: -62.7959889239306,
-          scaleX: 0.9999999999999982,
-          scaleY: 1.0000000000000038,
-          skewX: -44408920985006173e-32
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              src: "./img/png/2.png"
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "tnY5A53DXdQ2wQtt5vq5c",
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "left"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "BQ35rkP_zxYgtX4jsTPrD",
-              x: 64,
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "right"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "rhorSzsE2sUK5LPDry3qN",
-              x: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "top"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "zf-l_Z2OeHC6qBnYCNNhT",
-              x: 32,
-              y: 64,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "bottom"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 64,
-              height: 64,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
-      },
-      {
-        attrs: {
-          id: "BxPVj1tiOxgX8kTsIln7m",
-          width: 64,
-          height: 64,
-          name: "asset",
-          x: 219.6760920168856,
-          y: 308.455525126329,
-          points: [
-            {
-              x: 0,
-              y: 32,
-              direction: "left",
-              id: "pvn8T-3C4X_ZYhxCo2If3",
-              groupId: "BxPVj1tiOxgX8kTsIln7m",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 64,
-              y: 32,
-              direction: "right",
-              id: "EpD3Cl9doqThQ5ZBSTviy",
-              groupId: "BxPVj1tiOxgX8kTsIln7m",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 0,
-              direction: "top",
-              id: "gIek-FJmcr2hFXJ3SAtS8",
-              groupId: "BxPVj1tiOxgX8kTsIln7m",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 64,
-              direction: "bottom",
-              id: "shkAyqzchUpM5XcXwEDV3",
-              groupId: "BxPVj1tiOxgX8kTsIln7m",
-              visible: false,
-              pairs: [
-                {
-                  id: "x0O6X8BhElR_TkOAi0U4b",
-                  from: {
-                    groupId: "BxPVj1tiOxgX8kTsIln7m",
-                    pointId: "shkAyqzchUpM5XcXwEDV3"
-                  },
-                  to: {
-                    groupId: "QZcEsyjGeyCWBmBouCA1V",
-                    pointId: "SoWa5HNyPqhkM4csPdVfv"
-                  }
-                }
-              ]
-            }
-          ],
-          selected: false,
-          rotation: 29.19748604606398,
-          scaleX: 0.9999999999999994,
-          scaleY: 1.000000000000001,
-          skewX: -7771561172376093e-31
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              src: "./img/png/2.png"
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "pvn8T-3C4X_ZYhxCo2If3",
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "left"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "EpD3Cl9doqThQ5ZBSTviy",
-              x: 64,
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "right"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "gIek-FJmcr2hFXJ3SAtS8",
-              x: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "top"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "shkAyqzchUpM5XcXwEDV3",
-              x: 32,
-              y: 64,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "bottom"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 64,
-              height: 64,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
-      },
-      {
-        attrs: {
-          id: "wRmRXfNN_cRw52XlkYcsZ",
-          width: 64,
-          height: 64,
-          name: "asset",
-          x: 370.8556397569966,
-          y: 310.8604223483712,
-          points: [
-            {
-              x: 0,
-              y: 32,
-              direction: "left",
-              id: "gFnfYJd-DDZicQG1AriDL",
-              groupId: "wRmRXfNN_cRw52XlkYcsZ",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 64,
-              y: 32,
-              direction: "right",
-              id: "rz_c3KKGPF0D_8aJ9rYYK",
-              groupId: "wRmRXfNN_cRw52XlkYcsZ",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 0,
-              direction: "top",
-              id: "QJrozNcdbAPIzz1iCHgwg",
-              groupId: "wRmRXfNN_cRw52XlkYcsZ",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 64,
-              direction: "bottom",
-              id: "3myNBNfq2lp6IQ5Yu9QmZ",
-              groupId: "wRmRXfNN_cRw52XlkYcsZ",
-              visible: false,
-              pairs: [
-                {
-                  id: "VLH21kKrqwc9TOhmWwBvy",
-                  from: {
-                    groupId: "wRmRXfNN_cRw52XlkYcsZ",
-                    pointId: "3myNBNfq2lp6IQ5Yu9QmZ"
-                  },
-                  to: {
-                    groupId: "QZcEsyjGeyCWBmBouCA1V",
-                    pointId: "SoWa5HNyPqhkM4csPdVfv"
-                  }
-                }
-              ]
-            }
-          ],
-          selected: false,
-          rotation: 69.6235647861636,
-          scaleX: 0.999999999999999,
-          scaleY: 1.0000000000000042,
-          skewX: -5551115123125766e-31
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              src: "./img/png/2.png"
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "gFnfYJd-DDZicQG1AriDL",
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "left"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "rz_c3KKGPF0D_8aJ9rYYK",
-              x: 64,
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "right"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "QJrozNcdbAPIzz1iCHgwg",
-              x: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "top"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "3myNBNfq2lp6IQ5Yu9QmZ",
-              x: 32,
-              y: 64,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "bottom"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 64,
-              height: 64,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
-      },
-      {
-        attrs: {
-          id: "T8WtN1hwHVy_LgILZPA5V",
-          width: 64,
-          height: 64,
-          name: "asset",
-          x: 515.4327570338514,
-          y: 364.71202644893214,
-          points: [
-            {
-              x: 0,
-              y: 32,
-              direction: "left",
-              id: "2vWjq1xKBSQGNNsS4lGjr",
-              groupId: "T8WtN1hwHVy_LgILZPA5V",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 64,
-              y: 32,
-              direction: "right",
-              id: "3fvBXxQohtZHn062Gv81B",
-              groupId: "T8WtN1hwHVy_LgILZPA5V",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 0,
-              direction: "top",
-              id: "44JYAMHYWC722iiWEF0Gh",
-              groupId: "T8WtN1hwHVy_LgILZPA5V",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 64,
-              direction: "bottom",
-              id: "YTlf7EWHWRUOmPR7oQd3D",
-              groupId: "T8WtN1hwHVy_LgILZPA5V",
-              visible: false,
-              pairs: [
-                {
-                  id: "2YgWg0acDjEkInwCQnWuH",
-                  from: {
-                    groupId: "T8WtN1hwHVy_LgILZPA5V",
-                    pointId: "YTlf7EWHWRUOmPR7oQd3D"
-                  },
-                  to: {
-                    groupId: "QZcEsyjGeyCWBmBouCA1V",
-                    pointId: "SoWa5HNyPqhkM4csPdVfv"
-                  }
-                }
-              ]
-            }
-          ],
-          selected: false,
-          rotation: 151.31385242625956,
-          scaleX: 1.0000000000000002,
-          scaleY: 1.0000000000000047,
-          skewX: -55511151231257556e-33
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              src: "./img/png/2.png"
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "2vWjq1xKBSQGNNsS4lGjr",
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "left"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "3fvBXxQohtZHn062Gv81B",
-              x: 64,
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "right"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "44JYAMHYWC722iiWEF0Gh",
-              x: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "top"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "YTlf7EWHWRUOmPR7oQd3D",
-              x: 32,
-              y: 64,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "bottom"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 64,
-              height: 64,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
-      },
-      {
-        attrs: {
-          id: "dW3np7JR1KJRRScd6GSYp",
-          width: 64,
-          height: 64,
-          name: "asset",
-          x: 549.5451756041195,
-          y: 367.67124390451954,
-          points: [
-            {
-              x: 0,
-              y: 32,
-              direction: "left",
-              id: "3KezCsOGTwzpfuPtQ0O_u",
-              groupId: "dW3np7JR1KJRRScd6GSYp",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 64,
-              y: 32,
-              direction: "right",
-              id: "5NtQaXnSbWzKc19-rtRSn",
-              groupId: "dW3np7JR1KJRRScd6GSYp",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 0,
-              direction: "top",
-              id: "LWoMN5m16LTeBmiosQ1aU",
-              groupId: "dW3np7JR1KJRRScd6GSYp",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 64,
-              direction: "bottom",
-              id: "VMuc4BFH-Jt02sTyOiZ6v",
-              groupId: "dW3np7JR1KJRRScd6GSYp",
-              visible: false,
-              pairs: [
-                {
-                  id: "0GLbDPL4OCWxkorg8S_Hn",
-                  from: {
-                    groupId: "dW3np7JR1KJRRScd6GSYp",
-                    pointId: "VMuc4BFH-Jt02sTyOiZ6v"
-                  },
-                  to: {
-                    groupId: "QZcEsyjGeyCWBmBouCA1V",
-                    pointId: "SoWa5HNyPqhkM4csPdVfv"
-                  }
-                }
-              ]
-            }
-          ],
-          selected: false,
-          rotation: -65.26049113025228,
-          scaleX: 0.9999999999999992,
-          scaleY: 1.000000000000003,
-          skewX: 27755575615628854e-32
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              src: "./img/png/2.png"
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "3KezCsOGTwzpfuPtQ0O_u",
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "left"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "5NtQaXnSbWzKc19-rtRSn",
-              x: 64,
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "right"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "LWoMN5m16LTeBmiosQ1aU",
-              x: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "top"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "VMuc4BFH-Jt02sTyOiZ6v",
-              x: 32,
-              y: 64,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "bottom"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 64,
-              height: 64,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
-      },
-      {
-        attrs: {
-          id: "Efowg_d3XA_AxVFU_q7_s",
-          width: 64,
-          height: 64,
-          name: "asset",
-          x: 219.67609201688543,
-          y: 428.45552512632975,
-          points: [
-            {
-              x: 0,
-              y: 32,
-              direction: "left",
-              id: "fRi97UL1ls-d9vOInoqYJ",
-              groupId: "Efowg_d3XA_AxVFU_q7_s",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 64,
-              y: 32,
-              direction: "right",
-              id: "x_Z84tPF9gNR-qQzoeLDo",
-              groupId: "Efowg_d3XA_AxVFU_q7_s",
-              visible: false,
-              pairs: [
-                {
-                  id: "g0xJrJY41_hoHAQvLz7wb",
-                  from: {
-                    groupId: "Efowg_d3XA_AxVFU_q7_s",
-                    pointId: "x_Z84tPF9gNR-qQzoeLDo"
-                  },
-                  to: {
-                    groupId: "QZcEsyjGeyCWBmBouCA1V",
-                    pointId: "SoWa5HNyPqhkM4csPdVfv"
-                  }
-                }
-              ]
-            },
-            {
-              x: 32,
-              y: 0,
-              direction: "top",
-              id: "X5t7grZBxg19_sL5Y72R4",
-              groupId: "Efowg_d3XA_AxVFU_q7_s",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 64,
-              direction: "bottom",
-              id: "SoZyJsqS0UPtSAiYi5IRL",
-              groupId: "Efowg_d3XA_AxVFU_q7_s",
-              visible: false,
-              pairs: []
-            }
-          ],
-          selected: false,
-          rotation: 29.19748604606419,
-          scaleX: 1.0000000000000002,
-          scaleY: 1.0000000000000013,
-          skewX: 2775557561562887e-31
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              src: "./img/png/2.png"
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "fRi97UL1ls-d9vOInoqYJ",
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "left"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "x_Z84tPF9gNR-qQzoeLDo",
-              x: 64,
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "right"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "X5t7grZBxg19_sL5Y72R4",
-              x: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "top"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "SoZyJsqS0UPtSAiYi5IRL",
-              x: 32,
-              y: 64,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "bottom"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 64,
-              height: 64,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
-      },
-      {
-        attrs: {
-          id: "r7WjZQ1zBvE7NEqp6SBvR",
-          width: 64,
-          height: 64,
-          name: "asset",
-          x: 371.3492088160904,
-          y: 431.0902442174082,
-          points: [
-            {
-              x: 0,
-              y: 32,
-              direction: "left",
-              id: "IuqJXSrkuztqI1vODp_9O",
-              groupId: "r7WjZQ1zBvE7NEqp6SBvR",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 64,
-              y: 32,
-              direction: "right",
-              id: "kZKDhzUbkqFX0y3SbldsJ",
-              groupId: "r7WjZQ1zBvE7NEqp6SBvR",
-              visible: false,
-              pairs: [
-                {
-                  id: "7gGnBbwKIhBRQZS1s06B7",
-                  from: {
-                    groupId: "r7WjZQ1zBvE7NEqp6SBvR",
-                    pointId: "kZKDhzUbkqFX0y3SbldsJ"
-                  },
-                  to: {
-                    groupId: "QZcEsyjGeyCWBmBouCA1V",
-                    pointId: "SoWa5HNyPqhkM4csPdVfv"
-                  }
-                }
-              ]
-            },
-            {
-              x: 32,
-              y: 0,
-              direction: "top",
-              id: "1qvVUWMZXA7vOY5SVVpO1",
-              groupId: "r7WjZQ1zBvE7NEqp6SBvR",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 64,
-              direction: "bottom",
-              id: "_PBiro5di3goHUY_V5JIB",
-              groupId: "r7WjZQ1zBvE7NEqp6SBvR",
-              visible: false,
-              pairs: []
-            }
-          ],
-          selected: false,
-          rotation: 70.31288380187387,
-          scaleX: 0.9999999999999999,
-          scaleY: 1.0000000000000018,
-          skewX: 5551115123125774e-31
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              src: "./img/png/2.png"
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "IuqJXSrkuztqI1vODp_9O",
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "left"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "kZKDhzUbkqFX0y3SbldsJ",
-              x: 64,
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "right"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "1qvVUWMZXA7vOY5SVVpO1",
-              x: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "top"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "_PBiro5di3goHUY_V5JIB",
-              x: 32,
-              y: 64,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "bottom"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 64,
-              height: 64,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
-      },
-      {
-        attrs: {
-          id: "1i4CK-XLUIe0TCCXNFXE-",
-          width: 64,
-          height: 64,
-          name: "asset",
-          x: 515.3985011467275,
-          y: 484.82848776035394,
-          points: [
-            {
-              x: 0,
-              y: 32,
-              direction: "left",
-              id: "qS-qarU1I3AfjdSgfgZ8a",
-              groupId: "1i4CK-XLUIe0TCCXNFXE-",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 64,
-              y: 32,
-              direction: "right",
-              id: "-LFUo78zUpzo_cNeDutV1",
-              groupId: "1i4CK-XLUIe0TCCXNFXE-",
-              visible: false,
-              pairs: [
-                {
-                  id: "c-bJEQMMh7Jx1BS3n7BfN",
-                  from: {
-                    groupId: "1i4CK-XLUIe0TCCXNFXE-",
-                    pointId: "-LFUo78zUpzo_cNeDutV1"
-                  },
-                  to: {
-                    groupId: "QZcEsyjGeyCWBmBouCA1V",
-                    pointId: "SoWa5HNyPqhkM4csPdVfv"
-                  }
-                }
-              ]
-            },
-            {
-              x: 32,
-              y: 0,
-              direction: "top",
-              id: "wTfFwQ-LV9iCBFC8c1uvd",
-              groupId: "1i4CK-XLUIe0TCCXNFXE-",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 64,
-              direction: "bottom",
-              id: "tVTDdnPy3bbaY5t4WGasV",
-              groupId: "1i4CK-XLUIe0TCCXNFXE-",
-              visible: false,
-              pairs: []
-            }
-          ],
-          selected: false,
-          rotation: 151.46754679300278,
-          scaleX: 0.9999999999999988,
-          scaleY: 1.0000000000000062,
-          skewX: 6106226635438331e-31
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              src: "./img/png/2.png"
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "qS-qarU1I3AfjdSgfgZ8a",
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "left"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "-LFUo78zUpzo_cNeDutV1",
-              x: 64,
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "right"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "wTfFwQ-LV9iCBFC8c1uvd",
-              x: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "top"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "tVTDdnPy3bbaY5t4WGasV",
-              x: 32,
-              y: 64,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "bottom"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 64,
-              height: 64,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
-      },
-      {
-        attrs: {
-          id: "Wdd8zycJHHqZYOvrQBRGS",
-          width: 64,
-          height: 64,
-          name: "asset",
-          x: 549.6737756801328,
-          y: 488.01532812103113,
-          points: [
-            {
-              x: 0,
-              y: 32,
-              direction: "left",
-              id: "nQgjxpJPbuaGbSqZ-DDqn",
-              groupId: "Wdd8zycJHHqZYOvrQBRGS",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 64,
-              y: 32,
-              direction: "right",
-              id: "4XVFIy2wIBvVPK7246Vhj",
-              groupId: "Wdd8zycJHHqZYOvrQBRGS",
-              visible: false,
-              pairs: [
-                {
-                  id: "MHFwH2NaGz9-om0G2KiUG",
-                  from: {
-                    groupId: "Wdd8zycJHHqZYOvrQBRGS",
-                    pointId: "4XVFIy2wIBvVPK7246Vhj"
-                  },
-                  to: {
-                    groupId: "QZcEsyjGeyCWBmBouCA1V",
-                    pointId: "SoWa5HNyPqhkM4csPdVfv"
-                  }
-                }
-              ]
-            },
-            {
-              x: 32,
-              y: 0,
-              direction: "top",
-              id: "Adh2m8ZUqHuP3Mc6sQBxP",
-              groupId: "Wdd8zycJHHqZYOvrQBRGS",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 64,
-              direction: "bottom",
-              id: "Yg8qySOvjoazlLdlBT_MV",
-              groupId: "Wdd8zycJHHqZYOvrQBRGS",
-              visible: false,
-              pairs: []
-            }
-          ],
-          selected: false,
-          rotation: -65.72555886556083,
-          scaleX: 0.9999999999999999,
-          scaleY: 1.0000000000000022,
-          skewX: -6661338147750926e-31
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              src: "./img/png/2.png"
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "nQgjxpJPbuaGbSqZ-DDqn",
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "left"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "4XVFIy2wIBvVPK7246Vhj",
-              x: 64,
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "right"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "Adh2m8ZUqHuP3Mc6sQBxP",
-              x: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "top"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "Yg8qySOvjoazlLdlBT_MV",
-              x: 32,
-              y: 64,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "bottom"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 64,
-              height: 64,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
-      },
-      {
-        attrs: {
-          id: "HQi8oWxuxLVC_S8sSYMo8",
-          width: 64,
-          height: 64,
-          name: "asset",
-          x: 220.00038737793565,
-          y: 548.3650450106752,
-          points: [
-            {
-              x: 0,
-              y: 32,
-              direction: "left",
-              id: "JI-7po62VyDPiEnlrznrG",
-              groupId: "HQi8oWxuxLVC_S8sSYMo8",
-              visible: false,
-              pairs: [
-                {
-                  id: "fRXahsw6OcBT9_0zHsVLB",
-                  from: {
-                    groupId: "HQi8oWxuxLVC_S8sSYMo8",
-                    pointId: "JI-7po62VyDPiEnlrznrG"
-                  },
-                  to: {
-                    groupId: "QZcEsyjGeyCWBmBouCA1V",
-                    pointId: "SoWa5HNyPqhkM4csPdVfv"
-                  }
-                }
-              ]
-            },
-            {
-              x: 64,
-              y: 32,
-              direction: "right",
-              id: "mdWp8BzFNjRdUun3Qrexi",
-              groupId: "HQi8oWxuxLVC_S8sSYMo8",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 0,
-              direction: "top",
-              id: "j22IKFZ3V-QOjvClI4aOp",
-              groupId: "HQi8oWxuxLVC_S8sSYMo8",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 64,
-              direction: "bottom",
-              id: "HYETUXBJlSHatP0tVlhso",
-              groupId: "HQi8oWxuxLVC_S8sSYMo8",
-              visible: false,
-              pairs: []
-            }
-          ],
-          selected: false,
-          rotation: 29.623748751173412,
-          scaleX: 0.9999999999999994,
-          scaleY: 1.0000000000000004,
-          skewX: 22204460492503136e-32
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              src: "./img/png/2.png"
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "JI-7po62VyDPiEnlrznrG",
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "left"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "mdWp8BzFNjRdUun3Qrexi",
-              x: 64,
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "right"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "j22IKFZ3V-QOjvClI4aOp",
-              x: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "top"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "HYETUXBJlSHatP0tVlhso",
-              x: 32,
-              y: 64,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "bottom"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 64,
-              height: 64,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
-      },
-      {
-        attrs: {
-          id: "wbMrJMvkH8KW3fdCKAsnb",
-          width: 64,
-          height: 64,
-          name: "asset",
-          x: 368.95085761216257,
-          y: 550.0396803371065,
-          points: [
-            {
-              x: 0,
-              y: 32,
-              direction: "left",
-              id: "ZOXT0DD6R2usbBcYu-Jrz",
-              groupId: "wbMrJMvkH8KW3fdCKAsnb",
-              visible: false,
-              pairs: [
-                {
-                  id: "lgs77A7vOphUCVTdpju1l",
-                  from: {
-                    groupId: "wbMrJMvkH8KW3fdCKAsnb",
-                    pointId: "ZOXT0DD6R2usbBcYu-Jrz"
-                  },
-                  to: {
-                    groupId: "QZcEsyjGeyCWBmBouCA1V",
-                    pointId: "SoWa5HNyPqhkM4csPdVfv"
-                  }
-                }
-              ]
-            },
-            {
-              x: 64,
-              y: 32,
-              direction: "right",
-              id: "bCpDWPt8aOzWBrxtZwgaQ",
-              groupId: "wbMrJMvkH8KW3fdCKAsnb",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 0,
-              direction: "top",
-              id: "MBVmWQS_oPLyHOuNmd-VF",
-              groupId: "wbMrJMvkH8KW3fdCKAsnb",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 64,
-              direction: "bottom",
-              id: "p1MQHcYO3_IBljC3LLtu3",
-              groupId: "wbMrJMvkH8KW3fdCKAsnb",
-              visible: false,
-              pairs: []
-            }
-          ],
-          selected: false,
-          rotation: 66.99740340664209,
-          scaleX: 0.9999999999999998,
-          scaleY: 1.000000000000003,
-          skewX: 44408920985006133e-32
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              src: "./img/png/2.png"
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "ZOXT0DD6R2usbBcYu-Jrz",
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "left"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "bCpDWPt8aOzWBrxtZwgaQ",
-              x: 64,
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "right"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "MBVmWQS_oPLyHOuNmd-VF",
-              x: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "top"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "p1MQHcYO3_IBljC3LLtu3",
-              x: 32,
-              y: 64,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "bottom"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 64,
-              height: 64,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
-      },
-      {
-        attrs: {
-          id: "Ks5FfGiaxgKEV5EBfHFBc",
-          width: 64,
-          height: 64,
-          name: "asset",
-          x: 515.4647491607979,
-          y: 604.6022053779825,
-          points: [
-            {
-              x: 0,
-              y: 32,
-              direction: "left",
-              id: "6F8AjGc9U6ky_XC2U01fk",
-              groupId: "Ks5FfGiaxgKEV5EBfHFBc",
-              visible: false,
-              pairs: [
-                {
-                  id: "AKnyGPSBwjmY1rCZCWMpB",
-                  from: {
-                    groupId: "Ks5FfGiaxgKEV5EBfHFBc",
-                    pointId: "6F8AjGc9U6ky_XC2U01fk"
-                  },
-                  to: {
-                    groupId: "QZcEsyjGeyCWBmBouCA1V",
-                    pointId: "SoWa5HNyPqhkM4csPdVfv"
-                  }
-                }
-              ]
-            },
-            {
-              x: 64,
-              y: 32,
-              direction: "right",
-              id: "JJoPgidfg1AzmNsUebv9O",
-              groupId: "Ks5FfGiaxgKEV5EBfHFBc",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 0,
-              direction: "top",
-              id: "hbq1IB0mnVc2IMTzyseYX",
-              groupId: "Ks5FfGiaxgKEV5EBfHFBc",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 64,
-              direction: "bottom",
-              id: "XLSkWYI58ay75JCVwg3zw",
-              groupId: "Ks5FfGiaxgKEV5EBfHFBc",
-              visible: false,
-              pairs: []
-            }
-          ],
-          selected: false,
-          rotation: 151.169031687609,
-          scaleX: 0.9999999999999991,
-          scaleY: 1.0000000000000062,
-          skewX: -3885780586188027e-31
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              src: "./img/png/2.png"
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "6F8AjGc9U6ky_XC2U01fk",
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "left"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "JJoPgidfg1AzmNsUebv9O",
-              x: 64,
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "right"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "hbq1IB0mnVc2IMTzyseYX",
-              x: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "top"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "XLSkWYI58ay75JCVwg3zw",
-              x: 32,
-              y: 64,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "bottom"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 64,
-              height: 64,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
-      },
-      {
-        attrs: {
-          id: "KzXCAWwYhvMN17iDdFHpX",
-          width: 64,
-          height: 64,
-          name: "asset",
-          x: 550.3755916904167,
-          y: 609.7597475454221,
-          points: [
-            {
-              x: 0,
-              y: 32,
-              direction: "left",
-              id: "yMdKQUcOSjqjUGfu9sNS7",
-              groupId: "KzXCAWwYhvMN17iDdFHpX",
-              visible: false,
-              pairs: [
-                {
-                  id: "Kz15U9xeVS570jctTxSxu",
-                  from: {
-                    groupId: "KzXCAWwYhvMN17iDdFHpX",
-                    pointId: "yMdKQUcOSjqjUGfu9sNS7"
-                  },
-                  to: {
-                    groupId: "QZcEsyjGeyCWBmBouCA1V",
-                    pointId: "SoWa5HNyPqhkM4csPdVfv"
-                  }
-                }
-              ]
-            },
-            {
-              x: 64,
-              y: 32,
-              direction: "right",
-              id: "fyO-k3a3LtjKmpcerqg1G",
-              groupId: "KzXCAWwYhvMN17iDdFHpX",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 0,
-              direction: "top",
-              id: "aDDnEFkk93vLu94Mdbi2Z",
-              groupId: "KzXCAWwYhvMN17iDdFHpX",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 32,
-              y: 64,
-              direction: "bottom",
-              id: "K1WJhSnjCUfuGPO9TcQmI",
-              groupId: "KzXCAWwYhvMN17iDdFHpX",
-              visible: false,
-              pairs: []
-            }
-          ],
-          selected: false,
-          rotation: -68.1063268582713,
-          scaleX: 1.0000000000000007,
-          scaleY: 1.0000000000000016,
-          skewX: 27755575615628854e-32
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              src: "./img/png/2.png"
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "yMdKQUcOSjqjUGfu9sNS7",
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "left"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "fyO-k3a3LtjKmpcerqg1G",
-              x: 64,
-              y: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "right"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "aDDnEFkk93vLu94Mdbi2Z",
-              x: 32,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "top"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "K1WJhSnjCUfuGPO9TcQmI",
-              x: 32,
-              y: 64,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "bottom"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 64,
-              height: 64,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
-      }
-    ]
-  }
-];
-const rotateTestData = {
-  attrs: attrs$1,
-  className: className$1,
-  children: children$1
-};
-const attrs = {
-  width: 542.0394627062592,
-  height: 630
-};
-const className = "Stage";
-const children = [
-  {
-    attrs: {},
-    className: "Layer",
-    children: [
-      {
-        attrs: {
-          id: "QdQ1rDuuZplnUxK4eSezV",
-          width: 200,
-          height: 200,
-          name: "asset",
-          x: 199.99999999999855,
-          y: 58.578643762690355,
-          points: [
-            {
-              x: 100,
-              y: 1,
-              direction: "top",
-              id: "wag__sUg5Rr6wtI_YnA6d",
-              groupId: "QdQ1rDuuZplnUxK4eSezV",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 100,
-              y: 199,
-              direction: "bottom",
-              id: "FU0C4FGCPkNMQU1FoPapk",
-              groupId: "QdQ1rDuuZplnUxK4eSezV",
-              visible: false,
-              pairs: []
-            }
-          ],
-          selected: false,
-          rotation: 44.999999999999204,
-          scaleX: 0.9999999999999963,
-          scaleY: 1.0000000000000027,
-          skewX: 27755575615628943e-32
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              svgXML: '<?xml version="1.0" standalone="no"?><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd"><svg class="icon" width="200px" height="200.00px" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"><path d="M381.902 772.197V251.803h125.901V0h8.394v251.803h125.901v520.394H516.197V1024h-8.394V772.197H381.902z m251.803-512h-243.41v503.606h243.41V260.197z" /></svg>'
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "wag__sUg5Rr6wtI_YnA6d",
-              x: 100,
-              y: 1,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "top"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "FU0C4FGCPkNMQU1FoPapk",
-              x: 100,
-              y: 199,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "bottom"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 200,
-              height: 200,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
-      },
-      {
-        attrs: {
-          id: "KecmScqSmHBwWZd73i6TM",
-          width: 200,
-          height: 200,
-          name: "asset",
-          x: 342.0394627062592,
-          y: 268.68606643209193,
-          points: [
-            {
-              x: 100,
-              y: 1,
-              direction: "top",
-              id: "a9ZDde2HgcNcsdpIROvOR",
-              groupId: "KecmScqSmHBwWZd73i6TM",
-              visible: false,
-              pairs: []
-            },
-            {
-              x: 100,
-              y: 199,
-              direction: "bottom",
-              id: "6dL29tj2jGFxMbWd8rb1e",
-              groupId: "KecmScqSmHBwWZd73i6TM",
-              visible: false,
-              pairs: []
-            }
-          ],
-          selected: true,
-          listening: false,
-          rotation: -74.05728503451608,
-          scaleX: 0.9999999999999892,
-          scaleY: 1.0000000000000115,
-          skewX: 22759572004815693e-31,
-          nodeMousedownPos: {
-            x: 342.0394627062592,
-            y: 268.68606643209193
-          },
-          lastOpacity: 1,
-          lastZIndex: 1
-        },
-        className: "Group",
-        children: [
-          {
-            attrs: {
-              svgXML: '<?xml version="1.0" standalone="no"?><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd"><svg class="icon" width="200px" height="200.00px" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"><path d="M381.902 772.197V251.803h125.901V0h8.394v251.803h125.901v520.394H516.197V1024h-8.394V772.197H381.902z m251.803-512h-243.41v503.606h243.41V260.197z" /></svg>'
-            },
-            className: "Image"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "a9ZDde2HgcNcsdpIROvOR",
-              x: 100,
-              y: 1,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "top"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              name: "link-anchor",
-              id: "6dL29tj2jGFxMbWd8rb1e",
-              x: 100,
-              y: 199,
-              radius: 1,
-              stroke: "rgba(0,0,255,1)",
-              visible: false,
-              direction: "bottom"
-            },
-            className: "Circle"
-          },
-          {
-            attrs: {
-              id: "hoverRect",
-              width: 200,
-              height: 200,
-              fill: "rgba(0,255,0,0.3)",
-              visible: false
-            },
-            className: "Rect"
-          }
-        ]
-      }
-    ]
-  }
-];
-const alignTestData = {
-  attrs,
-  className,
-  children
-};
-const _withScopeId = (n) => (pushScopeId("data-v-052b21eb"), n = n(), popScopeId(), n);
+});
+const AssetBar = /* @__PURE__ */ _export_sfc(_sfc_main$1, [["__scopeId", "data-v-0d76df1f"]]);
+const _withScopeId = (n) => (pushScopeId("data-v-03704d3a"), n = n(), popScopeId(), n);
 const _hoisted_1 = { class: "page" };
-const _hoisted_2 = ["onDragstart"];
-const _hoisted_3 = ["src"];
+const _hoisted_2 = /* @__PURE__ */ _withScopeId(() => /* @__PURE__ */ createBaseVNode("br", null, null, -1));
+const _hoisted_3 = /* @__PURE__ */ _withScopeId(() => /* @__PURE__ */ createBaseVNode("br", null, null, -1));
 const _hoisted_4 = /* @__PURE__ */ _withScopeId(() => /* @__PURE__ */ createBaseVNode("br", null, null, -1));
 const _hoisted_5 = /* @__PURE__ */ _withScopeId(() => /* @__PURE__ */ createBaseVNode("br", null, null, -1));
-const _hoisted_6 = /* @__PURE__ */ _withScopeId(() => /* @__PURE__ */ createBaseVNode("br", null, null, -1));
-const _hoisted_7 = /* @__PURE__ */ _withScopeId(() => /* @__PURE__ */ createBaseVNode("br", null, null, -1));
+const _hoisted_6 = /* @__PURE__ */ _withScopeId(() => /* @__PURE__ */ createBaseVNode("footer", null, null, -1));
 const _sfc_main = /* @__PURE__ */ defineComponent({
   __name: "App",
   setup(__props) {
     const boardElement = ref();
     const stageElement = ref();
-    let render14 = null;
+    let render16 = null;
     const ready = ref(false);
     const resizer = /* @__PURE__ */ (() => {
       let resizeObserver = null;
@@ -47708,8 +42803,8 @@ const _sfc_main = /* @__PURE__ */ defineComponent({
       if (boardElement.value && stageElement.value) {
         resizer.init(boardElement.value, {
           resize: (x, y, width, height) => {
-            if (render14 === null) {
-              render14 = new Render(stageElement.value, {
+            if (render16 === null) {
+              render16 = new Render(stageElement.value, {
                 width,
                 height,
                 //
@@ -47723,7 +42818,7 @@ const _sfc_main = /* @__PURE__ */ defineComponent({
               });
               ready.value = true;
             }
-            render14.resize(width, height);
+            render16.resize(width, height);
           }
         });
       }
@@ -47731,137 +42826,27 @@ const _sfc_main = /* @__PURE__ */ defineComponent({
     onMounted(() => {
       init2();
     });
-    const assetsModules = [
-      { "url": "./json/1.json", avatar: "./json/1.png" },
-      { "url": "./json/2.json", avatar: "./json/2.png" },
-      { "url": "./json/3.json", avatar: "./json/3.png" },
-      { "url": "./json/4.json", avatar: "./json/4.png" },
-      { "url": "./json/5.json", avatar: "./json/5.png" },
-      { "url": "./json/6.json", avatar: "./json/6.png" },
-      //
-      { "url": "./img/svg/ARRESTER_1.svg", points: [{ x: 101, y: 1, direction: "top" }, { x: 101, y: 199, direction: "bottom" }] },
-      { "url": "./img/svg/ARRESTER_2.svg", points: [{ x: 101, y: 1, direction: "top" }, { x: 101, y: 199, direction: "bottom" }] },
-      { "url": "./img/svg/ARRESTER_2_1.svg", points: [{ x: 101, y: 1, direction: "top" }, { x: 101, y: 199, direction: "bottom" }] },
-      { "url": "./img/svg/BREAKER_CLOSE.svg", points: [{ x: 100, y: 1, direction: "top" }, { x: 100, y: 199, direction: "bottom" }] },
-      { "url": "./img/svg/BREAKER_OPEN.svg", points: [{ x: 100, y: 1, direction: "top" }, { x: 100, y: 199, direction: "bottom" }] },
-      { "url": "./img/svg/CAPACITOR.svg", points: [{ x: 99, y: 1, direction: "top" }, { x: 99, y: 199, direction: "bottom" }] },
-      { "url": "./img/svg/CT_1.svg", points: [{ x: 100, y: 1, direction: "top" }, { x: 100, y: 199, direction: "bottom" }] },
-      { "url": "./img/svg/CT_2.svg", points: [{ x: 100, y: 1, direction: "top" }, { x: 100, y: 199, direction: "bottom" }] },
-      { "url": "./img/svg/HL.svg", points: [{ x: 100, y: 1, direction: "top" }, { x: 100, y: 199, direction: "bottom" }] },
-      { "url": "./img/svg/POTENTIAL_TRANSFORMER_2.svg", points: [{ x: 100, y: 1, direction: "top" }, { x: 100, y: 199, direction: "bottom" }] },
-      { "url": "./img/svg/POT_TRANS_3_WINDINGS.svg", points: [{ x: 100, y: 1, direction: "top" }, { x: 70, y: 199, direction: "bottom" }, { x: 130, y: 199, direction: "bottom" }] },
-      { "url": "./img/svg/PT.svg", points: [{ x: 34, y: 100, direction: "left" }, { x: 98, y: 100, direction: "right" }] },
-      { "url": "./img/svg/PT_1.svg", points: [{ x: 101, y: 1, direction: "top" }, { x: 101, y: 199, direction: "bottom" }] },
-      { "url": "./img/svg/REACTOR.svg", points: [{ x: 98, y: 1, direction: "left" }, { x: 98, y: 199, direction: "right" }] },
-      { "url": "./img/svg/REGYCAPACITOR.svg", points: [{ x: 1, y: 101, direction: "left" }, { x: 199, y: 101, direction: "right" }] },
-      { "url": "./img/svg/SERIES_CAPACITOR.svg", points: [{ x: 1, y: 101, direction: "left" }, { x: 199, y: 101, direction: "right" }] },
-      { "url": "./img/svg/SHUNT_REACTOR.svg", points: [{ x: 98, y: 1, direction: "top" }, { x: 98, y: 199, direction: "bottom" }] },
-      { "url": "./img/svg/SHUNT_REACTOR_1.svg", points: [{ x: 98, y: 1, direction: "top" }, { x: 98, y: 199, direction: "bottom" }] },
-      { "url": "./img/svg/SIX_CIRCLE.svg", points: [{ x: 99, y: 1, direction: "top" }, { x: 99, y: 199, direction: "bottom" }] },
-      { "url": "./img/svg/ST.svg", points: [{ x: 100, y: 1, direction: "top" }, { x: 100, y: 199, direction: "bottom" }] },
-      { "url": "./img/svg/THERR_CIRCLE.svg", points: [{ x: 99, y: 43, direction: "top" }, { x: 99, y: 157, direction: "bottom" }] },
-      // { "url": "./img/svg/a-CT2xianghu.svg" },
-      // { "url": "./img/svg/a-CTsanxiang.svg" },
-      { "url": "./img/svg/combin.svg", points: [{ x: 100, y: 1, direction: "top" }, { x: 100, y: 199, direction: "bottom" }] },
-      // { "url": "./img/svg/combin2.svg" },
-      { "url": "./img/svg/combin3.svg", points: [{ x: 100, y: 1, direction: "top" }, { x: 100, y: 199, direction: "bottom" }] },
-      { "url": "./img/svg/combin4.svg", points: [{ x: 101, y: 1, direction: "top" }, { x: 101, y: 199, direction: "bottom" }] },
-      { "url": "./img/svg/combin5.svg", points: [{ x: 99, y: 1, direction: "top" }, { x: 99, y: 199, direction: "bottom" }] },
-      { "url": "./img/svg/xianshideng.svg", points: [{ x: 100, y: 1, direction: "top" }, { x: 100, y: 199, direction: "bottom" }] },
-      { "url": "./img/svg/MEMRISTOR_1.svg", points: [{ x: 1, y: 101, direction: "left" }, { x: 199, y: 101, direction: "right" }] },
-      // { "url": "./img/svg/ARCSUPPCOIL.svg" },
-      // { "url": "./img/svg/INDUCTOR.svg" },
-      // { "url": "./img/svg/IRONCOREGAPINDUCTOR.svg" },
-      // { "url": "./img/svg/IRONCOREINDUCTOR.svg" },
-      // { "url": "./img/svg/IRONCOREVARINDUCTOR.svg" },
-      { "url": "./img/svg/guangfufadian.svg", points: [{ x: 100, y: 62, direction: "top" }, { x: 100, y: 138, direction: "bottom" }, { x: 27, y: 100, direction: "left" }, { x: 173, y: 100, direction: "right" }] },
-      { "url": "./img/svg/REGUINDUCTOR.svg", points: [{ x: 100, y: 66, direction: "top" }, { x: 100, y: 134, direction: "bottom" }, { x: 1, y: 100, direction: "left" }, { x: 199, y: 100, direction: "right" }] },
-      //
-      // { "url": "./img/svg/CT.svg" },
-      // { "url": "./img/svg/GROUND.svg" },
-      // { "url": "./img/svg/LOAD.svg" },
-      // { "url": "./img/svg/PROTECT_GROUND.svg" },
-      // { "url": "./img/svg/CT_3.svg" },
-      // { "url": "./img/svg/DDCT.svg" },
-      // { "url": "./img/svg/FLANGED_CONNECTION.svg" },
-      // { "url": "./img/svg/jiedidaozha.svg" },
-      // { "url": "./img/svg/sukeduanluqi.svg" },
-      //
-      { "url": "./img/svg/AC_2.svg", points: [{ x: 100, y: 1, direction: "top" }, { x: 100, y: 199, direction: "bottom" }, { x: 1, y: 100, direction: "left" }, { x: 199, y: 100, direction: "right" }] },
-      { "url": "./img/svg/AC_SOURCE.svg", points: [{ x: 100, y: 1, direction: "top" }, { x: 100, y: 199, direction: "bottom" }, { x: 1, y: 100, direction: "left" }, { x: 199, y: 100, direction: "right" }] },
-      { "url": "./img/svg/EQUIVALENTSOURCE.svg", points: [{ x: 100, y: 100 }] },
-      // { "url": "./img/svg/DELTAWINDING.svg" },
-      // { "url": "./img/svg/MULTIPLIER.svg" },
-      // { "url": "./img/svg/WINDING.svg" },
-      // { "url": "./img/svg/WINDINGX.svg" },
-      // { "url": "./img/svg/YWINDING.svg" },
-      //
-      { "url": "./img/png/1.png", points: [{ x: 52, y: 2, direction: "top" }, { x: 52, y: 100, direction: "bottom" }, { x: 2, y: 51, direction: "left" }, { x: 101, y: 51, direction: "right" }] },
-      { "url": "./img/png/2.png" },
-      // { "url": "./img/png/3.png" },
-      // { "url": "./img/png/7.png" },
-      // { "url": "./img/png/9.png" },
-      //
-      { "url": "./img/gif/5.gif", points: [{ x: 100, y: 100 }] },
-      { "url": "./img/gif/6.gif" },
-      { "url": "./img/gif/8.gif" }
-    ];
-    const assetsInfos = computed(() => {
-      return assetsModules.map((o) => ({
-        url: o.url,
-        avatar: o.avatar,
-        // 子素材需要额外的封面
-        points: Array.isArray(o.points) ? o.points : []
-      }));
-    });
-    function onDragstart(e, item) {
-      var _a;
-      if (e.dataTransfer) {
-        e.dataTransfer.setData("src", item.url);
-        e.dataTransfer.setData("points", JSON.stringify(item.points));
-        e.dataTransfer.setData("type", ((_a = item.url.match(/([^./]+)\.([^./]+)$/)) == null ? void 0 : _a[2]) ?? "");
-      }
-    }
-    function onLinkTest() {
-      render14 == null ? void 0 : render14.importExportTool.restore(JSON.stringify(linkTestData));
-    }
-    function onRotateTest() {
-      render14 == null ? void 0 : render14.importExportTool.restore(JSON.stringify(rotateTestData));
-    }
-    function onAlignTest() {
-      render14 == null ? void 0 : render14.importExportTool.restore(JSON.stringify(alignTestData));
-    }
-    function onFull() {
-      full.value = !full.value;
-    }
     return (_ctx, _cache) => {
       return openBlock(), createElementBlock("div", _hoisted_1, [
-        createBaseVNode("header", {
-          style: normalizeStyle({ height: full.value ? 0 : void 0, padding: full.value ? 0 : void 0 })
-        }, [
+        withDirectives(createBaseVNode("header", null, [
           ready.value ? (openBlock(), createBlock(MainHeader, {
             key: 0,
-            render: unref(render14)
-          }, null, 8, ["render"])) : createCommentVNode("", true)
-        ], 4),
+            render: unref(render16),
+            full: full.value,
+            "onUpdate:full": _cache[0] || (_cache[0] = ($event) => full.value = $event)
+          }, null, 8, ["render", "full"])) : createCommentVNode("", true)
+        ], 512), [
+          [vShow, !full.value]
+        ]),
         createBaseVNode("section", null, [
-          createBaseVNode("header", {
-            style: normalizeStyle({ width: full.value ? 0 : void 0 })
-          }, [
-            createBaseVNode("ul", null, [
-              (openBlock(true), createElementBlock(Fragment, null, renderList(assetsInfos.value, (item, idx) => {
-                return openBlock(), createElementBlock("li", {
-                  key: idx,
-                  draggable: "true",
-                  onDragstart: ($event) => onDragstart($event, item)
-                }, [
-                  createBaseVNode("img", {
-                    src: item.avatar || item.url
-                  }, null, 8, _hoisted_3)
-                ], 40, _hoisted_2);
-              }), 128))
-            ])
-          ], 4),
+          withDirectives(createBaseVNode("header", null, [
+            ready.value ? (openBlock(), createBlock(AssetBar, {
+              key: 0,
+              render: unref(render16)
+            }, null, 8, ["render"])) : createCommentVNode("", true)
+          ], 512), [
+            [vShow, !full.value]
+          ]),
           createBaseVNode("section", {
             ref_key: "boardElement",
             ref: boardElement
@@ -47871,30 +42856,45 @@ const _sfc_main = /* @__PURE__ */ defineComponent({
               ref: stageElement
             }, null, 512)
           ], 512),
-          createBaseVNode("footer", {
-            style: normalizeStyle({ width: full.value ? 0 : void 0 })
-          }, [
+          withDirectives(createBaseVNode("footer", null, [
             createTextVNode(" 快捷键："),
-            _hoisted_4,
+            _hoisted_2,
             createTextVNode(" 1、复制、粘贴、多选、全选、删除、上一步、下一步等快捷键与一般文档编辑器类似；"),
-            _hoisted_5,
+            _hoisted_3,
             createTextVNode(" 2、放大缩小，【Win】鼠标上滚动下滚动，【Mac】触控板双指放大、缩小；"),
-            _hoisted_6,
+            _hoisted_4,
             createTextVNode(" 3、画布拖动，在空白处，【Win】右键按下移动，【Mac】control + 触控板三指移动；"),
-            _hoisted_7
-          ], 4)
+            _hoisted_5
+          ], 512), [
+            [vShow, !full.value]
+          ])
         ]),
-        createBaseVNode("footer", null, [
-          createBaseVNode("button", { onClick: onLinkTest }, "“连接线”方向测试数据"),
-          createBaseVNode("button", { onClick: onRotateTest }, "“连接线”出入口测试数据"),
-          createBaseVNode("button", { onClick: onAlignTest }, "“对齐”测试数据"),
-          createBaseVNode("button", { onClick: onFull }, toDisplayString(full.value ? "显示工具栏" : "隐藏工具栏"), 1)
+        _hoisted_6,
+        withDirectives(createVNode(unref(NFloatButton), {
+          shape: "square",
+          position: "fixed",
+          top: 40 + 8,
+          right: 8,
+          style: { "z-index": "100" },
+          onClick: _cache[1] || (_cache[1] = ($event) => full.value = !full.value)
+        }, {
+          default: withCtx(() => [
+            createVNode(unref(NIcon), null, {
+              default: withCtx(() => [
+                createVNode(unref(FullScreenMinimize24Regular))
+              ]),
+              _: 1
+            })
+          ]),
+          _: 1
+        }, 512), [
+          [vShow, full.value]
         ])
       ]);
     };
   }
 });
-const App = /* @__PURE__ */ _export_sfc(_sfc_main, [["__scopeId", "data-v-052b21eb"]]);
+const App = /* @__PURE__ */ _export_sfc(_sfc_main, [["__scopeId", "data-v-03704d3a"]]);
 const optionsDefault = {
   colors: ["purple", "blue", "green", "blueviolet", "goldenrod", "brown", "chocolate"],
   type: "log"
@@ -47919,7 +42919,7 @@ const logArray = (words2) => {
     console.error(e);
   }
 };
-var define_BUILD_INFO_default = { lastBuildTime: "2024-08-07 18:56:11", git: { branch: "master", hash: "73a9808b7137b14d9aebfb262dc563a578d9150d", tag: "chapter19" } };
+var define_BUILD_INFO_default = { lastBuildTime: "2024-08-08 11:33:58", git: { branch: "master", hash: "b87a05f8a409dfa1a951444619579cca5180e58e", tag: "chapter19-dirty" } };
 const {
   lastBuildTime,
   git: { branch, tag, hash }
