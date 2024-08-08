@@ -68,7 +68,7 @@ export class LinkDraw extends Types.BaseDraw implements Types.Draw {
 
   state: LinkDrawState = {
     linkingLine: null,
-    linkType: Types.LinkType.auto,
+    linkType: Types.LinkType.manual,
     linkManualing: false
   }
 

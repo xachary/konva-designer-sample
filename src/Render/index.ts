@@ -254,7 +254,7 @@ export class Render {
     if (record) {
       this.importExportTool.restore(record, true)
       this.historyIndex--
-      
+
       // 历史变化事件
       this.emit('history-change', {
         records: _.clone(this.history),
@@ -433,7 +433,7 @@ export class Render {
       Draws.ContextmenuDraw.name // 更新右键菜单
     ]
 
-    if (Array.isArray(drawNames)) {
+    if (Array.isArray(drawNames) && !this.debug) {
       // 选择性 draw 也要保持顺序
       for (const name of all) {
         if (drawNames.includes(name)) {

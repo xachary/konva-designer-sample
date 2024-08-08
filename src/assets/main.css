@@ -33,3 +33,14 @@ ul {
   margin-block: 0;
   padding-inline: 0;
 }
+
+.n-collapse,
+.n-divider {
+  --n-divider-color: rgb(230, 230, 230) !important;
+}
+
+:root {
+  --k-bg-color: #f2f3f4;
+  --k-bar-width: 220px;
+  --k-scroll-width: 7px;
+}

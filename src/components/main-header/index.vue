@@ -11,165 +11,190 @@
             </div>
         </header>
         <footer class="main-header__action">
-            <NDropdown trigger="hover" :options="scaleOptions" @select="scaleChange">
-                <NButton tag="div" size="tiny" quaternary>
-                    <span class="main-header__scale">{{ scale.toFixed(0) }}%</span>
-                </NButton>
-            </NDropdown>
-            <NDivider vertical />
-            <NTooltip trigger="hover" :delay="1000">
-                <template #trigger>
-                    <NButton tag="div" size="tiny" quaternary @click="onPrev" :disabled="historyIndex <= 0">
-                        <template #icon>
-                            <NIcon>
-                                <IosUndo />
-                            </NIcon>
-                        </template>
+            <section>
+                <NDropdown trigger="hover" :options="scaleOptions" @select="scaleChange">
+                    <NButton tag="div" size="tiny" quaternary :focusable="false">
+                        <span class="main-header__scale">{{ scale.toFixed(0) }}%</span>
                     </NButton>
-                </template>
-                撤销
-            </NTooltip>
-            <NTooltip trigger="hover" :delay="1000">
-                <template #trigger>
-                    <NButton tag="div" size="tiny" quaternary @click="onNext"
-                        :disabled="historyIndex >= history.length - 1">
-                        <template #icon>
-                            <NIcon>
-                                <IosRedo />
-                            </NIcon>
-                        </template>
-                    </NButton>
-                </template>
-                恢复
-            </NTooltip>
-            <NDivider vertical />
-            <NTooltip trigger="hover" :delay="1000">
-                <template #trigger>
-                    <NButton tag="div" size="tiny" quaternary @click="onAlign(Types.AlignType.垂直居中)"
-                        :disabled="noAlign">
-                        <template #icon>
-                            <NIcon>
-                                <AlignCenterVertical16Regular />
-                            </NIcon>
-                        </template>
-                    </NButton>
-                </template>
-                垂直居中
-            </NTooltip>
-            <NTooltip trigger="hover" :delay="1000">
-                <template #trigger>
-                    <NButton tag="div" size="tiny" quaternary @click="onAlign(Types.AlignType.水平居中)"
-                        :disabled="noAlign">
-                        <template #icon>
-                            <NIcon>
-                                <AlignCenterHorizontal16Regular />
-                            </NIcon>
-                        </template>
-                    </NButton>
-                </template>
-                水平居中
-            </NTooltip>
-            <NTooltip trigger="hover" :delay="1000">
-                <template #trigger>
-                    <NButton tag="div" size="tiny" quaternary @click="onAlign(Types.AlignType.左对齐)" :disabled="noAlign">
-                        <template #icon>
-                            <NIcon>
-                                <AlignLeft16Regular />
-                            </NIcon>
-                        </template>
-                    </NButton>
-                </template>
-                左对齐
-            </NTooltip>
-            <NTooltip trigger="hover" :delay="1000">
-                <template #trigger>
-                    <NButton tag="div" size="tiny" quaternary @click="onAlign(Types.AlignType.右对齐)" :disabled="noAlign">
-                        <template #icon>
-                            <NIcon>
-                                <AlignRight16Regular />
-                            </NIcon>
-                        </template>
-                    </NButton>
-                </template>
-                右对齐
-            </NTooltip>
-            <NTooltip trigger="hover" :delay="1000">
-                <template #trigger>
-                    <NButton tag="div" size="tiny" quaternary @click="onAlign(Types.AlignType.上对齐)" :disabled="noAlign">
-                        <template #icon>
-                            <NIcon>
-                                <AlignTop16Regular />
-                            </NIcon>
-                        </template>
-                    </NButton>
-                </template>
-                上对齐
-            </NTooltip>
-            <NTooltip trigger="hover" :delay="1000">
-                <template #trigger>
-                    <NButton tag="div" size="tiny" quaternary @click="onAlign(Types.AlignType.下对齐)" :disabled="noAlign">
-                        <template #icon>
-                            <NIcon>
-                                <AlignBottom16Regular />
-                            </NIcon>
-                        </template>
-                    </NButton>
-                </template>
-                下对齐
-            </NTooltip>
-            <NDivider vertical />
-            <NTooltip trigger="hover" :delay="1000">
-                <template #trigger>
-                    <NButton tag="div" size="tiny" quaternary @click="onLinkTypeChange(Types.LinkType.auto)"
-                        :disabled="currentLinkType === Types.LinkType.auto">
-                        <template #icon>
-                            <NIcon>
-                                <Pulse20Regular />
-                            </NIcon>
-                        </template>
-                    </NButton>
-                </template>
-                连接线：自动
-            </NTooltip>
-            <NTooltip trigger="hover" :delay="1000">
-                <template #trigger>
-                    <NButton tag="div" size="tiny" quaternary @click="onLinkTypeChange(Types.LinkType.straight)"
-                        :disabled="currentLinkType === Types.LinkType.straight">
-                        <template #icon>
-                            <NIcon>
-                                <Line20Regular />
-                            </NIcon>
-                        </template>
-                    </NButton>
-                </template>
-                连接线：直线
-            </NTooltip>
-            <NTooltip trigger="hover" :delay="1000">
-                <template #trigger>
-                    <NButton tag="div" size="tiny" quaternary @click="onLinkTypeChange(Types.LinkType.manual)"
-                        :disabled="currentLinkType === Types.LinkType.manual">
-                        <template #icon>
-                            <NIcon>
-                                <Flowchart20Regular />
-                            </NIcon>
-                        </template>
-                    </NButton>
-                </template>
-                连接线：手动
-            </NTooltip>
-            <NDivider vertical />
-            <NTooltip trigger="hover" :delay="1000">
-                <template #trigger>
-                    <NButton tag="div" size="tiny" quaternary @click="onDebug">
-                        <template #icon>
-                            <NIcon :depth="debug ? 1 : 3">
-                                <Bug16Regular />
-                            </NIcon>
-                        </template>
-                    </NButton>
-                </template>
-                {{ debug ? '关闭调试' : '开启调试' }}
-            </NTooltip>
+                </NDropdown>
+                <NDivider vertical />
+                <NTooltip trigger="hover" :delay="1000">
+                    <template #trigger>
+                        <NButton tag="div" size="tiny" quaternary :focusable="false" @click="onPrev"
+                            :disabled="historyIndex <= 0">
+                            <template #icon>
+                                <NIcon>
+                                    <IosUndo />
+                                </NIcon>
+                            </template>
+                        </NButton>
+                    </template>
+                    撤销
+                </NTooltip>
+                <NTooltip trigger="hover" :delay="1000">
+                    <template #trigger>
+                        <NButton tag="div" size="tiny" quaternary :focusable="false" @click="onNext"
+                            :disabled="historyIndex >= history.length - 1">
+                            <template #icon>
+                                <NIcon>
+                                    <IosRedo />
+                                </NIcon>
+                            </template>
+                        </NButton>
+                    </template>
+                    恢复
+                </NTooltip>
+                <NDivider vertical />
+                <NTooltip trigger="hover" :delay="1000">
+                    <template #trigger>
+                        <NButton tag="div" size="tiny" quaternary :focusable="false"
+                            @click="onAlign(Types.AlignType.垂直居中)" :disabled="noAlign">
+                            <template #icon>
+                                <NIcon>
+                                    <AlignCenterVertical16Regular />
+                                </NIcon>
+                            </template>
+                        </NButton>
+                    </template>
+                    垂直居中
+                </NTooltip>
+                <NTooltip trigger="hover" :delay="1000">
+                    <template #trigger>
+                        <NButton tag="div" size="tiny" quaternary :focusable="false"
+                            @click="onAlign(Types.AlignType.水平居中)" :disabled="noAlign">
+                            <template #icon>
+                                <NIcon>
+                                    <AlignCenterHorizontal16Regular />
+                                </NIcon>
+                            </template>
+                        </NButton>
+                    </template>
+                    水平居中
+                </NTooltip>
+                <NTooltip trigger="hover" :delay="1000">
+                    <template #trigger>
+                        <NButton tag="div" size="tiny" quaternary :focusable="false"
+                            @click="onAlign(Types.AlignType.左对齐)" :disabled="noAlign">
+                            <template #icon>
+                                <NIcon>
+                                    <AlignLeft16Regular />
+                                </NIcon>
+                            </template>
+                        </NButton>
+                    </template>
+                    左对齐
+                </NTooltip>
+                <NTooltip trigger="hover" :delay="1000">
+                    <template #trigger>
+                        <NButton tag="div" size="tiny" quaternary :focusable="false"
+                            @click="onAlign(Types.AlignType.右对齐)" :disabled="noAlign">
+                            <template #icon>
+                                <NIcon>
+                                    <AlignRight16Regular />
+                                </NIcon>
+                            </template>
+                        </NButton>
+                    </template>
+                    右对齐
+                </NTooltip>
+                <NTooltip trigger="hover" :delay="1000">
+                    <template #trigger>
+                        <NButton tag="div" size="tiny" quaternary :focusable="false"
+                            @click="onAlign(Types.AlignType.上对齐)" :disabled="noAlign">
+                            <template #icon>
+                                <NIcon>
+                                    <AlignTop16Regular />
+                                </NIcon>
+                            </template>
+                        </NButton>
+                    </template>
+                    上对齐
+                </NTooltip>
+                <NTooltip trigger="hover" :delay="1000">
+                    <template #trigger>
+                        <NButton tag="div" size="tiny" quaternary :focusable="false"
+                            @click="onAlign(Types.AlignType.下对齐)" :disabled="noAlign">
+                            <template #icon>
+                                <NIcon>
+                                    <AlignBottom16Regular />
+                                </NIcon>
+                            </template>
+                        </NButton>
+                    </template>
+                    下对齐
+                </NTooltip>
+                <NDivider vertical />
+                <NTooltip trigger="hover" :delay="1000">
+                    <template #trigger>
+                        <NButton tag="div" size="tiny" quaternary :focusable="false"
+                            @click="onLinkTypeChange(Types.LinkType.manual)"
+                            :disabled="currentLinkType === Types.LinkType.manual">
+                            <template #icon>
+                                <NIcon>
+                                    <Flowchart20Regular />
+                                </NIcon>
+                            </template>
+                        </NButton>
+                    </template>
+                    连接线：手动
+                </NTooltip>
+                <NTooltip trigger="hover" :delay="1000">
+                    <template #trigger>
+                        <NButton tag="div" size="tiny" quaternary :focusable="false"
+                            @click="onLinkTypeChange(Types.LinkType.auto)"
+                            :disabled="currentLinkType === Types.LinkType.auto">
+                            <template #icon>
+                                <NIcon>
+                                    <Pulse20Regular />
+                                </NIcon>
+                            </template>
+                        </NButton>
+                    </template>
+                    连接线：自动
+                </NTooltip>
+                <NTooltip trigger="hover" :delay="1000">
+                    <template #trigger>
+                        <NButton tag="div" size="tiny" quaternary :focusable="false"
+                            @click="onLinkTypeChange(Types.LinkType.straight)"
+                            :disabled="currentLinkType === Types.LinkType.straight">
+                            <template #icon>
+                                <NIcon>
+                                    <Line20Regular />
+                                </NIcon>
+                            </template>
+                        </NButton>
+                    </template>
+                    连接线：直线
+                </NTooltip>
+                <NDivider vertical />
+                <NTooltip trigger="hover" :delay="1000">
+                    <template #trigger>
+                        <NButton tag="div" size="tiny" quaternary :focusable="false" @click="onDebug">
+                            <template #icon>
+                                <NIcon :depth="debug ? 1 : 3">
+                                    <Bug16Regular />
+                                </NIcon>
+                            </template>
+                        </NButton>
+                    </template>
+                    {{ debug ? '关闭调试' : '开启调试' }}
+                </NTooltip>
+            </section>
+            <section>
+                <NTooltip trigger="hover" :delay="1000">
+                    <template #trigger>
+                        <NButton tag="div" size="tiny" quaternary :focusable="false" @click="onFull">
+                            <template #icon>
+                                <NIcon>
+                                    <FullScreenMaximize24Regular v-show="!full" />
+                                    <FullScreenMinimize24Regular v-show="full" />
+                                </NIcon>
+                            </template>
+                        </NButton>
+                    </template>
+                    {{ full ? '最小化' : '最大化' }}
+                </NTooltip>
+            </section>
         </footer>
     </div>
 </template>
@@ -195,16 +220,23 @@ import {
     Pulse20Regular,
     Line20Regular,
     Flowchart20Regular,
-    Bug16Regular
+    Bug16Regular,
+    FullScreenMaximize24Regular,
+    FullScreenMinimize24Regular
 } from '@vicons/fluent'
 
 defineOptions({
     name: 'MainHeader',
 });
 
-const props = defineProps<{
+const emit = defineEmits(['update:full'])
+
+const props = withDefaults(defineProps<{
     render?: Render | null, // 实例
-}>();
+    full: boolean
+}>(), {
+    full: () => false,
+});
 
 // 从 json 文件恢复
 function onRestore() {
@@ -267,11 +299,27 @@ function onSaveAsset() {
     }
 }
 
+// 另存为图片
+function onSavePNG() {
+    if (props.render) {
+        // 3倍尺寸、白色背景
+        const url = props.render.importExportTool.getAssetImage(3, '#ffffff')
+
+        const a = document.createElement('a')
+        const event = new MouseEvent('click')
+        a.download = 'image'
+        a.href = url
+        a.dispatchEvent(event)
+        a.remove()
+    }
+}
+
+
 // 另存为元素图片
 function onSaveAssetPNG() {
     if (props.render) {
         // 3倍尺寸、白色背景
-        const url = props.render.importExportTool.getAssetImage(3, '#ffffff')
+        const url = props.render.importExportTool.getAssetImage(3)
 
         const a = document.createElement('a')
         const event = new MouseEvent('click')
@@ -311,7 +359,7 @@ function onAlign(type: Types.AlignType) {
 }
 
 // 连接线模式
-const currentLinkType = ref(Types.LinkType.auto)
+const currentLinkType = ref(Types.LinkType.manual)
 
 function onLinkTypeChange(linkType: Types.LinkType) {
     (props.render?.draws[Draws.LinkDraw.name] as Draws.LinkDraw).changeLinkType(linkType)
@@ -362,7 +410,7 @@ const menuOptions = [
                     {
                         target: '_blank',
                         rel: 'noopenner noreferrer',
-                        onClick: onSaveAssetPNG
+                        onClick: onSavePNG
                     },
                     '另存为图片'
                 ),
@@ -395,6 +443,66 @@ const menuOptions = [
                 ),
                 key: 'json',
             },
+            {
+                label: () => h(
+                    'a',
+                    {
+                        target: '_blank',
+                        rel: 'noopenner noreferrer',
+                        onClick: onSaveAssetPNG
+                    },
+                    '另存为素材封面'
+                ),
+                key: 'png',
+            },
+        ]
+    }, {
+        label: '示例',
+        key: 'sample',
+        children: [
+            {
+                type: 'group',
+                label: '测试数据',
+                key: 'test',
+                children: [
+                    {
+                        label: () => h(
+                            'a',
+                            {
+                                target: '_blank',
+                                rel: 'noopenner noreferrer',
+                                onClick: onLinkTest
+                            },
+                            '连接线方向'
+                        ),
+                        key: '连接线方向',
+                    },
+                    {
+                        label: () => h(
+                            'a',
+                            {
+                                target: '_blank',
+                                rel: 'noopenner noreferrer',
+                                onClick: onRotateTest
+                            },
+                            '连接线出入口'
+                        ),
+                        key: '连接线出入口',
+                    },
+                    {
+                        label: () => h(
+                            'a',
+                            {
+                                target: '_blank',
+                                rel: 'noopenner noreferrer',
+                                onClick: onAlignTest
+                            },
+                            '对齐'
+                        ),
+                        key: '对齐',
+                    },
+                ]
+            }
         ]
     }, {
         label: '帮助',
@@ -534,11 +642,30 @@ watch(() => props.render, () => {
 }, {
     immediate: true
 })
+
+// 测试
+async function onLinkTest() {
+    const json = await (await fetch('/test/link.json')).text()
+    props.render?.importExportTool.restore(json)
+}
+async function onRotateTest() {
+    const json = await (await fetch('/test/rotate.json')).text()
+    props.render?.importExportTool.restore(json)
+}
+async function onAlignTest() {
+    const json = await (await fetch('/test/align.json')).text()
+    props.render?.importExportTool.restore(json)
+}
+
+// 最大/最小化
+function onFull() {
+    emit('update:full', !props.full)
+}
 </script>
 
 <style lang="less" scoped>
 .main-header {
-    background-color: #F2F3F4;
+    background-color: var(--k-bg-color);
 
     @top-height: 64px;
     @menu-height: 28px;
@@ -563,9 +690,14 @@ watch(() => props.render, () => {
 
     &>footer {
         box-shadow: 0 1px 0 0 #DBDCE0;
-        display: flex;
-        align-items: center;
         padding: 4px 8px 3px 8px;
+        display: flex;
+        justify-content: space-between;
+
+        &>section {
+            display: flex;
+            align-items: center;
+        }
     }
 
     &__logo {
@@ -585,7 +717,10 @@ watch(() => props.render, () => {
     }
 
     &__action {
-        //
+        :deep(.n-divider) {
+            margin: 0 4px;
+            background-color: var(--n-divider-color);
+        }
     }
 
     &__scale {
