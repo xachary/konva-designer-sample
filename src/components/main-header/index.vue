@@ -645,15 +645,15 @@ watch(() => props.render, () => {
 
 // 测试
 async function onLinkTest() {
-    const json = await (await fetch('/test/link.json')).text()
+    const json = await (await fetch('./test/link.json')).text()
     props.render?.importExportTool.restore(json)
 }
 async function onRotateTest() {
-    const json = await (await fetch('/test/rotate.json')).text()
+    const json = await (await fetch('./test/rotate.json')).text()
     props.render?.importExportTool.restore(json)
 }
 async function onAlignTest() {
-    const json = await (await fetch('/test/align.json')).text()
+    const json = await (await fetch('./test/align.json')).text()
     props.render?.importExportTool.restore(json)
 }
 
