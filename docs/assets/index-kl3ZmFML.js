@@ -41427,7 +41427,7 @@ const IosUndo = /* @__PURE__ */ defineComponent({
     return openBlock(), createElementBlock("svg", _hoisted_1$3, _hoisted_3$3);
   }
 });
-const _withScopeId$1 = (n) => (pushScopeId("data-v-7f4ef1d5"), n = n(), popScopeId(), n);
+const _withScopeId$1 = (n) => (pushScopeId("data-v-dfc8ea9f"), n = n(), popScopeId(), n);
 const _hoisted_1$2 = { class: "main-header" };
 const _hoisted_2$2 = /* @__PURE__ */ _withScopeId$1(() => /* @__PURE__ */ createBaseVNode("img", {
   class: "main-header__logo",
@@ -41824,17 +41824,17 @@ const _sfc_main$2 = /* @__PURE__ */ defineComponent({
     });
     async function onLinkTest() {
       var _a;
-      const json = await (await fetch("/test/link.json")).text();
+      const json = await (await fetch("./test/link.json")).text();
       (_a = props.render) == null ? void 0 : _a.importExportTool.restore(json);
     }
     async function onRotateTest() {
       var _a;
-      const json = await (await fetch("/test/rotate.json")).text();
+      const json = await (await fetch("./test/rotate.json")).text();
       (_a = props.render) == null ? void 0 : _a.importExportTool.restore(json);
     }
     async function onAlignTest() {
       var _a;
-      const json = await (await fetch("/test/align.json")).text();
+      const json = await (await fetch("./test/align.json")).text();
       (_a = props.render) == null ? void 0 : _a.importExportTool.restore(json);
     }
     function onFull() {
@@ -42281,7 +42281,7 @@ const _export_sfc = (sfc, props) => {
   }
   return target;
 };
-const MainHeader = /* @__PURE__ */ _export_sfc(_sfc_main$2, [["__scopeId", "data-v-7f4ef1d5"]]);
+const MainHeader = /* @__PURE__ */ _export_sfc(_sfc_main$2, [["__scopeId", "data-v-dfc8ea9f"]]);
 const assetsModules = {
   svg: [
     {
@@ -42919,7 +42919,7 @@ const logArray = (words2) => {
     console.error(e);
   }
 };
-var define_BUILD_INFO_default = { lastBuildTime: "2024-08-08 11:33:58", git: { branch: "master", hash: "b87a05f8a409dfa1a951444619579cca5180e58e", tag: "chapter19-dirty" } };
+var define_BUILD_INFO_default = { lastBuildTime: "2024-08-08 16:19:01", git: { branch: "master", hash: "176bc78a0410a757abb70a4954af247d42099849", tag: "chapter20" } };
 const {
   lastBuildTime,
   git: { branch, tag, hash }
