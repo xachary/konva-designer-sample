@@ -26892,7 +26892,6 @@ class SelectionTool {
     }
     this.selectingNodes = [];
     this.render.linkTool.pointsVisible(false);
-    this.render.redraw([PreviewDraw.name]);
   }
   // 选择节点
   select(nodes) {
@@ -28613,7 +28612,7 @@ class LinkTool {
       });
     }
     if (!this.render.draws[LinkDraw.name].state.linkManualing) {
-      this.render.redraw([LinkDraw.name]);
+      this.render.redraw([LinkDraw.name, PreviewDraw.name]);
     }
   }
   remove(line) {
@@ -42920,7 +42919,7 @@ const logArray = (words2) => {
     console.error(e);
   }
 };
-var define_BUILD_INFO_default = { lastBuildTime: "2024-08-08 16:37:47", git: { branch: "master", hash: "285edc88816a922d598d89fe34359ee57e288ddc", tag: "chapter20-dirty" } };
+var define_BUILD_INFO_default = { lastBuildTime: "2024-08-08 17:05:02", git: { branch: "master", hash: "ed60268aff6e90a837381bf1ff6e93f92720d077", tag: "chapter20-dirty" } };
 const {
   lastBuildTime,
   git: { branch, tag, hash }
