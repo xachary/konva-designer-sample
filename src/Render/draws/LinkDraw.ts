@@ -601,7 +601,8 @@ export class LinkDraw extends Types.BaseDraw implements Types.Draw {
                 this.render.redraw([
                   Draws.LinkDraw.name,
                   Draws.AttractDraw.name,
-                  Draws.RulerDraw.name
+                  Draws.RulerDraw.name,
+                  Draws.PreviewDraw.name
                 ])
               })
 
@@ -714,7 +715,12 @@ export class LinkDraw extends Types.BaseDraw implements Types.Draw {
                 this.render.attractTool.alignLinesClear()
 
                 // 重绘
-                this.render.redraw([Draws.LinkDraw.name, Draws.AttractDraw.name])
+                this.render.redraw([
+                  Draws.LinkDraw.name,
+                  Draws.AttractDraw.name,
+                  Draws.RulerDraw.name,
+                  Draws.PreviewDraw.name
+                ])
               })
 
               this.group.add(circle)
@@ -1198,7 +1204,12 @@ export class LinkDraw extends Types.BaseDraw implements Types.Draw {
                       this.render.attractTool.alignLinesClear()
 
                       // 重绘
-                      this.render.redraw([Draws.LinkDraw.name, Draws.AttractDraw.name])
+                      this.render.redraw([
+                        Draws.LinkDraw.name,
+                        Draws.AttractDraw.name,
+                        Draws.RulerDraw.name,
+                        Draws.PreviewDraw.name
+                      ])
                     }
                   }
                 }

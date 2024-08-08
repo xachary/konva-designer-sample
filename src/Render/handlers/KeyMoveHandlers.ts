@@ -46,7 +46,12 @@ export class KeyMoveHandlers implements Types.Handler {
             this.change()
 
             // 重绘
-            this.render.redraw([Draws.LinkDraw.name, Draws.PreviewDraw.name])
+            this.render.redraw([
+              Draws.LinkDraw.name,
+              Draws.AttractDraw.name,
+              Draws.RulerDraw.name,
+              Draws.PreviewDraw.name
+            ])
           }
         }
       },
