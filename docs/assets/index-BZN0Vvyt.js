@@ -25615,7 +25615,8 @@ const _LinkDraw = class _LinkDraw extends BaseDraw {
                 this.render.redraw([
                   _LinkDraw.name,
                   AttractDraw.name,
-                  RulerDraw.name
+                  RulerDraw.name,
+                  PreviewDraw.name
                 ]);
               });
               this.group.add(circle);
@@ -25691,7 +25692,12 @@ const _LinkDraw = class _LinkDraw extends BaseDraw {
                 manualingLine.destroy();
                 this.render.updateHistory();
                 this.render.attractTool.alignLinesClear();
-                this.render.redraw([_LinkDraw.name, AttractDraw.name]);
+                this.render.redraw([
+                  _LinkDraw.name,
+                  AttractDraw.name,
+                  RulerDraw.name,
+                  PreviewDraw.name
+                ]);
               });
               this.group.add(circle);
             }
@@ -26020,7 +26026,12 @@ const _LinkDraw = class _LinkDraw extends BaseDraw {
                       }
                       this.render.updateHistory();
                       this.render.attractTool.alignLinesClear();
-                      this.render.redraw([_LinkDraw.name, AttractDraw.name]);
+                      this.render.redraw([
+                        _LinkDraw.name,
+                        AttractDraw.name,
+                        RulerDraw.name,
+                        PreviewDraw.name
+                      ]);
                     }
                   }
                 }
@@ -26650,7 +26661,12 @@ class KeyMoveHandlers {
                 this.speed++;
               }
               this.change();
-              this.render.redraw([LinkDraw.name, PreviewDraw.name]);
+              this.render.redraw([
+                LinkDraw.name,
+                AttractDraw.name,
+                RulerDraw.name,
+                PreviewDraw.name
+              ]);
             }
           }
         },
@@ -27115,7 +27131,12 @@ class CopyTool {
     this.render.layer.add(...clones);
     this.render.selectionTool.select(clones);
     this.render.updateHistory();
-    this.render.redraw([LinkDraw.name, PreviewDraw.name]);
+    this.render.redraw([
+      LinkDraw.name,
+      AttractDraw.name,
+      RulerDraw.name,
+      PreviewDraw.name
+    ]);
   }
 }
 __publicField(CopyTool, "name", "CopyTool");
@@ -27259,7 +27280,12 @@ class ZIndexTool {
       }
       this.updateLastZindex(sorted);
       this.render.updateHistory();
-      this.render.redraw([LinkDraw.name, PreviewDraw.name]);
+      this.render.redraw([
+        LinkDraw.name,
+        AttractDraw.name,
+        RulerDraw.name,
+        PreviewDraw.name
+      ]);
     }
   }
   // 下移
@@ -27287,7 +27313,12 @@ class ZIndexTool {
       }
       this.updateLastZindex(sorted);
       this.render.updateHistory();
-      this.render.redraw([LinkDraw.name, PreviewDraw.name]);
+      this.render.redraw([
+        LinkDraw.name,
+        AttractDraw.name,
+        RulerDraw.name,
+        PreviewDraw.name
+      ]);
     }
   }
   // 置顶
@@ -27308,7 +27339,12 @@ class ZIndexTool {
       }
       this.updateLastZindex(sorted);
       this.render.updateHistory();
-      this.render.redraw([LinkDraw.name, PreviewDraw.name]);
+      this.render.redraw([
+        LinkDraw.name,
+        AttractDraw.name,
+        RulerDraw.name,
+        PreviewDraw.name
+      ]);
     }
   }
   // 置底
@@ -27329,7 +27365,12 @@ class ZIndexTool {
       }
       this.updateLastZindex(sorted);
       this.render.updateHistory();
-      this.render.redraw([LinkDraw.name, PreviewDraw.name]);
+      this.render.redraw([
+        LinkDraw.name,
+        AttractDraw.name,
+        RulerDraw.name,
+        PreviewDraw.name
+      ]);
     }
   }
 }
@@ -28227,7 +28268,12 @@ class ImportExportTool {
         this.render.updateHistory();
       }
       this.render.linkTool.pointsVisible(false);
-      this.render.redraw([LinkDraw.name, PreviewDraw.name]);
+      this.render.redraw([
+        LinkDraw.name,
+        AttractDraw.name,
+        RulerDraw.name,
+        PreviewDraw.name
+      ]);
     } catch (e) {
       console.error(e);
     }
@@ -28590,7 +28636,12 @@ class AlignTool {
       }
     }
     this.render.updateHistory();
-    this.render.redraw([LinkDraw.name, PreviewDraw.name]);
+    this.render.redraw([
+      LinkDraw.name,
+      AttractDraw.name,
+      RulerDraw.name,
+      PreviewDraw.name
+    ]);
   }
 }
 __publicField(AlignTool, "name", "AlignTool");
@@ -28612,7 +28663,12 @@ class LinkTool {
       });
     }
     if (!this.render.draws[LinkDraw.name].state.linkManualing) {
-      this.render.redraw([LinkDraw.name, PreviewDraw.name]);
+      this.render.redraw([
+        LinkDraw.name,
+        AttractDraw.name,
+        RulerDraw.name,
+        PreviewDraw.name
+      ]);
     }
   }
   remove(line) {
@@ -28629,7 +28685,12 @@ class LinkTool {
           if (pairIndex > -1) {
             point.pairs.splice(pairIndex, 1);
             group.setAttr("points", points);
-            this.render.redraw([LinkDraw.name, PreviewDraw.name]);
+            this.render.redraw([
+              LinkDraw.name,
+              AttractDraw.name,
+              RulerDraw.name,
+              PreviewDraw.name
+            ]);
           }
         }
       }
@@ -42919,7 +42980,7 @@ const logArray = (words2) => {
     console.error(e);
   }
 };
-var define_BUILD_INFO_default = { lastBuildTime: "2024-08-08 17:05:02", git: { branch: "master", hash: "ed60268aff6e90a837381bf1ff6e93f92720d077", tag: "chapter20-dirty" } };
+var define_BUILD_INFO_default = { lastBuildTime: "2024-08-08 17:12:24", git: { branch: "master", hash: "41431d273a81ec4d35a72c43447025c4ef6d7f3e", tag: "chapter20" } };
 const {
   lastBuildTime,
   git: { branch, tag, hash }
