@@ -26892,6 +26892,7 @@ class SelectionTool {
     }
     this.selectingNodes = [];
     this.render.linkTool.pointsVisible(false);
+    this.render.redraw([PreviewDraw.name]);
   }
   // 选择节点
   select(nodes) {
@@ -42919,7 +42920,7 @@ const logArray = (words2) => {
     console.error(e);
   }
 };
-var define_BUILD_INFO_default = { lastBuildTime: "2024-08-08 16:19:01", git: { branch: "master", hash: "176bc78a0410a757abb70a4954af247d42099849", tag: "chapter20" } };
+var define_BUILD_INFO_default = { lastBuildTime: "2024-08-08 16:37:47", git: { branch: "master", hash: "285edc88816a922d598d89fe34359ee57e288ddc", tag: "chapter20-dirty" } };
 const {
   lastBuildTime,
   git: { branch, tag, hash }
