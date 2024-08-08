@@ -1,7 +1,7 @@
 import Konva from 'konva'
 //
 import { Render } from '../index'
-// import * as Draws from '../draws'
+import * as Draws from '../draws'
 
 export class SelectionTool {
   static readonly name = 'SelectionTool'
@@ -59,6 +59,7 @@ export class SelectionTool {
     //   // 重绘
     //   this.render.redraw([])
     // }
+    this.render.redraw([Draws.PreviewDraw.name])
   }
 
   // 选择节点
