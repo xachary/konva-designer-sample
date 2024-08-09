@@ -27,8 +27,8 @@ importers:
         specifier: ^1.11.11
         version: 1.11.11
       konva:
-        specifier: 9.3.6
-        version: 9.3.6
+        specifier: 9.3.14
+        version: 9.3.14
       lodash-es:
         specifier: 4.17.21
         version: 4.17.21
@@ -1215,8 +1215,8 @@ packages:
   keyv@4.5.4:
     resolution: {integrity: sha512-oxVHkHR/EJf2CNXnWxRLW6mg7JyCCUcG0DtEGmL2ctUo1PNTin1PUil+r/+4r5MpVgC/fn1kjsx7mjSujKqIpw==}
 
-  konva@9.3.6:
-    resolution: {integrity: sha512-dqR8EbcM0hjuilZCBP6xauQ5V3kH3m9kBcsDkqPypQuRgsXbcXUrxqYxhNbdvKZpYNW8Amq94jAD/C0NY3qfBQ==}
+  konva@9.3.14:
+    resolution: {integrity: sha512-Gmm5lyikGYJyogKQA7Fy6dKkfNh350V6DwfZkid0RVrGYP2cfCsxuMxgF5etKeCv7NjXYpJxKqi1dYkIkX/dcA==}
 
   less@4.2.0:
     resolution: {integrity: sha512-P3b3HJDBtSzsXUl0im2L7gTO5Ubg8mEN6G8qoTS77iXxXX4Hvu4Qj540PZDvQ8V6DmX6iXo98k7Md0Cm1PrLaA==}
@@ -2897,7 +2897,7 @@ snapshots:
     dependencies:
       json-buffer: 3.0.1
 
-  konva@9.3.6: {}
+  konva@9.3.14: {}
 
   less@4.2.0:
     dependencies:
