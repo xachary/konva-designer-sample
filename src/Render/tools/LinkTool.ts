@@ -54,9 +54,15 @@ export class LinkTool {
             (o) => o.id === pairId
           )
           if (pairIndex > -1) {
-            point.pairs.splice(pairIndex, 1)
-            group.setAttr('points', points)
+            const pair = point.pairs.splice(pairIndex, 1)[0]
 
+            if (group.attrs.manualPointsMap && group.attrs.manualPointsMap[pair.id]) {
+              group.setAttr('manualPointsMap', {
+                ...group.attrs.manualPointsMap,
+                [pair.id]: undefined
+              })
+            }
+            
             // 重绘
             this.render.redraw([
               Draws.LinkDraw.name,

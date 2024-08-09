@@ -1,10 +1,11 @@
 import _ from 'lodash-es'
+import { nanoid } from 'nanoid'
 import Konva from 'konva'
 //
 import { Render } from '../index'
 //
 import * as Draws from '../draws'
-import { nanoid } from 'nanoid'
+import * as Types from '../types'
 
 export class CopyTool {
   static readonly name = 'CopyTool'
@@ -62,6 +63,10 @@ export class CopyTool {
           for (const point of asset.attrs.points) {
             if (Array.isArray(point.pairs)) {
               for (const pair of point.pairs) {
+                if (!idMap.has(pair.id)) {
+                  idMap.set(pair.id, 'pr:' + nanoid())
+                }
+
                 if (pair.from.groupId && !idMap.has(pair.from.groupId)) {
                   idMap.set(pair.from.groupId, 'g:' + nanoid())
                 }
@@ -121,9 +126,7 @@ export class CopyTool {
           for (const point of asset.attrs.points) {
             if (Array.isArray(point.pairs)) {
               for (const pair of point.pairs) {
-                if (pair.id) {
-                  pair.id = 'pr:' + nanoid()
-                }
+                pair.id = idMap.get(pair.id)
 
                 if (idMap.has(pair.from.groupId)) {
                   pair.from.groupId = idMap.get(pair.from.groupId)
@@ -185,14 +188,25 @@ export class CopyTool {
         })
 
         // 拐点也需要偏移
-        if (Array.isArray(node.attrs.manualPoints)) {
-          node.setAttr(
-            'manualPoints',
-            node.attrs.manualPoints.map((o: { x: number; y: number }) => ({
-              x: o.x + this.render.toStageValue(this.render.bgSize) * this.pasteCount,
-              y: o.y + this.render.toStageValue(this.render.bgSize) * this.pasteCount
-            }))
-          )
+        if (node.attrs.manualPointsMap) {
+          const manualPointsMap = {} as Types.ManualPointsMap
+
+          // 替换 pairId
+          for(const pairId in node.attrs.manualPointsMap){
+            manualPointsMap[idMap.get(pairId)] = node.attrs.manualPointsMap[pairId]
+          }
+
+          for (const pairId in manualPointsMap) {
+            const manualPoints = manualPointsMap[pairId]
+            if (Array.isArray(manualPoints)) {
+              manualPointsMap[pairId] = manualPoints.map((o) => ({
+                x: o.x + this.render.toStageValue(this.render.bgSize) * this.pasteCount,
+                y: o.y + this.render.toStageValue(this.render.bgSize) * this.pasteCount
+              }))
+            }
+          }
+
+          node.setAttr('manualPointsMap', manualPointsMap)
         }
       }
     }

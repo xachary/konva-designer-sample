@@ -393,9 +393,9 @@ export class LinkDraw extends Types.BaseDraw implements Types.Draw {
       console.log('link draw')
     }
 
-    // TODO: 算法建模考虑所有子元素
+    // TODO: 算法建模考虑所有子元素（手动画折线可能更好用，缓一缓）
 
-    // TODO: 性能瓶颈
+    // TODO: 性能瓶颈，考虑持续缓存 pairs->groups->anchor，每当新增连接线、新增/改变拐点的时候刷新一次
 
     // 连接线
     for (const pair of pairs) {
@@ -420,11 +420,9 @@ export class LinkDraw extends Types.BaseDraw implements Types.Draw {
             const toAnchorPos = this.getAnchorPos(toAnchor)
 
             // 拐点（已拐）记录
-            const manualPoints: Array<{ x: number; y: number }> = Array.isArray(
-              fromGroup.getAttr('manualPoints')
-            )
-              ? fromGroup.getAttr('manualPoints')
-              : []
+            const manualPointsMap: Types.ManualPointsMap =
+              fromGroup.getAttr('manualPointsMap') ?? ({} as Types.ManualPointsMap)
+            const manualPoints = manualPointsMap[pair.id] ?? [] as Types.ManualPoint[]
 
             // 连接点 + 拐点
             const linkPoints = [
@@ -549,7 +547,8 @@ export class LinkDraw extends Types.BaseDraw implements Types.Draw {
                     x: this.render.toStageValue(pos.x - stageState.x),
                     y: this.render.toStageValue(pos.y - stageState.y)
                   })
-                  fromGroup.setAttr('manualPoints', manualPoints)
+                  manualPointsMap[pair.id] = manualPoints
+                  fromGroup.setAttr('manualPointsMap', manualPointsMap)
                 }
 
                 // 操作结束
@@ -666,7 +665,8 @@ export class LinkDraw extends Types.BaseDraw implements Types.Draw {
                     x: this.render.toStageValue(pos.x - stageState.x),
                     y: this.render.toStageValue(pos.y - stageState.y)
                   }
-                  fromGroup.setAttr('manualPoints', manualPoints)
+                  manualPointsMap[pair.id] = manualPoints
+                  fromGroup.setAttr('manualPointsMap', manualPointsMap)
                 }
 
                 // 操作结束

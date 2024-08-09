@@ -232,6 +232,35 @@ export class Render {
         // 移除已选择的节点
         this.remove(this.selectionTool.selectingNodes)
       } else {
+        // 移除相关联系线信息
+        const groupId = node.id()
+
+        for (const rn of this.layer.getChildren()) {
+          if (rn.id() !== groupId && Array.isArray(rn.attrs.points)) {
+            for (const point of rn.attrs.points) {
+              if (Array.isArray(point.pairs)) {
+                // 移除拐点记录
+                if (rn.attrs.manualPointsMap) {
+                  point.pairs
+                    .filter(
+                      (pair: Types.LinkDrawPair) =>
+                        pair.from.groupId === groupId || pair.to.groupId === groupId
+                    )
+                    .forEach((pair: Types.LinkDrawPair) => {
+                      rn.attrs.manualPointsMap[pair.id] = undefined
+                    })
+                }
+
+                // 连接线信息
+                point.pairs = point.pairs.filter(
+                  (pair: Types.LinkDrawPair) =>
+                    pair.from.groupId !== groupId && pair.to.groupId !== groupId
+                )
+              }
+            }
+          }
+        }
+
         // 移除未选择的节点
         node.destroy()
       }

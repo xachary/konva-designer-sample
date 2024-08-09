@@ -167,3 +167,12 @@ export interface LinkDrawPoint {
   y: number
   direction?: 'top' | 'bottom' | 'left' | 'right' // 人为定义连接点属于元素的什么方向
 }
+
+export interface ManualPoint {
+  x: number
+  y: number
+}
+
+export interface ManualPointsMap {
+  [index: string]: ManualPoint[]
+}

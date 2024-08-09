@@ -75,9 +75,10 @@ export class SelectionHandlers implements Types.Handler {
       // 必须成对移动才记录
       if (fromGroup && toGroup) {
         // 移动之前的 坐标
-        if (Array.isArray(fromGroup.attrs.manualPoints)) {
-          fromGroup.setAttr('manualPointsBefore', fromGroup.attrs.manualPoints)
-        }
+        fromGroup.setAttr(
+          'manualPointsMapBefore',
+          fromGroup.getAttr('manualPointsMap') ?? ({} as Types.ManualPointsMap)
+        )
       }
     }
   }
@@ -344,26 +345,40 @@ export class SelectionHandlers implements Types.Handler {
           // 必须成对移动才记录
           if (fromGroup && toGroup) {
             // 移动
-            if (
-              Array.isArray(fromGroup.attrs.manualPoints) &&
-              Array.isArray(fromGroup.attrs.manualPointsBefore)
-            ) {
-              fromGroup.setAttr(
-                'manualPoints',
-                isAttract
-                  ? fromGroup.attrs.manualPointsBefore.map((o: { x: number; y: number }) => ({
-                      x:
-                        o.x +
-                        this.render.toStageValue(transformerPos.x - this.transformerMousedownPos.x),
-                      y:
-                        o.y +
-                        this.render.toStageValue(transformerPos.y - this.transformerMousedownPos.y)
-                    }))
-                  : fromGroup.attrs.manualPointsBefore.map((o: { x: number; y: number }) => ({
-                      x: o.x + this.render.toStageValue(rect.x - this.transformerMousedownPos.x),
-                      y: o.y + this.render.toStageValue(rect.y - this.transformerMousedownPos.y)
-                    }))
-              )
+            if (fromGroup.attrs.manualPointsMap && fromGroup.attrs.manualPointsMapBefore) {
+              let manualPoints = fromGroup.attrs.manualPointsMap[pair.id]
+              const manualPointsBefore = fromGroup.attrs.manualPointsMapBefore[pair.id]
+              if (Array.isArray(manualPoints) && Array.isArray(manualPointsBefore)) {
+                manualPoints = isAttract
+                  ? manualPointsBefore.map(
+                      (o: Types.ManualPoint) =>
+                        ({
+                          x:
+                            o.x +
+                            this.render.toStageValue(
+                              transformerPos.x - this.transformerMousedownPos.x
+                            ),
+                          y:
+                            o.y +
+                            this.render.toStageValue(
+                              transformerPos.y - this.transformerMousedownPos.y
+                            )
+                        }) as Types.ManualPoint
+                    )
+                  : manualPointsBefore.map(
+                      (o: Types.ManualPoint) =>
+                        ({
+                          x:
+                            o.x + this.render.toStageValue(rect.x - this.transformerMousedownPos.x),
+                          y: o.y + this.render.toStageValue(rect.y - this.transformerMousedownPos.y)
+                        }) as Types.ManualPoint
+                    )
+
+                fromGroup.setAttr('manualPointsMap', {
+                  ...fromGroup.attrs.manualPointsMap,
+                  [pair.id]: manualPoints
+                })
+              }
             }
           }
         }
