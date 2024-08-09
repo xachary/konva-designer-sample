@@ -57,6 +57,29 @@ export class SelectionHandlers implements Types.Handler {
     // 记录 transformer pos
     const rect = this.render.transformer.findOne('.back')!.getClientRect()
     this.transformerMousedownPos = { x: rect.x, y: rect.y }
+
+    // 记录 拐点 移动之前的 坐标
+    const groups = this.render.transformer.nodes()
+
+    const points = groups.reduce((ps, group) => {
+      return ps.concat(Array.isArray(group.getAttr('points')) ? group.getAttr('points') : [])
+    }, [] as Types.LinkDrawPoint[])
+
+    const pairs = points.reduce((ps, point) => {
+      return ps.concat(point.pairs ? point.pairs.filter((o) => !o.disabled) : [])
+    }, [] as Types.LinkDrawPair[])
+
+    for (const pair of pairs) {
+      const fromGroup = groups.find((o) => o.id() === pair.from.groupId)
+      const toGroup = groups.find((o) => o.id() === pair.to.groupId)
+      // 必须成对移动才记录
+      if (fromGroup && toGroup) {
+        // 移动之前的 坐标
+        if (Array.isArray(fromGroup.attrs.manualPoints)) {
+          fromGroup.setAttr('manualPointsBefore', fromGroup.attrs.manualPoints)
+        }
+      }
+    }
   }
 
   // 重置
@@ -304,8 +327,49 @@ export class SelectionHandlers implements Types.Handler {
           })
         }
 
+        // 拐点也需要移动
+        const groups = this.render.transformer.nodes()
+
+        const points = groups.reduce((ps, group) => {
+          return ps.concat(Array.isArray(group.getAttr('points')) ? group.getAttr('points') : [])
+        }, [] as Types.LinkDrawPoint[])
+
+        const pairs = points.reduce((ps, point) => {
+          return ps.concat(point.pairs ? point.pairs.filter((o) => !o.disabled) : [])
+        }, [] as Types.LinkDrawPair[])
+
+        for (const pair of pairs) {
+          const fromGroup = groups.find((o) => o.id() === pair.from.groupId)
+          const toGroup = groups.find((o) => o.id() === pair.to.groupId)
+          // 必须成对移动才记录
+          if (fromGroup && toGroup) {
+            // 移动
+            if (
+              Array.isArray(fromGroup.attrs.manualPoints) &&
+              Array.isArray(fromGroup.attrs.manualPointsBefore)
+            ) {
+              fromGroup.setAttr(
+                'manualPoints',
+                isAttract
+                  ? fromGroup.attrs.manualPointsBefore.map((o: { x: number; y: number }) => ({
+                      x:
+                        o.x +
+                        this.render.toStageValue(transformerPos.x - this.transformerMousedownPos.x),
+                      y:
+                        o.y +
+                        this.render.toStageValue(transformerPos.y - this.transformerMousedownPos.y)
+                    }))
+                  : fromGroup.attrs.manualPointsBefore.map((o: { x: number; y: number }) => ({
+                      x: o.x + this.render.toStageValue(rect.x - this.transformerMousedownPos.x),
+                      y: o.y + this.render.toStageValue(rect.y - this.transformerMousedownPos.y)
+                    }))
+              )
+            }
+          }
+        }
+
         // 重绘
-        this.render.redraw([Draws.LinkDraw.name, Draws.PreviewDraw.name])
+        this.render.redraw([Draws.LinkDraw.name, Draws.RulerDraw.name, Draws.PreviewDraw.name])
       },
       dragend: () => {
         // 拖动结束
@@ -317,7 +381,7 @@ export class SelectionHandlers implements Types.Handler {
         this.render.updateHistory()
 
         // 重绘
-        this.render.redraw([Draws.LinkDraw.name, Draws.PreviewDraw.name])
+        this.render.redraw([Draws.LinkDraw.name, Draws.RulerDraw.name, Draws.PreviewDraw.name])
       },
       // 子节点 hover
       mousemove: () => {

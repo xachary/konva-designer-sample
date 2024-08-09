@@ -6,8 +6,6 @@ import * as Types from '../types'
 //
 import * as Draws from '../draws'
 
-import type { LinkDrawPoint } from '../draws/LinkDraw'
-
 export class DragOutsideHandlers implements Types.Handler {
   static readonly name = 'DragOutside'
 
@@ -134,7 +132,7 @@ export class DragOutsideHandlers implements Types.Handler {
                       visible: false,
                       pairs: [],
                       direction: o.direction
-                    }) as LinkDrawPoint
+                    }) as Types.LinkDrawPoint
                 )
               })
 

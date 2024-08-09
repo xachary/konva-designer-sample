@@ -433,6 +433,10 @@ export class Render {
       Draws.ContextmenuDraw.name // 更新右键菜单
     ]
 
+    // // 可以以此发现缺失的 draw
+    // console.log('redraw', drawNames)
+    // console.trace()
+
     if (Array.isArray(drawNames) && !this.debug) {
       // 选择性 draw 也要保持顺序
       for (const name of all) {

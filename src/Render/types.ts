@@ -22,6 +22,7 @@ export type RenderEvents = {
   ['debug-change']: boolean
   ['link-type-change']: LinkType
   ['scale-change']: number
+  ['loading']: boolean
 }
 
 export interface Handler {
@@ -136,4 +137,33 @@ export enum LinkType {
   'auto' = 'auto',
   'straight' = 'straight', // 直线
   'manual' = 'manual' // 手动折线
+}
+
+// 连接对
+export interface LinkDrawPair {
+  id: string
+  from: {
+    groupId: string
+    pointId: string
+    rawGroupId?: string // 预留
+  }
+  to: {
+    groupId: string
+    pointId: string
+    rawGroupId?: string // 预留
+  }
+  disabled?: boolean // 标记为 true，算法会忽略该 pair 的画线逻辑
+  linkType?: LinkType // 连接线类型
+}
+
+// 连接点
+export interface LinkDrawPoint {
+  id: string
+  groupId: string
+  rawGroupId?: string // 预留
+  visible: boolean
+  pairs: LinkDrawPair[]
+  x: number
+  y: number
+  direction?: 'top' | 'bottom' | 'left' | 'right' // 人为定义连接点属于元素的什么方向
 }

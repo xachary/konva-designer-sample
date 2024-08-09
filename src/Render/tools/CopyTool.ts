@@ -183,6 +183,17 @@ export class CopyTool {
           x: node.x() + this.render.toStageValue(this.render.bgSize) * this.pasteCount,
           y: node.y() + this.render.toStageValue(this.render.bgSize) * this.pasteCount
         })
+
+        // 拐点也需要偏移
+        if (Array.isArray(node.attrs.manualPoints)) {
+          node.setAttr(
+            'manualPoints',
+            node.attrs.manualPoints.map((o: { x: number; y: number }) => ({
+              x: o.x + this.render.toStageValue(this.render.bgSize) * this.pasteCount,
+              y: o.y + this.render.toStageValue(this.render.bgSize) * this.pasteCount
+            }))
+          )
+        }
       }
     }
   }

@@ -302,9 +302,7 @@ export class AttractTool {
         ].sort((a, b) => a.value - b.value)) {
           if (diff.value < 5) {
             if (diff.type === 'stageRightX') {
-              console.log(1, newPosX)
               newPosX = this.render.toBoardValue(logicStageRightX) + stageState.x - width
-              console.log(2, newPosX)
             } else if (diff.type === 'leftX') {
               newPosX = this.render.toBoardValue(logicClosestLeftX) + stageState.x
             } else if (diff.type === 'rightX') {

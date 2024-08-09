@@ -3,8 +3,7 @@ import Konva from 'konva'
 //
 import { Render } from '../index'
 
-import type { LinkDrawPair, LinkDrawPoint } from '../draws/LinkDraw'
-
+import * as Types from '../types'
 import * as Draws from '../draws'
 
 export class LinkTool {
@@ -48,10 +47,10 @@ export class LinkTool {
     if (groupId && pointId && pairId) {
       const group = this.render.layer.findOne(`#${groupId}`) as Konva.Group
       if (group) {
-        const points = (group.getAttr('points') ?? []) as LinkDrawPoint[]
+        const points = (group.getAttr('points') ?? []) as Types.LinkDrawPoint[]
         const point = points.find((o) => o.id === pointId)
         if (point) {
-          const pairIndex = (point.pairs ?? ([] as LinkDrawPair[])).findIndex(
+          const pairIndex = (point.pairs ?? ([] as Types.LinkDrawPair[])).findIndex(
             (o) => o.id === pairId
           )
           if (pairIndex > -1) {
