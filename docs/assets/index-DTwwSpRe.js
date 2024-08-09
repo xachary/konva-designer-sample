@@ -1683,7 +1683,7 @@ function renderComponentRoot(instance) {
     slots,
     attrs,
     emit: emit2,
-    render: render16,
+    render: render17,
     renderCache,
     data,
     setupState,
@@ -1707,7 +1707,7 @@ function renderComponentRoot(instance) {
         }
       }) : proxyToUse;
       result2 = normalizeVNode(
-        render16.call(
+        render17.call(
           thisProxy,
           proxyToUse,
           renderCache,
@@ -2791,7 +2791,7 @@ function applyOptions(instance) {
     beforeUnmount,
     destroyed,
     unmounted,
-    render: render16,
+    render: render17,
     renderTracked,
     renderTriggered,
     errorCaptured,
@@ -2890,8 +2890,8 @@ function applyOptions(instance) {
       instance.exposed = {};
     }
   }
-  if (render16 && instance.render === NOOP) {
-    instance.render = render16;
+  if (render17 && instance.render === NOOP) {
+    instance.render = render17;
   }
   if (inheritAttrs != null) {
     instance.inheritAttrs = inheritAttrs;
@@ -3122,7 +3122,7 @@ function createAppContext() {
   };
 }
 let uid$1 = 0;
-function createAppAPI(render16, hydrate) {
+function createAppAPI(render17, hydrate) {
   return function createApp2(rootComponent, rootProps = null) {
     if (!isFunction$1(rootComponent)) {
       rootComponent = extend$1({}, rootComponent);
@@ -3193,7 +3193,7 @@ function createAppAPI(render16, hydrate) {
           if (isHydrate && hydrate) {
             hydrate(vnode, rootContainer);
           } else {
-            render16(vnode, rootContainer, namespace2);
+            render17(vnode, rootContainer, namespace2);
           }
           isMounted2 = true;
           app._container = rootContainer;
@@ -3203,7 +3203,7 @@ function createAppAPI(render16, hydrate) {
       },
       unmount() {
         if (isMounted2) {
-          render16(null, app._container);
+          render17(null, app._container);
           delete app._container.__vue_app__;
         }
       },
@@ -4951,7 +4951,7 @@ function baseCreateRenderer(options, createHydrationFns) {
     return hostNextSibling(vnode.anchor || vnode.el);
   };
   let isFlushing2 = false;
-  const render16 = (vnode, container, namespace2) => {
+  const render17 = (vnode, container, namespace2) => {
     if (vnode == null) {
       if (container._vnode) {
         unmount2(container._vnode, null, null, true);
@@ -4995,9 +4995,9 @@ function baseCreateRenderer(options, createHydrationFns) {
     );
   }
   return {
-    render: render16,
+    render: render17,
     hydrate,
-    createApp: createAppAPI(render16, hydrate)
+    createApp: createAppAPI(render17, hydrate)
   };
 }
 function resolveChildrenNamespace({ type, props }, currentNamespace) {
@@ -12965,7 +12965,7 @@ var Global = {};
   exports2.glob = typeof commonjsGlobal !== "undefined" ? commonjsGlobal : typeof window !== "undefined" ? window : typeof WorkerGlobalScope !== "undefined" ? self : {};
   exports2.Konva = {
     _global: exports2.glob,
-    version: "9.3.6",
+    version: "9.3.14",
     isBrowser: detectBrowser(),
     isUnminified: /param/.test((function(param) {
     }).toString()),
@@ -12987,6 +12987,7 @@ var Global = {};
     _mouseDblClickPointerId: null,
     _touchDblClickPointerId: null,
     _pointerDblClickPointerId: null,
+    _fixTextRendering: false,
     pixelRatio: typeof window !== "undefined" && window.devicePixelRatio || 1,
     dragDistance: 3,
     angleDeg: true,
@@ -16905,6 +16906,7 @@ PointerEvents.releaseCapture = releaseCapture;
         DragAndDrop_12.DD.justDragged = false;
         Global_12.Konva["_" + eventType + "ListenClick"] = true;
         if (!shape || !shape.isListening()) {
+          this[eventType + "ClickStartShape"] = void 0;
           return;
         }
         if (Global_12.Konva.capturePointerEventsEnabled) {
@@ -17202,6 +17204,13 @@ PointerEvents.releaseCapture = releaseCapture;
   Stage2.prototype.nodeType = STAGE2;
   (0, Global_22._registerNode)(Stage2);
   Factory_12.Factory.addGetterSetter(Stage2, "container");
+  if (Global_12.Konva.isBrowser) {
+    document.addEventListener("visibilitychange", () => {
+      exports2.stages.forEach((stage) => {
+        stage.batchDraw();
+      });
+    });
+  }
 })(Stage);
 var Layer$1 = {};
 var Shape = {};
@@ -17241,7 +17250,12 @@ var Shape = {};
     context.stroke();
   }
   function _fillFuncHit(context) {
-    context.fill();
+    const fillRule = this.attrs.fillRule;
+    if (fillRule) {
+      context.fill(fillRule);
+    } else {
+      context.fill();
+    }
   }
   function _strokeFuncHit(context) {
     context.stroke();
@@ -17454,8 +17468,17 @@ var Shape = {};
       };
     }
     getClientRect(config = {}) {
+      let hasCachedParent = false;
+      let parent2 = this.getParent();
+      while (parent2) {
+        if (parent2.isCached()) {
+          hasCachedParent = true;
+          break;
+        }
+        parent2 = parent2.getParent();
+      }
       const skipTransform = config.skipTransform;
-      const relativeTo = config.relativeTo;
+      const relativeTo = config.relativeTo || hasCachedParent && this.getStage() || void 0;
       const fillRect = this.getSelfRect();
       const applyStroke = !config.skipStroke && this.hasStroke();
       const strokeWidth = applyStroke && this.strokeWidth() || 0;
@@ -18696,7 +18719,7 @@ const Factory_1$v = Factory;
 const Shape_1$f = Shape;
 const Global_1$g = Global;
 const Validators_1$u = Validators;
-const Global_2$2 = Global;
+const Global_2$3 = Global;
 class Arc extends Shape_1$f.Shape {
   _sceneFunc(context) {
     var angle = Global_1$g.Konva.getAngle(this.angle()), clockwise = this.clockwise();
@@ -18743,7 +18766,7 @@ Arc$1.Arc = Arc;
 Arc.prototype._centroid = true;
 Arc.prototype.className = "Arc";
 Arc.prototype._attrsAffectingSize = ["innerRadius", "outerRadius"];
-(0, Global_2$2._registerNode)(Arc);
+(0, Global_2$3._registerNode)(Arc);
 Factory_1$v.Factory.addGetterSetter(Arc, "innerRadius", 0, (0, Validators_1$u.getNumberValidator)());
 Factory_1$v.Factory.addGetterSetter(Arc, "outerRadius", 0, (0, Validators_1$u.getNumberValidator)());
 Factory_1$v.Factory.addGetterSetter(Arc, "angle", 0, (0, Validators_1$u.getNumberValidator)());
@@ -19877,49 +19900,29 @@ class Path extends Shape_1$d.Shape {
     return null;
   }
   static getPointOnLine(dist, P1x, P1y, P2x, P2y, fromX, fromY) {
-    if (fromX === void 0) {
-      fromX = P1x;
+    fromX = fromX !== null && fromX !== void 0 ? fromX : P1x;
+    fromY = fromY !== null && fromY !== void 0 ? fromY : P1y;
+    const len = this.getLineLength(P1x, P1y, P2x, P2y);
+    if (len < 1e-10) {
+      return { x: P1x, y: P1y };
     }
-    if (fromY === void 0) {
-      fromY = P1y;
-    }
-    var m = (P2y - P1y) / (P2x - P1x + 1e-8);
-    var run = Math.sqrt(dist * dist / (1 + m * m));
-    if (P2x < P1x) {
-      run *= -1;
-    }
-    var rise = m * run;
-    var pt;
     if (P2x === P1x) {
-      pt = {
-        x: fromX,
-        y: fromY + rise
-      };
-    } else if ((fromY - P1y) / (fromX - P1x + 1e-8) === m) {
-      pt = {
-        x: fromX + run,
-        y: fromY + rise
-      };
-    } else {
-      var ix, iy;
-      var len = this.getLineLength(P1x, P1y, P2x, P2y);
-      var u = (fromX - P1x) * (P2x - P1x) + (fromY - P1y) * (P2y - P1y);
-      u = u / (len * len);
-      ix = P1x + u * (P2x - P1x);
-      iy = P1y + u * (P2y - P1y);
-      var pRise = this.getLineLength(fromX, fromY, ix, iy);
-      var pRun = Math.sqrt(dist * dist - pRise * pRise);
-      run = Math.sqrt(pRun * pRun / (1 + m * m));
-      if (P2x < P1x) {
-        run *= -1;
-      }
-      rise = m * run;
-      pt = {
-        x: ix + run,
-        y: iy + rise
-      };
+      return { x: fromX, y: fromY + (P2y > P1y ? dist : -dist) };
     }
-    return pt;
+    const m = (P2y - P1y) / (P2x - P1x);
+    const run = Math.sqrt(dist * dist / (1 + m * m)) * (P2x < P1x ? -1 : 1);
+    const rise = m * run;
+    if (Math.abs(fromY - P1y - m * (fromX - P1x)) < 1e-10) {
+      return { x: fromX + run, y: fromY + rise };
+    }
+    const u = ((fromX - P1x) * (P2x - P1x) + (fromY - P1y) * (P2y - P1y)) / (len * len);
+    const ix = P1x + u * (P2x - P1x);
+    const iy = P1y + u * (P2y - P1y);
+    const pRise = this.getLineLength(fromX, fromY, ix, iy);
+    const pRun = Math.sqrt(dist * dist - pRise * pRise);
+    const adjustedRun = Math.sqrt(pRun * pRun / (1 + m * m)) * (P2x < P1x ? -1 : 1);
+    const adjustedRise = m * adjustedRun;
+    return { x: ix + adjustedRun, y: iy + adjustedRise };
   }
   static getPointOnCubicBezier(pct, P1x, P1y, P2x, P2y, P3x, P3y, P4x, P4y) {
     function CB1(t) {
@@ -20523,6 +20526,11 @@ let Image$1 = class Image2 extends Shape_1$a.Shape {
     }
   }
   _useBufferCanvas() {
+    const hasCornerRadius = !!this.cornerRadius();
+    const hasShadow = this.hasShadow();
+    if (hasCornerRadius && hasShadow) {
+      return true;
+    }
     return super._useBufferCanvas(true);
   }
   _sceneFunc(context) {
@@ -21063,8 +21071,9 @@ Text$1.Text = Text$1.stringToArray = void 0;
 const Util_1$5 = Util;
 const Factory_1$i = Factory;
 const Shape_1$3 = Shape;
-const Validators_1$i = Validators;
 const Global_1$3 = Global;
+const Validators_1$i = Validators;
+const Global_2$2 = Global;
 function stringToArray(string2) {
   return Array.from(string2);
 }
@@ -21136,15 +21145,20 @@ class Text extends Shape_1$3.Shape {
     }
     var padding = this.padding(), fontSize2 = this.fontSize(), lineHeightPx = this.lineHeight() * fontSize2, verticalAlign = this.verticalAlign(), direction = this.direction(), alignY = 0, align = this.align(), totalWidth = this.getWidth(), letterSpacing = this.letterSpacing(), fill2 = this.fill(), textDecoration = this.textDecoration(), shouldUnderline = textDecoration.indexOf("underline") !== -1, shouldLineThrough = textDecoration.indexOf("line-through") !== -1, n;
     direction = direction === INHERIT ? context.direction : direction;
-    var translateY = 0;
     var translateY = lineHeightPx / 2;
+    var baseline = MIDDLE;
+    if (Global_1$3.Konva._fixTextRendering) {
+      var metrics = this.measureSize("M");
+      baseline = "alphabetic";
+      translateY = (metrics.fontBoundingBoxAscent - metrics.fontBoundingBoxDescent) / 2 + lineHeightPx / 2;
+    }
     var lineTranslateX = 0;
     var lineTranslateY = 0;
     if (direction === RTL) {
       context.setAttr("direction", direction);
     }
     context.setAttr("font", this._getContextFont());
-    context.setAttr("textBaseline", MIDDLE);
+    context.setAttr("textBaseline", baseline);
     context.setAttr("textAlign", LEFT);
     if (verticalAlign === MIDDLE) {
       alignY = (this.getHeight() - textArrLen * lineHeightPx - padding * 2) / 2;
@@ -21165,11 +21179,14 @@ class Text extends Shape_1$3.Shape {
       if (shouldUnderline) {
         context.save();
         context.beginPath();
-        context.moveTo(lineTranslateX, translateY + lineTranslateY + Math.round(fontSize2 / 2));
+        let yOffset = Global_1$3.Konva._fixTextRendering ? Math.round(fontSize2 / 4) : Math.round(fontSize2 / 2);
+        const x = lineTranslateX;
+        const y = translateY + lineTranslateY + yOffset;
+        context.moveTo(x, y);
         spacesNumber = text.split(" ").length - 1;
         oneWord = spacesNumber === 0;
         lineWidth = align === JUSTIFY && !lastLine ? totalWidth - padding * 2 : width;
-        context.lineTo(lineTranslateX + Math.round(lineWidth), translateY + lineTranslateY + Math.round(fontSize2 / 2));
+        context.lineTo(x + Math.round(lineWidth), y);
         context.lineWidth = fontSize2 / 15;
         const gradient = this._getLinearGradient();
         context.strokeStyle = gradient || fill2;
@@ -21179,11 +21196,12 @@ class Text extends Shape_1$3.Shape {
       if (shouldLineThrough) {
         context.save();
         context.beginPath();
-        context.moveTo(lineTranslateX, translateY + lineTranslateY);
+        let yOffset = Global_1$3.Konva._fixTextRendering ? -Math.round(fontSize2 / 4) : 0;
+        context.moveTo(lineTranslateX, translateY + lineTranslateY + yOffset);
         spacesNumber = text.split(" ").length - 1;
         oneWord = spacesNumber === 0;
         lineWidth = align === JUSTIFY && lastLine && !oneWord ? totalWidth - padding * 2 : width;
-        context.lineTo(lineTranslateX + Math.round(lineWidth), translateY + lineTranslateY);
+        context.lineTo(lineTranslateX + Math.round(lineWidth), translateY + lineTranslateY + yOffset);
         context.lineWidth = fontSize2 / 15;
         const gradient = this._getLinearGradient();
         context.strokeStyle = gradient || fill2;
@@ -21247,12 +21265,25 @@ class Text extends Shape_1$3.Shape {
     return this.textHeight;
   }
   measureSize(text) {
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l;
     var _context = getDummyContext(), fontSize2 = this.fontSize(), metrics;
     _context.save();
     _context.font = this._getContextFont();
     metrics = _context.measureText(text);
     _context.restore();
+    const scaleFactor = fontSize2 / 100;
     return {
+      actualBoundingBoxAscent: (_a = metrics.actualBoundingBoxAscent) !== null && _a !== void 0 ? _a : 71.58203125 * scaleFactor,
+      actualBoundingBoxDescent: (_b = metrics.actualBoundingBoxDescent) !== null && _b !== void 0 ? _b : 0,
+      actualBoundingBoxLeft: (_c = metrics.actualBoundingBoxLeft) !== null && _c !== void 0 ? _c : -7.421875 * scaleFactor,
+      actualBoundingBoxRight: (_d = metrics.actualBoundingBoxRight) !== null && _d !== void 0 ? _d : 75.732421875 * scaleFactor,
+      alphabeticBaseline: (_e = metrics.alphabeticBaseline) !== null && _e !== void 0 ? _e : 0,
+      emHeightAscent: (_f = metrics.emHeightAscent) !== null && _f !== void 0 ? _f : 100 * scaleFactor,
+      emHeightDescent: (_g = metrics.emHeightDescent) !== null && _g !== void 0 ? _g : -20 * scaleFactor,
+      fontBoundingBoxAscent: (_h = metrics.fontBoundingBoxAscent) !== null && _h !== void 0 ? _h : 91 * scaleFactor,
+      fontBoundingBoxDescent: (_j = metrics.fontBoundingBoxDescent) !== null && _j !== void 0 ? _j : 21 * scaleFactor,
+      hangingBaseline: (_k = metrics.hangingBaseline) !== null && _k !== void 0 ? _k : 72.80000305175781 * scaleFactor,
+      ideographicBaseline: (_l = metrics.ideographicBaseline) !== null && _l !== void 0 ? _l : -21 * scaleFactor,
       width: metrics.width,
       height: fontSize2
     };
@@ -21399,7 +21430,7 @@ Text.prototype._attrsAffectingSize = [
   "lineHeight",
   "letterSpacing"
 ];
-(0, Global_1$3._registerNode)(Text);
+(0, Global_2$2._registerNode)(Text);
 Factory_1$i.Factory.overWriteSetter(Text, "width", (0, Validators_1$i.getNumberOrAutoValidator)());
 Factory_1$i.Factory.overWriteSetter(Text, "height", (0, Validators_1$i.getNumberOrAutoValidator)());
 Factory_1$i.Factory.addGetterSetter(Text, "direction", INHERIT);
@@ -22078,6 +22109,9 @@ class Transformer extends Group_1.Group {
     });
   }
   _handleMouseDown(e) {
+    if (this._transforming) {
+      return;
+    }
     this._movingAnchorName = e.target.name().split(" ")[0];
     var attrs = this._getNodeRect();
     var width = attrs.width;
@@ -24256,11 +24290,11 @@ var MouseButton = /* @__PURE__ */ ((MouseButton2) => {
   return MouseButton2;
 })(MouseButton || {});
 class BaseDraw {
-  constructor(render16, layer) {
+  constructor(render17, layer) {
     __publicField(this, "render");
     __publicField(this, "layer");
     __publicField(this, "group");
-    this.render = render16;
+    this.render = render17;
     this.layer = layer;
     this.group = new Konva.Group();
   }
@@ -24311,8 +24345,8 @@ var LinkType = /* @__PURE__ */ ((LinkType2) => {
   return LinkType2;
 })(LinkType || {});
 class BgDraw extends BaseDraw {
-  constructor(render16, layer, option) {
-    super(render16, layer);
+  constructor(render17, layer, option) {
+    super(render17, layer);
     __publicField(this, "option");
     this.option = option;
     this.group.listening(false);
@@ -24380,8 +24414,8 @@ class BgDraw extends BaseDraw {
 }
 __publicField(BgDraw, "name", "bg");
 class RulerDraw extends BaseDraw {
-  constructor(render16, layer, option) {
-    super(render16, layer);
+  constructor(render17, layer, option) {
+    super(render17, layer);
     __publicField(this, "option");
     this.option = option;
     this.group.listening(false);
@@ -24542,8 +24576,8 @@ class RulerDraw extends BaseDraw {
 }
 __publicField(RulerDraw, "name", "ruler");
 class RefLineDraw extends BaseDraw {
-  constructor(render16, layer, option) {
-    super(render16, layer);
+  constructor(render17, layer, option) {
+    super(render17, layer);
     __publicField(this, "option");
     __publicField(this, "handlers", {
       dom: {
@@ -24612,8 +24646,8 @@ class RefLineDraw extends BaseDraw {
 }
 __publicField(RefLineDraw, "name", "refLine");
 class ContextmenuDraw extends BaseDraw {
-  constructor(render16, layer, option) {
-    super(render16, layer);
+  constructor(render17, layer, option) {
+    super(render17, layer);
     __publicField(this, "option");
     __publicField(this, "state");
     __publicField(this, "handlers", {
@@ -24885,8 +24919,8 @@ class ContextmenuDraw extends BaseDraw {
 }
 __publicField(ContextmenuDraw, "name", "contextmenu");
 class PreviewDraw extends BaseDraw {
-  constructor(render16, layer, option) {
-    super(render16, layer);
+  constructor(render17, layer, option) {
+    super(render17, layer);
     __publicField(this, "option");
     __publicField(this, "state", {
       moving: false
@@ -25204,8 +25238,8 @@ function aStar(config) {
   }
 }
 const _LinkDraw = class _LinkDraw extends BaseDraw {
-  constructor(render16, layer, option) {
-    super(render16, layer);
+  constructor(render17, layer, option) {
+    super(render17, layer);
     __publicField(this, "option");
     __publicField(this, "state", {
       linkingLine: null,
@@ -25509,9 +25543,8 @@ const _LinkDraw = class _LinkDraw extends BaseDraw {
             const toAnchor = toGroup.findOne(`#${toPoint.id}`);
             const fromAnchorPos = this.getAnchorPos(fromAnchor);
             const toAnchorPos = this.getAnchorPos(toAnchor);
-            const manualPoints = Array.isArray(
-              fromGroup.getAttr("manualPoints")
-            ) ? fromGroup.getAttr("manualPoints") : [];
+            const manualPointsMap = fromGroup.getAttr("manualPointsMap") ?? {};
+            const manualPoints = manualPointsMap[pair.id] ?? [];
             const linkPoints = [
               [
                 this.render.toStageValue(fromAnchorPos.x),
@@ -25602,7 +25635,8 @@ const _LinkDraw = class _LinkDraw extends BaseDraw {
                     x: this.render.toStageValue(pos.x - stageState2.x),
                     y: this.render.toStageValue(pos.y - stageState2.y)
                   });
-                  fromGroup.setAttr("manualPoints", manualPoints);
+                  manualPointsMap[pair.id] = manualPoints;
+                  fromGroup.setAttr("manualPointsMap", manualPointsMap);
                 }
                 circle.setAttrs({
                   dragStart: false
@@ -25682,7 +25716,8 @@ const _LinkDraw = class _LinkDraw extends BaseDraw {
                     x: this.render.toStageValue(pos.x - stageState2.x),
                     y: this.render.toStageValue(pos.y - stageState2.y)
                   };
-                  fromGroup.setAttr("manualPoints", manualPoints);
+                  manualPointsMap[pair.id] = manualPoints;
+                  fromGroup.setAttr("manualPointsMap", manualPointsMap);
                 }
                 circle.setAttrs({
                   dragStart: false
@@ -25904,7 +25939,9 @@ const _LinkDraw = class _LinkDraw extends BaseDraw {
                 }
               }
               if (matrixStart && matrixEnd) {
-                console.log("算法起点", matrixStart, "算法终点", matrixEnd);
+                if (this.render.debug) {
+                  console.log("算法起点", matrixStart, "算法终点", matrixEnd);
+                }
                 const way = aStar({
                   from: matrixStart,
                   to: matrixEnd,
@@ -26049,8 +26086,8 @@ const _LinkDraw = class _LinkDraw extends BaseDraw {
 __publicField(_LinkDraw, "name", "Link");
 let LinkDraw = _LinkDraw;
 class AttractDraw extends BaseDraw {
-  constructor(render16, layer, option) {
-    super(render16, layer);
+  constructor(render17, layer, option) {
+    super(render17, layer);
     __publicField(this, "option");
     __publicField(this, "on", {});
     this.option = option;
@@ -26108,7 +26145,7 @@ class AttractDraw extends BaseDraw {
 }
 __publicField(AttractDraw, "name", "Attract");
 class DragHandlers {
-  constructor(render16) {
+  constructor(render17) {
     __publicField(this, "render");
     // 右键是否按下
     __publicField(this, "mousedownRight", false);
@@ -26152,12 +26189,12 @@ class DragHandlers {
         }
       }
     });
-    this.render = render16;
+    this.render = render17;
   }
 }
 __publicField(DragHandlers, "name", "Drag");
 class ZoomHandlers {
-  constructor(render16) {
+  constructor(render17) {
     __publicField(this, "render");
     // zoom 速度
     __publicField(this, "scaleBy", 0.1);
@@ -26196,12 +26233,12 @@ class ZoomHandlers {
         }
       }
     });
-    this.render = render16;
+    this.render = render17;
   }
 }
 __publicField(ZoomHandlers, "name", "Zoom");
 class DragOutsideHandlers {
-  constructor(render16) {
+  constructor(render17) {
     __publicField(this, "render");
     __publicField(this, "handlers", {
       dom: {
@@ -26330,12 +26367,12 @@ class DragOutsideHandlers {
         }
       }
     });
-    this.render = render16;
+    this.render = render17;
   }
 }
 __publicField(DragOutsideHandlers, "name", "DragOutside");
 class SelectionHandlers {
-  constructor(render16) {
+  constructor(render17) {
     __publicField(this, "render");
     // selectRect 拉动的开始和结束坐标
     __publicField(this, "selectRectStartX", 0);
@@ -26514,12 +26551,50 @@ class SelectionHandlers {
               y: this.render.toStageValue(transformerPos.y - this.transformerMousedownPos.y)
             });
           }
-          this.render.redraw([LinkDraw.name, PreviewDraw.name]);
+          const groups = this.render.transformer.nodes();
+          const points = groups.reduce((ps, group) => {
+            return ps.concat(Array.isArray(group.getAttr("points")) ? group.getAttr("points") : []);
+          }, []);
+          const pairs = points.reduce((ps, point) => {
+            return ps.concat(point.pairs ? point.pairs.filter((o) => !o.disabled) : []);
+          }, []);
+          for (const pair of pairs) {
+            const fromGroup = groups.find((o) => o.id() === pair.from.groupId);
+            const toGroup = groups.find((o) => o.id() === pair.to.groupId);
+            if (fromGroup && toGroup) {
+              if (fromGroup.attrs.manualPointsMap && fromGroup.attrs.manualPointsMapBefore) {
+                let manualPoints = fromGroup.attrs.manualPointsMap[pair.id];
+                const manualPointsBefore = fromGroup.attrs.manualPointsMapBefore[pair.id];
+                if (Array.isArray(manualPoints) && Array.isArray(manualPointsBefore)) {
+                  manualPoints = isAttract ? manualPointsBefore.map(
+                    (o) => ({
+                      x: o.x + this.render.toStageValue(
+                        transformerPos.x - this.transformerMousedownPos.x
+                      ),
+                      y: o.y + this.render.toStageValue(
+                        transformerPos.y - this.transformerMousedownPos.y
+                      )
+                    })
+                  ) : manualPointsBefore.map(
+                    (o) => ({
+                      x: o.x + this.render.toStageValue(rect.x - this.transformerMousedownPos.x),
+                      y: o.y + this.render.toStageValue(rect.y - this.transformerMousedownPos.y)
+                    })
+                  );
+                  fromGroup.setAttr("manualPointsMap", {
+                    ...fromGroup.attrs.manualPointsMap,
+                    [pair.id]: manualPoints
+                  });
+                }
+              }
+            }
+          }
+          this.render.redraw([LinkDraw.name, RulerDraw.name, PreviewDraw.name]);
         },
         dragend: () => {
           this.reset();
           this.render.updateHistory();
-          this.render.redraw([LinkDraw.name, PreviewDraw.name]);
+          this.render.redraw([LinkDraw.name, RulerDraw.name, PreviewDraw.name]);
         },
         // 子节点 hover
         mousemove: () => {
@@ -26597,7 +26672,7 @@ class SelectionHandlers {
         return newPos;
       }
     });
-    this.render = render16;
+    this.render = render17;
   }
   // 对齐线清除
   alignLinesClear() {
@@ -26626,6 +26701,23 @@ class SelectionHandlers {
   transformerStateReset() {
     const rect = this.render.transformer.findOne(".back").getClientRect();
     this.transformerMousedownPos = { x: rect.x, y: rect.y };
+    const groups = this.render.transformer.nodes();
+    const points = groups.reduce((ps, group) => {
+      return ps.concat(Array.isArray(group.getAttr("points")) ? group.getAttr("points") : []);
+    }, []);
+    const pairs = points.reduce((ps, point) => {
+      return ps.concat(point.pairs ? point.pairs.filter((o) => !o.disabled) : []);
+    }, []);
+    for (const pair of pairs) {
+      const fromGroup = groups.find((o) => o.id() === pair.from.groupId);
+      const toGroup = groups.find((o) => o.id() === pair.to.groupId);
+      if (fromGroup && toGroup) {
+        fromGroup.setAttr(
+          "manualPointsMapBefore",
+          fromGroup.getAttr("manualPointsMap") ?? {}
+        );
+      }
+    }
   }
   // 重置
   reset() {
@@ -26636,7 +26728,7 @@ class SelectionHandlers {
 }
 __publicField(SelectionHandlers, "name", "Selection");
 class KeyMoveHandlers {
-  constructor(render16) {
+  constructor(render17) {
     __publicField(this, "render");
     __publicField(this, "speed", 1);
     __publicField(this, "speedMax", 20);
@@ -26675,12 +26767,12 @@ class KeyMoveHandlers {
         }
       }
     });
-    this.render = render16;
+    this.render = render17;
   }
 }
 __publicField(KeyMoveHandlers, "name", "KeyMove");
 class ShutcutHandlers {
-  constructor(render16) {
+  constructor(render17) {
     __publicField(this, "render");
     __publicField(this, "handlers", {
       dom: {
@@ -26709,12 +26801,12 @@ class ShutcutHandlers {
         }
       }
     });
-    this.render = render16;
+    this.render = render17;
   }
 }
 __publicField(ShutcutHandlers, "name", "Shutcut");
 class LinkHandlers {
-  constructor(render16) {
+  constructor(render17) {
     __publicField(this, "render");
     __publicField(this, "handlers", {
       stage: {
@@ -26745,15 +26837,15 @@ class LinkHandlers {
         }
       }
     });
-    this.render = render16;
+    this.render = render17;
   }
 }
 __publicField(LinkHandlers, "name", "Link");
 const gifler = window.gifler;
 class AssetTool {
-  constructor(render16) {
+  constructor(render17) {
     __publicField(this, "render");
-    this.render = render16;
+    this.render = render17;
   }
   // 加载 svg xml
   async loadSvgXML(svgXML) {
@@ -26876,11 +26968,11 @@ class AssetTool {
 }
 __publicField(AssetTool, "name", "AssetTool");
 class SelectionTool {
-  constructor(render16) {
+  constructor(render17) {
     __publicField(this, "render");
     // 【被选中的】
     __publicField(this, "selectingNodes", []);
-    this.render = render16;
+    this.render = render17;
   }
   // 清空已选
   selectingClear() {
@@ -26921,7 +27013,7 @@ class SelectionTool {
           return !this.render.ignore(node);
         }).map((o) => o.zIndex())
       );
-      for (const node of nodes) {
+      for (const node of nodes.sort((a, b) => a.zIndex() - b.zIndex())) {
         node.setAttrs({
           nodeMousedownPos: node.position(),
           // 后面用于移动所选
@@ -26930,16 +27022,14 @@ class SelectionTool {
           lastZIndex: node.zIndex(),
           // 记录原有的层次，后面暂时提升所选节点的层次
           selectingZIndex: void 0,
-          selected: true
+          selected: true,
           // 选择中
-        });
-        this.render.linkTool.pointsVisible(false, node);
-      }
-      for (const node of nodes.sort((a, b) => a.zIndex() - b.zIndex())) {
-        node.setAttrs({
           listening: false,
+          // 不可交互
           opacity: node.opacity() * 0.8,
+          // 设置透明度
           zIndex: maxZIndex
+          // 提升层次
         });
       }
       this.selectingNodes = nodes;
@@ -26961,13 +27051,13 @@ class SelectionTool {
 }
 __publicField(SelectionTool, "name", "SelectionTool");
 class CopyTool {
-  constructor(render16) {
+  constructor(render17) {
     __publicField(this, "render");
     // 复制暂存
     __publicField(this, "pasteCache", []);
     // 粘贴次数（用于定义新节点的偏移距离）
     __publicField(this, "pasteCount", 1);
-    this.render = render16;
+    this.render = render17;
   }
   // 复制
   pasteStart() {
@@ -27007,6 +27097,9 @@ class CopyTool {
           for (const point of asset.attrs.points) {
             if (Array.isArray(point.pairs)) {
               for (const pair of point.pairs) {
+                if (!idMap.has(pair.id)) {
+                  idMap.set(pair.id, "pr:" + nanoid());
+                }
                 if (pair.from.groupId && !idMap.has(pair.from.groupId)) {
                   idMap.set(pair.from.groupId, "g:" + nanoid());
                 }
@@ -27055,9 +27148,7 @@ class CopyTool {
           for (const point of asset.attrs.points) {
             if (Array.isArray(point.pairs)) {
               for (const pair of point.pairs) {
-                if (pair.id) {
-                  pair.id = "pr:" + nanoid();
-                }
+                pair.id = idMap.get(pair.id);
                 if (idMap.has(pair.from.groupId)) {
                   pair.from.groupId = idMap.get(pair.from.groupId);
                 }
@@ -27106,6 +27197,22 @@ class CopyTool {
           x: node.x() + this.render.toStageValue(this.render.bgSize) * this.pasteCount,
           y: node.y() + this.render.toStageValue(this.render.bgSize) * this.pasteCount
         });
+        if (node.attrs.manualPointsMap) {
+          const manualPointsMap = {};
+          for (const pairId in node.attrs.manualPointsMap) {
+            manualPointsMap[idMap.get(pairId)] = node.attrs.manualPointsMap[pairId];
+          }
+          for (const pairId in manualPointsMap) {
+            const manualPoints = manualPointsMap[pairId];
+            if (Array.isArray(manualPoints)) {
+              manualPointsMap[pairId] = manualPoints.map((o) => ({
+                x: o.x + this.render.toStageValue(this.render.bgSize) * this.pasteCount,
+                y: o.y + this.render.toStageValue(this.render.bgSize) * this.pasteCount
+              }));
+            }
+          }
+          node.setAttr("manualPointsMap", manualPointsMap);
+        }
       }
     }
   }
@@ -27141,9 +27248,9 @@ class CopyTool {
 }
 __publicField(CopyTool, "name", "CopyTool");
 class PositionTool {
-  constructor(render16) {
+  constructor(render17) {
     __publicField(this, "render");
-    this.render = render16;
+    this.render = render17;
   }
   // 恢复位置大小
   positionZoomReset() {
@@ -27200,9 +27307,9 @@ class PositionTool {
 }
 __publicField(PositionTool, "name", "PositionTool");
 class ZIndexTool {
-  constructor(render16) {
+  constructor(render17) {
     __publicField(this, "render");
-    this.render = render16;
+    this.render = render17;
   }
   // 获取移动节点
   getNodes(nodes) {
@@ -28102,9 +28209,9 @@ var canvas2svg = { exports: {} };
 var canvas2svgExports = canvas2svg.exports;
 const C2S = /* @__PURE__ */ getDefaultExportFromCjs(canvas2svgExports);
 class ImportExportTool {
-  constructor(render16) {
+  constructor(render17) {
     __publicField(this, "render");
-    this.render = render16;
+    this.render = render17;
   }
   /**
    * 获得显示内容
@@ -28122,6 +28229,7 @@ class ImportExportTool {
         return !this.render.ignore(node);
       });
       for (const node of nodes) {
+        node.listening(true);
         for (const child of node.children) {
           if (this.render.ignoreSelect(child)) {
             child.remove();
@@ -28229,7 +28337,10 @@ class ImportExportTool {
   }
   // 恢复
   async restore(json, silent = false) {
+    console.group("restore");
+    console.time("restore");
     try {
+      this.render.emit("loading", true);
       this.render.selectionTool.selectingClear();
       this.render.layer.getChildren().forEach((o) => {
         o.destroy();
@@ -28262,8 +28373,6 @@ class ImportExportTool {
         });
       }
       this.render.layer.add(...nodes);
-      this.render.selectionTool.select(this.render.layer.getChildren());
-      this.render.selectionTool.selectingClear();
       if (!silent) {
         this.render.updateHistory();
       }
@@ -28276,7 +28385,11 @@ class ImportExportTool {
       ]);
     } catch (e) {
       console.error(e);
+    } finally {
+      this.render.emit("loading", false);
     }
+    console.timeEnd("restore");
+    console.groupEnd();
   }
   // 获取图片
   getImage(pixelRatio = 1, bgColor) {
@@ -28522,9 +28635,9 @@ class ImportExportTool {
 }
 __publicField(ImportExportTool, "name", "ImportExportTool");
 class AlignTool {
-  constructor(render16) {
+  constructor(render17) {
     __publicField(this, "render");
-    this.render = render16;
+    this.render = render17;
   }
   calcNodeRotationInfo(node) {
     const rotate = node.rotation();
@@ -28646,9 +28759,9 @@ class AlignTool {
 }
 __publicField(AlignTool, "name", "AlignTool");
 class LinkTool {
-  constructor(render16) {
+  constructor(render17) {
     __publicField(this, "render");
-    this.render = render16;
+    this.render = render17;
   }
   pointsVisible(visible, group) {
     const start = group ?? this.render.layer;
@@ -28683,8 +28796,13 @@ class LinkTool {
             (o) => o.id === pairId
           );
           if (pairIndex > -1) {
-            point.pairs.splice(pairIndex, 1);
-            group.setAttr("points", points);
+            const pair = point.pairs.splice(pairIndex, 1)[0];
+            if (group.attrs.manualPointsMap && group.attrs.manualPointsMap[pair.id]) {
+              group.setAttr("manualPointsMap", {
+                ...group.attrs.manualPointsMap,
+                [pair.id]: void 0
+              });
+            }
             this.render.redraw([
               LinkDraw.name,
               AttractDraw.name,
@@ -28817,7 +28935,7 @@ class LinkTool {
 }
 __publicField(LinkTool, "name", "LinkTool");
 class AttractTool {
-  constructor(render16) {
+  constructor(render17) {
     __publicField(this, "render");
     // 对齐线
     __publicField(this, "alignLines", []);
@@ -28940,9 +29058,7 @@ class AttractTool {
           ].sort((a, b) => a.value - b.value)) {
             if (diff.value < 5) {
               if (diff.type === "stageRightX") {
-                console.log(1, newPosX);
                 newPosX = this.render.toBoardValue(logicStageRightX) + stageState.x - width;
-                console.log(2, newPosX);
               } else if (diff.type === "leftX") {
                 newPosX = this.render.toBoardValue(logicClosestLeftX) + stageState.x;
               } else if (diff.type === "rightX") {
@@ -28991,7 +29107,7 @@ class AttractTool {
         isAttract
       };
     });
-    this.render = render16;
+    this.render = render17;
   }
   // 对齐线清除
   alignLinesClear() {
@@ -29236,6 +29352,25 @@ class Render {
       if (node instanceof Konva.Transformer) {
         this.remove(this.selectionTool.selectingNodes);
       } else {
+        const groupId = node.id();
+        for (const rn of this.layer.getChildren()) {
+          if (rn.id() !== groupId && Array.isArray(rn.attrs.points)) {
+            for (const point of rn.attrs.points) {
+              if (Array.isArray(point.pairs)) {
+                if (rn.attrs.manualPointsMap) {
+                  point.pairs.filter(
+                    (pair) => pair.from.groupId === groupId || pair.to.groupId === groupId
+                  ).forEach((pair) => {
+                    rn.attrs.manualPointsMap[pair.id] = void 0;
+                  });
+                }
+                point.pairs = point.pairs.filter(
+                  (pair) => pair.from.groupId !== groupId && pair.to.groupId !== groupId
+                );
+              }
+            }
+          }
+        }
         node.destroy();
       }
     }
@@ -29444,6 +29579,15 @@ function depx(value) {
     return Number(value);
   }
   return value;
+}
+function pxfy(value) {
+  if (value === void 0 || value === null)
+    return void 0;
+  if (typeof value === "number")
+    return `${value}px`;
+  if (value.endsWith("px"))
+    return value;
+  return `${value}px`;
 }
 function getMargin(value, position) {
   const parts = value.trim().split(/\s+/g);
@@ -31702,7 +31846,7 @@ function getOffset(placement, offsetRect, targetRect, offsetTopToStandardPlaceme
       };
   }
 }
-const style$d = c([
+const style$e = c([
   c(".v-binder-follower-container", {
     position: "absolute",
     left: "0",
@@ -31784,7 +31928,7 @@ const VFollower = /* @__PURE__ */ defineComponent({
       }
     });
     const ssrAdapter2 = useSsrAdapter();
-    style$d.mount({
+    style$e.mount({
       id: "vueuc/binder",
       head: true,
       anchorMetaName: cssrAnchorMetaName$1,
@@ -32512,7 +32656,7 @@ const VResizeObserver = /* @__PURE__ */ defineComponent({
   }
 });
 const hiddenAttr = "v-hidden";
-const style$c = c("[v-hidden]", {
+const style$d = c("[v-hidden]", {
   display: "none!important"
 });
 const VOverflow = /* @__PURE__ */ defineComponent({
@@ -32613,7 +32757,7 @@ const VOverflow = /* @__PURE__ */ defineComponent({
       }
     }
     const ssrAdapter2 = useSsrAdapter();
-    style$c.mount({
+    style$d.mount({
       id: "vueuc/overflow",
       head: true,
       anchorMetaName: cssrAnchorMetaName$1,
@@ -33475,7 +33619,7 @@ const NFadeInExpandTransition = /* @__PURE__ */ defineComponent({
     };
   }
 });
-const style$b = cB("base-icon", `
+const style$c = cB("base-icon", `
  height: 1em;
  width: 1em;
  line-height: 1em;
@@ -33510,7 +33654,7 @@ const NBaseIcon = /* @__PURE__ */ defineComponent({
     onMouseup: Function
   },
   setup(props) {
-    useStyle("-base-icon", style$b, toRef(props, "clsPrefix"));
+    useStyle("-base-icon", style$c, toRef(props, "clsPrefix"));
   },
   render() {
     return h("i", {
@@ -33552,7 +33696,7 @@ function iconSwitchTransition({
     transition
   })];
 }
-const style$a = c$1([c$1("@keyframes rotator", `
+const style$b = c$1([c$1("@keyframes rotator", `
  0% {
  -webkit-transform: rotate(0deg);
  transform: rotate(0deg);
@@ -33616,7 +33760,7 @@ const NBaseLoading = /* @__PURE__ */ defineComponent({
     }
   }, exposedLoadingProps),
   setup(props) {
-    useStyle("-base-loading", style$a, toRef(props, "clsPrefix"));
+    useStyle("-base-loading", style$b, toRef(props, "clsPrefix"));
   },
   render() {
     const {
@@ -34479,7 +34623,7 @@ const commonVars$1 = {
   railInsetVertical: "2px 4px 2px auto",
   railColor: "transparent"
 };
-function self$a(vars) {
+function self$b(vars) {
   const {
     scrollbarColor,
     scrollbarColorHover,
@@ -34498,7 +34642,7 @@ function self$a(vars) {
 const scrollbarLight = {
   name: "Scrollbar",
   common: commonLight,
-  self: self$a
+  self: self$b
 };
 const scrollbarLight$1 = scrollbarLight;
 const {
@@ -34521,7 +34665,7 @@ function fadeInTransition({
     opacity: 1
   })];
 }
-const style$9 = cB("scrollbar", `
+const style$a = cB("scrollbar", `
  overflow: hidden;
  position: relative;
  z-index: auto;
@@ -34638,7 +34782,7 @@ const Scrollbar = /* @__PURE__ */ defineComponent({
     let memoMouseX = 0;
     let memoMouseY = 0;
     const isIos2 = useIsIos();
-    const themeRef = useTheme("Scrollbar", "-scrollbar", style$9, scrollbarLight$1, props, mergedClsPrefixRef);
+    const themeRef = useTheme("Scrollbar", "-scrollbar", style$a, scrollbarLight$1, props, mergedClsPrefixRef);
     const yBarSizeRef = computed(() => {
       const {
         value: containerHeight
@@ -35334,7 +35478,7 @@ function fadeInScaleUpTransition({
     transform: `${originalTransform} scale(1)`
   })];
 }
-const style$8 = cB("base-wave", `
+const style$9 = cB("base-wave", `
  position: absolute;
  left: 0;
  right: 0;
@@ -35351,7 +35495,7 @@ const NBaseWave = /* @__PURE__ */ defineComponent({
     }
   },
   setup(props) {
-    useStyle("-base-wave", style$8, toRef(props, "clsPrefix"));
+    useStyle("-base-wave", style$9, toRef(props, "clsPrefix"));
     const selfRef = ref(null);
     const activeRef = ref(false);
     let animationTimerId = null;
@@ -35400,7 +35544,7 @@ const commonVariables$2 = {
   arrowHeight: "6px",
   padding: "8px 14px"
 };
-function self$9(vars) {
+function self$a(vars) {
   const {
     boxShadow2,
     popoverColor,
@@ -35421,7 +35565,7 @@ function self$9(vars) {
 const popoverLight = {
   name: "Popover",
   common: commonLight,
-  self: self$9
+  self: self$a
 };
 const popoverLight$1 = popoverLight;
 const oppositePlacement = {
@@ -35431,7 +35575,7 @@ const oppositePlacement = {
   right: "left"
 };
 const arrowSize = "var(--n-arrow-height) * 1.414";
-const style$7 = c$1([cB("popover", `
+const style$8 = c$1([cB("popover", `
  transition:
  box-shadow .3s var(--n-bezier),
  background-color .3s var(--n-bezier),
@@ -35645,7 +35789,7 @@ const NPopoverBody = /* @__PURE__ */ defineComponent({
       mergedClsPrefixRef,
       inlineThemeDisabled
     } = useConfig(props);
-    const themeRef = useTheme("Popover", "-popover", style$7, popoverLight$1, props, mergedClsPrefixRef);
+    const themeRef = useTheme("Popover", "-popover", style$8, popoverLight$1, props, mergedClsPrefixRef);
     const followerRef = ref(null);
     const NPopover2 = inject("NPopover");
     const bodyRef = ref(null);
@@ -36509,7 +36653,7 @@ const commonVariables$1 = {
   iconSizeLarge: "20px",
   rippleDuration: ".6s"
 };
-function self$8(vars) {
+function self$9(vars) {
   const {
     heightTiny,
     heightSmall,
@@ -36746,10 +36890,10 @@ function self$8(vars) {
 const buttonLight = {
   name: "Button",
   common: commonLight,
-  self: self$8
+  self: self$9
 };
 const buttonLight$1 = buttonLight;
-const style$6 = c$1([cB("button", `
+const style$7 = c$1([cB("button", `
  margin: 0;
  font-weight: var(--n-font-weight);
  line-height: 1;
@@ -37048,7 +37192,7 @@ const Button = /* @__PURE__ */ defineComponent({
       mergedClsPrefixRef,
       mergedRtlRef
     } = useConfig(props);
-    const themeRef = useTheme("Button", "-button", style$6, buttonLight$1, props, mergedClsPrefixRef);
+    const themeRef = useTheme("Button", "-button", style$7, buttonLight$1, props, mergedClsPrefixRef);
     const rtlEnabledRef = useRtl("Button", mergedRtlRef, mergedClsPrefixRef);
     const cssVarsRef = computed(() => {
       const theme = themeRef.value;
@@ -37394,7 +37538,7 @@ const Button = /* @__PURE__ */ defineComponent({
   }
 });
 const NButton = Button;
-function self$7(vars) {
+function self$8(vars) {
   const {
     fontWeight,
     textColor1,
@@ -37420,10 +37564,10 @@ function self$7(vars) {
 const collapseLight = {
   name: "Collapse",
   common: commonLight,
-  self: self$7
+  self: self$8
 };
 const collapseLight$1 = collapseLight;
-const style$5 = cB("collapse", "width: 100%;", [cB("collapse-item", `
+const style$6 = cB("collapse", "width: 100%;", [cB("collapse-item", `
  font-size: var(--n-font-size);
  color: var(--n-text-color);
  transition:
@@ -37515,7 +37659,7 @@ const NCollapse = /* @__PURE__ */ defineComponent({
     const uncontrolledExpandedNamesRef = ref(props.defaultExpandedNames);
     const controlledExpandedNamesRef = computed(() => props.expandedNames);
     const mergedExpandedNamesRef = useMergedState(controlledExpandedNamesRef, uncontrolledExpandedNamesRef);
-    const themeRef = useTheme("Collapse", "-collapse", style$5, collapseLight$1, props, mergedClsPrefixRef);
+    const themeRef = useTheme("Collapse", "-collapse", style$6, collapseLight$1, props, mergedClsPrefixRef);
     function doUpdateExpandedNames(names) {
       const {
         "onUpdate:expandedNames": _onUpdateExpandedNames,
@@ -37830,7 +37974,7 @@ const NCollapseItem = /* @__PURE__ */ defineComponent({
 const commonVars = {
   padding: "8px 14px"
 };
-function self$6(vars) {
+function self$7(vars) {
   const {
     borderRadius,
     boxShadow2,
@@ -37849,7 +37993,7 @@ const tooltipLight = createTheme({
   peers: {
     Popover: popoverLight$1
   },
-  self: self$6
+  self: self$7
 });
 const tooltipLight$1 = tooltipLight;
 const commonVariables = {
@@ -37875,7 +38019,7 @@ const commonVariables = {
   optionIconPrefixWidthLarge: "40px",
   optionIconPrefixWidthHuge: "40px"
 };
-function self$5(vars) {
+function self$6(vars) {
   const {
     primaryColor,
     textColor2,
@@ -37940,7 +38084,7 @@ const dropdownLight = createTheme({
   peers: {
     Popover: popoverLight$1
   },
-  self: self$5
+  self: self$6
 });
 const dropdownLight$1 = dropdownLight;
 const tooltipProps = Object.assign(Object.assign({}, popoverBaseProps), useTheme.props);
@@ -37998,7 +38142,7 @@ const NDropdownDivider = /* @__PURE__ */ defineComponent({
     });
   }
 });
-function self$4(vars) {
+function self$5(vars) {
   const {
     textColorBase,
     opacity1,
@@ -38019,10 +38163,10 @@ function self$4(vars) {
 const iconLight = {
   name: "Icon",
   common: commonLight,
-  self: self$4
+  self: self$5
 };
 const iconLight$1 = iconLight;
-const style$4 = cB("icon", `
+const style$5 = cB("icon", `
  height: 1em;
  width: 1em;
  line-height: 1em;
@@ -38058,7 +38202,7 @@ const NIcon = /* @__PURE__ */ defineComponent({
       mergedClsPrefixRef,
       inlineThemeDisabled
     } = useConfig(props);
-    const themeRef = useTheme("Icon", "-icon", style$4, iconLight$1, props, mergedClsPrefixRef);
+    const themeRef = useTheme("Icon", "-icon", style$5, iconLight$1, props, mergedClsPrefixRef);
     const cssVarsRef = computed(() => {
       const {
         depth
@@ -38573,11 +38717,11 @@ const NDropdownRenderOption = /* @__PURE__ */ defineComponent({
   render() {
     const {
       rawNode: {
-        render: render16,
+        render: render17,
         props
       }
     } = this.tmNode;
-    return h("div", props, [render16 === null || render16 === void 0 ? void 0 : render16()]);
+    return h("div", props, [render17 === null || render17 === void 0 ? void 0 : render17()]);
   }
 });
 const NDropdownMenu = /* @__PURE__ */ defineComponent({
@@ -38703,7 +38847,7 @@ const NDropdownMenu = /* @__PURE__ */ defineComponent({
     }) : null);
   }
 });
-const style$3 = cB("dropdown-menu", `
+const style$4 = cB("dropdown-menu", `
  transform-origin: var(--v-transform-origin);
  background-color: var(--n-color);
  border-radius: var(--n-border-radius);
@@ -38937,7 +39081,7 @@ const NDropdown = /* @__PURE__ */ defineComponent({
       mergedClsPrefixRef,
       inlineThemeDisabled
     } = useConfig(props);
-    const themeRef = useTheme("Dropdown", "-dropdown", style$3, dropdownLight$1, props, mergedClsPrefixRef);
+    const themeRef = useTheme("Dropdown", "-dropdown", style$4, dropdownLight$1, props, mergedClsPrefixRef);
     provide(dropdownInjectionKey, {
       labelFieldRef: toRef(props, "labelField"),
       childrenFieldRef: toRef(props, "childrenField"),
@@ -39186,7 +39330,7 @@ const NDropdown = /* @__PURE__ */ defineComponent({
     });
   }
 });
-function self$3(vars) {
+function self$4(vars) {
   const {
     textColor1,
     dividerColor,
@@ -39201,10 +39345,10 @@ function self$3(vars) {
 const dividerLight = {
   name: "Divider",
   common: commonLight,
-  self: self$3
+  self: self$4
 };
 const dividerLight$1 = dividerLight;
-const style$2 = cB("divider", `
+const style$3 = cB("divider", `
  position: relative;
  display: flex;
  width: 100%;
@@ -39272,7 +39416,7 @@ const NDivider = /* @__PURE__ */ defineComponent({
       mergedClsPrefixRef,
       inlineThemeDisabled
     } = useConfig(props);
-    const themeRef = useTheme("Divider", "-divider", style$2, dividerLight$1, props, mergedClsPrefixRef);
+    const themeRef = useTheme("Divider", "-divider", style$3, dividerLight$1, props, mergedClsPrefixRef);
     const cssVarsRef = computed(() => {
       const {
         common: {
@@ -39368,7 +39512,7 @@ function createPartialInvertedVars(color, activeItemColor, activeTextColor, grou
     groupTextColorInverted: groupTextColor
   };
 }
-function self$2(vars) {
+function self$3(vars) {
   const {
     borderRadius,
     textColor3,
@@ -39439,9 +39583,38 @@ const menuLight = createTheme({
     Tooltip: tooltipLight$1,
     Dropdown: dropdownLight$1
   },
-  self: self$2
+  self: self$3
 });
 const menuLight$1 = menuLight;
+function self$2(vars) {
+  const {
+    opacityDisabled,
+    heightTiny,
+    heightSmall,
+    heightMedium,
+    heightLarge,
+    heightHuge,
+    primaryColor,
+    fontSize: fontSize2
+  } = vars;
+  return {
+    fontSize: fontSize2,
+    textColor: primaryColor,
+    sizeTiny: heightTiny,
+    sizeSmall: heightSmall,
+    sizeMedium: heightMedium,
+    sizeLarge: heightLarge,
+    sizeHuge: heightHuge,
+    color: primaryColor,
+    opacitySpinning: opacityDisabled
+  };
+}
+const spinLight = {
+  name: "Spin",
+  common: commonLight,
+  self: self$2
+};
+const spinLight$1 = spinLight;
 Object.assign(Object.assign({}, useTheme.props), {
   left: [Number, String],
   right: [Number, String],
@@ -39489,7 +39662,7 @@ const themeLight = {
   self: self$1
 };
 const floatButtonLight = themeLight;
-const style$1 = cB("float-button", `
+const style$2 = cB("float-button", `
  user-select: none;
  cursor: pointer;
  color: var(--n-text-color);
@@ -39615,7 +39788,7 @@ const NFloatButton = /* @__PURE__ */ defineComponent({
       mergedClsPrefixRef,
       inlineThemeDisabled
     } = useConfig(props);
-    const themeRef = useTheme("FloatButton", "-float-button", style$1, floatButtonLight, props, mergedClsPrefixRef);
+    const themeRef = useTheme("FloatButton", "-float-button", style$2, floatButtonLight, props, mergedClsPrefixRef);
     const floatButtonGroupInjection = inject(floatButtonGroupInjectionKey, null);
     const uncontrolledShowMenuRef = ref(false);
     const controlledShoeMenuRef = toRef(props, "showMenu");
@@ -40437,7 +40610,7 @@ const horizontalHoverStyleChildren = [cE("icon", `
  `), cE("extra", `
  color: var(--n-item-text-color-hover-horizontal);
  `)])];
-const style = c$1([cB("menu", `
+const style$1 = c$1([cB("menu", `
  background-color: var(--n-color);
  color: var(--n-item-text-color);
  overflow: hidden;
@@ -40700,7 +40873,7 @@ const NMenu = /* @__PURE__ */ defineComponent({
       mergedClsPrefixRef,
       inlineThemeDisabled
     } = useConfig(props);
-    const themeRef = useTheme("Menu", "-menu", style, menuLight$1, props, mergedClsPrefixRef);
+    const themeRef = useTheme("Menu", "-menu", style$1, menuLight$1, props, mergedClsPrefixRef);
     const layoutSider = inject(layoutSiderInjectionKey, null);
     const mergedCollapsedRef = computed(() => {
       var _a;
@@ -41119,12 +41292,204 @@ const NMenu = /* @__PURE__ */ defineComponent({
     }) : renderMainNode();
   }
 });
-const _hoisted_1$g = {
+const style = c$1([c$1("@keyframes spin-rotate", `
+ from {
+ transform: rotate(0);
+ }
+ to {
+ transform: rotate(360deg);
+ }
+ `), cB("spin-container", `
+ position: relative;
+ `, [cB("spin-body", `
+ position: absolute;
+ top: 50%;
+ left: 50%;
+ transform: translateX(-50%) translateY(-50%);
+ `, [fadeInTransition()])]), cB("spin-body", `
+ display: inline-flex;
+ align-items: center;
+ justify-content: center;
+ flex-direction: column;
+ `), cB("spin", `
+ display: inline-flex;
+ height: var(--n-size);
+ width: var(--n-size);
+ font-size: var(--n-size);
+ color: var(--n-color);
+ `, [cM("rotate", `
+ animation: spin-rotate 2s linear infinite;
+ `)]), cB("spin-description", `
+ display: inline-block;
+ font-size: var(--n-font-size);
+ color: var(--n-text-color);
+ transition: color .3s var(--n-bezier);
+ margin-top: 8px;
+ `), cB("spin-content", `
+ opacity: 1;
+ transition: opacity .3s var(--n-bezier);
+ pointer-events: all;
+ `, [cM("spinning", `
+ user-select: none;
+ -webkit-user-select: none;
+ pointer-events: none;
+ opacity: var(--n-opacity-spinning);
+ `)])]);
+const STROKE_WIDTH = {
+  small: 20,
+  medium: 18,
+  large: 16
+};
+const spinProps = Object.assign(Object.assign({}, useTheme.props), {
+  contentClass: String,
+  contentStyle: [Object, String],
+  description: String,
+  stroke: String,
+  size: {
+    type: [String, Number],
+    default: "medium"
+  },
+  show: {
+    type: Boolean,
+    default: true
+  },
+  strokeWidth: Number,
+  rotate: {
+    type: Boolean,
+    default: true
+  },
+  spinning: {
+    type: Boolean,
+    validator: () => {
+      return true;
+    },
+    default: void 0
+  },
+  delay: Number
+});
+const NSpin = /* @__PURE__ */ defineComponent({
+  name: "Spin",
+  props: spinProps,
+  setup(props) {
+    const {
+      mergedClsPrefixRef,
+      inlineThemeDisabled
+    } = useConfig(props);
+    const themeRef = useTheme("Spin", "-spin", style, spinLight$1, props, mergedClsPrefixRef);
+    const cssVarsRef = computed(() => {
+      const {
+        size: spinSize
+      } = props;
+      const {
+        common: {
+          cubicBezierEaseInOut: cubicBezierEaseInOut2
+        },
+        self: self2
+      } = themeRef.value;
+      const {
+        opacitySpinning,
+        color,
+        textColor
+      } = self2;
+      const size2 = typeof spinSize === "number" ? pxfy(spinSize) : self2[createKey("size", spinSize)];
+      return {
+        "--n-bezier": cubicBezierEaseInOut2,
+        "--n-opacity-spinning": opacitySpinning,
+        "--n-size": size2,
+        "--n-color": color,
+        "--n-text-color": textColor
+      };
+    });
+    const themeClassHandle = inlineThemeDisabled ? useThemeClass("spin", computed(() => {
+      const {
+        size: size2
+      } = props;
+      return typeof size2 === "number" ? String(size2) : size2[0];
+    }), cssVarsRef, props) : void 0;
+    const compitableShow = useCompitable(props, ["spinning", "show"]);
+    const activeRef = ref(false);
+    watchEffect((onCleanup) => {
+      let timerId;
+      if (compitableShow.value) {
+        const {
+          delay: delay2
+        } = props;
+        if (delay2) {
+          timerId = window.setTimeout(() => {
+            activeRef.value = true;
+          }, delay2);
+          onCleanup(() => {
+            clearTimeout(timerId);
+          });
+          return;
+        }
+      }
+      activeRef.value = compitableShow.value;
+    });
+    return {
+      mergedClsPrefix: mergedClsPrefixRef,
+      active: activeRef,
+      mergedStrokeWidth: computed(() => {
+        const {
+          strokeWidth
+        } = props;
+        if (strokeWidth !== void 0)
+          return strokeWidth;
+        const {
+          size: size2
+        } = props;
+        return STROKE_WIDTH[typeof size2 === "number" ? "medium" : size2];
+      }),
+      cssVars: inlineThemeDisabled ? void 0 : cssVarsRef,
+      themeClass: themeClassHandle === null || themeClassHandle === void 0 ? void 0 : themeClassHandle.themeClass,
+      onRender: themeClassHandle === null || themeClassHandle === void 0 ? void 0 : themeClassHandle.onRender
+    };
+  },
+  render() {
+    var _a, _b;
+    const {
+      $slots,
+      mergedClsPrefix,
+      description
+    } = this;
+    const rotate = $slots.icon && this.rotate;
+    const descriptionNode = (description || $slots.description) && h("div", {
+      class: `${mergedClsPrefix}-spin-description`
+    }, description || ((_a = $slots.description) === null || _a === void 0 ? void 0 : _a.call($slots)));
+    const icon = $slots.icon ? h("div", {
+      class: [`${mergedClsPrefix}-spin-body`, this.themeClass]
+    }, h("div", {
+      class: [`${mergedClsPrefix}-spin`, rotate && `${mergedClsPrefix}-spin--rotate`],
+      style: $slots.default ? "" : this.cssVars
+    }, $slots.icon()), descriptionNode) : h("div", {
+      class: [`${mergedClsPrefix}-spin-body`, this.themeClass]
+    }, h(NBaseLoading, {
+      clsPrefix: mergedClsPrefix,
+      style: $slots.default ? "" : this.cssVars,
+      stroke: this.stroke,
+      "stroke-width": this.mergedStrokeWidth,
+      class: `${mergedClsPrefix}-spin`
+    }), descriptionNode);
+    (_b = this.onRender) === null || _b === void 0 ? void 0 : _b.call(this);
+    return $slots.default ? h("div", {
+      class: [`${mergedClsPrefix}-spin-container`, this.themeClass],
+      style: this.cssVars
+    }, h("div", {
+      class: [`${mergedClsPrefix}-spin-content`, this.active && `${mergedClsPrefix}-spin-content--spinning`, this.contentClass],
+      style: this.contentStyle
+    }, $slots), h(Transition, {
+      name: "fade-in-transition"
+    }, {
+      default: () => this.active ? icon : null
+    })) : icon;
+  }
+});
+const _hoisted_1$h = {
   xmlns: "http://www.w3.org/2000/svg",
   "xmlns:xlink": "http://www.w3.org/1999/xlink",
   viewBox: "0 0 16 16"
 };
-const _hoisted_2$g = /* @__PURE__ */ createBaseVNode(
+const _hoisted_2$h = /* @__PURE__ */ createBaseVNode(
   "g",
   {
     fill: "none"
@@ -41138,10 +41503,36 @@ const _hoisted_2$g = /* @__PURE__ */ createBaseVNode(
   -1
   /* HOISTED */
 );
-const _hoisted_3$g = [_hoisted_2$g];
+const _hoisted_3$h = [_hoisted_2$h];
 const AlignBottom16Regular = /* @__PURE__ */ defineComponent({
   name: "AlignBottom16Regular",
   render: function render2(_ctx, _cache) {
+    return openBlock(), createElementBlock("svg", _hoisted_1$h, _hoisted_3$h);
+  }
+});
+const _hoisted_1$g = {
+  xmlns: "http://www.w3.org/2000/svg",
+  "xmlns:xlink": "http://www.w3.org/1999/xlink",
+  viewBox: "0 0 16 16"
+};
+const _hoisted_2$g = /* @__PURE__ */ createBaseVNode(
+  "g",
+  {
+    fill: "none"
+  },
+  [
+    /* @__PURE__ */ createBaseVNode("path", {
+      d: "M15 7.5a.5.5 0 0 1-.5.5H14v1.25A1.75 1.75 0 0 1 12.25 11h-1.5A1.75 1.75 0 0 1 9 9.25V8H7v2.25A1.75 1.75 0 0 1 5.25 12h-1.5A1.75 1.75 0 0 1 2 10.25V8h-.5a.5.5 0 0 1 0-1H2V4.75C2 3.784 2.784 3 3.75 3h1.5C6.216 3 7 3.784 7 4.75V7h2V5.75C9 4.784 9.784 4 10.75 4h1.5c.966 0 1.75.784 1.75 1.75V7h.5a.5.5 0 0 1 .5.5zM3 10.25c0 .414.336.75.75.75h1.5a.75.75 0 0 0 .75-.75v-5.5A.75.75 0 0 0 5.25 4h-1.5a.75.75 0 0 0-.75.75v5.5zm7-1c0 .414.336.75.75.75h1.5a.75.75 0 0 0 .75-.75v-3.5a.75.75 0 0 0-.75-.75h-1.5a.75.75 0 0 0-.75.75v3.5z",
+      fill: "currentColor"
+    })
+  ],
+  -1
+  /* HOISTED */
+);
+const _hoisted_3$g = [_hoisted_2$g];
+const AlignCenterHorizontal16Regular = /* @__PURE__ */ defineComponent({
+  name: "AlignCenterHorizontal16Regular",
+  render: function render3(_ctx, _cache) {
     return openBlock(), createElementBlock("svg", _hoisted_1$g, _hoisted_3$g);
   }
 });
@@ -41157,7 +41548,7 @@ const _hoisted_2$f = /* @__PURE__ */ createBaseVNode(
   },
   [
     /* @__PURE__ */ createBaseVNode("path", {
-      d: "M15 7.5a.5.5 0 0 1-.5.5H14v1.25A1.75 1.75 0 0 1 12.25 11h-1.5A1.75 1.75 0 0 1 9 9.25V8H7v2.25A1.75 1.75 0 0 1 5.25 12h-1.5A1.75 1.75 0 0 1 2 10.25V8h-.5a.5.5 0 0 1 0-1H2V4.75C2 3.784 2.784 3 3.75 3h1.5C6.216 3 7 3.784 7 4.75V7h2V5.75C9 4.784 9.784 4 10.75 4h1.5c.966 0 1.75.784 1.75 1.75V7h.5a.5.5 0 0 1 .5.5zM3 10.25c0 .414.336.75.75.75h1.5a.75.75 0 0 0 .75-.75v-5.5A.75.75 0 0 0 5.25 4h-1.5a.75.75 0 0 0-.75.75v5.5zm7-1c0 .414.336.75.75.75h1.5a.75.75 0 0 0 .75-.75v-3.5a.75.75 0 0 0-.75-.75h-1.5a.75.75 0 0 0-.75.75v3.5z",
+      d: "M8.5 15a.5.5 0 0 1-.5-.5V14H6.75A1.75 1.75 0 0 1 5 12.25v-1.5C5 9.784 5.784 9 6.75 9H8V7H5.75A1.75 1.75 0 0 1 4 5.25v-1.5C4 2.784 4.784 2 5.75 2H8v-.5a.5.5 0 0 1 1 0V2h2.25c.966 0 1.75.784 1.75 1.75v1.5A1.75 1.75 0 0 1 11.25 7H9v2h1.25c.966 0 1.75.784 1.75 1.75v1.5A1.75 1.75 0 0 1 10.25 14H9v.5a.5.5 0 0 1-.5.5zM5.75 3a.75.75 0 0 0-.75.75v1.5c0 .414.336.75.75.75h5.5a.75.75 0 0 0 .75-.75v-1.5a.75.75 0 0 0-.75-.75h-5.5zm1 7a.75.75 0 0 0-.75.75v1.5c0 .414.336.75.75.75h3.5a.75.75 0 0 0 .75-.75v-1.5a.75.75 0 0 0-.75-.75h-3.5z",
       fill: "currentColor"
     })
   ],
@@ -41165,9 +41556,9 @@ const _hoisted_2$f = /* @__PURE__ */ createBaseVNode(
   /* HOISTED */
 );
 const _hoisted_3$f = [_hoisted_2$f];
-const AlignCenterHorizontal16Regular = /* @__PURE__ */ defineComponent({
-  name: "AlignCenterHorizontal16Regular",
-  render: function render3(_ctx, _cache) {
+const AlignCenterVertical16Regular = /* @__PURE__ */ defineComponent({
+  name: "AlignCenterVertical16Regular",
+  render: function render4(_ctx, _cache) {
     return openBlock(), createElementBlock("svg", _hoisted_1$f, _hoisted_3$f);
   }
 });
@@ -41183,7 +41574,7 @@ const _hoisted_2$e = /* @__PURE__ */ createBaseVNode(
   },
   [
     /* @__PURE__ */ createBaseVNode("path", {
-      d: "M8.5 15a.5.5 0 0 1-.5-.5V14H6.75A1.75 1.75 0 0 1 5 12.25v-1.5C5 9.784 5.784 9 6.75 9H8V7H5.75A1.75 1.75 0 0 1 4 5.25v-1.5C4 2.784 4.784 2 5.75 2H8v-.5a.5.5 0 0 1 1 0V2h2.25c.966 0 1.75.784 1.75 1.75v1.5A1.75 1.75 0 0 1 11.25 7H9v2h1.25c.966 0 1.75.784 1.75 1.75v1.5A1.75 1.75 0 0 1 10.25 14H9v.5a.5.5 0 0 1-.5.5zM5.75 3a.75.75 0 0 0-.75.75v1.5c0 .414.336.75.75.75h5.5a.75.75 0 0 0 .75-.75v-1.5a.75.75 0 0 0-.75-.75h-5.5zm1 7a.75.75 0 0 0-.75.75v1.5c0 .414.336.75.75.75h3.5a.75.75 0 0 0 .75-.75v-1.5a.75.75 0 0 0-.75-.75h-3.5z",
+      d: "M2 1.5a.5.5 0 0 1 1 0v13a.5.5 0 0 1-1 0v-13zm3.75.5A1.75 1.75 0 0 0 4 3.75v1.5C4 6.216 4.784 7 5.75 7h6.5A1.75 1.75 0 0 0 14 5.25v-1.5A1.75 1.75 0 0 0 12.25 2h-6.5zM5 3.75A.75.75 0 0 1 5.75 3h6.5a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-.75.75h-6.5A.75.75 0 0 1 5 5.25v-1.5zM5.75 9A1.75 1.75 0 0 0 4 10.75v1.5c0 .966.784 1.75 1.75 1.75h4.5A1.75 1.75 0 0 0 12 12.25v-1.5A1.75 1.75 0 0 0 10.25 9h-4.5zM5 10.75a.75.75 0 0 1 .75-.75h4.5a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-.75.75h-4.5a.75.75 0 0 1-.75-.75v-1.5z",
       fill: "currentColor"
     })
   ],
@@ -41191,9 +41582,9 @@ const _hoisted_2$e = /* @__PURE__ */ createBaseVNode(
   /* HOISTED */
 );
 const _hoisted_3$e = [_hoisted_2$e];
-const AlignCenterVertical16Regular = /* @__PURE__ */ defineComponent({
-  name: "AlignCenterVertical16Regular",
-  render: function render4(_ctx, _cache) {
+const AlignLeft16Regular = /* @__PURE__ */ defineComponent({
+  name: "AlignLeft16Regular",
+  render: function render5(_ctx, _cache) {
     return openBlock(), createElementBlock("svg", _hoisted_1$e, _hoisted_3$e);
   }
 });
@@ -41209,7 +41600,7 @@ const _hoisted_2$d = /* @__PURE__ */ createBaseVNode(
   },
   [
     /* @__PURE__ */ createBaseVNode("path", {
-      d: "M2 1.5a.5.5 0 0 1 1 0v13a.5.5 0 0 1-1 0v-13zm3.75.5A1.75 1.75 0 0 0 4 3.75v1.5C4 6.216 4.784 7 5.75 7h6.5A1.75 1.75 0 0 0 14 5.25v-1.5A1.75 1.75 0 0 0 12.25 2h-6.5zM5 3.75A.75.75 0 0 1 5.75 3h6.5a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-.75.75h-6.5A.75.75 0 0 1 5 5.25v-1.5zM5.75 9A1.75 1.75 0 0 0 4 10.75v1.5c0 .966.784 1.75 1.75 1.75h4.5A1.75 1.75 0 0 0 12 12.25v-1.5A1.75 1.75 0 0 0 10.25 9h-4.5zM5 10.75a.75.75 0 0 1 .75-.75h4.5a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-.75.75h-4.5a.75.75 0 0 1-.75-.75v-1.5z",
+      d: "M14 1.5a.5.5 0 0 0-1 0v13a.5.5 0 0 0 1 0v-13zm-3.75.5c.966 0 1.75.784 1.75 1.75v1.5A1.75 1.75 0 0 1 10.25 7h-6.5A1.75 1.75 0 0 1 2 5.25v-1.5C2 2.784 2.784 2 3.75 2h6.5zM11 3.75a.75.75 0 0 0-.75-.75h-6.5a.75.75 0 0 0-.75.75v1.5c0 .414.336.75.75.75h6.5a.75.75 0 0 0 .75-.75v-1.5zM10.25 9c.966 0 1.75.784 1.75 1.75v1.5A1.75 1.75 0 0 1 10.25 14h-4.5A1.75 1.75 0 0 1 4 12.25v-1.5C4 9.784 4.784 9 5.75 9h4.5zm.75 1.75a.75.75 0 0 0-.75-.75h-4.5a.75.75 0 0 0-.75.75v1.5c0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75v-1.5z",
       fill: "currentColor"
     })
   ],
@@ -41217,9 +41608,9 @@ const _hoisted_2$d = /* @__PURE__ */ createBaseVNode(
   /* HOISTED */
 );
 const _hoisted_3$d = [_hoisted_2$d];
-const AlignLeft16Regular = /* @__PURE__ */ defineComponent({
-  name: "AlignLeft16Regular",
-  render: function render5(_ctx, _cache) {
+const AlignRight16Regular = /* @__PURE__ */ defineComponent({
+  name: "AlignRight16Regular",
+  render: function render6(_ctx, _cache) {
     return openBlock(), createElementBlock("svg", _hoisted_1$d, _hoisted_3$d);
   }
 });
@@ -41235,7 +41626,7 @@ const _hoisted_2$c = /* @__PURE__ */ createBaseVNode(
   },
   [
     /* @__PURE__ */ createBaseVNode("path", {
-      d: "M14 1.5a.5.5 0 0 0-1 0v13a.5.5 0 0 0 1 0v-13zm-3.75.5c.966 0 1.75.784 1.75 1.75v1.5A1.75 1.75 0 0 1 10.25 7h-6.5A1.75 1.75 0 0 1 2 5.25v-1.5C2 2.784 2.784 2 3.75 2h6.5zM11 3.75a.75.75 0 0 0-.75-.75h-6.5a.75.75 0 0 0-.75.75v1.5c0 .414.336.75.75.75h6.5a.75.75 0 0 0 .75-.75v-1.5zM10.25 9c.966 0 1.75.784 1.75 1.75v1.5A1.75 1.75 0 0 1 10.25 14h-4.5A1.75 1.75 0 0 1 4 12.25v-1.5C4 9.784 4.784 9 5.75 9h4.5zm.75 1.75a.75.75 0 0 0-.75-.75h-4.5a.75.75 0 0 0-.75.75v1.5c0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75v-1.5z",
+      d: "M1.5 2a.5.5 0 0 0 0 1h13a.5.5 0 0 0 0-1h-13zM2 5.75C2 4.784 2.784 4 3.75 4h1.5C6.216 4 7 4.784 7 5.75v6.5A1.75 1.75 0 0 1 5.25 14h-1.5A1.75 1.75 0 0 1 2 12.25v-6.5zM3.75 5a.75.75 0 0 0-.75.75v6.5c0 .414.336.75.75.75h1.5a.75.75 0 0 0 .75-.75v-6.5A.75.75 0 0 0 5.25 5h-1.5zM9 5.75C9 4.784 9.784 4 10.75 4h1.5c.966 0 1.75.784 1.75 1.75v4.5A1.75 1.75 0 0 1 12.25 12h-1.5A1.75 1.75 0 0 1 9 10.25v-4.5zM10.75 5a.75.75 0 0 0-.75.75v4.5c0 .414.336.75.75.75h1.5a.75.75 0 0 0 .75-.75v-4.5a.75.75 0 0 0-.75-.75h-1.5z",
       fill: "currentColor"
     })
   ],
@@ -41243,9 +41634,9 @@ const _hoisted_2$c = /* @__PURE__ */ createBaseVNode(
   /* HOISTED */
 );
 const _hoisted_3$c = [_hoisted_2$c];
-const AlignRight16Regular = /* @__PURE__ */ defineComponent({
-  name: "AlignRight16Regular",
-  render: function render6(_ctx, _cache) {
+const AlignTop16Regular = /* @__PURE__ */ defineComponent({
+  name: "AlignTop16Regular",
+  render: function render7(_ctx, _cache) {
     return openBlock(), createElementBlock("svg", _hoisted_1$c, _hoisted_3$c);
   }
 });
@@ -41261,7 +41652,7 @@ const _hoisted_2$b = /* @__PURE__ */ createBaseVNode(
   },
   [
     /* @__PURE__ */ createBaseVNode("path", {
-      d: "M1.5 2a.5.5 0 0 0 0 1h13a.5.5 0 0 0 0-1h-13zM2 5.75C2 4.784 2.784 4 3.75 4h1.5C6.216 4 7 4.784 7 5.75v6.5A1.75 1.75 0 0 1 5.25 14h-1.5A1.75 1.75 0 0 1 2 12.25v-6.5zM3.75 5a.75.75 0 0 0-.75.75v6.5c0 .414.336.75.75.75h1.5a.75.75 0 0 0 .75-.75v-6.5A.75.75 0 0 0 5.25 5h-1.5zM9 5.75C9 4.784 9.784 4 10.75 4h1.5c.966 0 1.75.784 1.75 1.75v4.5A1.75 1.75 0 0 1 12.25 12h-1.5A1.75 1.75 0 0 1 9 10.25v-4.5zM10.75 5a.75.75 0 0 0-.75.75v4.5c0 .414.336.75.75.75h1.5a.75.75 0 0 0 .75-.75v-4.5a.75.75 0 0 0-.75-.75h-1.5z",
+      d: "M7.146.646a.5.5 0 0 1 .708 0l1.5 1.5a.5.5 0 0 1 0 .708l-1.5 1.5a.5.5 0 1 1-.708-.708l.643-.642a5 5 0 0 0-2.937 8.88a.5.5 0 1 1-.63.777A6 6 0 0 1 7.797 2.003l-.65-.65a.5.5 0 0 1 0-.707zm3.929 2.766a.5.5 0 0 1 .703-.073a6 6 0 0 1-3.575 10.658l.65.65a.5.5 0 0 1-.707.707l-1.5-1.5a.5.5 0 0 1 0-.708l1.5-1.5a.5.5 0 0 1 .708.708l-.643.642a5 5 0 0 0 2.937-8.88a.5.5 0 0 1-.073-.704z",
       fill: "currentColor"
     })
   ],
@@ -41269,9 +41660,9 @@ const _hoisted_2$b = /* @__PURE__ */ createBaseVNode(
   /* HOISTED */
 );
 const _hoisted_3$b = [_hoisted_2$b];
-const AlignTop16Regular = /* @__PURE__ */ defineComponent({
-  name: "AlignTop16Regular",
-  render: function render7(_ctx, _cache) {
+const ArrowSync16Regular = /* @__PURE__ */ defineComponent({
+  name: "ArrowSync16Regular",
+  render: function render8(_ctx, _cache) {
     return openBlock(), createElementBlock("svg", _hoisted_1$b, _hoisted_3$b);
   }
 });
@@ -41297,7 +41688,7 @@ const _hoisted_2$a = /* @__PURE__ */ createBaseVNode(
 const _hoisted_3$a = [_hoisted_2$a];
 const Bug16Regular = /* @__PURE__ */ defineComponent({
   name: "Bug16Regular",
-  render: function render8(_ctx, _cache) {
+  render: function render9(_ctx, _cache) {
     return openBlock(), createElementBlock("svg", _hoisted_1$a, _hoisted_3$a);
   }
 });
@@ -41323,7 +41714,7 @@ const _hoisted_2$9 = /* @__PURE__ */ createBaseVNode(
 const _hoisted_3$9 = [_hoisted_2$9];
 const Flowchart20Regular = /* @__PURE__ */ defineComponent({
   name: "Flowchart20Regular",
-  render: function render9(_ctx, _cache) {
+  render: function render10(_ctx, _cache) {
     return openBlock(), createElementBlock("svg", _hoisted_1$9, _hoisted_3$9);
   }
 });
@@ -41349,7 +41740,7 @@ const _hoisted_2$8 = /* @__PURE__ */ createBaseVNode(
 const _hoisted_3$8 = [_hoisted_2$8];
 const FullScreenMaximize24Regular = /* @__PURE__ */ defineComponent({
   name: "FullScreenMaximize24Regular",
-  render: function render10(_ctx, _cache) {
+  render: function render11(_ctx, _cache) {
     return openBlock(), createElementBlock("svg", _hoisted_1$8, _hoisted_3$8);
   }
 });
@@ -41375,7 +41766,7 @@ const _hoisted_2$7 = /* @__PURE__ */ createBaseVNode(
 const _hoisted_3$7 = [_hoisted_2$7];
 const FullScreenMinimize24Regular = /* @__PURE__ */ defineComponent({
   name: "FullScreenMinimize24Regular",
-  render: function render11(_ctx, _cache) {
+  render: function render12(_ctx, _cache) {
     return openBlock(), createElementBlock("svg", _hoisted_1$7, _hoisted_3$7);
   }
 });
@@ -41401,7 +41792,7 @@ const _hoisted_2$6 = /* @__PURE__ */ createBaseVNode(
 const _hoisted_3$6 = [_hoisted_2$6];
 const Line20Regular = /* @__PURE__ */ defineComponent({
   name: "Line20Regular",
-  render: function render12(_ctx, _cache) {
+  render: function render13(_ctx, _cache) {
     return openBlock(), createElementBlock("svg", _hoisted_1$6, _hoisted_3$6);
   }
 });
@@ -41427,7 +41818,7 @@ const _hoisted_2$5 = /* @__PURE__ */ createBaseVNode(
 const _hoisted_3$5 = [_hoisted_2$5];
 const Pulse20Regular = /* @__PURE__ */ defineComponent({
   name: "Pulse20Regular",
-  render: function render13(_ctx, _cache) {
+  render: function render14(_ctx, _cache) {
     return openBlock(), createElementBlock("svg", _hoisted_1$5, _hoisted_3$5);
   }
 });
@@ -41456,7 +41847,7 @@ const _hoisted_2$4 = /* @__PURE__ */ createBaseVNode(
 const _hoisted_3$4 = [_hoisted_2$4];
 const IosRedo = /* @__PURE__ */ defineComponent({
   name: "IosRedo",
-  render: function render14(_ctx, _cache) {
+  render: function render15(_ctx, _cache) {
     return openBlock(), createElementBlock("svg", _hoisted_1$4, _hoisted_3$4);
   }
 });
@@ -41484,21 +41875,22 @@ const _hoisted_2$3 = /* @__PURE__ */ createBaseVNode(
 const _hoisted_3$3 = [_hoisted_2$3];
 const IosUndo = /* @__PURE__ */ defineComponent({
   name: "IosUndo",
-  render: function render15(_ctx, _cache) {
+  render: function render16(_ctx, _cache) {
     return openBlock(), createElementBlock("svg", _hoisted_1$3, _hoisted_3$3);
   }
 });
-const _withScopeId$1 = (n) => (pushScopeId("data-v-dfc8ea9f"), n = n(), popScopeId(), n);
+const _withScopeId$1 = (n) => (pushScopeId("data-v-1bb171cf"), n = n(), popScopeId(), n);
 const _hoisted_1$2 = { class: "main-header" };
 const _hoisted_2$2 = /* @__PURE__ */ _withScopeId$1(() => /* @__PURE__ */ createBaseVNode("img", {
   class: "main-header__logo",
   src: _imports_0,
   alt: ""
 }, null, -1));
-const _hoisted_3$2 = /* @__PURE__ */ _withScopeId$1(() => /* @__PURE__ */ createBaseVNode("div", { class: "main-header__title" }, "Designer Sample", -1));
-const _hoisted_4$2 = { class: "main-header__menu" };
-const _hoisted_5$2 = { class: "main-header__action" };
-const _hoisted_6$2 = { class: "main-header__scale" };
+const _hoisted_3$2 = { class: "main-header__title" };
+const _hoisted_4$2 = /* @__PURE__ */ _withScopeId$1(() => /* @__PURE__ */ createBaseVNode("span", null, "Designer Sample", -1));
+const _hoisted_5$2 = { class: "main-header__menu" };
+const _hoisted_6$2 = { class: "main-header__action" };
+const _hoisted_7$1 = { class: "main-header__scale" };
 const _sfc_main$2 = /* @__PURE__ */ defineComponent({
   ...{
     name: "MainHeader"
@@ -41742,6 +42134,54 @@ const _sfc_main$2 = /* @__PURE__ */ defineComponent({
                   "对齐"
                 ),
                 key: "对齐"
+              },
+              {
+                label: () => h(
+                  "a",
+                  {
+                    target: "_blank",
+                    rel: "noopenner noreferrer",
+                    onClick: onBigTest
+                  },
+                  "大图"
+                ),
+                key: "大图"
+              },
+              {
+                label: () => h(
+                  "a",
+                  {
+                    target: "_blank",
+                    rel: "noopenner noreferrer",
+                    onClick: onHugeTest
+                  },
+                  "大量素材"
+                ),
+                key: "大量素材"
+              },
+              {
+                label: () => h(
+                  "a",
+                  {
+                    target: "_blank",
+                    rel: "noopenner noreferrer",
+                    onClick: onHugeManualLinkTest
+                  },
+                  "大量手动连接线"
+                ),
+                key: "大量手动连接线"
+              },
+              {
+                label: () => h(
+                  "a",
+                  {
+                    target: "_blank",
+                    rel: "noopenner noreferrer",
+                    onClick: onHugeAutoLinkTest
+                  },
+                  "大量自动连接线"
+                ),
+                key: "大量自动连接线"
               }
             ]
           }
@@ -41861,7 +42301,7 @@ const _sfc_main$2 = /* @__PURE__ */ defineComponent({
       }
     }
     watch(() => props.render, () => {
-      var _a, _b, _c, _d, _e;
+      var _a, _b, _c, _d, _e, _f;
       if (props.render) {
         (_a = props.render) == null ? void 0 : _a.on("selection-change", (nodes) => {
           selection.value = nodes;
@@ -41878,6 +42318,9 @@ const _sfc_main$2 = /* @__PURE__ */ defineComponent({
         });
         (_e = props.render) == null ? void 0 : _e.on("scale-change", (value) => {
           scale.value = value * 100;
+        });
+        (_f = props.render) == null ? void 0 : _f.on("loading", (value) => {
+          loading.value = value;
         });
       }
     }, {
@@ -41898,16 +42341,52 @@ const _sfc_main$2 = /* @__PURE__ */ defineComponent({
       const json = await (await fetch("./test/align.json")).text();
       (_a = props.render) == null ? void 0 : _a.importExportTool.restore(json);
     }
+    async function onBigTest() {
+      var _a;
+      const json = await (await fetch("./test/big.json")).text();
+      (_a = props.render) == null ? void 0 : _a.importExportTool.restore(json);
+    }
+    async function onHugeTest() {
+      var _a;
+      const json = await (await fetch("./test/huge.json")).text();
+      (_a = props.render) == null ? void 0 : _a.importExportTool.restore(json);
+    }
+    async function onHugeManualLinkTest() {
+      var _a;
+      const json = await (await fetch("./test/huge-manual-link.json")).text();
+      (_a = props.render) == null ? void 0 : _a.importExportTool.restore(json);
+    }
+    async function onHugeAutoLinkTest() {
+      var _a;
+      const json = await (await fetch("./test/huge-auto-link.json")).text();
+      (_a = props.render) == null ? void 0 : _a.importExportTool.restore(json);
+    }
     function onFull() {
       emit2("update:full", !props.full);
     }
+    const loading = ref(false);
     return (_ctx, _cache) => {
       return openBlock(), createElementBlock("div", _hoisted_1$2, [
         createBaseVNode("header", null, [
           _hoisted_2$2,
           createBaseVNode("div", null, [
-            _hoisted_3$2,
-            createBaseVNode("div", _hoisted_4$2, [
+            createBaseVNode("div", _hoisted_3$2, [
+              _hoisted_4$2,
+              withDirectives(createVNode(unref(NSpin), { size: "small" }, {
+                icon: withCtx(() => [
+                  createVNode(unref(NIcon), null, {
+                    default: withCtx(() => [
+                      createVNode(unref(ArrowSync16Regular))
+                    ]),
+                    _: 1
+                  })
+                ]),
+                _: 1
+              }, 512), [
+                [vShow, loading.value]
+              ])
+            ]),
+            createBaseVNode("div", _hoisted_5$2, [
               createVNode(unref(NMenu), {
                 mode: "horizontal",
                 responsive: "",
@@ -41919,7 +42398,7 @@ const _sfc_main$2 = /* @__PURE__ */ defineComponent({
             ])
           ])
         ]),
-        createBaseVNode("footer", _hoisted_5$2, [
+        createBaseVNode("footer", _hoisted_6$2, [
           createBaseVNode("section", null, [
             createVNode(unref(NDropdown), {
               trigger: "hover",
@@ -41934,7 +42413,7 @@ const _sfc_main$2 = /* @__PURE__ */ defineComponent({
                   focusable: false
                 }, {
                   default: withCtx(() => [
-                    createBaseVNode("span", _hoisted_6$2, toDisplayString(scale.value.toFixed(0)) + "%", 1)
+                    createBaseVNode("span", _hoisted_7$1, toDisplayString(scale.value.toFixed(0)) + "%", 1)
                   ]),
                   _: 1
                 })
@@ -42342,7 +42821,7 @@ const _export_sfc = (sfc, props) => {
   }
   return target;
 };
-const MainHeader = /* @__PURE__ */ _export_sfc(_sfc_main$2, [["__scopeId", "data-v-dfc8ea9f"]]);
+const MainHeader = /* @__PURE__ */ _export_sfc(_sfc_main$2, [["__scopeId", "data-v-1bb171cf"]]);
 const assetsModules = {
   svg: [
     {
@@ -42583,7 +43062,8 @@ const assetsModules = {
         { x: 101, y: 51, direction: "right" }
       ]
     },
-    { url: "./img/png/2.png" }
+    { url: "./img/png/2.png" },
+    { url: "./img/jpg/big.jpg" }
   ],
   gif: [
     { url: "./img/gif/5.gif", points: [{ x: 100, y: 100 }] },
@@ -42830,7 +43310,7 @@ const _sfc_main = /* @__PURE__ */ defineComponent({
   setup(__props) {
     const boardElement = ref();
     const stageElement = ref();
-    let render16 = null;
+    let render17 = null;
     const ready = ref(false);
     const resizer = /* @__PURE__ */ (() => {
       let resizeObserver = null;
@@ -42864,8 +43344,8 @@ const _sfc_main = /* @__PURE__ */ defineComponent({
       if (boardElement.value && stageElement.value) {
         resizer.init(boardElement.value, {
           resize: (x, y, width, height) => {
-            if (render16 === null) {
-              render16 = new Render(stageElement.value, {
+            if (render17 === null) {
+              render17 = new Render(stageElement.value, {
                 width,
                 height,
                 //
@@ -42879,7 +43359,7 @@ const _sfc_main = /* @__PURE__ */ defineComponent({
               });
               ready.value = true;
             }
-            render16.resize(width, height);
+            render17.resize(width, height);
           }
         });
       }
@@ -42892,7 +43372,7 @@ const _sfc_main = /* @__PURE__ */ defineComponent({
         withDirectives(createBaseVNode("header", null, [
           ready.value ? (openBlock(), createBlock(MainHeader, {
             key: 0,
-            render: unref(render16),
+            render: unref(render17),
             full: full.value,
             "onUpdate:full": _cache[0] || (_cache[0] = ($event) => full.value = $event)
           }, null, 8, ["render", "full"])) : createCommentVNode("", true)
@@ -42903,7 +43383,7 @@ const _sfc_main = /* @__PURE__ */ defineComponent({
           withDirectives(createBaseVNode("header", null, [
             ready.value ? (openBlock(), createBlock(AssetBar, {
               key: 0,
-              render: unref(render16)
+              render: unref(render17)
             }, null, 8, ["render"])) : createCommentVNode("", true)
           ], 512), [
             [vShow, !full.value]
@@ -42980,7 +43460,7 @@ const logArray = (words2) => {
     console.error(e);
   }
 };
-var define_BUILD_INFO_default = { lastBuildTime: "2024-08-08 17:12:24", git: { branch: "master", hash: "41431d273a81ec4d35a72c43447025c4ef6d7f3e", tag: "chapter20" } };
+var define_BUILD_INFO_default = { lastBuildTime: "2024-08-09 16:47:45", git: { branch: "master", hash: "5177291803b1b0eb88381e65323da321a6f7e265", tag: "chapter20" } };
 const {
   lastBuildTime,
   git: { branch, tag, hash }
