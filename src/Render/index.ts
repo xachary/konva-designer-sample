@@ -258,6 +258,8 @@ export class Render {
                 )
               }
             }
+
+            rn.setAttr('points', rn.attrs.points)
           }
         }
 
