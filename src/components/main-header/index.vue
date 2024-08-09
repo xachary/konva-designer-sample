@@ -3,7 +3,16 @@
         <header>
             <img class="main-header__logo" src="/logo.png" alt="">
             <div>
-                <div class="main-header__title">Designer Sample</div>
+                <div class="main-header__title">
+                    <span>Designer Sample</span>
+                    <NSpin size="small" v-show="loading">
+                        <template #icon>
+                            <NIcon>
+                                <ArrowSync16Regular />
+                            </NIcon>
+                        </template>
+                    </NSpin>
+                </div>
                 <div class="main-header__menu">
                     <NMenu mode="horizontal" responsive :options="menuOptions" v-model:value="activeMenuKey"
                         :on-update:value="() => activeMenuKey = ''" />
@@ -208,7 +217,7 @@ import * as Types from '@/Render/types'
 import * as Draws from '@/Render/draws'
 import { Render } from '@/Render'
 
-import { NMenu, NButton, NIcon, NTooltip, NDropdown, NDivider } from 'naive-ui'
+import { NMenu, NButton, NIcon, NTooltip, NDropdown, NDivider, NSpin } from 'naive-ui'
 import { IosUndo, IosRedo } from '@vicons/ionicons4'
 import {
     AlignCenterVertical16Regular,
@@ -222,7 +231,8 @@ import {
     Flowchart20Regular,
     Bug16Regular,
     FullScreenMaximize24Regular,
-    FullScreenMinimize24Regular
+    FullScreenMinimize24Regular,
+    ArrowSync16Regular
 } from '@vicons/fluent'
 
 defineOptions({
@@ -501,6 +511,54 @@ const menuOptions = [
                         ),
                         key: '对齐',
                     },
+                    {
+                        label: () => h(
+                            'a',
+                            {
+                                target: '_blank',
+                                rel: 'noopenner noreferrer',
+                                onClick: onBigTest
+                            },
+                            '大图'
+                        ),
+                        key: '大图',
+                    },
+                    {
+                        label: () => h(
+                            'a',
+                            {
+                                target: '_blank',
+                                rel: 'noopenner noreferrer',
+                                onClick: onHugeTest
+                            },
+                            '大量素材'
+                        ),
+                        key: '大量素材',
+                    },
+                    {
+                        label: () => h(
+                            'a',
+                            {
+                                target: '_blank',
+                                rel: 'noopenner noreferrer',
+                                onClick: onHugeManualLinkTest
+                            },
+                            '大量手动连接线'
+                        ),
+                        key: '大量手动连接线',
+                    },
+                    {
+                        label: () => h(
+                            'a',
+                            {
+                                target: '_blank',
+                                rel: 'noopenner noreferrer',
+                                onClick: onHugeAutoLinkTest
+                            },
+                            '大量自动连接线'
+                        ),
+                        key: '大量自动连接线',
+                    },
                 ]
             }
         ]
@@ -637,6 +695,10 @@ watch(() => props.render, () => {
         props.render?.on('scale-change', (value) => {
             scale.value = value * 100
         })
+
+        props.render?.on('loading', (value) => {
+            loading.value = value
+        })
     }
 
 }, {
@@ -656,11 +718,29 @@ async function onAlignTest() {
     const json = await (await fetch('./test/align.json')).text()
     props.render?.importExportTool.restore(json)
 }
+async function onBigTest() {
+    const json = await (await fetch('./test/big.json')).text()
+    props.render?.importExportTool.restore(json)
+}
+async function onHugeTest() {
+    const json = await (await fetch('./test/huge.json')).text()
+    props.render?.importExportTool.restore(json)
+}
+async function onHugeManualLinkTest() {
+    const json = await (await fetch('./test/huge-manual-link.json')).text()
+    props.render?.importExportTool.restore(json)
+}
+async function onHugeAutoLinkTest() {
+    const json = await (await fetch('./test/huge-auto-link.json')).text()
+    props.render?.importExportTool.restore(json)
+}
 
 // 最大/最小化
 function onFull() {
     emit('update:full', !props.full)
 }
+
+const loading = ref(false)
 </script>
 
 <style lang="less" scoped>
@@ -714,6 +794,13 @@ function onFull() {
         font-weight: bold;
         margin-left: 6px;
         line-height: @top-height - @menu-height;
+        display: flex;
+        align-items: center;
+
+        &>.n-spin-body {
+            margin-left: 6px;
+            transform: scale(0.8)
+        }
     }
 
     &__action {

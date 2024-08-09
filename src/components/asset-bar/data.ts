@@ -247,7 +247,8 @@ export const assetsModules: {
         { x: 101, y: 51, direction: 'right' }
       ]
     },
-    { url: './img/png/2.png' }
+    { url: './img/png/2.png' },
+    { url: './img/jpg/big.jpg' }
   ],
   gif: [
     { url: './img/gif/5.gif', points: [{ x: 100, y: 100 }] },

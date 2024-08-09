@@ -81,31 +81,20 @@ export class SelectionTool {
       )
 
       // 记录状态
-      for (const node of nodes) {
+      for (const node of nodes.sort((a, b) => a.zIndex() - b.zIndex())) {
         node.setAttrs({
           nodeMousedownPos: node.position(), // 后面用于移动所选
           lastOpacity: node.opacity(), // 选中时，下面会使其变透明，记录原有的透明度
           lastZIndex: node.zIndex(), // 记录原有的层次，后面暂时提升所选节点的层次
           selectingZIndex: undefined,
-          selected: true // 选择中
-        })
+          selected: true, // 选择中
 
-        // 隐藏 连接点
-        this.render.linkTool.pointsVisible(false, node as Konva.Group)
-
-        // // 重绘
-        // this.render.redraw()
-      }
-
-      // 设置透明度、提升层次、不可交互
-      for (const node of nodes.sort((a, b) => a.zIndex() - b.zIndex())) {
-        node.setAttrs({
-          listening: false,
-          opacity: node.opacity() * 0.8,
-          zIndex: maxZIndex
+          listening: false, // 不可交互
+          opacity: node.opacity() * 0.8, // 设置透明度
+          zIndex: maxZIndex // 提升层次
         })
       }
-
+      
       // 选中的节点
       this.selectingNodes = nodes
 

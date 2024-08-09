@@ -38,6 +38,9 @@ export class ImportExportTool {
 
       // 移除多余结构
       for (const node of nodes) {
+        // 如果当前被选中，listening 会是 false，需恢复
+        node.listening(true)
+
         for (const child of (node as Konva.Group).children) {
           if (this.render.ignoreSelect(child)) {
             child.remove()
@@ -180,7 +183,12 @@ export class ImportExportTool {
 
   // 恢复
   async restore(json: string, silent = false) {
+    console.group('restore')
+    console.time('restore')
+
     try {
+      this.render.emit('loading', true)
+
       // 清空选择
       this.render.selectionTool.selectingClear()
 
@@ -230,12 +238,6 @@ export class ImportExportTool {
       // 往 main layer 插入新节点
       this.render.layer.add(...nodes)
 
-      // Bug: 恢复 JSON 时候，如果存在已经被放大缩小点元素，点击选择无效
-      // 可能是 Konva 的 bug
-      this.render.selectionTool.select(this.render.layer.getChildren())
-      // 清空选择
-      this.render.selectionTool.selectingClear()
-
       // 上一步、下一步 无需更新 history 记录
       if (!silent) {
         // 更新历史
@@ -254,7 +256,11 @@ export class ImportExportTool {
       ])
     } catch (e) {
       console.error(e)
+    } finally {
+      this.render.emit('loading', false)
     }
+    console.timeEnd('restore')
+    console.groupEnd()
   }
 
   // 获取图片
