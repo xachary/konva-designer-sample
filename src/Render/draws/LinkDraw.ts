@@ -422,7 +422,7 @@ export class LinkDraw extends Types.BaseDraw implements Types.Draw {
             // 拐点（已拐）记录
             const manualPointsMap: Types.ManualPointsMap =
               fromGroup.getAttr('manualPointsMap') ?? ({} as Types.ManualPointsMap)
-            const manualPoints = manualPointsMap[pair.id] ?? [] as Types.ManualPoint[]
+            const manualPoints = manualPointsMap[pair.id] ?? ([] as Types.ManualPoint[])
 
             // 连接点 + 拐点
             const linkPoints = [
@@ -452,6 +452,8 @@ export class LinkDraw extends Types.BaseDraw implements Types.Draw {
 
             // 正在拖动效果
             const manualingLine = new Konva.Line({
+              name: 'manualing-line',
+              //
               stroke: '#ff0000',
               strokeWidth: 2,
               points: [],
@@ -464,6 +466,8 @@ export class LinkDraw extends Types.BaseDraw implements Types.Draw {
             // 拐点（待拐）
             for (let i = 0; i < linkPoints.length - 1; i++) {
               const circle = new Konva.Circle({
+                name: 'link-manual-point',
+                //
                 id: nanoid(),
                 pairId: pair.id,
                 x: (linkPoints[i][0] + linkPoints[i + 1][0]) / 2,
@@ -471,7 +475,6 @@ export class LinkDraw extends Types.BaseDraw implements Types.Draw {
                 radius: this.render.toStageValue(this.render.bgSize / 2),
                 stroke: 'rgba(0,0,255,0.1)',
                 strokeWidth: this.render.toStageValue(1),
-                name: 'link-manual-point',
                 // opacity: 0,
                 linkManualIndex: i // 当前拐点位置
               })
@@ -584,6 +587,8 @@ export class LinkDraw extends Types.BaseDraw implements Types.Draw {
             // 拐点（已拐）
             for (let i = 1; i < linkPoints.length - 1; i++) {
               const circle = new Konva.Circle({
+                name: 'link-manual-point',
+                //
                 id: nanoid(),
                 pairId: pair.id,
                 x: linkPoints[i][0],
@@ -591,7 +596,6 @@ export class LinkDraw extends Types.BaseDraw implements Types.Draw {
                 radius: this.render.toStageValue(this.render.bgSize / 2),
                 stroke: 'rgba(0,100,0,0.1)',
                 strokeWidth: this.render.toStageValue(1),
-                name: 'link-manual-point',
                 // opacity: 0,
                 linkManualIndex: i // 当前拐点位置
               })
@@ -990,7 +994,6 @@ export class LinkDraw extends Types.BaseDraw implements Types.Draw {
                 for (const point of matrixPoints) {
                   this.group.add(
                     new Konva.Circle({
-                      name: 'link-route',
                       id: nanoid(),
                       x: this.render.toStageValue(point.x),
                       y: this.render.toStageValue(point.y),
@@ -1089,6 +1092,8 @@ export class LinkDraw extends Types.BaseDraw implements Types.Draw {
 
         if (anchor) {
           const circle = new Konva.Circle({
+            name: 'link-point',
+            //
             id: point.id,
             groupId: group.id(),
             x: this.render.toStageValue(anchor.absolutePosition().x - stageState.x),
@@ -1096,7 +1101,6 @@ export class LinkDraw extends Types.BaseDraw implements Types.Draw {
             radius: this.render.toStageValue(this.option.size),
             stroke: 'rgba(255,0,0,0.2)',
             strokeWidth: this.render.toStageValue(1),
-            name: 'link-point',
             opacity: point.visible ? 1 : 0
           })
 
