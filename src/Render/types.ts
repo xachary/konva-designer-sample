@@ -1,6 +1,6 @@
 import Konva from 'konva'
 import { Render } from './index'
-
+import { nanoid } from 'nanoid'
 export type ValueOf<T> = T[keyof T]
 
 export interface RenderConfig {
@@ -23,6 +23,7 @@ export type RenderEvents = {
   ['link-type-change']: LinkType
   ['scale-change']: number
   ['loading']: boolean
+  ['graph-type-change']: GraphType | undefined
 }
 
 export interface Handler {
@@ -175,4 +176,142 @@ export interface ManualPoint {
 
 export interface ManualPointsMap {
   [index: string]: ManualPoint[]
+}
+
+/**
+ * 图形类
+ * 实例主要用于新建图形时，含新建同时的大小拖动。
+ * 静态方法主要用于新建之后，通过 调整点 调整的逻辑定义
+ */
+export abstract class BaseGraph {
+  /**
+   * 更新 图形 的 调整点 的 锚点位置
+   * @param width 图形 的 宽度
+   * @param height 图形 的 高度
+   * @param rotate 图形 的 旋转角度
+   * @param anchorShadows 图形 的 调整点 的 锚点
+   */
+  static updateAnchorShadows(
+    width: number,
+    height: number,
+    rotate: number,
+    anchorShadows: Konva.Circle[]
+  ) {
+    console.log('请实现 updateAnchorShadows', width, height, anchorShadows)
+  }
+
+  /**
+   * 调整 图形
+   * @param render 渲染实例
+   * @param graph 图形
+   * @param graphSnap 图形 的 备份
+   * @param rect 当前 调整点
+   * @param rects 所有 调整点
+   * @param startPoint 鼠标按下位置
+   * @param endPoint 鼠标拖动位置
+   */
+  static adjust(
+    render: Render,
+    graph: Konva.Group,
+    graphSnap: Konva.Group,
+    rect: Konva.Rect,
+    rects: Konva.Rect[],
+    startPoint: Konva.Vector2d,
+    endPoint: Konva.Vector2d
+  ) {
+    console.log('请实现 updateAnchorShadows', render, graph, rect, startPoint, endPoint)
+  }
+  //
+  protected render: Render
+  protected group: Konva.Group
+  id: string // 就是 group 的id
+  /**
+   * 鼠标按下位置
+   */
+  protected dropPoint: Konva.Vector2d = { x: 0, y: 0 }
+  /**
+   * 调整点 定义
+   */
+  protected anchors: GraphAnchor[] = []
+  /**
+   * 调整点 的 锚点
+   */
+  protected anchorShadows: Konva.Circle[] = []
+
+  constructor(
+    render: Render,
+    dropPoint: Konva.Vector2d,
+    config: {
+      anchors: GraphAnchor[]
+    }
+  ) {
+    this.render = render
+    this.dropPoint = dropPoint
+
+    this.id = nanoid()
+
+    this.group = new Konva.Group({
+      id: this.id,
+      name: 'graph'
+    })
+
+    this.anchors = config.anchors.map((o) => ({
+      ...o,
+      // 补充信息
+      name: 'anchor',
+      groupId: this.group.id()
+    }))
+
+    // 记录在 group 中
+    this.group.setAttr('anchors', config.anchors)
+
+    // 新建 调整点 的 锚点
+    for (const anchor of this.anchors) {
+      const circle = new Konva.Circle({
+        id: anchor.id,
+        name: anchor.name,
+        radius: 0
+        // radius: this.render.toStageValue(0.5),
+        // fill: 'red'
+      })
+      this.anchorShadows.push(circle)
+      this.group.add(circle)
+    }
+
+    this.render.layer.add(this.group)
+
+    this.render.redraw()
+  }
+
+  /**
+   * 调整进行时
+   * @param point 鼠标位置 相对位置
+   */
+  abstract drawMove(point: Konva.Vector2d): void
+
+  /**
+   * 调整结束
+   */
+  abstract drawEnd(): void
+}
+
+/**
+ * 图形类型
+ */
+export enum GraphType {
+  Line = 'Line', // 直线
+  Curve = 'Curve', // 曲线
+  Rect = 'Rect', // 矩形
+  Circle = 'Circle' // 圆/椭圆形
+}
+
+/**
+ * 图形 的 调整点 信息
+ */
+export interface GraphAnchor {
+  id: string
+  type: GraphType
+  //
+  name?: string
+  groupId?: string
 }

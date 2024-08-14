@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch, type Ref } from 'vue'
 
 import { Render } from './Render'
+import * as Types from './Render/types'
 
 import { NIcon, NFloatButton } from 'naive-ui'
 
@@ -66,6 +67,11 @@ const resizer = (() => {
 })()
 
 const full = ref(false)
+const graphType: Ref<Types.GraphType | undefined> = ref()
+
+watch(() => graphType.value, () => {
+  render?.changeGraphType(graphType.value)
+})
 
 function init() {
   if (boardElement.value && stageElement.value) {
@@ -102,7 +108,7 @@ onMounted(() => {
 <template>
   <div class="page">
     <header v-show="!full">
-      <MainHeader :render="render" v-model:full="full" v-if="ready" />
+      <MainHeader :render="render" v-model:full="full" v-model:graphType="graphType" v-if="ready" />
     </header>
     <section>
       <header v-show="!full">

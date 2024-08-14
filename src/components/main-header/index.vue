@@ -178,6 +178,59 @@
                 <NDivider vertical />
                 <NTooltip trigger="hover" :delay="1000">
                     <template #trigger>
+                        <NButton tag="div" size="tiny" quaternary :focusable="false"
+                            @click="onGraph(Types.GraphType.Line)">
+                            <template #icon>
+                                <NIcon :depth="props.graphType === Types.GraphType.Line ? 1 : 3">
+                                    <Subtract20Regular />
+                                </NIcon>
+                            </template>
+                        </NButton>
+                    </template>
+                    画直线
+                </NTooltip>
+                <NTooltip trigger="hover" :delay="1000">
+                    <template #trigger>
+                        <NButton tag="div" size="tiny" quaternary :focusable="false"
+                            @click="onGraph(Types.GraphType.Curve)">
+                            <template #icon>
+                                <NIcon :depth="props.graphType === Types.GraphType.Curve ? 1 : 3">
+                                    <DataLine20Regular />
+                                </NIcon>
+                            </template>
+                        </NButton>
+                    </template>
+                    画曲线
+                </NTooltip>
+                <NTooltip trigger="hover" :delay="1000">
+                    <template #trigger>
+                        <NButton tag="div" size="tiny" quaternary :focusable="false"
+                            @click="onGraph(Types.GraphType.Rect)">
+                            <template #icon>
+                                <NIcon :depth="props.graphType === Types.GraphType.Rect ? 1 : 3">
+                                    <RectangleLandscape16Regular />
+                                </NIcon>
+                            </template>
+                        </NButton>
+                    </template>
+                    画矩形
+                </NTooltip>
+                <NTooltip trigger="hover" :delay="1000">
+                    <template #trigger>
+                        <NButton tag="div" size="tiny" quaternary :focusable="false"
+                            @click="onGraph(Types.GraphType.Circle)">
+                            <template #icon>
+                                <NIcon :depth="props.graphType === Types.GraphType.Circle ? 1 : 3">
+                                    <Circle16Regular />
+                                </NIcon>
+                            </template>
+                        </NButton>
+                    </template>
+                    画圆
+                </NTooltip>
+                <NDivider vertical />
+                <NTooltip trigger="hover" :delay="1000">
+                    <template #trigger>
                         <NButton tag="div" size="tiny" quaternary :focusable="false" @click="onDebug">
                             <template #icon>
                                 <NIcon :depth="debug ? 1 : 3">
@@ -232,18 +285,23 @@ import {
     Bug16Regular,
     FullScreenMaximize24Regular,
     FullScreenMinimize24Regular,
-    ArrowSync16Regular
+    ArrowSync16Regular,
+    Circle16Regular,
+    RectangleLandscape16Regular,
+    Subtract20Regular,
+    DataLine20Regular
 } from '@vicons/fluent'
 
 defineOptions({
     name: 'MainHeader',
 });
 
-const emit = defineEmits(['update:full'])
+const emit = defineEmits(['update:full', 'update:graphType'])
 
 const props = withDefaults(defineProps<{
     render?: Render | null, // 实例
-    full: boolean
+    full: boolean,
+    graphType?: Types.GraphType
 }>(), {
     full: () => false,
 });
@@ -699,6 +757,10 @@ watch(() => props.render, () => {
         props.render?.on('loading', (value) => {
             loading.value = value
         })
+
+        props.render?.on('graph-type-change', (value) => {
+            emit('update:graphType', value)
+        })
     }
 
 }, {
@@ -741,6 +803,10 @@ function onFull() {
 }
 
 const loading = ref(false)
+
+function onGraph(type: Types.GraphType) {
+    emit('update:graphType', props.graphType === type ? undefined : type)
+}
 </script>
 
 <style lang="less" scoped>

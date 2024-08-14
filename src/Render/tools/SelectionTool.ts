@@ -59,6 +59,9 @@ export class SelectionTool {
     //   // 重绘
     //   this.render.redraw([])
     // }
+
+    // 重绘
+    this.render.redraw([Draws.GraphDraw.name])
   }
 
   // 选择节点
@@ -94,13 +97,16 @@ export class SelectionTool {
           zIndex: maxZIndex // 提升层次
         })
       }
-      
+
       // 选中的节点
       this.selectingNodes = nodes
 
       // 选中的节点，放进 transformer
       this.render.transformer.nodes(this.selectingNodes)
     }
+
+    // 重绘
+    this.render.redraw([Draws.GraphDraw.name])
   }
 
   // 更新节点位置

@@ -96,54 +96,58 @@ export class SelectionHandlers implements Types.Handler {
     // 选择相关
     stage: {
       mousedown: (e: Konva.KonvaEventObject<GlobalEventHandlersEventMap['mousedown']>) => {
-        const parent = e.target.getParent()
+        if (!this.render.graphType) {
+          // 并非在新建并拖动图形
+          
+          const parent = e.target.getParent()
 
-        if (e.target === this.render.stage) {
-          // 点击空白处
+          if (e.target === this.render.stage) {
+            // 点击空白处
 
-          // 清除选择
-          this.render.selectionTool.selectingClear()
-
-          // 选择框（判断 ctrlKey 为了排查 mac 拖动快捷键）
-          if (e.evt.button === Types.MouseButton.左键 && !e.evt.ctrlKey) {
-            const pos = this.render.stage.getPointerPosition()
-            if (pos) {
-              // 初始化状态值
-              this.selectRectStartX = pos.x
-              this.selectRectStartY = pos.y
-              this.selectRectEndX = pos.x
-              this.selectRectEndY = pos.y
-            }
-
-            // 初始化大小
-            this.render.selectRect.width(0)
-            this.render.selectRect.height(0)
-
-            // 开始选择
-            this.selecting = true
-          }
-
-          // 隐藏连接点
-          this.render.linkTool.pointsVisible(false)
-        } else if (parent instanceof Konva.Transformer) {
-          // transformer 点击事件交给 transformer 自己的 handler
-        } else if (parent instanceof Konva.Group) {
-          // （判断 ctrlKey 为了排查 mac 拖动快捷键）
-          if (e.evt.button === Types.MouseButton.左键 && !e.evt.ctrlKey) {
-            if (!this.render.ignore(parent) && !this.render.ignoreDraw(e.target)) {
-              if (e.evt.ctrlKey || e.evt.metaKey) {
-                // 新增多选
-                this.render.selectionTool.select([
-                  ...this.render.selectionTool.selectingNodes,
-                  parent
-                ])
-              } else {
-                // 单选
-                this.render.selectionTool.select([parent])
-              }
-            }
-          } else {
+            // 清除选择
             this.render.selectionTool.selectingClear()
+
+            // 选择框（判断 ctrlKey 为了排查 mac 拖动快捷键）
+            if (e.evt.button === Types.MouseButton.左键 && !e.evt.ctrlKey) {
+              const pos = this.render.stage.getPointerPosition()
+              if (pos) {
+                // 初始化状态值
+                this.selectRectStartX = pos.x
+                this.selectRectStartY = pos.y
+                this.selectRectEndX = pos.x
+                this.selectRectEndY = pos.y
+              }
+
+              // 初始化大小
+              this.render.selectRect.width(0)
+              this.render.selectRect.height(0)
+
+              // 开始选择
+              this.selecting = true
+            }
+
+            // 隐藏连接点
+            this.render.linkTool.pointsVisible(false)
+          } else if (parent instanceof Konva.Transformer) {
+            // transformer 点击事件交给 transformer 自己的 handler
+          } else if (parent instanceof Konva.Group) {
+            // （判断 ctrlKey 为了排查 mac 拖动快捷键）
+            if (e.evt.button === Types.MouseButton.左键 && !e.evt.ctrlKey) {
+              if (!this.render.ignore(parent) && !this.render.ignoreDraw(e.target)) {
+                if (e.evt.ctrlKey || e.evt.metaKey) {
+                  // 新增多选
+                  this.render.selectionTool.select([
+                    ...this.render.selectionTool.selectingNodes,
+                    parent
+                  ])
+                } else {
+                  // 单选
+                  this.render.selectionTool.select([parent])
+                }
+              }
+            } else {
+              this.render.selectionTool.selectingClear()
+            }
           }
         }
       },

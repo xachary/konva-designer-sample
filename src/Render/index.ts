@@ -86,6 +86,9 @@ export class Render {
   // 调试模式
   debug = false
 
+  // 画图类型
+  graphType: Types.GraphType | undefined = undefined
+
   protected emitter: Emitter<Types.RenderEvents> = mitt()
   on: Emitter<Types.RenderEvents>['on']
   off: Emitter<Types.RenderEvents>['off']
@@ -107,6 +110,7 @@ export class Render {
 
   constructor(stageEle: HTMLDivElement, config: Types.RenderConfig) {
     this.config = config
+
     this.on = this.emitter.on.bind(this.emitter)
     this.off = this.emitter.off.bind(this.emitter)
     this.emit = this.emitter.emit.bind(this.emitter)
@@ -150,6 +154,9 @@ export class Render {
     this.draws[Draws.PreviewDraw.name] = new Draws.PreviewDraw(this, this.layerCover, {
       size: this.previewSize
     })
+    this.draws[Draws.GraphDraw.name] = new Draws.GraphDraw(this, this.layerCover, {
+      //
+    })
 
     // 素材工具
     this.assetTool = new Tools.AssetTool(this)
@@ -187,6 +194,7 @@ export class Render {
     this.handlers[Handlers.KeyMoveHandlers.name] = new Handlers.KeyMoveHandlers(this)
     this.handlers[Handlers.ShutcutHandlers.name] = new Handlers.ShutcutHandlers(this)
     this.handlers[Handlers.LinkHandlers.name] = new Handlers.LinkHandlers(this)
+    this.handlers[Handlers.GraphHandlers.name] = new Handlers.GraphHandlers(this)
 
     // 初始化
     this.init()
@@ -456,6 +464,7 @@ export class Render {
   redraw(drawNames?: string[]) {
     const all = [
       Draws.BgDraw.name, // 更新背景
+      Draws.GraphDraw.name, // 更新图形调整点
       Draws.LinkDraw.name, // 更新连线
       Draws.AttractDraw.name, // 更新磁贴
       Draws.RulerDraw.name, // 更新比例尺
@@ -480,5 +489,11 @@ export class Render {
         this.draws[name].draw()
       }
     }
+  }
+
+  // 改变画图类型
+  changeGraphType(type?: Types.GraphType) {
+    this.graphType = type
+    this.emit('graph-type-change', this.graphType)
   }
 }
