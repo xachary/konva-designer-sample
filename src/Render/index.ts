@@ -328,7 +328,14 @@ export class Render {
 
   // 事件绑定
   eventBind() {
-    for (const event of ['mousedown', 'mouseup', 'mousemove', 'wheel', 'contextmenu']) {
+    for (const event of [
+      'mousedown',
+      'mouseup',
+      'mousemove',
+      'wheel',
+      'contextmenu',
+      'pointerclick',
+    ]) {
       this.stage.on(event, (e) => {
         e?.evt?.preventDefault()
 
@@ -382,7 +389,7 @@ export class Render {
       'dragmove',
       'dragend',
       'mousemove',
-      'mouseleave'
+      'mouseleave',
     ]) {
       this.transformer.on(event, (e) => {
         e?.evt?.preventDefault()
@@ -445,7 +452,8 @@ export class Render {
       node.name() === Draws.ContextmenuDraw.name ||
       node.name() === Draws.PreviewDraw.name ||
       node.name() === Draws.LinkDraw.name ||
-      node.name() === Draws.AttractDraw.name
+      node.name() === Draws.AttractDraw.name ||
+      node.name() === Draws.GraphDraw.name
     )
   }
 

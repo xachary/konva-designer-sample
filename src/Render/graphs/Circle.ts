@@ -1,7 +1,19 @@
+import _ from 'lodash-es'
 import Konva from 'konva'
 
 import * as Types from '../types'
 import * as Draws from '../draws'
+
+// const colorMap: { [index: string]: string } = {
+//   'top-left': 'rgba(255,0,0,0.2)',
+//   top: 'rgba(0,255,0,0.3)',
+//   'top-right': 'rgba(0,0,255,0.4)',
+//   right: 'rgba(255,0,255,0.5)',
+//   'bottom-right': 'rgba(255,0,0,0.6)',
+//   bottom: 'rgba(0,255,0,0.7)',
+//   'bottom-left': 'rgba(0,0,255,0.8)',
+//   left: 'rgba(255,0,255,0.9)'
+// }
 
 /**
  * 图形 圆/椭圆
@@ -67,13 +79,93 @@ export class Circle extends Types.BaseGraph {
       }
     }
   }
+  // 实现：生成 调整点
+  static createAnchorShape(
+    render: Types.Render,
+    graph: Konva.Group,
+    anchor: Types.GraphAnchor,
+    anchorShadow: Konva.Circle
+  ): Konva.Shape {
+    // stage 状态
+    const stageState = render.getStageState()
+
+    const x = render.toStageValue(anchorShadow.getAbsolutePosition().x - stageState.x),
+      y = render.toStageValue(anchorShadow.getAbsolutePosition().y - stageState.y)
+
+    const offset = render.toStageValue(Draws.GraphDraw.anchorSize)
+
+    const shape = new Konva.Line({
+      name: 'anchor',
+      anchor: anchor,
+      //
+      // stroke: colorMap[anchor.id] ?? 'rgba(0,0,255,0.2)',
+      stroke: 'rgba(0,0,255,0.2)',
+      strokeWidth: render.toStageValue(2),
+      // 位置
+      x,
+      y,
+      // 路径
+      points:
+        {
+          'top-left': _.flatten([
+            [-offset, offset],
+            [-offset, -offset],
+            [offset, -offset]
+          ]),
+          top: _.flatten([
+            [-offset, -offset],
+            [offset, -offset]
+          ]),
+          'top-right': _.flatten([
+            [-offset, -offset],
+            [offset, -offset],
+            [offset, offset]
+          ]),
+          right: _.flatten([
+            [offset, -offset],
+            [offset, offset]
+          ]),
+          'bottom-right': _.flatten([
+            [-offset, offset],
+            [offset, offset],
+            [offset, -offset]
+          ]),
+          bottom: _.flatten([
+            [-offset, offset],
+            [offset, offset]
+          ]),
+          'bottom-left': _.flatten([
+            [-offset, -offset],
+            [-offset, offset],
+            [offset, offset]
+          ]),
+          left: _.flatten([
+            [-offset, -offset],
+            [-offset, offset]
+          ])
+        }[anchor.id] ?? [],
+      // 旋转角度
+      rotation: graph.getAbsoluteRotation()
+    })
+
+    shape.on('mouseenter', () => {
+      shape.stroke('rgba(0,0,255,0.8)')
+      document.body.style.cursor = 'move'
+    })
+    shape.on('mouseleave', () => {
+      shape.stroke(shape.attrs.adjusting ? 'rgba(0,0,255,0.8)' : 'rgba(0,0,255,0.2)')
+      document.body.style.cursor = shape.attrs.adjusting ? 'move' : 'default'
+    })
+
+    return shape
+  }
   // 实现：调整 图形
-  static adjust(
+  static override adjust(
     render: Types.Render,
     graph: Konva.Group,
     graphSnap: Konva.Group,
-    rect: Konva.Rect,
-    rects: Konva.Rect[],
+    shapeRecord: Types.GraphAnchorShape,
+    shapeRecords: Types.GraphAnchorShape[],
     startPoint: Konva.Vector2d,
     endPoint: Konva.Vector2d
   ) {
@@ -85,79 +177,530 @@ export class Circle extends Types.BaseGraph {
     // 调整点
     const anchors = (graph.find('.anchor') ?? []) as Konva.Circle[]
 
+    const { shape: adjustShape } = shapeRecord
+
     if (circle && circleSnap) {
-      // 鼠标偏移量
-      const offsetX = endPoint.x - startPoint.x
-      const offsetY = endPoint.y - startPoint.y
+      let [graphWidth, graphHeight] = [graph.width(), graph.height()]
+      const [graphRotation, anchorId, ex, ey] = [
+        Math.round(graph.rotation()),
+        adjustShape.attrs.anchor?.id,
+        endPoint.x,
+        endPoint.y
+      ]
 
-      // 三角函数
-      const cos = Math.cos((graph.rotation() * Math.PI) / 180)
-      const tan = Math.tan((graph.rotation() * Math.PI) / 180)
+      let anchorShadow: Konva.Circle | undefined, anchorShadowAcross: Konva.Circle | undefined
 
-      // 三角函数 计算
-      switch (rect.attrs.anchor?.id) {
+      switch (anchorId) {
         case 'top':
-          graph.y(Math.min(graphSnap.y() + graphSnap.height() + 2, graphSnap.y() + offsetY))
-          graph.x(graphSnap.x() - offsetY * tan)
-          graph.height(Math.max(2, graphSnap.height() - (cos === 0 ? 0 : offsetY / cos)))
+          {
+            anchorShadow = graphSnap.findOne(`#top`)
+            anchorShadowAcross = graphSnap.findOne(`#bottom`)
+          }
           break
         case 'bottom':
-          graph.height(Math.max(2, graphSnap.height() + (cos === 0 ? 0 : offsetY / cos)))
+          {
+            anchorShadow = graphSnap.findOne(`#bottom`)
+            anchorShadowAcross = graphSnap.findOne(`#top`)
+          }
           break
         case 'left':
-          graph.x(Math.min(graphSnap.x() + graphSnap.width() + 2, graphSnap.x() + offsetX))
-          graph.y(graphSnap.y() + offsetX * tan)
-          graph.width(Math.max(2, graphSnap.width() - (cos === 0 ? 0 : offsetX / cos)))
+          {
+            anchorShadow = graphSnap.findOne(`#left`)
+            anchorShadowAcross = graphSnap.findOne(`#right`)
+          }
           break
         case 'right':
-          graph.width(Math.max(2, graphSnap.width() + (cos === 0 ? 0 : offsetX / cos)))
+          {
+            anchorShadow = graphSnap.findOne(`#right`)
+            anchorShadowAcross = graphSnap.findOne(`#left`)
+          }
           break
         case 'top-left':
-          graph.x(Math.min(graphSnap.x() + graphSnap.width() + 2, graphSnap.x() + offsetX))
-          graph.y(Math.min(graphSnap.y() + graphSnap.height() + 2, graphSnap.y() + offsetY))
-          graph.width(Math.max(2, graphSnap.width() - (cos === 0 ? 0 : offsetX / cos)))
-          graph.height(Math.max(2, graphSnap.height() - (cos === 0 ? 0 : offsetY / cos)))
+          {
+            anchorShadow = graphSnap.findOne(`#top-left`)
+            anchorShadowAcross = graphSnap.findOne(`#bottom-right`)
+          }
           break
         case 'top-right':
-          graph.y(Math.min(graphSnap.y() + graphSnap.height() + 2, graphSnap.y() + offsetY))
-          graph.width(Math.max(2, graphSnap.width() + (cos === 0 ? 0 : offsetX / cos)))
-          graph.height(Math.max(2, graphSnap.height() - (cos === 0 ? 0 : offsetY / cos)))
+          {
+            anchorShadow = graphSnap.findOne(`#top-right`)
+            anchorShadowAcross = graphSnap.findOne(`#bottom-left`)
+          }
           break
         case 'bottom-left':
-          graph.x(Math.min(graphSnap.x() + graphSnap.width() + 2, graphSnap.x() + offsetX))
-          graph.width(Math.max(2, graphSnap.width() - (cos === 0 ? 0 : offsetX / cos)))
-          graph.height(Math.max(2, graphSnap.height() + (cos === 0 ? 0 : offsetY / cos)))
+          {
+            anchorShadow = graphSnap.findOne(`#bottom-left`)
+            anchorShadowAcross = graphSnap.findOne(`#top-right`)
+          }
           break
         case 'bottom-right':
-          graph.width(Math.max(2, graphSnap.width() + (cos === 0 ? 0 : offsetX / cos)))
-          graph.height(Math.max(2, graphSnap.height() + (cos === 0 ? 0 : offsetY / cos)))
+          {
+            anchorShadow = graphSnap.findOne(`#bottom-right`)
+            anchorShadowAcross = graphSnap.findOne(`#top-left`)
+          }
           break
       }
 
-      // 更新 圆/椭圆 大小
-      circle.x(graph.width() / 2)
-      circle.radiusX(graph.width() / 2)
-      circle.y(graph.height() / 2)
-      circle.radiusY(graph.height() / 2)
+      if (anchorShadow && anchorShadowAcross) {
+        const { x: sx, y: sy } = anchorShadow.getAbsolutePosition()
+        const { x: ax, y: ay } = anchorShadowAcross.getAbsolutePosition()
 
+        // 调整大小
+        {
+          const d1 = Math.sqrt(Math.pow(sx - ax, 2) + Math.pow(sy - ay, 2))
+          const d2 = Math.sqrt(Math.pow(ex - ax, 2) + Math.pow(ey - ay, 2))
+          const r1 = d2 / d1
+
+          let zeroWidth = 1,
+            zeroHeight = 1
+
+          switch (anchorId) {
+            case 'top':
+              {
+                if (graphRotation >= 45 && graphRotation < 135) {
+                  zeroHeight = ex <= ax ? 0 : 1
+                } else if (graphRotation >= -135 && graphRotation < -45) {
+                  zeroHeight = ex >= ax ? 0 : 1
+                } else if (graphRotation >= -45 && graphRotation < 45) {
+                  zeroHeight = ey >= ay ? 0 : 1
+                } else {
+                  zeroHeight = ey <= ay ? 0 : 1
+                }
+              }
+              break
+            case 'bottom':
+              {
+                if (graphRotation >= 45 && graphRotation < 135) {
+                  zeroHeight = ex <= ax ? 1 : 0
+                } else if (graphRotation >= -135 && graphRotation < -45) {
+                  zeroHeight = ex >= ax ? 1 : 0
+                } else if (graphRotation >= -45 && graphRotation < 45) {
+                  zeroHeight = ey >= ay ? 1 : 0
+                } else {
+                  zeroHeight = ey <= ay ? 1 : 0
+                }
+              }
+              break
+            case 'left':
+              {
+                if (graphRotation >= 45 && graphRotation < 135) {
+                  zeroWidth = ey >= ay ? 0 : 1
+                } else if (graphRotation >= -135 && graphRotation < -45) {
+                  zeroWidth = ex <= ax ? 0 : 1
+                } else if (graphRotation >= -45 && graphRotation < 45) {
+                  zeroWidth = ex >= ax ? 0 : 1
+                } else {
+                  zeroWidth = ey <= ay ? 0 : 1
+                }
+              }
+              break
+            case 'right':
+              {
+                if (graphRotation >= 45 && graphRotation < 135) {
+                  zeroWidth = ey >= ay ? 1 : 0
+                } else if (graphRotation >= -135 && graphRotation < -45) {
+                  zeroWidth = ex <= ax ? 1 : 0
+                } else if (graphRotation >= -45 && graphRotation < 45) {
+                  zeroWidth = ex >= ax ? 1 : 0
+                } else {
+                  zeroWidth = ey <= ay ? 1 : 0
+                }
+              }
+              break
+            case 'top-left':
+              {
+                if (graphRotation > -45 && graphRotation < 45) {
+                  if (ex >= ax && ey >= ay) {
+                    zeroWidth = 0
+                    zeroHeight = 0
+                  } else {
+                    zeroWidth = 1
+                    zeroHeight = 1
+                  }
+                } else if (graphRotation === 45) {
+                  if (ey >= ay) {
+                    zeroWidth = 0
+                    zeroHeight = 0
+                  } else {
+                    zeroWidth = 1
+                    zeroHeight = 1
+                  }
+                } else if (graphRotation > 45 && graphRotation < 135) {
+                  if (ex <= ax && ey >= ay) {
+                    zeroWidth = 0
+                    zeroHeight = 0
+                  } else {
+                    zeroWidth = 1
+                    zeroHeight = 1
+                  }
+                } else if (graphRotation === 135) {
+                  if (ex <= ax) {
+                    zeroWidth = 0
+                    zeroHeight = 0
+                  } else {
+                    zeroWidth = 1
+                    zeroHeight = 1
+                  }
+                } else if (
+                  (graphRotation > 135 && graphRotation <= 180) ||
+                  (graphRotation >= -180 && graphRotation < -135)
+                ) {
+                  if (ex <= ax && ey <= ay) {
+                    zeroWidth = 0
+                    zeroHeight = 0
+                  } else {
+                    zeroWidth = 1
+                    zeroHeight = 1
+                  }
+                } else if (graphRotation === -135) {
+                  if (ey <= ay) {
+                    zeroWidth = 0
+                    zeroHeight = 0
+                  } else {
+                    zeroWidth = 1
+                    zeroHeight = 1
+                  }
+                } else if (graphRotation > -135 && graphRotation < -45) {
+                  if (ex >= ax && ey <= ay) {
+                    zeroWidth = 0
+                    zeroHeight = 0
+                  } else {
+                    zeroWidth = 1
+                    zeroHeight = 1
+                  }
+                } else if (graphRotation === -45) {
+                  if (ex >= ax) {
+                    zeroWidth = 0
+                    zeroHeight = 0
+                  } else {
+                    zeroWidth = 1
+                    zeroHeight = 1
+                  }
+                }
+              }
+              break
+            case 'top-right':
+              {
+                if (graphRotation > -45 && graphRotation < 45) {
+                  if (ex <= ax && ey >= ay) {
+                    zeroWidth = 0
+                    zeroHeight = 0
+                  } else {
+                    zeroWidth = 1
+                    zeroHeight = 1
+                  }
+                } else if (graphRotation === 45) {
+                  if (ex <= ax) {
+                    zeroWidth = 0
+                    zeroHeight = 0
+                  } else {
+                    zeroWidth = 1
+                    zeroHeight = 1
+                  }
+                } else if (graphRotation > 45 && graphRotation < 135) {
+                  if (ex <= ax && ey <= ay) {
+                    zeroWidth = 0
+                    zeroHeight = 0
+                  } else {
+                    zeroWidth = 1
+                    zeroHeight = 1
+                  }
+                } else if (graphRotation === 135) {
+                  if (ey <= ay) {
+                    zeroWidth = 0
+                    zeroHeight = 0
+                  } else {
+                    zeroWidth = 1
+                    zeroHeight = 1
+                  }
+                } else if (
+                  (graphRotation > 135 && graphRotation <= 180) ||
+                  (graphRotation >= -180 && graphRotation < -135)
+                ) {
+                  if (ex >= ax && ey <= ay) {
+                    zeroWidth = 0
+                    zeroHeight = 0
+                  } else {
+                    zeroWidth = 1
+                    zeroHeight = 1
+                  }
+                } else if (graphRotation === -135) {
+                  if (ex >= ax) {
+                    zeroWidth = 0
+                    zeroHeight = 0
+                  } else {
+                    zeroWidth = 1
+                    zeroHeight = 1
+                  }
+                } else if (graphRotation > -135 && graphRotation < -45) {
+                  if (ex >= ax && ey >= ay) {
+                    zeroWidth = 0
+                    zeroHeight = 0
+                  } else {
+                    zeroWidth = 1
+                    zeroHeight = 1
+                  }
+                } else if (graphRotation === -45) {
+                  if (ey >= ay) {
+                    zeroWidth = 0
+                    zeroHeight = 0
+                  } else {
+                    zeroWidth = 1
+                    zeroHeight = 1
+                  }
+                }
+              }
+              break
+            case 'bottom-left':
+              {
+                if (graphRotation > -45 && graphRotation < 45) {
+                  if (ex >= ax && ey <= ay) {
+                    zeroWidth = 0
+                    zeroHeight = 0
+                  } else {
+                    zeroWidth = 1
+                    zeroHeight = 1
+                  }
+                } else if (graphRotation === 45) {
+                  if (ex >= ax) {
+                    zeroWidth = 0
+                    zeroHeight = 0
+                  } else {
+                    zeroWidth = 1
+                    zeroHeight = 1
+                  }
+                } else if (graphRotation > 45 && graphRotation < 135) {
+                  if (ex >= ax && ey >= ay) {
+                    zeroWidth = 0
+                    zeroHeight = 0
+                  } else {
+                    zeroWidth = 1
+                    zeroHeight = 1
+                  }
+                } else if (graphRotation === 135) {
+                  if (ey >= ay) {
+                    zeroWidth = 0
+                    zeroHeight = 0
+                  } else {
+                    zeroWidth = 1
+                    zeroHeight = 1
+                  }
+                } else if (
+                  (graphRotation > 135 && graphRotation <= 180) ||
+                  (graphRotation >= -180 && graphRotation < -135)
+                ) {
+                  if (ex <= ax && ey >= ay) {
+                    zeroWidth = 0
+                    zeroHeight = 0
+                  } else {
+                    zeroWidth = 1
+                    zeroHeight = 1
+                  }
+                } else if (graphRotation === -135) {
+                  if (ex <= ax) {
+                    zeroWidth = 0
+                    zeroHeight = 0
+                  } else {
+                    zeroWidth = 1
+                    zeroHeight = 1
+                  }
+                } else if (graphRotation > -135 && graphRotation < -45) {
+                  if (ex <= ax && ey <= ay) {
+                    zeroWidth = 0
+                    zeroHeight = 0
+                  } else {
+                    zeroWidth = 1
+                    zeroHeight = 1
+                  }
+                } else if (graphRotation === -45) {
+                  if (ey <= ay) {
+                    zeroWidth = 0
+                    zeroHeight = 0
+                  } else {
+                    zeroWidth = 1
+                    zeroHeight = 1
+                  }
+                }
+              }
+              break
+            case 'bottom-right':
+              {
+                if (graphRotation > -45 && graphRotation < 45) {
+                  if (ex <= ax && ey <= ay) {
+                    zeroWidth = 0
+                    zeroHeight = 0
+                  } else {
+                    zeroWidth = 1
+                    zeroHeight = 1
+                  }
+                } else if (graphRotation === 45) {
+                  if (ey <= ay) {
+                    zeroWidth = 0
+                    zeroHeight = 0
+                  } else {
+                    zeroWidth = 1
+                    zeroHeight = 1
+                  }
+                } else if (graphRotation > 45 && graphRotation < 135) {
+                  if (ex >= ax && ey <= ay) {
+                    zeroWidth = 0
+                    zeroHeight = 0
+                  } else {
+                    zeroWidth = 1
+                    zeroHeight = 1
+                  }
+                } else if (graphRotation === 135) {
+                  if (ex >= ax) {
+                    zeroWidth = 0
+                    zeroHeight = 0
+                  } else {
+                    zeroWidth = 1
+                    zeroHeight = 1
+                  }
+                } else if (
+                  (graphRotation > 135 && graphRotation <= 180) ||
+                  (graphRotation >= -180 && graphRotation < -135)
+                ) {
+                  if (ex >= ax && ey >= ay) {
+                    zeroWidth = 0
+                    zeroHeight = 0
+                  } else {
+                    zeroWidth = 1
+                    zeroHeight = 1
+                  }
+                } else if (graphRotation === -135) {
+                  if (ey >= ay) {
+                    zeroWidth = 0
+                    zeroHeight = 0
+                  } else {
+                    zeroWidth = 1
+                    zeroHeight = 1
+                  }
+                } else if (graphRotation > -135 && graphRotation < -45) {
+                  if (ex <= ax && ey >= ay) {
+                    zeroWidth = 0
+                    zeroHeight = 0
+                  } else {
+                    zeroWidth = 1
+                    zeroHeight = 1
+                  }
+                } else if (graphRotation === -45) {
+                  if (ex <= ax) {
+                    zeroWidth = 0
+                    zeroHeight = 0
+                  } else {
+                    zeroWidth = 1
+                    zeroHeight = 1
+                  }
+                }
+              }
+              break
+          }
+
+          if (/-?(left|right)$/.test(anchorId)) {
+            graph.width(Math.max(2, graphSnap.width() * r1 * zeroWidth))
+            graphWidth = graph.width()
+          }
+
+          if (/^(top|bottom)-?/.test(anchorId)) {
+            graph.height(Math.max(2, graphSnap.height() * r1 * zeroHeight))
+            graphHeight = graph.height()
+          }
+        }
+
+        // 调整位置
+        {
+          const cos = Math.cos((graphRotation * Math.PI) / 180)
+          const sin = Math.sin((graphRotation * Math.PI) / 180)
+          const tan = Math.tan((graphRotation * Math.PI) / 180)
+
+          switch (anchorId) {
+            case 'top':
+              {
+                graph.x(ax - (graphWidth / 2 - graphHeight * tan) * cos)
+                if (graphRotation !== 90 && graphRotation !== -90) {
+                  graph.y(ay - (graphHeight / cos + (graphWidth / 2 - graphHeight * tan) * sin))
+                }
+              }
+              break
+            case 'bottom':
+              {
+                // 无需处理
+              }
+              break
+            case 'left':
+              {
+                console.log(graphRotation, graphWidth, graphHeight)
+                if ([90, -90].includes(graphRotation)) {
+                  graph.y(ay - graphWidth)
+                } else if (Math.abs(graphRotation) === 180) {
+                  graph.x(ax + graphWidth)
+                } else {
+                  const v1 = graphHeight / 2 / cos
+                  const v2 = v1 * sin
+                  const v3 = graphWidth - v2
+                  const v4 = v3 * sin
+
+                  graph.x(ax - v3 * cos)
+                  graph.y(ay - (v1 + v4))
+                }
+              }
+              break
+            case 'right':
+              {
+                // 无需处理
+              }
+              break
+            case 'top-left':
+              {
+                graph.x(ax - (graphWidth - graphHeight * tan) * cos)
+                graph.y(ay - (graphWidth * sin + graphHeight * cos))
+              }
+              break
+            case 'top-right':
+              {
+                graph.x(ax + graphHeight * sin)
+                graph.y(ay - graphHeight * cos)
+              }
+              break
+            case 'bottom-left':
+              {
+                graph.x(ax - graphWidth * cos)
+                graph.y(ay - graphWidth * sin)
+              }
+              break
+            case 'bottom-right':
+              {
+                // 无需处理
+              }
+              break
+          }
+        }
+      }
+
+      // 更新 圆/椭圆 大小
+      circle.x(graphWidth / 2)
+      circle.radiusX(graphWidth / 2)
+      circle.y(graphHeight / 2)
+      circle.radiusY(graphHeight / 2)
 
       // 更新 调整点 的 锚点 位置
-      Circle.updateAnchorShadows(graph.width(), graph.height(), graph.rotation(), anchors)
+      Circle.updateAnchorShadows(graphWidth, graphHeight, graphRotation, anchors)
 
       // stage 状态
       const stageState = render.getStageState()
 
       // 更新 调整点 位置
       for (const anchor of anchors) {
-        for (const item of rects) {
-          if (item.attrs.anchor?.id === anchor.attrs.id) {
+        for (const { shape } of shapeRecords) {
+          if (shape.attrs.anchor?.id === anchor.attrs.id) {
             const anchorShadow = graph.findOne(`#${anchor.attrs.id}`)
             if (anchorShadow) {
-              item.position({
+              shape.position({
                 x: render.toStageValue(anchorShadow.getAbsolutePosition().x - stageState.x),
                 y: render.toStageValue(anchorShadow.getAbsolutePosition().y - stageState.y)
               })
-              item.rotation(graph.getAbsoluteRotation())
+              shape.rotation(graph.getAbsoluteRotation())
             }
           }
         }
@@ -201,6 +744,7 @@ export class Circle extends Types.BaseGraph {
       stroke: 'black',
       strokeWidth: 1
     })
+
     // 加入
     this.group.add(this.circle)
     // 鼠标按下位置 作为起点
@@ -261,7 +805,7 @@ export class Circle extends Types.BaseGraph {
       this.circle.y(radiusY)
       this.circle.radiusX(radiusX - this.circle.strokeWidth())
       this.circle.radiusY(radiusY - this.circle.strokeWidth())
-      
+
       // group 大小
       this.group.size({
         width,
@@ -270,6 +814,9 @@ export class Circle extends Types.BaseGraph {
 
       // 更新 图形 的 调整点 的 锚点位置
       Circle.updateAnchorShadows(width, height, 1, this.anchorShadows)
+
+      // 对齐线清除
+      this.render.attractTool.alignLinesClear()
 
       // 重绘
       this.render.redraw([Draws.GraphDraw.name])

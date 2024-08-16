@@ -3,6 +3,7 @@ import Konva from 'konva'
 import { Render } from '../index'
 import * as Types from '../types'
 import * as Graphs from '../graphs'
+import * as Draws from '../draws'
 
 export class GraphHandlers implements Types.Handler {
   static readonly name = 'Graph'
@@ -24,17 +25,31 @@ export class GraphHandlers implements Types.Handler {
 
   /**
    * 获取鼠标位置，并处理为 相对大小
+   * @param attract 含磁贴计算
    * @returns
    */
-  getStagePoint() {
+  getStagePoint(attract = false) {
     const pos = this.render.stage.getPointerPosition()
     if (pos) {
       const stageState = this.render.getStageState()
-      const point = {
-        x: this.render.toStageValue(pos.x - stageState.x),
-        y: this.render.toStageValue(pos.y - stageState.y)
+      // 磁贴
+      const { pos: transformerPos } = this.render.attractTool.attract({
+        x: pos.x,
+        y: pos.y,
+        width: 1,
+        height: 1
+      })
+      if (attract) {
+        return {
+          x: this.render.toStageValue(transformerPos.x - stageState.x),
+          y: this.render.toStageValue(transformerPos.y - stageState.y)
+        }
+      } else {
+        return {
+          x: this.render.toStageValue(pos.x - stageState.x),
+          y: this.render.toStageValue(pos.y - stageState.y)
+        }
       }
-      return point
     }
     return null
   }
@@ -63,10 +78,10 @@ export class GraphHandlers implements Types.Handler {
       mousemove: () => {
         if (this.graphing) {
           if (this.currentGraph) {
-            const point = this.getStagePoint()
-            if (point) {
+            const pos = this.getStagePoint(true)
+            if (pos) {
               // 新建并马上调整图形
-              this.currentGraph.drawMove(point)
+              this.currentGraph.drawMove(pos)
             }
           }
         }
@@ -80,9 +95,15 @@ export class GraphHandlers implements Types.Handler {
 
           // 调整结束
           this.graphing = false
-          
+
           // 清空图形类型选择
           this.render.changeGraphType()
+
+          // 对齐线清除
+          this.render.attractTool.alignLinesClear()
+
+          // 重绘
+          this.render.redraw([Draws.GraphDraw.name])
         }
       }
     }

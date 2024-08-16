@@ -98,7 +98,7 @@ export class SelectionHandlers implements Types.Handler {
       mousedown: (e: Konva.KonvaEventObject<GlobalEventHandlersEventMap['mousedown']>) => {
         if (!this.render.graphType) {
           // 并非在新建并拖动图形
-          
+
           const parent = e.target.getParent()
 
           if (e.target === this.render.stage) {
@@ -300,7 +300,7 @@ export class SelectionHandlers implements Types.Handler {
       },
       transform: () => {
         // 重绘
-        this.render.redraw([Draws.LinkDraw.name, Draws.PreviewDraw.name])
+        this.render.redraw([Draws.GraphDraw.name, Draws.LinkDraw.name, Draws.PreviewDraw.name])
       },
       transformend: () => {
         // 变换结束

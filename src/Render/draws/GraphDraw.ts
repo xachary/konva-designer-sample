@@ -1,4 +1,3 @@
-import _ from 'lodash-es'
 import Konva from 'konva'
 //
 import * as Types from '../types'
@@ -9,10 +8,6 @@ export interface GraphDrawState {
    * 调整中
    */
   adjusting: boolean
-  /**
-   * 当前 调整点 类型
-   */
-  adjustingId: string
 }
 
 export class GraphDraw extends Types.BaseDraw implements Types.Draw {
@@ -25,11 +20,10 @@ export class GraphDraw extends Types.BaseDraw implements Types.Draw {
   /**
    * 调整点 大小
    */
-  static anchorSize = 16
+  static anchorSize = 8
 
   state: GraphDrawState = {
-    adjusting: false,
-    adjustingId: ''
+    adjusting: false
   }
 
   /**
@@ -82,124 +76,115 @@ export class GraphDraw extends Types.BaseDraw implements Types.Draw {
   }
 
   // 调整 预处理、定位静态方法
-  adjust(graph: Konva.Group, rect: Konva.Rect, rects: Konva.Rect[]) {
-    // 鼠标按下
-    rect.on('mousedown', () => {
-      this.state.adjusting = true
-      this.state.adjustingId = rect.attrs.anchor?.id
-
-      const pos = this.getStagePoint()
-      if (pos) {
-        // 使 调整点 中点位置 与 鼠标按下 位置重合（否则磁贴不准）
-        this.startPoint = {
-          x: pos.x + (rect.x() - pos.x),
-          y: pos.y + (rect.y() - pos.y)
-        }
-
-        // 图形 group 镜像，用于计算位置、大小的偏移
-        this.graphSnap = graph.clone()
+  adjusts(
+    shapeDetailList: {
+      graph: Konva.Group
+      shapeRecords: { shape: Konva.Shape; anchorShadow: Konva.Circle }[]
+    }[]
+  ) {
+    for (const { shapeRecords, graph } of shapeDetailList) {
+      for (const { shape } of shapeRecords) {
+        shape.setAttr('adjusting', false)
       }
-    })
+      for (const shapeRecord of shapeRecords) {
+        const { shape } = shapeRecord
+        // 鼠标按下
+        shape.on('mousedown', () => {
+          this.state.adjusting = true
+          shape.setAttr('adjusting', true)
 
-    // 调整中
-    this.render.stage.on('mousemove', () => {
-      if (this.state.adjusting && this.graphSnap) {
-        if (rect.attrs.anchor?.type === Types.GraphType.Circle) {
-          // 调整 圆/椭圆 图形
-          if (rect.attrs.anchor?.id === this.state.adjustingId) {
-            const pos = this.getStagePoint(true)
-            if (pos) {
-              // 使用 圆/椭圆 静态处理方法
-              Graphs.Circle.adjust(
-                this.render,
-                graph,
-                this.graphSnap,
-                rect,
-                rects,
-                this.startPoint,
-                pos
-              )
+          const pos = this.getStagePoint()
+          if (pos) {
+            this.startPoint = pos
+
+            // 图形 group 镜像，用于计算位置、大小的偏移
+            this.graphSnap = graph.clone()
+          }
+        })
+
+        // 调整中
+        this.render.stage.on('mousemove', () => {
+          if (this.state.adjusting && this.graphSnap) {
+            if (shape.attrs.anchor?.type === Types.GraphType.Circle) {
+              // 调整 圆/椭圆 图形
+              if (shape.attrs.adjusting) {
+                const pos = this.getStagePoint(true)
+                if (pos) {
+                  // 使用 圆/椭圆 静态处理方法
+                  Graphs.Circle.adjust(
+                    this.render,
+                    graph,
+                    this.graphSnap,
+                    shapeRecord,
+                    shapeRecords,
+                    this.startPoint,
+                    pos
+                  )
+                }
+              }
             }
           }
-        }
+        })
+
+        // 调整结束
+        this.render.stage.on('mouseup', () => {
+          this.state.adjusting = false
+
+          // 恢复显示所有 调整点
+          for (const { shape } of shapeRecords) {
+            shape.opacity(1)
+            shape.setAttr('adjusting', false)
+            shape.stroke('rgba(0,0,255,0.2)')
+            document.body.style.cursor = 'default'
+          }
+
+          // 销毁 镜像
+          this.graphSnap?.destroy()
+
+          // 对齐线清除
+          this.render.attractTool.alignLinesClear()
+        })
+
+        this.group.add(shape)
       }
-    })
-
-    // 调整结束
-    this.render.stage.on('mouseup', () => {
-      this.state.adjusting = false
-      this.state.adjustingId = ''
-
-      // 恢复显示所有 调整点
-      for (const item of rects) {
-        item.opacity(1)
-      }
-
-      // 销毁 镜像
-      this.graphSnap?.destroy()
-    })
+    }
   }
 
   override draw() {
     this.clear()
 
-    // stage 状态
-    const stageState = this.render.getStageState()
-
     // 所有图形
     const graphs = this.render.layer.find('.graph') as Konva.Group[]
+
+    const shapeDetailList: {
+      graph: Konva.Group
+      shapeRecords: { shape: Konva.Shape; anchorShadow: Konva.Circle }[]
+    }[] = []
 
     for (const graph of graphs) {
       // 非选中状态才显示 调整点
       if (!this.render.selectionTool.selectingNodes.includes(graph)) {
         const anchors = (graph.attrs.anchors ?? []) as Types.GraphAnchor[]
-        const rects: Konva.Rect[] = []
+        const shapeRecords: { shape: Konva.Shape; anchorShadow: Konva.Circle }[] = []
 
         // 根据 调整点 信息，创建
         for (const anchor of anchors) {
           // 调整点 的显示 依赖其隐藏的 锚点 位置、大小等信息
-          const anchorShadow = graph.findOne(`#${anchor.id}`)
+          const anchorShadow = graph.findOne(`#${anchor.id}`) as Konva.Circle
           if (anchorShadow) {
-            const rect = new Konva.Rect({
-              name: 'anchor',
-              anchor: anchor,
-              // 中点居中
-              offsetX: this.render.toStageValue(GraphDraw.anchorSize) / 2,
-              offsetY: this.render.toStageValue(GraphDraw.anchorSize) / 2,
-              // 位置
-              x: this.render.toStageValue(anchorShadow.getAbsolutePosition().x - stageState.x),
-              y: this.render.toStageValue(anchorShadow.getAbsolutePosition().y - stageState.y),
-              // 旋转角度
-              rotation: graph.getAbsoluteRotation(),
-              //
-              stroke: 'rgba(0,0,255,0.1)',
-              strokeWidth: this.render.toStageValue(1),
-              // 大小
-              width: this.render.toStageValue(GraphDraw.anchorSize),
-              height: this.render.toStageValue(GraphDraw.anchorSize),
-              // 调整中，则只显示该 调整点
-              opacity: this.state.adjustingId ? (anchor.id === this.state.adjustingId ? 1 : 0) : 1
-            })
+            const shape = Graphs.Circle.createAnchorShape(this.render, graph, anchor, anchorShadow)
 
-            // 调整点 的 hover 效果
-            rect.on('mouseenter', () => {
-              rect.stroke('rgba(0,0,255,0.8)')
-              document.body.style.cursor = 'pointer'
-            })
-            rect.on('mouseleave', () => {
-              rect.stroke('rgba(0,0,255,0.1)')
-              document.body.style.cursor = 'default'
-            })
-
-            this.group.add(rect)
-
-            rects.push(rect)
-
-            // 调整 预处理
-            this.adjust(graph, rect, rects)
+            shapeRecords.push({ shape, anchorShadow })
           }
         }
+
+        shapeDetailList.push({
+          graph,
+          shapeRecords
+        })
       }
     }
+
+    this.adjusts(shapeDetailList)
   }
 }

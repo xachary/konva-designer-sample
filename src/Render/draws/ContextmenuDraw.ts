@@ -215,7 +215,7 @@ export class ContextmenuDraw extends Types.BaseDraw implements Types.Draw {
           group.add(text)
 
           // 菜单事件
-          rect.on('click', (e) => {
+          rect.on('pointerclick', (e) => {
             if (e.evt.button === Types.MouseButton.左键) {
               // 触发事件
               menu.action(e)

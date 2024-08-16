@@ -201,6 +201,25 @@ export abstract class BaseGraph {
   }
 
   /**
+   * 生成 调整点
+   * @param render 渲染实例
+   * @param graph 图形
+   * @param anchor 调整点 定义
+   * @param anchorShadow 调整点 锚点
+   * @param adjustingId 正在操作的 调整点 id
+   * @returns
+   */
+  static createAnchorShape(
+    render: Render,
+    graph: Konva.Group,
+    anchor: GraphAnchor,
+    anchorShadow: Konva.Circle
+  ): Konva.Shape {
+    console.log('请实现 createAnchorShape', render, graph, anchor, anchorShadow)
+    return new Konva.Shape()
+  }
+
+  /**
    * 调整 图形
    * @param render 渲染实例
    * @param graph 图形
@@ -214,8 +233,8 @@ export abstract class BaseGraph {
     render: Render,
     graph: Konva.Group,
     graphSnap: Konva.Group,
-    rect: Konva.Rect,
-    rects: Konva.Rect[],
+    rect: GraphAnchorShape,
+    rects: GraphAnchorShape[],
     startPoint: Konva.Vector2d,
     endPoint: Konva.Vector2d
   ) {
@@ -223,7 +242,7 @@ export abstract class BaseGraph {
   }
   //
   protected render: Render
-  protected group: Konva.Group
+  group: Konva.Group
   id: string // 就是 group 的id
   /**
    * 鼠标按下位置
@@ -271,7 +290,7 @@ export abstract class BaseGraph {
         id: anchor.id,
         name: anchor.name,
         radius: 0
-        // radius: this.render.toStageValue(0.5),
+        // radius: this.render.toStageValue(1),
         // fill: 'red'
       })
       this.anchorShadows.push(circle)
@@ -314,4 +333,9 @@ export interface GraphAnchor {
   //
   name?: string
   groupId?: string
+}
+
+export interface GraphAnchorShape {
+  shape: Konva.Shape
+  anchorShadow: Konva.Circle
 }
