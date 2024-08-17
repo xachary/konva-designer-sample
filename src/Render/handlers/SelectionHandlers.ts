@@ -37,18 +37,22 @@ export class SelectionHandlers implements Types.Handler {
   // 通过偏移量移动【目标节点】
   selectingNodesPositionByOffset(offset: Konva.Vector2d) {
     for (const node of this.render.selectionTool.selectingNodes) {
-      const x = node.attrs.nodeMousedownPos.x + offset.x
-      const y = node.attrs.nodeMousedownPos.y + offset.y
-      node.x(x)
-      node.y(y)
+      if (node.attrs.nodeMousedownPos) {
+        const x = node.attrs.nodeMousedownPos.x + offset.x
+        const y = node.attrs.nodeMousedownPos.y + offset.y
+        node.x(x)
+        node.y(y)
+      }
     }
   }
 
   // 重置【目标节点】的 nodeMousedownPos
   selectingNodesPositionReset() {
     for (const node of this.render.selectionTool.selectingNodes) {
-      node.attrs.nodeMousedownPos.x = node.x()
-      node.attrs.nodeMousedownPos.y = node.y()
+      if (node.attrs.nodeMousedownPos) {
+        node.attrs.nodeMousedownPos.x = node.x()
+        node.attrs.nodeMousedownPos.y = node.y()
+      }
     }
   }
 

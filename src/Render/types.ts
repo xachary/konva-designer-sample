@@ -271,7 +271,8 @@ export abstract class BaseGraph {
 
     this.group = new Konva.Group({
       id: this.id,
-      name: 'graph'
+      name: 'asset',
+      assetType: AssetType.Graph
     })
 
     this.anchors = config.anchors.map((o) => ({
@@ -338,4 +339,13 @@ export interface GraphAnchor {
 export interface GraphAnchorShape {
   shape: Konva.Shape
   anchorShadow: Konva.Circle
+}
+
+/**
+ * 素材类型
+ */
+export enum AssetType {
+  'Image' = 'Image',
+  'Json' = 'Json',
+  'Graph' = 'Graph'
 }

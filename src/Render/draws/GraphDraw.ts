@@ -154,7 +154,9 @@ export class GraphDraw extends Types.BaseDraw implements Types.Draw {
     this.clear()
 
     // 所有图形
-    const graphs = this.render.layer.find('.graph') as Konva.Group[]
+    const graphs = this.render.layer
+      .find('.asset')
+      .filter((o) => o.attrs.assetType === Types.AssetType.Graph) as Konva.Group[]
 
     const shapeDetailList: {
       graph: Konva.Group
@@ -163,7 +165,7 @@ export class GraphDraw extends Types.BaseDraw implements Types.Draw {
 
     for (const graph of graphs) {
       // 非选中状态才显示 调整点
-      if (!this.render.selectionTool.selectingNodes.includes(graph)) {
+      if (!graph.attrs.selected) {
         const anchors = (graph.attrs.anchors ?? []) as Types.GraphAnchor[]
         const shapeRecords: { shape: Konva.Shape; anchorShadow: Konva.Circle }[] = []
 

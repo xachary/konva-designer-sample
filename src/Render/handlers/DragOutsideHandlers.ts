@@ -18,13 +18,13 @@ export class DragOutsideHandlers implements Types.Handler {
     dom: {
       dragenter: (e: GlobalEventHandlersEventMap['dragenter']) => {
         this.render.stage.setPointersPositions(e)
-        
+
         // 更新参考线
         this.render.redraw([Draws.RefLineDraw.name])
       },
       dragover: (e: GlobalEventHandlersEventMap['dragover']) => {
         this.render.stage.setPointersPositions(e)
-        
+
         // 更新参考线
         this.render.redraw([Draws.RefLineDraw.name])
       },
@@ -70,7 +70,8 @@ export class DragOutsideHandlers implements Types.Handler {
                   id: nanoid(),
                   width: target.width(),
                   height: target.height(),
-                  name: 'asset'
+                  name: 'asset',
+                  assetType: Types.AssetType.Json
                 })
 
                 group.add(target)
@@ -96,7 +97,10 @@ export class DragOutsideHandlers implements Types.Handler {
               } else {
                 // json 素材
                 target.id(nanoid())
-                target.name('asset')
+                target.setAttrs({
+                  name: 'asset',
+                  assetType: Types.AssetType.Json
+                })
                 group = target
                 this.render.linkTool.groupIdCover(group)
               }
@@ -179,7 +183,7 @@ export class DragOutsideHandlers implements Types.Handler {
 
               // 更新历史
               this.render.updateHistory()
-              
+
               // 重绘
               this.render.redraw([Draws.PreviewDraw.name])
             })
