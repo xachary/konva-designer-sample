@@ -16,5 +16,8 @@ module 'canvas2svg' {
     getSerializedSvg() {
       return ''
     }
+    __applyCurrentDefaultPath(): void {}
+    __currentElement: SVGElement
+    __currentDefaultPath: string
   }
 }

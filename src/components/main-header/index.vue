@@ -371,7 +371,7 @@ function onSaveAsset() {
 function onSavePNG() {
     if (props.render) {
         // 3倍尺寸、白色背景
-        const url = props.render.importExportTool.getAssetImage(3, '#ffffff')
+        const url = props.render.importExportTool.getAssetImage(2, '#ffffff')
 
         const a = document.createElement('a')
         const event = new MouseEvent('click')
@@ -387,7 +387,7 @@ function onSavePNG() {
 function onSaveAssetPNG() {
     if (props.render) {
         // 3倍尺寸、白色背景
-        const url = props.render.importExportTool.getAssetImage(3)
+        const url = props.render.importExportTool.getAssetImage()
 
         const a = document.createElement('a')
         const event = new MouseEvent('click')
@@ -521,7 +521,7 @@ const menuOptions = [
                     },
                     '另存为素材封面'
                 ),
-                key: 'png',
+                key: 'asset-png',
             },
         ]
     }, {
@@ -616,6 +616,18 @@ const menuOptions = [
                             '大量自动连接线'
                         ),
                         key: '大量自动连接线',
+                    },
+                    {
+                        label: () => h(
+                            'a',
+                            {
+                                target: '_blank',
+                                rel: 'noopenner noreferrer',
+                                onClick: onSvgExportTest
+                            },
+                            '图形旋转导出测试'
+                        ),
+                        key: '图形旋转导出测试',
                     },
                 ]
             }
@@ -796,6 +808,11 @@ async function onHugeAutoLinkTest() {
     const json = await (await fetch('./test/huge-auto-link.json')).text()
     props.render?.importExportTool.restore(json)
 }
+async function onSvgExportTest() {
+    const json = await (await fetch('./test/svg-export.json')).text()
+    props.render?.importExportTool.restore(json)
+}
+
 
 // 最大/最小化
 function onFull() {

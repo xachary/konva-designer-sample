@@ -5,6 +5,69 @@ import { Render } from '../index'
 //
 import * as Draws from '../draws'
 
+C2S.prototype.__applyCurrentDefaultPath = function () {
+  // 补丁：修复以下问题：
+  // 1、当 Konva.Group 包含 Konva.Ellipse 的时候，无法导出 svg 文件
+  // 2、对 Konva.Ellipse 调整如 radiusX、radiusY 属性时，无法正确输出 path 路径
+  //
+  // PS:
+  // 1、canvas2svg 尝试给 g 节点赋予 path 属性，导致异常报错。
+  // 现通过 hack __applyCurrentDefaultPath 方法，增加处理 nodeName === 'g' 的场景
+  //
+  // 2、查看 Konva.Ellipse.prototype._sceneFunc 方法源码，
+  // Konva 绘制 Ellipse 是通过 canvas 的 arc + scale 实现的，对应代码注释 A，
+  // 实际效果，无法仿照 canvas 的平均 scale，会出现 stroke 粗细不一。
+  // 因此，尝试通过识别 scale 修改 path 特征，修复此问题。
+  //
+  // （以上 hack 仅针对示例绘制 图形 时的特征进行处理，并未深入研究 canvas2svg 为何会进入错误的逻辑）
+  
+  if (this.__currentElement.nodeName === 'g') {
+    const g = this.__currentElement.querySelector('g')
+    if (g) {
+      // 注释 A
+      // const d = this.__currentDefaultPath
+      // const path = document.createElementNS('http://www.w3.org/2000/svg', 'path') as SVGElement
+      // path.setAttribute('d', d)
+      // path.setAttribute('fill', 'none')
+      // g.append(path)
+
+      const scale = g.getAttribute('transform')
+      if (scale) {
+        const match = scale.match(/scale\(([^),]+),([^)]+)\)/)
+        if (match) {
+          const [sx, sy] = [parseFloat(match[1]), parseFloat(match[2])]
+          let d = this.__currentDefaultPath
+          const reg = /A ([^ ]+) ([^ ]+) /
+          const match2 = d.match(reg)
+          if (match2) {
+            const [rx, ry] = [parseFloat(match2[1]), parseFloat(match2[2])]
+            d = d.replace(reg, `A ${rx * sx} ${ry * sy} `)
+            const path = document.createElementNS(
+              'http://www.w3.org/2000/svg',
+              'path'
+            ) as SVGElement
+            path.setAttribute('d', d)
+            path.setAttribute('fill', 'none')
+            this.__currentElement.append(path)
+          }
+        }
+      }
+    }
+    console.warn(
+      '[Hacked] Attempted to apply path command to node ' + this.__currentElement.nodeName
+    )
+    return
+  }
+
+  // 原逻辑
+  if (this.__currentElement.nodeName === 'path') {
+    const d = this.__currentDefaultPath
+    this.__currentElement.setAttribute('d', d)
+  } else {
+    throw new Error('Attempted to apply path command to node ' + this.__currentElement.nodeName)
+  }
+}
+
 export class ImportExportTool {
   static readonly name = 'ImportExportTool'
 
