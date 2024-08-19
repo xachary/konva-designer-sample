@@ -98,7 +98,7 @@ export class GraphHandlers implements Types.Handler {
           this.render.attractTool.alignLinesClear()
 
           // 重绘
-          this.render.redraw([Draws.GraphDraw.name])
+          this.render.redraw([Draws.GraphDraw.name, Draws.LinkDraw.name])
         }
       }
     }

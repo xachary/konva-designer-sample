@@ -2,12 +2,22 @@ import Konva from 'konva'
 //
 import * as Types from '../types'
 import * as Graphs from '../graphs'
+import * as Draws from '../draws'
 
 export interface GraphDrawState {
   /**
    * 调整中
    */
   adjusting: boolean
+
+  /**
+   * 调整中 id
+   */
+  adjustingId: string
+}
+
+export interface GraphDrawOption {
+  //
 }
 
 export class GraphDraw extends Types.BaseDraw implements Types.Draw {
@@ -17,13 +27,9 @@ export class GraphDraw extends Types.BaseDraw implements Types.Draw {
 
   on = {}
 
-  /**
-   * 调整点 大小
-   */
-  static anchorSize = 8
-
   state: GraphDrawState = {
-    adjusting: false
+    adjusting: false,
+    adjustingId: ''
   }
 
   /**
@@ -36,7 +42,7 @@ export class GraphDraw extends Types.BaseDraw implements Types.Draw {
    */
   graphSnap: Konva.Group | undefined
 
-  constructor(render: Types.Render, layer: Konva.Layer, option: any) {
+  constructor(render: Types.Render, layer: Konva.Layer, option: GraphDrawOption) {
     super(render, layer)
 
     this.option = option
@@ -86,6 +92,8 @@ export class GraphDraw extends Types.BaseDraw implements Types.Draw {
         // 鼠标按下
         shape.on('mousedown', () => {
           this.state.adjusting = true
+          this.state.adjustingId = shape.attrs.anchor?.id
+
           shape.setAttr('adjusting', true)
 
           const pos = this.getStagePoint()
@@ -115,6 +123,9 @@ export class GraphDraw extends Types.BaseDraw implements Types.Draw {
                     this.startPoint,
                     pos
                   )
+
+                  // 重绘
+                  this.render.redraw([Draws.GraphDraw.name, Draws.LinkDraw.name])
                 }
               }
             }
@@ -124,6 +135,7 @@ export class GraphDraw extends Types.BaseDraw implements Types.Draw {
         // 调整结束
         this.render.stage.on('mouseup', () => {
           this.state.adjusting = false
+          this.state.adjustingId = ''
 
           // 恢复显示所有 调整点
           for (const { shape } of shapeRecords) {
@@ -169,7 +181,13 @@ export class GraphDraw extends Types.BaseDraw implements Types.Draw {
           // 调整点 的显示 依赖其隐藏的 锚点 位置、大小等信息
           const anchorShadow = graph.findOne(`#${anchor.id}`) as Konva.Circle
           if (anchorShadow) {
-            const shape = Graphs.Circle.createAnchorShape(this.render, graph, anchor, anchorShadow)
+            const shape = Graphs.Circle.createAnchorShape(
+              this.render,
+              graph,
+              anchor,
+              anchorShadow,
+              this.state.adjustingId
+            )
 
             shapeRecords.push({ shape, anchorShadow })
           }

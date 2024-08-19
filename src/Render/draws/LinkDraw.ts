@@ -1091,7 +1091,12 @@ export class LinkDraw extends Types.BaseDraw implements Types.Draw {
             radius: this.render.toStageValue(this.option.size),
             stroke: 'rgba(255,0,0,0.2)',
             strokeWidth: this.render.toStageValue(1),
-            opacity: point.visible ? 1 : 0
+            // 调整中，不显示连接点
+            opacity:
+              point.visible &&
+              !(this.render.draws[Draws.GraphDraw.name] as Draws.GraphDraw).state.adjusting
+                ? 1
+                : 0
           })
 
           // hover 效果

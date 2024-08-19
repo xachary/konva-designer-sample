@@ -334,7 +334,7 @@ export class Render {
       'mousemove',
       'wheel',
       'contextmenu',
-      'pointerclick',
+      'pointerclick'
     ]) {
       this.stage.on(event, (e) => {
         e?.evt?.preventDefault()
@@ -389,7 +389,7 @@ export class Render {
       'dragmove',
       'dragend',
       'mousemove',
-      'mouseleave',
+      'mouseleave'
     ]) {
       this.transformer.on(event, (e) => {
         e?.evt?.preventDefault()

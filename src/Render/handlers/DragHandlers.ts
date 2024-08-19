@@ -72,6 +72,7 @@ export class DragHandlers implements Types.Handler {
             this.render.redraw([
               Draws.BgDraw.name,
               Draws.GraphDraw.name,
+              Draws.LinkDraw.name,
               Draws.RulerDraw.name,
               Draws.PreviewDraw.name
             ])

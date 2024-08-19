@@ -79,12 +79,55 @@ export class Circle extends Types.BaseGraph {
       }
     }
   }
+  // 实现：更新 图形 的 连接点 的 锚点位置
+  static override updateLinkAnchorShadows(
+    width: number,
+    height: number,
+    rotate: number,
+    linkAnchorShadows: Konva.Circle[]
+  ): void {
+    for (const shadow of linkAnchorShadows) {
+      switch (shadow.attrs.alias) {
+        case 'top':
+          shadow.position({
+            x: width / 2,
+            y: 0
+          })
+          break
+        case 'bottom':
+          shadow.position({
+            x: width / 2,
+            y: height
+          })
+          break
+        case 'left':
+          shadow.position({
+            x: 0,
+            y: height / 2
+          })
+          break
+        case 'right':
+          shadow.position({
+            x: width,
+            y: height / 2
+          })
+          break
+        case 'center':
+          shadow.position({
+            x: width / 2,
+            y: height / 2
+          })
+          break
+      }
+    }
+  }
   // 实现：生成 调整点
   static createAnchorShape(
     render: Types.Render,
     graph: Konva.Group,
     anchor: Types.GraphAnchor,
-    anchorShadow: Konva.Circle
+    anchorShadow: Konva.Circle,
+    adjustingId: string
   ): Konva.Shape {
     // stage 状态
     const stageState = render.getStageState()
@@ -92,14 +135,14 @@ export class Circle extends Types.BaseGraph {
     const x = render.toStageValue(anchorShadow.getAbsolutePosition().x - stageState.x),
       y = render.toStageValue(anchorShadow.getAbsolutePosition().y - stageState.y)
 
-    const offset = render.toStageValue(Draws.GraphDraw.anchorSize)
+    const offset = render.pointSize + 5
 
     const shape = new Konva.Line({
       name: 'anchor',
       anchor: anchor,
       //
       // stroke: colorMap[anchor.id] ?? 'rgba(0,0,255,0.2)',
-      stroke: 'rgba(0,0,255,0.2)',
+      stroke: adjustingId === anchor.id ? 'rgba(0,0,255,0.8)' : 'rgba(0,0,255,0.2)',
       strokeWidth: render.toStageValue(2),
       // 位置
       x,
@@ -108,36 +151,36 @@ export class Circle extends Types.BaseGraph {
       points:
         {
           'top-left': _.flatten([
-            [-offset, offset],
+            [-offset, offset / 2],
             [-offset, -offset],
-            [offset, -offset]
+            [offset / 2, -offset]
           ]),
           top: _.flatten([
             [-offset, -offset],
             [offset, -offset]
           ]),
           'top-right': _.flatten([
-            [-offset, -offset],
+            [-offset / 2, -offset],
             [offset, -offset],
-            [offset, offset]
+            [offset, offset / 2]
           ]),
           right: _.flatten([
             [offset, -offset],
             [offset, offset]
           ]),
           'bottom-right': _.flatten([
-            [-offset, offset],
+            [-offset / 2, offset],
             [offset, offset],
-            [offset, -offset]
+            [offset, -offset / 2]
           ]),
           bottom: _.flatten([
             [-offset, offset],
             [offset, offset]
           ]),
           'bottom-left': _.flatten([
-            [-offset, -offset],
+            [-offset, -offset / 2],
             [-offset, offset],
-            [offset, offset]
+            [offset / 2, offset]
           ]),
           left: _.flatten([
             [-offset, -offset],
@@ -174,8 +217,11 @@ export class Circle extends Types.BaseGraph {
     // 镜像
     const circleSnap = graphSnap.findOne('.graph') as Konva.Ellipse
 
-    // 调整点
+    // 调整点 锚点
     const anchors = (graph.find('.anchor') ?? []) as Konva.Circle[]
+
+    // 连接点 锚点
+    const linkAnchors = (graph.find('.link-anchor') ?? []) as Konva.Circle[]
 
     const { shape: adjustShape } = shapeRecord
 
@@ -684,8 +730,25 @@ export class Circle extends Types.BaseGraph {
       circle.y(graphHeight / 2)
       circle.radiusY(graphHeight / 2)
 
+      // 扩大事件触发区域
+      circle.hitFunc((context) => {
+        context.beginPath()
+        context.rect(
+          -graphWidth / 2 - render.pointSize - 5 * 2,
+          -graphHeight / 2 - render.pointSize - 5 * 2,
+          (graphWidth / 2 + render.pointSize + 5 * 2) * 2,
+          (graphHeight / 2 + render.pointSize + 5 * 2) * 2
+        )
+        context.closePath()
+
+        context.fillStrokeShape(circle)
+      })
+
       // 更新 调整点 的 锚点 位置
       Circle.updateAnchorShadows(graphWidth, graphHeight, graphRotation, anchors)
+
+      // 更新 图形 的 连接点 的 锚点位置
+      Circle.updateLinkAnchorShadows(graphWidth, graphHeight, graphRotation, linkAnchors)
 
       // stage 状态
       const stageState = render.getStageState()
@@ -731,7 +794,14 @@ export class Circle extends Types.BaseGraph {
       ].map((o) => ({
         id: o.id, // 调整点 类型定义
         type: Types.GraphType.Circle // 记录所属 图形
-      }))
+      })),
+      linkAnchors: [
+        { x: 0, y: 0, alias: 'top', direction: 'top' },
+        { x: 0, y: 0, alias: 'bottom', direction: 'bottom' },
+        { x: 0, y: 0, alias: 'left', direction: 'left' },
+        { x: 0, y: 0, alias: 'right', direction: 'right' },
+        { x: 0, y: 0, alias: 'center' }
+      ] as Types.AssetInfoPoint[]
     })
 
     // 新建 圆/椭圆
@@ -784,8 +854,11 @@ export class Circle extends Types.BaseGraph {
     // 更新 图形 的 调整点 的 锚点位置
     Circle.updateAnchorShadows(offsetX, offsetY, 1, this.anchorShadows)
 
+    // 更新 图形 的 连接点 的 锚点位置
+    Circle.updateLinkAnchorShadows(offsetX, offsetY, 1, this.linkAnchorShadows)
+
     // 重绘
-    this.render.redraw([Draws.GraphDraw.name])
+    this.render.redraw([Draws.GraphDraw.name, Draws.LinkDraw.name])
   }
 
   // 实现：拖动结束
@@ -806,6 +879,20 @@ export class Circle extends Types.BaseGraph {
       this.circle.radiusX(radiusX - this.circle.strokeWidth())
       this.circle.radiusY(radiusY - this.circle.strokeWidth())
 
+      // 扩大事件触发区域
+      this.circle.hitFunc((context) => {
+        context.beginPath()
+        context.rect(
+          -radiusX - this.render.pointSize - 5 * 2,
+          -radiusY - this.render.pointSize - 5 * 2,
+          (radiusX + this.render.pointSize + 5 * 2) * 2,
+          (radiusY + this.render.pointSize + 5 * 2) * 2
+        )
+        context.closePath()
+
+        context.fillStrokeShape(this.circle)
+      })
+
       // group 大小
       this.group.size({
         width,
@@ -815,11 +902,14 @@ export class Circle extends Types.BaseGraph {
       // 更新 图形 的 调整点 的 锚点位置
       Circle.updateAnchorShadows(width, height, 1, this.anchorShadows)
 
+      // 更新 图形 的 连接点 的 锚点位置
+      Circle.updateLinkAnchorShadows(width, height, 1, this.linkAnchorShadows)
+
       // 对齐线清除
       this.render.attractTool.alignLinesClear()
 
       // 重绘
-      this.render.redraw([Draws.GraphDraw.name])
+      this.render.redraw([Draws.GraphDraw.name, Draws.LinkDraw.name])
     }
   }
 }
