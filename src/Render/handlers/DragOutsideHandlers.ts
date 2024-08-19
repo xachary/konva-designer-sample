@@ -71,7 +71,7 @@ export class DragOutsideHandlers implements Types.Handler {
                   width: target.width(),
                   height: target.height(),
                   name: 'asset',
-                  assetType: Types.AssetType.Json
+                  assetType: Types.AssetType.Image
                 })
 
                 group.add(target)

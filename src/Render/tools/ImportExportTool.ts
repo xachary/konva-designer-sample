@@ -473,24 +473,27 @@ export class ImportExportTool {
 
     for (const node of nodes) {
       if (node instanceof Konva.Group) {
-        if (node.x() < minX) {
-          minX = node.x()
+        // 修复旋转导致的 x、y、width、height 不准确
+        const { x, y, width, height } = this.render.alignTool.calcNodeRotationInfo(node)
+
+        if (x < minX) {
+          minX = x
         }
-        if (node.x() + node.width() > maxX) {
-          maxX = node.x() + node.width()
+        if (x + width > maxX) {
+          maxX = x + width
         }
-        if (node.y() < minY) {
-          minY = node.y()
+        if (y < minY) {
+          minY = y
         }
-        if (node.y() + node.height() > maxY) {
-          maxY = node.y() + node.height()
+        if (y + height > maxY) {
+          maxY = y + height
         }
 
-        if (node.x() < minStartX) {
-          minStartX = node.x()
+        if (x < minStartX) {
+          minStartX = x
         }
-        if (node.y() < minStartY) {
-          minStartY = node.y()
+        if (y < minStartY) {
+          minStartY = y
         }
 
         // 移除辅助元素
@@ -542,13 +545,10 @@ export class ImportExportTool {
       }
     }
 
-    const width = maxX - minX,
-      height = maxY - minY
-
     copy.x(0)
     copy.y(0)
-    copy.width(width)
-    copy.height(height)
+    copy.width(maxX - minX)
+    copy.height(maxY - minY)
 
     return copy
   }
