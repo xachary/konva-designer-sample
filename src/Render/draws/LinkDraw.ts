@@ -513,12 +513,7 @@ export class LinkDraw extends Types.BaseDraw implements Types.Draw {
                   const pos = this.render.stage.getPointerPosition()
                   if (pos) {
                     // 磁贴
-                    const { pos: transformerPos } = this.render.attractTool.attract({
-                      x: pos.x,
-                      y: pos.y,
-                      width: 1,
-                      height: 1
-                    })
+                    const { pos: transformerPos } = this.render.attractTool.attractPoint(pos)
 
                     // 移动拐点
                     circle.setAbsolutePosition(transformerPos)
@@ -632,12 +627,7 @@ export class LinkDraw extends Types.BaseDraw implements Types.Draw {
                   const pos = this.render.stage.getPointerPosition()
                   if (pos) {
                     // 磁贴
-                    const { pos: transformerPos } = this.render.attractTool.attract({
-                      x: pos.x,
-                      y: pos.y,
-                      width: 1,
-                      height: 1
-                    })
+                    const { pos: transformerPos } = this.render.attractTool.attractPoint(pos)
 
                     // 移动拐点
                     circle.setAbsolutePosition(transformerPos)

@@ -53,14 +53,9 @@ export class GraphDraw extends Types.BaseDraw implements Types.Draw {
     const pos = this.render.stage.getPointerPosition()
     if (pos) {
       const stageState = this.render.getStageState()
-      // 磁贴
-      const { pos: transformerPos } = this.render.attractTool.attract({
-        x: pos.x,
-        y: pos.y,
-        width: 1,
-        height: 1
-      })
       if (attract) {
+        // 磁贴
+        const { pos: transformerPos } = this.render.attractTool.attractPoint(pos)
         return {
           x: this.render.toStageValue(transformerPos.x - stageState.x),
           y: this.render.toStageValue(transformerPos.y - stageState.y)

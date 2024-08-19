@@ -326,7 +326,7 @@ export class SelectionHandlers implements Types.Handler {
       dragmove: () => {
         const rect = this.render.transformer.findOne('.back')!.getClientRect()
 
-        const { pos: transformerPos, isAttract } = this.render.attractTool.attract(rect)
+        const { pos: transformerPos, isAttract } = this.render.attractTool.attractTransformer(rect)
 
         if (isAttract) {
           // 磁吸偏移

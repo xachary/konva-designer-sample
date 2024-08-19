@@ -349,3 +349,8 @@ export enum AssetType {
   'Json' = 'Json',
   'Graph' = 'Graph'
 }
+
+export interface SortItem {
+  id?: number // 有 id 就是其他节点，否则就是 选择目标
+  value: number // 左、垂直中、右的 x 坐标值; 上、水平中、下的 y 坐标值；
+}
