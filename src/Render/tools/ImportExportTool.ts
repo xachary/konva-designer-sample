@@ -20,7 +20,7 @@ C2S.prototype.__applyCurrentDefaultPath = function () {
   // 因此，尝试通过识别 scale 修改 path 特征，修复此问题。
   //
   // （以上 hack 仅针对示例绘制 图形 时的特征进行处理，并未深入研究 canvas2svg 为何会进入错误的逻辑）
-  
+
   if (this.__currentElement.nodeName === 'g') {
     const g = this.__currentElement.querySelector('g')
     if (g) {
@@ -51,8 +51,15 @@ C2S.prototype.__applyCurrentDefaultPath = function () {
             this.__currentElement.append(path)
           }
         }
+      } else {
+        const d = this.__currentDefaultPath
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path') as SVGElement
+        path.setAttribute('d', d)
+        path.setAttribute('fill', 'none')
+        this.__currentElement.append(path)
       }
     }
+
     console.warn(
       '[Hacked] Attempted to apply path command to node ' + this.__currentElement.nodeName
     )
