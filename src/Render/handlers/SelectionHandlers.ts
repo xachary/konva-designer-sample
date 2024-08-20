@@ -96,6 +96,33 @@ export class SelectionHandlers implements Types.Handler {
     this.selectingNodesPositionReset()
   }
 
+  /**
+   * 矩阵变换：坐标系中的一个点，围绕着另外一个点进行旋转
+   * -  -   -        - -   -   - -
+   * |x`|   |cos -sin| |x-a|   |a|
+   * |  | = |        | |   | +
+   * |y`|   |sin  cos| |y-b|   |b|
+   * -  -   -        - -   -   - -
+   * @param x 目标节点坐标 x
+   * @param y 目标节点坐标 y
+   * @param centerX 围绕的点坐标 x
+   * @param centerY 围绕的点坐标 y
+   * @param angle 旋转角度
+   * @returns
+   */
+  rotatePoint(x: number, y: number, centerX: number, centerY: number, angle: number) {
+    // 将角度转换为弧度
+    const radians = (angle * Math.PI) / 180
+
+    // 计算旋转后的坐标
+    const newX = Math.cos(radians) * (x - centerX) - Math.sin(radians) * (y - centerY) + centerX
+    const newY = Math.sin(radians) * (x - centerX) + Math.cos(radians) * (y - centerY) + centerY
+
+    return { x: newX, y: newY }
+  }
+
+  lastRotation = 0
+
   handlers = {
     // 选择相关
     stage: {
@@ -302,7 +329,70 @@ export class SelectionHandlers implements Types.Handler {
           this.reset()
         }
       },
+      transformstart: () => {
+        const back = this.render.transformer.findOne('.back')
+        if (back) {
+          this.lastRotation = back.getAbsoluteRotation()
+        }
+      },
       transform: () => {
+        // 旋转时，拐点也要跟着动
+        const back = this.render.transformer.findOne('.back')
+
+        if (back) {
+          // stage 状态
+          const stageState = this.render.getStageState()
+
+          const { x, y, width, height } = back.getClientRect()
+          const rotation = back.getAbsoluteRotation() - this.lastRotation
+          const centerX = x + width / 2
+          const centerY = y + height / 2
+
+          const groups = this.render.transformer.nodes()
+
+          const points = groups.reduce((ps, group) => {
+            return ps.concat(Array.isArray(group.getAttr('points')) ? group.getAttr('points') : [])
+          }, [] as Types.LinkDrawPoint[])
+
+          const pairs = points.reduce((ps, point) => {
+            return ps.concat(point.pairs ? point.pairs.filter((o) => !o.disabled) : [])
+          }, [] as Types.LinkDrawPair[])
+
+          for (const pair of pairs) {
+            const fromGroup = groups.find((o) => o.id() === pair.from.groupId)
+            const toGroup = groups.find((o) => o.id() === pair.to.groupId)
+            // 必须成对移动才记录
+            if (fromGroup && toGroup) {
+              // 移动
+              if (fromGroup.attrs.manualPointsMap && fromGroup.attrs.manualPointsMapBefore) {
+                let manualPoints = fromGroup.attrs.manualPointsMap[pair.id]
+                const manualPointsBefore = fromGroup.attrs.manualPointsMapBefore[pair.id]
+                if (Array.isArray(manualPoints) && Array.isArray(manualPointsBefore)) {
+                  manualPoints = manualPointsBefore.map((o: Types.ManualPoint) => {
+                    const { x, y } = this.rotatePoint(
+                      this.render.toBoardValue(o.x) + stageState.x,
+                      this.render.toBoardValue(o.y) + stageState.y,
+                      centerX,
+                      centerY,
+                      rotation
+                    )
+
+                    return {
+                      x: this.render.toStageValue(x - stageState.x),
+                      y: this.render.toStageValue(y - stageState.y)
+                    }
+                  })
+
+                  fromGroup.setAttr('manualPointsMap', {
+                    ...fromGroup.attrs.manualPointsMap,
+                    [pair.id]: manualPoints
+                  })
+                }
+              }
+            }
+          }
+        }
+
         // 重绘
         this.render.redraw([Draws.GraphDraw.name, Draws.LinkDraw.name, Draws.PreviewDraw.name])
       },

@@ -383,6 +383,7 @@ export class Render {
 
     for (const event of [
       'mousedown',
+      'transformstart',
       'transform',
       'transformend',
       'dragstart',

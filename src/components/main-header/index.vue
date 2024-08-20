@@ -629,6 +629,18 @@ const menuOptions = [
                         ),
                         key: '图形旋转导出测试',
                     },
+                    {
+                        label: () => h(
+                            'a',
+                            {
+                                target: '_blank',
+                                rel: 'noopenner noreferrer',
+                                onClick: onLinkRotateTest
+                            },
+                            '拐点旋转测试'
+                        ),
+                        key: '拐点旋转测试',
+                    },
                 ]
             }
         ]
@@ -810,6 +822,11 @@ async function onHugeAutoLinkTest() {
 }
 async function onSvgExportTest() {
     const json = await (await fetch('./test/svg-export.json')).text()
+    props.render?.importExportTool.restore(json)
+}
+
+async function onLinkRotateTest() {
+    const json = await (await fetch('./test/link-rotate.json')).text()
     props.render?.importExportTool.restore(json)
 }
 
