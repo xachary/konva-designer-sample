@@ -678,7 +678,6 @@ export class Circle extends BaseGraph {
               break
             case 'left':
               {
-                console.log(graphRotation, graphWidth, graphHeight)
                 if ([90, -90].includes(graphRotation)) {
                   graph.y(ay - graphWidth)
                 } else if (Math.abs(graphRotation) === 180) {
