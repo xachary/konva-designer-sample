@@ -43478,7 +43478,7 @@ const IosUndo = /* @__PURE__ */ defineComponent({
     return openBlock(), createElementBlock("svg", _hoisted_1$3, _hoisted_3$3);
   }
 });
-const _withScopeId$1 = (n) => (pushScopeId("data-v-44b49836"), n = n(), popScopeId(), n);
+const _withScopeId$1 = (n) => (pushScopeId("data-v-2d3bfafc"), n = n(), popScopeId(), n);
 const _hoisted_1$2 = { class: "main-header" };
 const _hoisted_2$2 = /* @__PURE__ */ _withScopeId$1(() => /* @__PURE__ */ createBaseVNode("img", {
   class: "main-header__logo",
@@ -44393,7 +44393,8 @@ const _sfc_main$2 = /* @__PURE__ */ defineComponent({
                   size: "tiny",
                   quaternary: "",
                   focusable: false,
-                  onClick: _cache[10] || (_cache[10] = ($event) => onGraph(GraphType.Line))
+                  onClick: _cache[10] || (_cache[10] = ($event) => onGraph(GraphType.Line)),
+                  disabled: ""
                 }, {
                   icon: withCtx(() => [
                     createVNode(unref(NIcon), {
@@ -44423,7 +44424,8 @@ const _sfc_main$2 = /* @__PURE__ */ defineComponent({
                   size: "tiny",
                   quaternary: "",
                   focusable: false,
-                  onClick: _cache[11] || (_cache[11] = ($event) => onGraph(GraphType.Curve))
+                  onClick: _cache[11] || (_cache[11] = ($event) => onGraph(GraphType.Curve)),
+                  disabled: ""
                 }, {
                   icon: withCtx(() => [
                     createVNode(unref(NIcon), {
@@ -44453,7 +44455,8 @@ const _sfc_main$2 = /* @__PURE__ */ defineComponent({
                   size: "tiny",
                   quaternary: "",
                   focusable: false,
-                  onClick: _cache[12] || (_cache[12] = ($event) => onGraph(GraphType.Rect))
+                  onClick: _cache[12] || (_cache[12] = ($event) => onGraph(GraphType.Rect)),
+                  disabled: ""
                 }, {
                   icon: withCtx(() => [
                     createVNode(unref(NIcon), {
@@ -44582,7 +44585,7 @@ const _export_sfc = (sfc, props) => {
   }
   return target;
 };
-const MainHeader = /* @__PURE__ */ _export_sfc(_sfc_main$2, [["__scopeId", "data-v-44b49836"]]);
+const MainHeader = /* @__PURE__ */ _export_sfc(_sfc_main$2, [["__scopeId", "data-v-2d3bfafc"]]);
 const assetsModules = {
   svg: [
     {
@@ -45227,7 +45230,7 @@ const logArray = (words2) => {
     console.error(e);
   }
 };
-var define_BUILD_INFO_default = { lastBuildTime: "2024-08-20 15:07:31", git: { branch: "master", hash: "7778c08aa482a3737bbbc35287c4a2d28f999402", tag: "chapter20" } };
+var define_BUILD_INFO_default = { lastBuildTime: "2024-08-20 15:17:50", git: { branch: "master", hash: "2948e679f19fdd45bf83b33fb3ac793931a2b697", tag: "chapter20-dirty" } };
 const {
   lastBuildTime,
   git: { branch, tag, hash }
