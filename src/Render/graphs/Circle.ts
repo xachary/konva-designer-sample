@@ -234,7 +234,6 @@ export class Circle extends BaseGraph {
     const { shape: adjustShape } = shapeRecord
 
     if (circle && circleSnap) {
-      let [graphWidth, graphHeight] = [graph.width(), graph.height()]
       const [graphRotation, adjustType, ex, ey] = [
         Math.round(graph.rotation()),
         adjustShape.attrs.anchor?.adjustType,
@@ -654,27 +653,23 @@ export class Circle extends BaseGraph {
 
           if (/-?(left|right)$/.test(adjustType)) {
             graph.width(Math.max(2, graphSnap.width() * r1 * zeroWidth))
-            graphWidth = graph.width()
           }
 
           if (/^(top|bottom)-?/.test(adjustType)) {
             graph.height(Math.max(2, graphSnap.height() * r1 * zeroHeight))
-            graphHeight = graph.height()
           }
         }
 
-        // TODO: 【Bug】经过 transformer 修改 大小后，调整位置错位
         // 调整位置
         {
+          const [graphWidth, graphHeight] = [
+            graph.width() * graph.scaleX(),
+            graph.height() * graph.scaleY()
+          ]
+
           const cos = Math.cos((graphRotation * Math.PI) / 180)
           const sin = Math.sin((graphRotation * Math.PI) / 180)
           const tan = Math.tan((graphRotation * Math.PI) / 180)
-
-          // const rect = graph.getClientRect()
-          // let [graphWidth, graphHeight] = [
-          //   render.toStageValue(rect.width),
-          //   render.toStageValue(rect.height)
-          // ]
 
           switch (adjustType) {
             case 'top':
@@ -738,6 +733,8 @@ export class Circle extends BaseGraph {
           }
         }
       }
+
+      const [graphWidth, graphHeight] = [graph.width(), graph.height()]
 
       // 更新 圆/椭圆 大小
       circle.x(graphWidth / 2)
