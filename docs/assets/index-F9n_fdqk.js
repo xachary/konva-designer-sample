@@ -26531,7 +26531,6 @@ const _Circle = class _Circle extends BaseGraph {
     const linkAnchors = graph.find(".link-anchor") ?? [];
     const { shape: adjustShape } = shapeRecord;
     if (circle && circleSnap) {
-      let [graphWidth, graphHeight] = [graph.width(), graph.height()];
       const [graphRotation, adjustType, ex, ey] = [
         Math.round(graph.rotation()),
         (_a = adjustShape.attrs.anchor) == null ? void 0 : _a.adjustType,
@@ -26929,23 +26928,25 @@ const _Circle = class _Circle extends BaseGraph {
           }
           if (/-?(left|right)$/.test(adjustType)) {
             graph.width(Math.max(2, graphSnap.width() * r1 * zeroWidth));
-            graphWidth = graph.width();
           }
           if (/^(top|bottom)-?/.test(adjustType)) {
             graph.height(Math.max(2, graphSnap.height() * r1 * zeroHeight));
-            graphHeight = graph.height();
           }
         }
         {
+          const [graphWidth2, graphHeight2] = [
+            graph.width() * graph.scaleX(),
+            graph.height() * graph.scaleY()
+          ];
           const cos = Math.cos(graphRotation * Math.PI / 180);
           const sin = Math.sin(graphRotation * Math.PI / 180);
           const tan = Math.tan(graphRotation * Math.PI / 180);
           switch (adjustType) {
             case "top":
               {
-                graph.x(ax - (graphWidth / 2 - graphHeight * tan) * cos);
+                graph.x(ax - (graphWidth2 / 2 - graphHeight2 * tan) * cos);
                 if (graphRotation !== 90 && graphRotation !== -90) {
-                  graph.y(ay - (graphHeight / cos + (graphWidth / 2 - graphHeight * tan) * sin));
+                  graph.y(ay - (graphHeight2 / cos + (graphWidth2 / 2 - graphHeight2 * tan) * sin));
                 }
               }
               break;
@@ -26954,13 +26955,13 @@ const _Circle = class _Circle extends BaseGraph {
             case "left":
               {
                 if ([90, -90].includes(graphRotation)) {
-                  graph.y(ay - graphWidth);
+                  graph.y(ay - graphWidth2);
                 } else if (Math.abs(graphRotation) === 180) {
-                  graph.x(ax + graphWidth);
+                  graph.x(ax + graphWidth2);
                 } else {
-                  const v1 = graphHeight / 2 / cos;
+                  const v1 = graphHeight2 / 2 / cos;
                   const v2 = v1 * sin;
-                  const v3 = graphWidth - v2;
+                  const v3 = graphWidth2 - v2;
                   const v4 = v3 * sin;
                   graph.x(ax - v3 * cos);
                   graph.y(ay - (v1 + v4));
@@ -26971,25 +26972,26 @@ const _Circle = class _Circle extends BaseGraph {
               break;
             case "top-left":
               {
-                graph.x(ax - (graphWidth - graphHeight * tan) * cos);
-                graph.y(ay - (graphWidth * sin + graphHeight * cos));
+                graph.x(ax - (graphWidth2 - graphHeight2 * tan) * cos);
+                graph.y(ay - (graphWidth2 * sin + graphHeight2 * cos));
               }
               break;
             case "top-right":
               {
-                graph.x(ax + graphHeight * sin);
-                graph.y(ay - graphHeight * cos);
+                graph.x(ax + graphHeight2 * sin);
+                graph.y(ay - graphHeight2 * cos);
               }
               break;
             case "bottom-left":
               {
-                graph.x(ax - graphWidth * cos);
-                graph.y(ay - graphWidth * sin);
+                graph.x(ax - graphWidth2 * cos);
+                graph.y(ay - graphWidth2 * sin);
               }
               break;
           }
         }
       }
+      const [graphWidth, graphHeight] = [graph.width(), graph.height()];
       circle.x(graphWidth / 2);
       circle.radiusX(graphWidth / 2);
       circle.y(graphHeight / 2);
@@ -45254,7 +45256,7 @@ const logArray = (words2) => {
     console.error(e);
   }
 };
-var define_BUILD_INFO_default = { lastBuildTime: "2024-08-20 18:21:43", git: { branch: "master", hash: "220038c25c75a4d49773820493980864cdc57a36", tag: "chapter20" } };
+var define_BUILD_INFO_default = { lastBuildTime: "2024-08-20 18:39:20", git: { branch: "master", hash: "90e08e04fc8d6e167706b764ad51ea04d00a3656", tag: "chapter20-dirty" } };
 const {
   lastBuildTime,
   git: { branch, tag, hash }
