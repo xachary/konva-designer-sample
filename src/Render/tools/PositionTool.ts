@@ -31,6 +31,7 @@ export class PositionTool {
     // 重绘
     this.render.redraw([
       Draws.BgDraw.name,
+      Draws.GraphDraw.name,
       Draws.LinkDraw.name,
       Draws.RulerDraw.name,
       Draws.RefLineDraw.name,
@@ -80,6 +81,7 @@ export class PositionTool {
     // 重绘
     this.render.redraw([
       Draws.BgDraw.name,
+      Draws.GraphDraw.name,
       Draws.LinkDraw.name,
       Draws.RulerDraw.name,
       Draws.RefLineDraw.name,

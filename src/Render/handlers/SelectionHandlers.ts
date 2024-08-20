@@ -406,7 +406,7 @@ export class SelectionHandlers implements Types.Handler {
         this.render.updateHistory()
 
         // 重绘
-        this.render.redraw([Draws.LinkDraw.name, Draws.PreviewDraw.name])
+        this.render.redraw([Draws.GraphDraw.name, Draws.LinkDraw.name, Draws.PreviewDraw.name])
       },
       //
       dragstart: () => {
@@ -482,7 +482,12 @@ export class SelectionHandlers implements Types.Handler {
         }
 
         // 重绘
-        this.render.redraw([Draws.LinkDraw.name, Draws.RulerDraw.name, Draws.PreviewDraw.name])
+        this.render.redraw([
+          Draws.GraphDraw.name,
+          Draws.LinkDraw.name,
+          Draws.RulerDraw.name,
+          Draws.PreviewDraw.name
+        ])
       },
       dragend: () => {
         // 拖动结束
@@ -494,7 +499,12 @@ export class SelectionHandlers implements Types.Handler {
         this.render.updateHistory()
 
         // 重绘
-        this.render.redraw([Draws.LinkDraw.name, Draws.RulerDraw.name, Draws.PreviewDraw.name])
+        this.render.redraw([
+          Draws.GraphDraw.name,
+          Draws.LinkDraw.name,
+          Draws.RulerDraw.name,
+          Draws.PreviewDraw.name
+        ])
       },
       // 子节点 hover
       mousemove: () => {

@@ -155,6 +155,7 @@ export class AlignTool {
 
     // 重绘
     this.render.redraw([
+      Draws.GraphDraw.name,
       Draws.LinkDraw.name,
       Draws.AttractDraw.name,
       Draws.RulerDraw.name,
