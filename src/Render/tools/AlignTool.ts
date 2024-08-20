@@ -13,11 +13,13 @@ export class AlignTool {
   }
 
   calcNodeRotationInfo(node: Konva.Node) {
+    const [nw, nh] = [node.width() * node.scaleX(), node.height() * node.scaleY()]
+    
     const rotate = node.rotation()
-    const offsetLeft = node.height() * Math.sin((rotate * Math.PI) / 180)
-    const offsetRight = node.width() * Math.cos((rotate * Math.PI) / 180)
-    const offsetTop = node.height() * Math.cos((rotate * Math.PI) / 180)
-    const offsetBottom = node.width() * Math.sin((rotate * Math.PI) / 180)
+    const offsetLeft = nh * Math.sin((rotate * Math.PI) / 180)
+    const offsetRight = nw * Math.cos((rotate * Math.PI) / 180)
+    const offsetTop = nh * Math.cos((rotate * Math.PI) / 180)
+    const offsetBottom = nw * Math.sin((rotate * Math.PI) / 180)
 
     const width = Math.abs(offsetLeft) + Math.abs(offsetRight)
     const height = Math.abs(offsetTop) + Math.abs(offsetBottom)
