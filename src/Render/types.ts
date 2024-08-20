@@ -194,8 +194,8 @@ export enum GraphType {
  * 图形 的 调整点 信息
  */
 export interface GraphAnchor {
-  id: string
   type: GraphType
+  adjustType: string
   //
   name?: string
   groupId?: string

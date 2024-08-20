@@ -13,7 +13,7 @@ export interface GraphDrawState {
   /**
    * 调整中 id
    */
-  adjustingId: string
+  adjustType: string
 }
 
 export interface GraphDrawOption {
@@ -29,7 +29,7 @@ export class GraphDraw extends Types.BaseDraw implements Types.Draw {
 
   state: GraphDrawState = {
     adjusting: false,
-    adjustingId: ''
+    adjustType: ''
   }
 
   /**
@@ -92,7 +92,7 @@ export class GraphDraw extends Types.BaseDraw implements Types.Draw {
         // 鼠标按下
         shape.on('mousedown', () => {
           this.state.adjusting = true
-          this.state.adjustingId = shape.attrs.anchor?.id
+          this.state.adjustType = shape.attrs.anchor?.adjustType
 
           shape.setAttr('adjusting', true)
 
@@ -135,7 +135,7 @@ export class GraphDraw extends Types.BaseDraw implements Types.Draw {
         // 调整结束
         this.render.stage.on('mouseup', () => {
           this.state.adjusting = false
-          this.state.adjustingId = ''
+          this.state.adjustType = ''
 
           // 恢复显示所有 调整点
           for (const { shape } of shapeRecords) {
@@ -179,14 +179,16 @@ export class GraphDraw extends Types.BaseDraw implements Types.Draw {
         // 根据 调整点 信息，创建
         for (const anchor of anchors) {
           // 调整点 的显示 依赖其隐藏的 锚点 位置、大小等信息
-          const anchorShadow = graph.findOne(`#${anchor.id}`) as Konva.Circle
+          const anchorShadow = graph
+            .find(`.anchor`)
+            .find((o) => o.attrs.adjustType === anchor.adjustType) as Konva.Circle
           if (anchorShadow) {
             const shape = Graphs.Circle.createAnchorShape(
               this.render,
               graph,
               anchor,
               anchorShadow,
-              this.state.adjustingId
+              this.state.adjustType
             )
 
             shapeRecords.push({ shape, anchorShadow })

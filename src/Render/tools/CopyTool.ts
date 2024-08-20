@@ -99,6 +99,14 @@ export class CopyTool {
           }
         }
 
+        if (Array.isArray(asset.attrs.anchors)) {
+          for (const anchor of asset.attrs.anchors) {
+            if (anchor.groupId && !idMap.has(anchor.groupId)) {
+              idMap.set(anchor.groupId, 'g:' + nanoid())
+            }
+          }
+        }
+
         if (asset.id()) {
           if (!idMap.has(asset.id())) {
             idMap.set(asset.id(), 'n:' + nanoid())
@@ -159,6 +167,16 @@ export class CopyTool {
           }
         }
 
+        if (Array.isArray(asset.attrs.anchors)) {
+          asset.attrs.anchors = _.cloneDeep(asset.attrs.anchors ?? [])
+
+          for (const anchor of asset.attrs.anchors) {
+            if (idMap.has(anchor.groupId)) {
+              anchor.groupId = idMap.get(anchor.groupId)
+            }
+          }
+        }
+
         if (asset instanceof Konva.Group && Array.isArray(asset.children)) {
           deepAssets.push(...asset.children)
         }
@@ -192,7 +210,7 @@ export class CopyTool {
           const manualPointsMap = {} as Types.ManualPointsMap
 
           // 替换 pairId
-          for(const pairId in node.attrs.manualPointsMap){
+          for (const pairId in node.attrs.manualPointsMap) {
             manualPointsMap[idMap.get(pairId)] = node.attrs.manualPointsMap[pairId]
           }
 

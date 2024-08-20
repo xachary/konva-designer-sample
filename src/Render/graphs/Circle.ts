@@ -29,7 +29,7 @@ export class Circle extends BaseGraph {
     anchorShadows: Konva.Circle[]
   ): void {
     for (const shadow of anchorShadows) {
-      switch (shadow.attrs.id) {
+      switch (shadow.attrs.adjustType) {
         case 'top':
           shadow.position({
             x: width / 2,
@@ -129,7 +129,7 @@ export class Circle extends BaseGraph {
     graph: Konva.Group,
     anchor: Types.GraphAnchor,
     anchorShadow: Konva.Circle,
-    adjustingId: string
+    adjustType: string
   ): Konva.Shape {
     // stage 状态
     const stageState = render.getStageState()
@@ -143,8 +143,8 @@ export class Circle extends BaseGraph {
       name: 'anchor',
       anchor: anchor,
       //
-      // stroke: colorMap[anchor.id] ?? 'rgba(0,0,255,0.2)',
-      stroke: adjustingId === anchor.id ? 'rgba(0,0,255,0.8)' : 'rgba(0,0,255,0.2)',
+      // stroke: colorMap[anchor.adjustType] ?? 'rgba(0,0,255,0.2)',
+      stroke: adjustType === anchor.adjustType ? 'rgba(0,0,255,0.8)' : 'rgba(0,0,255,0.2)',
       strokeWidth: render.toStageValue(2),
       // 位置
       x,
@@ -188,7 +188,7 @@ export class Circle extends BaseGraph {
             [-offset, -offset],
             [-offset, offset]
           ])
-        }[anchor.id] ?? [],
+        }[anchor.adjustType] ?? [],
       // 旋转角度
       rotation: graph.getAbsoluteRotation()
     })
@@ -221,6 +221,8 @@ export class Circle extends BaseGraph {
 
     // 调整点 锚点
     const anchors = (graph.find('.anchor') ?? []) as Konva.Circle[]
+    // 镜像
+    const anchorsSnap = (graphSnap.find('.anchor') ?? []) as Konva.Circle[]
 
     // 连接点 锚点
     const linkAnchors = (graph.find('.link-anchor') ?? []) as Konva.Circle[]
@@ -229,62 +231,62 @@ export class Circle extends BaseGraph {
 
     if (circle && circleSnap) {
       let [graphWidth, graphHeight] = [graph.width(), graph.height()]
-      const [graphRotation, anchorId, ex, ey] = [
+      const [graphRotation, adjustType, ex, ey] = [
         Math.round(graph.rotation()),
-        adjustShape.attrs.anchor?.id,
+        adjustShape.attrs.anchor?.adjustType,
         endPoint.x,
         endPoint.y
       ]
 
       let anchorShadow: Konva.Circle | undefined, anchorShadowAcross: Konva.Circle | undefined
 
-      switch (anchorId) {
+      switch (adjustType) {
         case 'top':
           {
-            anchorShadow = graphSnap.findOne(`#top`)
-            anchorShadowAcross = graphSnap.findOne(`#bottom`)
+            anchorShadow = anchorsSnap.find((o) => o.attrs.adjustType === 'top')
+            anchorShadowAcross = anchorsSnap.find((o) => o.attrs.adjustType === 'bottom')
           }
           break
         case 'bottom':
           {
-            anchorShadow = graphSnap.findOne(`#bottom`)
-            anchorShadowAcross = graphSnap.findOne(`#top`)
+            anchorShadow = anchorsSnap.find((o) => o.attrs.adjustType === 'bottom')
+            anchorShadowAcross = anchorsSnap.find((o) => o.attrs.adjustType === 'bottom')
           }
           break
         case 'left':
           {
-            anchorShadow = graphSnap.findOne(`#left`)
-            anchorShadowAcross = graphSnap.findOne(`#right`)
+            anchorShadow = anchorsSnap.find((o) => o.attrs.adjustType === 'left')
+            anchorShadowAcross = anchorsSnap.find((o) => o.attrs.adjustType === 'right')
           }
           break
         case 'right':
           {
-            anchorShadow = graphSnap.findOne(`#right`)
-            anchorShadowAcross = graphSnap.findOne(`#left`)
+            anchorShadow = anchorsSnap.find((o) => o.attrs.adjustType === 'right')
+            anchorShadowAcross = anchorsSnap.find((o) => o.attrs.adjustType === 'left')
           }
           break
         case 'top-left':
           {
-            anchorShadow = graphSnap.findOne(`#top-left`)
-            anchorShadowAcross = graphSnap.findOne(`#bottom-right`)
+            anchorShadow = anchorsSnap.find((o) => o.attrs.adjustType === 'top-left')
+            anchorShadowAcross = anchorsSnap.find((o) => o.attrs.adjustType === 'bottom-right')
           }
           break
         case 'top-right':
           {
-            anchorShadow = graphSnap.findOne(`#top-right`)
-            anchorShadowAcross = graphSnap.findOne(`#bottom-left`)
+            anchorShadow = anchorsSnap.find((o) => o.attrs.adjustType === 'top-right')
+            anchorShadowAcross = anchorsSnap.find((o) => o.attrs.adjustType === 'bottom-left')
           }
           break
         case 'bottom-left':
           {
-            anchorShadow = graphSnap.findOne(`#bottom-left`)
-            anchorShadowAcross = graphSnap.findOne(`#top-right`)
+            anchorShadow = anchorsSnap.find((o) => o.attrs.adjustType === 'bottom-left')
+            anchorShadowAcross = anchorsSnap.find((o) => o.attrs.adjustType === 'top-right')
           }
           break
         case 'bottom-right':
           {
-            anchorShadow = graphSnap.findOne(`#bottom-right`)
-            anchorShadowAcross = graphSnap.findOne(`#top-left`)
+            anchorShadow = anchorsSnap.find((o) => o.attrs.adjustType === 'bottom-right')
+            anchorShadowAcross = anchorsSnap.find((o) => o.attrs.adjustType === 'top-left')
           }
           break
       }
@@ -302,7 +304,7 @@ export class Circle extends BaseGraph {
           let zeroWidth = 1,
             zeroHeight = 1
 
-          switch (anchorId) {
+          switch (adjustType) {
             case 'top':
               {
                 if (graphRotation >= 45 && graphRotation < 135) {
@@ -645,12 +647,12 @@ export class Circle extends BaseGraph {
               break
           }
 
-          if (/-?(left|right)$/.test(anchorId)) {
+          if (/-?(left|right)$/.test(adjustType)) {
             graph.width(Math.max(2, graphSnap.width() * r1 * zeroWidth))
             graphWidth = graph.width()
           }
 
-          if (/^(top|bottom)-?/.test(anchorId)) {
+          if (/^(top|bottom)-?/.test(adjustType)) {
             graph.height(Math.max(2, graphSnap.height() * r1 * zeroHeight))
             graphHeight = graph.height()
           }
@@ -662,7 +664,13 @@ export class Circle extends BaseGraph {
           const sin = Math.sin((graphRotation * Math.PI) / 180)
           const tan = Math.tan((graphRotation * Math.PI) / 180)
 
-          switch (anchorId) {
+          // const rect = graph.getClientRect()
+          // let [graphWidth, graphHeight] = [
+          //   render.toStageValue(rect.width),
+          //   render.toStageValue(rect.height)
+          // ]
+
+          switch (adjustType) {
             case 'top':
               {
                 graph.x(ax - (graphWidth / 2 - graphHeight * tan) * cos)
@@ -757,8 +765,11 @@ export class Circle extends BaseGraph {
       // 更新 调整点 位置
       for (const anchor of anchors) {
         for (const { shape } of shapeRecords) {
-          if (shape.attrs.anchor?.id === anchor.attrs.id) {
-            const anchorShadow = graph.findOne(`#${anchor.attrs.id}`)
+          if (shape.attrs.anchor?.adjustType === anchor.attrs.adjustType) {
+            const anchorShadow = graph
+              .find(`.anchor`)
+              .find((o) => o.attrs.adjustType === anchor.attrs.adjustType)
+
             if (anchorShadow) {
               shape.position({
                 x: render.toStageValue(anchorShadow.getAbsolutePosition().x - stageState.x),
@@ -784,16 +795,16 @@ export class Circle extends BaseGraph {
     super(render, dropPoint, {
       // 定义了 8 个 调整点
       anchors: [
-        { id: 'top' },
-        { id: 'bottom' },
-        { id: 'left' },
-        { id: 'right' },
-        { id: 'top-left' },
-        { id: 'top-right' },
-        { id: 'bottom-left' },
-        { id: 'bottom-right' }
+        { adjustType: 'top' },
+        { adjustType: 'bottom' },
+        { adjustType: 'left' },
+        { adjustType: 'right' },
+        { adjustType: 'top-left' },
+        { adjustType: 'top-right' },
+        { adjustType: 'bottom-left' },
+        { adjustType: 'bottom-right' }
       ].map((o) => ({
-        id: o.id, // 调整点 类型定义
+        adjustType: o.adjustType, // 调整点 类型定义
         type: Types.GraphType.Circle // 记录所属 图形
       })),
       linkAnchors: [

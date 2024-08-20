@@ -69,7 +69,7 @@ export abstract class BaseGraph {
    * @param graph 图形
    * @param anchor 调整点 定义
    * @param anchorShadow 调整点 锚点
-   * @param adjustingId 正在操作的 调整点 id
+   * @param adjustType 正在操作的 调整点 类型
    * @returns
    */
   static createAnchorShape(
@@ -77,9 +77,9 @@ export abstract class BaseGraph {
     graph: Konva.Group,
     anchor: Types.GraphAnchor,
     anchorShadow: Konva.Circle,
-    adjustingId: string
+    adjustType: string
   ): Konva.Shape {
-    console.log('请实现 createAnchorShape', render, graph, anchor, anchorShadow, adjustingId)
+    console.log('请实现 createAnchorShape', render, graph, anchor, anchorShadow, adjustType)
     return new Konva.Shape()
   }
 
@@ -163,7 +163,7 @@ export abstract class BaseGraph {
     // 新建 调整点 的 锚点
     for (const anchor of this.anchors) {
       const circle = new Konva.Circle({
-        id: anchor.id,
+        adjustType: anchor.adjustType,
         name: anchor.name,
         radius: 0
         // radius: this.render.toStageValue(1),
