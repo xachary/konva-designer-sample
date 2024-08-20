@@ -26196,7 +26196,7 @@ class BaseGraph {
     this.group.setAttr("anchors", this.anchors);
     for (const anchor of this.anchors) {
       const circle = new Konva.Circle({
-        id: anchor.id,
+        adjustType: anchor.adjustType,
         name: anchor.name,
         radius: 0
         // radius: this.render.toStageValue(1),
@@ -26289,11 +26289,20 @@ class BaseGraph {
    * @param graph 图形
    * @param anchor 调整点 定义
    * @param anchorShadow 调整点 锚点
-   * @param adjustingId 正在操作的 调整点 id
+   * @param adjustType 正在操作的 调整点 类型
+   * @param adjustGroupId 正在操作的 group Id
    * @returns
    */
-  static createAnchorShape(render21, graph, anchor, anchorShadow, adjustingId) {
-    console.log("请实现 createAnchorShape", render21, graph, anchor, anchorShadow, adjustingId);
+  static createAnchorShape(render21, graph, anchor, anchorShadow, adjustType, adjustGroupId) {
+    console.log(
+      "请实现 createAnchorShape",
+      render21,
+      graph,
+      anchor,
+      anchorShadow,
+      adjustType,
+      adjustGroupId
+    );
     return new Konva.Shape();
   }
   /**
@@ -26315,16 +26324,16 @@ const _Circle = class _Circle extends BaseGraph {
     super(render21, dropPoint, {
       // 定义了 8 个 调整点
       anchors: [
-        { id: "top" },
-        { id: "bottom" },
-        { id: "left" },
-        { id: "right" },
-        { id: "top-left" },
-        { id: "top-right" },
-        { id: "bottom-left" },
-        { id: "bottom-right" }
+        { adjustType: "top" },
+        { adjustType: "bottom" },
+        { adjustType: "left" },
+        { adjustType: "right" },
+        { adjustType: "top-left" },
+        { adjustType: "top-right" },
+        { adjustType: "bottom-left" },
+        { adjustType: "bottom-right" }
       ].map((o) => ({
-        id: o.id,
+        adjustType: o.adjustType,
         // 调整点 类型定义
         type: GraphType.Circle
         // 记录所属 图形
@@ -26356,7 +26365,7 @@ const _Circle = class _Circle extends BaseGraph {
   // 实现：更新 图形 的 调整点 的 锚点位置
   static updateAnchorShadows(width, height, rotate, anchorShadows) {
     for (const shadow of anchorShadows) {
-      switch (shadow.attrs.id) {
+      switch (shadow.attrs.adjustType) {
         case "top":
           shadow.position({
             x: width / 2,
@@ -26446,7 +26455,7 @@ const _Circle = class _Circle extends BaseGraph {
     }
   }
   // 实现：生成 调整点
-  static createAnchorShape(render21, graph, anchor, anchorShadow, adjustingId) {
+  static createAnchorShape(render21, graph, anchor, anchorShadow, adjustType, adjustGroupId) {
     const stageState = render21.getStageState();
     const x = render21.toStageValue(anchorShadow.getAbsolutePosition().x - stageState.x), y = render21.toStageValue(anchorShadow.getAbsolutePosition().y - stageState.y);
     const offset = render21.pointSize + 5;
@@ -26454,8 +26463,8 @@ const _Circle = class _Circle extends BaseGraph {
       name: "anchor",
       anchor,
       //
-      // stroke: colorMap[anchor.id] ?? 'rgba(0,0,255,0.2)',
-      stroke: adjustingId === anchor.id ? "rgba(0,0,255,0.8)" : "rgba(0,0,255,0.2)",
+      // stroke: colorMap[anchor.adjustType] ?? 'rgba(0,0,255,0.2)',
+      stroke: adjustType === anchor.adjustType && graph.id() === adjustGroupId ? "rgba(0,0,255,0.8)" : "rgba(0,0,255,0.2)",
       strokeWidth: render21.toStageValue(2),
       // 位置
       x,
@@ -26498,7 +26507,7 @@ const _Circle = class _Circle extends BaseGraph {
           [-offset, -offset],
           [-offset, offset]
         ])
-      }[anchor.id] ?? [],
+      }[anchor.adjustType] ?? [],
       // 旋转角度
       rotation: graph.getAbsoluteRotation()
     });
@@ -26518,64 +26527,65 @@ const _Circle = class _Circle extends BaseGraph {
     const circle = graph.findOne(".graph");
     const circleSnap = graphSnap.findOne(".graph");
     const anchors = graph.find(".anchor") ?? [];
+    const anchorsSnap = graphSnap.find(".anchor") ?? [];
     const linkAnchors = graph.find(".link-anchor") ?? [];
     const { shape: adjustShape } = shapeRecord;
     if (circle && circleSnap) {
       let [graphWidth, graphHeight] = [graph.width(), graph.height()];
-      const [graphRotation, anchorId, ex, ey] = [
+      const [graphRotation, adjustType, ex, ey] = [
         Math.round(graph.rotation()),
-        (_a = adjustShape.attrs.anchor) == null ? void 0 : _a.id,
+        (_a = adjustShape.attrs.anchor) == null ? void 0 : _a.adjustType,
         endPoint.x,
         endPoint.y
       ];
       let anchorShadow, anchorShadowAcross;
-      switch (anchorId) {
+      switch (adjustType) {
         case "top":
           {
-            anchorShadow = graphSnap.findOne(`#top`);
-            anchorShadowAcross = graphSnap.findOne(`#bottom`);
+            anchorShadow = anchorsSnap.find((o) => o.attrs.adjustType === "top");
+            anchorShadowAcross = anchorsSnap.find((o) => o.attrs.adjustType === "bottom");
           }
           break;
         case "bottom":
           {
-            anchorShadow = graphSnap.findOne(`#bottom`);
-            anchorShadowAcross = graphSnap.findOne(`#top`);
+            anchorShadow = anchorsSnap.find((o) => o.attrs.adjustType === "bottom");
+            anchorShadowAcross = anchorsSnap.find((o) => o.attrs.adjustType === "top");
           }
           break;
         case "left":
           {
-            anchorShadow = graphSnap.findOne(`#left`);
-            anchorShadowAcross = graphSnap.findOne(`#right`);
+            anchorShadow = anchorsSnap.find((o) => o.attrs.adjustType === "left");
+            anchorShadowAcross = anchorsSnap.find((o) => o.attrs.adjustType === "right");
           }
           break;
         case "right":
           {
-            anchorShadow = graphSnap.findOne(`#right`);
-            anchorShadowAcross = graphSnap.findOne(`#left`);
+            anchorShadow = anchorsSnap.find((o) => o.attrs.adjustType === "right");
+            anchorShadowAcross = anchorsSnap.find((o) => o.attrs.adjustType === "left");
           }
           break;
         case "top-left":
           {
-            anchorShadow = graphSnap.findOne(`#top-left`);
-            anchorShadowAcross = graphSnap.findOne(`#bottom-right`);
+            anchorShadow = anchorsSnap.find((o) => o.attrs.adjustType === "top-left");
+            anchorShadowAcross = anchorsSnap.find((o) => o.attrs.adjustType === "bottom-right");
           }
           break;
         case "top-right":
           {
-            anchorShadow = graphSnap.findOne(`#top-right`);
-            anchorShadowAcross = graphSnap.findOne(`#bottom-left`);
+            anchorShadow = anchorsSnap.find((o) => o.attrs.adjustType === "top-right");
+            anchorShadowAcross = anchorsSnap.find((o) => o.attrs.adjustType === "bottom-left");
           }
           break;
         case "bottom-left":
           {
-            anchorShadow = graphSnap.findOne(`#bottom-left`);
-            anchorShadowAcross = graphSnap.findOne(`#top-right`);
+            anchorShadow = anchorsSnap.find((o) => o.attrs.adjustType === "bottom-left");
+            anchorShadowAcross = anchorsSnap.find((o) => o.attrs.adjustType === "top-right");
           }
           break;
         case "bottom-right":
           {
-            anchorShadow = graphSnap.findOne(`#bottom-right`);
-            anchorShadowAcross = graphSnap.findOne(`#top-left`);
+            anchorShadow = anchorsSnap.find((o) => o.attrs.adjustType === "bottom-right");
+            anchorShadowAcross = anchorsSnap.find((o) => o.attrs.adjustType === "top-left");
           }
           break;
       }
@@ -26587,7 +26597,7 @@ const _Circle = class _Circle extends BaseGraph {
           const d2 = Math.sqrt(Math.pow(ex - ax, 2) + Math.pow(ey - ay, 2));
           const r1 = d2 / d1;
           let zeroWidth = 1, zeroHeight = 1;
-          switch (anchorId) {
+          switch (adjustType) {
             case "top":
               {
                 if (graphRotation >= 45 && graphRotation < 135) {
@@ -26917,11 +26927,11 @@ const _Circle = class _Circle extends BaseGraph {
               }
               break;
           }
-          if (/-?(left|right)$/.test(anchorId)) {
+          if (/-?(left|right)$/.test(adjustType)) {
             graph.width(Math.max(2, graphSnap.width() * r1 * zeroWidth));
             graphWidth = graph.width();
           }
-          if (/^(top|bottom)-?/.test(anchorId)) {
+          if (/^(top|bottom)-?/.test(adjustType)) {
             graph.height(Math.max(2, graphSnap.height() * r1 * zeroHeight));
             graphHeight = graph.height();
           }
@@ -26930,7 +26940,7 @@ const _Circle = class _Circle extends BaseGraph {
           const cos = Math.cos(graphRotation * Math.PI / 180);
           const sin = Math.sin(graphRotation * Math.PI / 180);
           const tan = Math.tan(graphRotation * Math.PI / 180);
-          switch (anchorId) {
+          switch (adjustType) {
             case "top":
               {
                 graph.x(ax - (graphWidth / 2 - graphHeight * tan) * cos);
@@ -26984,24 +26994,13 @@ const _Circle = class _Circle extends BaseGraph {
       circle.radiusX(graphWidth / 2);
       circle.y(graphHeight / 2);
       circle.radiusY(graphHeight / 2);
-      circle.hitFunc((context) => {
-        context.beginPath();
-        context.rect(
-          -graphWidth / 2 - render21.pointSize - 5 * 2,
-          -graphHeight / 2 - render21.pointSize - 5 * 2,
-          (graphWidth / 2 + render21.pointSize + 5 * 2) * 2,
-          (graphHeight / 2 + render21.pointSize + 5 * 2) * 2
-        );
-        context.closePath();
-        context.fillStrokeShape(circle);
-      });
       _Circle.updateAnchorShadows(graphWidth, graphHeight, graphRotation, anchors);
       _Circle.updateLinkAnchorShadows(graphWidth, graphHeight, graphRotation, linkAnchors);
       const stageState = render21.getStageState();
       for (const anchor of anchors) {
         for (const { shape } of shapeRecords) {
-          if (((_b = shape.attrs.anchor) == null ? void 0 : _b.id) === anchor.attrs.id) {
-            const anchorShadow2 = graph.findOne(`#${anchor.attrs.id}`);
+          if (((_b = shape.attrs.anchor) == null ? void 0 : _b.adjustType) === anchor.attrs.adjustType) {
+            const anchorShadow2 = graph.find(`.anchor`).find((o) => o.attrs.adjustType === anchor.attrs.adjustType);
             if (anchorShadow2) {
               shape.position({
                 x: render21.toStageValue(anchorShadow2.getAbsolutePosition().x - stageState.x),
@@ -27045,17 +27044,6 @@ const _Circle = class _Circle extends BaseGraph {
       this.circle.y(radiusY);
       this.circle.radiusX(radiusX - this.circle.strokeWidth());
       this.circle.radiusY(radiusY - this.circle.strokeWidth());
-      this.circle.hitFunc((context) => {
-        context.beginPath();
-        context.rect(
-          -radiusX - this.render.pointSize - 5 * 2,
-          -radiusY - this.render.pointSize - 5 * 2,
-          (radiusX + this.render.pointSize + 5 * 2) * 2,
-          (radiusY + this.render.pointSize + 5 * 2) * 2
-        );
-        context.closePath();
-        context.fillStrokeShape(this.circle);
-      });
       this.group.size({
         width,
         height
@@ -27079,7 +27067,8 @@ const _GraphDraw = class _GraphDraw extends BaseDraw {
     __publicField(this, "on", {});
     __publicField(this, "state", {
       adjusting: false,
-      adjustingId: ""
+      adjustType: "",
+      adjustGroupId: ""
     });
     /**
      * 鼠标按下 调整点 位置
@@ -27127,7 +27116,8 @@ const _GraphDraw = class _GraphDraw extends BaseDraw {
         shape.on("mousedown", () => {
           var _a;
           this.state.adjusting = true;
-          this.state.adjustingId = (_a = shape.attrs.anchor) == null ? void 0 : _a.id;
+          this.state.adjustType = (_a = shape.attrs.anchor) == null ? void 0 : _a.adjustType;
+          this.state.adjustGroupId = graph.id();
           shape.setAttr("adjusting", true);
           const pos = this.getStagePoint();
           if (pos) {
@@ -27160,7 +27150,8 @@ const _GraphDraw = class _GraphDraw extends BaseDraw {
         this.render.stage.on("mouseup", () => {
           var _a;
           this.state.adjusting = false;
-          this.state.adjustingId = "";
+          this.state.adjustType = "";
+          this.state.adjustGroupId = "";
           for (const { shape: shape2 } of shapeRecords) {
             shape2.opacity(1);
             shape2.setAttr("adjusting", false);
@@ -27183,14 +27174,15 @@ const _GraphDraw = class _GraphDraw extends BaseDraw {
         const anchors = graph.attrs.anchors ?? [];
         const shapeRecords = [];
         for (const anchor of anchors) {
-          const anchorShadow = graph.findOne(`#${anchor.id}`);
+          const anchorShadow = graph.find(`.anchor`).find((o) => o.attrs.adjustType === anchor.adjustType);
           if (anchorShadow) {
             const shape = Circle2.createAnchorShape(
               this.render,
               graph,
               anchor,
               anchorShadow,
-              this.state.adjustingId
+              this.state.adjustType,
+              this.state.adjustGroupId
             );
             shapeRecords.push({ shape, anchorShadow });
           }
@@ -28367,6 +28359,13 @@ class CopyTool {
             }
           }
         }
+        if (Array.isArray(asset.attrs.anchors)) {
+          for (const anchor of asset.attrs.anchors) {
+            if (anchor.groupId && !idMap.has(anchor.groupId)) {
+              idMap.set(anchor.groupId, "g:" + nanoid());
+            }
+          }
+        }
         if (asset.id()) {
           if (!idMap.has(asset.id())) {
             idMap.set(asset.id(), "n:" + nanoid());
@@ -28414,6 +28413,14 @@ class CopyTool {
             }
             if (idMap.has(point.groupId)) {
               point.groupId = idMap.get(point.groupId);
+            }
+          }
+        }
+        if (Array.isArray(asset.attrs.anchors)) {
+          asset.attrs.anchors = lodash.cloneDeep(asset.attrs.anchors ?? []);
+          for (const anchor of asset.attrs.anchors) {
+            if (idMap.has(anchor.groupId)) {
+              anchor.groupId = idMap.get(anchor.groupId);
             }
           }
         }
@@ -43478,7 +43485,7 @@ const IosUndo = /* @__PURE__ */ defineComponent({
     return openBlock(), createElementBlock("svg", _hoisted_1$3, _hoisted_3$3);
   }
 });
-const _withScopeId$1 = (n) => (pushScopeId("data-v-2d3bfafc"), n = n(), popScopeId(), n);
+const _withScopeId$1 = (n) => (pushScopeId("data-v-92ac384b"), n = n(), popScopeId(), n);
 const _hoisted_1$2 = { class: "main-header" };
 const _hoisted_2$2 = /* @__PURE__ */ _withScopeId$1(() => /* @__PURE__ */ createBaseVNode("img", {
   class: "main-header__logo",
@@ -43806,6 +43813,18 @@ const _sfc_main$2 = /* @__PURE__ */ defineComponent({
                   "拐点旋转测试"
                 ),
                 key: "拐点旋转测试"
+              },
+              {
+                label: () => h(
+                  "a",
+                  {
+                    target: "_blank",
+                    rel: "noopenner noreferrer",
+                    onClick: onAdjustTransformTest
+                  },
+                  "变换后调整测试"
+                ),
+                key: "变换后调整测试"
               }
             ]
           }
@@ -43996,6 +44015,11 @@ const _sfc_main$2 = /* @__PURE__ */ defineComponent({
     async function onLinkRotateTest() {
       var _a;
       const json = await (await fetch("./test/link-rotate.json")).text();
+      (_a = props.render) == null ? void 0 : _a.importExportTool.restore(json);
+    }
+    async function onAdjustTransformTest() {
+      var _a;
+      const json = await (await fetch("./test/adjust-transform.json")).text();
       (_a = props.render) == null ? void 0 : _a.importExportTool.restore(json);
     }
     function onFull() {
@@ -44585,7 +44609,7 @@ const _export_sfc = (sfc, props) => {
   }
   return target;
 };
-const MainHeader = /* @__PURE__ */ _export_sfc(_sfc_main$2, [["__scopeId", "data-v-2d3bfafc"]]);
+const MainHeader = /* @__PURE__ */ _export_sfc(_sfc_main$2, [["__scopeId", "data-v-92ac384b"]]);
 const assetsModules = {
   svg: [
     {
@@ -45230,7 +45254,7 @@ const logArray = (words2) => {
     console.error(e);
   }
 };
-var define_BUILD_INFO_default = { lastBuildTime: "2024-08-20 15:17:50", git: { branch: "master", hash: "2948e679f19fdd45bf83b33fb3ac793931a2b697", tag: "chapter20-dirty" } };
+var define_BUILD_INFO_default = { lastBuildTime: "2024-08-20 18:21:43", git: { branch: "master", hash: "220038c25c75a4d49773820493980864cdc57a36", tag: "chapter20" } };
 const {
   lastBuildTime,
   git: { branch, tag, hash }
