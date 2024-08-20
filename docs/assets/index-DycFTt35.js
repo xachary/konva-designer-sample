@@ -20783,15 +20783,15 @@ Factory_1$o.Factory.addGetterSetter(Tag, "pointerDirection", NONE$1);
 Factory_1$o.Factory.addGetterSetter(Tag, "pointerWidth", 0, (0, Validators_1$o.getNumberValidator)());
 Factory_1$o.Factory.addGetterSetter(Tag, "pointerHeight", 0, (0, Validators_1$o.getNumberValidator)());
 Factory_1$o.Factory.addGetterSetter(Tag, "cornerRadius", 0, (0, Validators_1$o.getNumberOrArrayOfNumbersValidator)(4));
-var Rect$1 = {};
-Object.defineProperty(Rect$1, "__esModule", { value: true });
-Rect$1.Rect = void 0;
+var Rect$2 = {};
+Object.defineProperty(Rect$2, "__esModule", { value: true });
+Rect$2.Rect = void 0;
 const Factory_1$n = Factory;
 const Shape_1$8 = Shape;
 const Global_1$8 = Global;
 const Util_1$6 = Util;
 const Validators_1$n = Validators;
-class Rect extends Shape_1$8.Shape {
+let Rect$1 = class Rect extends Shape_1$8.Shape {
   _sceneFunc(context) {
     var cornerRadius = this.cornerRadius(), width = this.width(), height = this.height();
     context.beginPath();
@@ -20803,11 +20803,11 @@ class Rect extends Shape_1$8.Shape {
     context.closePath();
     context.fillStrokeShape(this);
   }
-}
-Rect$1.Rect = Rect;
-Rect.prototype.className = "Rect";
-(0, Global_1$8._registerNode)(Rect);
-Factory_1$n.Factory.addGetterSetter(Rect, "cornerRadius", 0, (0, Validators_1$n.getNumberOrArrayOfNumbersValidator)(4));
+};
+Rect$2.Rect = Rect$1;
+Rect$1.prototype.className = "Rect";
+(0, Global_1$8._registerNode)(Rect$1);
+Factory_1$n.Factory.addGetterSetter(Rect$1, "cornerRadius", 0, (0, Validators_1$n.getNumberOrArrayOfNumbersValidator)(4));
 var RegularPolygon$1 = {};
 Object.defineProperty(RegularPolygon$1, "__esModule", { value: true });
 RegularPolygon$1.RegularPolygon = void 0;
@@ -21694,7 +21694,7 @@ const Util_1$3 = Util;
 const Factory_1$g = Factory;
 const Node_1$f = Node$1;
 const Shape_1$1 = Shape;
-const Rect_1$1 = Rect$1;
+const Rect_1$1 = Rect$2;
 const Group_1 = Group$1;
 const Global_1$1 = Global;
 const Validators_1$g = Validators;
@@ -24209,7 +24209,7 @@ const Image_1 = Image$2;
 const Label_1 = Label$1;
 const Line_1 = Line$1;
 const Path_1 = Path$1;
-const Rect_1 = Rect$1;
+const Rect_1 = Rect$2;
 const RegularPolygon_1 = RegularPolygon$1;
 const Ring_1 = Ring$1;
 const Sprite_1 = Sprite$1;
@@ -27062,6 +27062,741 @@ const _Circle = class _Circle extends BaseGraph {
  */
 __publicField(_Circle, "size", 100);
 let Circle2 = _Circle;
+const _Rect = class _Rect extends BaseGraph {
+  constructor(render21, dropPoint) {
+    super(render21, dropPoint, {
+      // 定义了 8 个 调整点
+      anchors: [
+        { adjustType: "top" },
+        { adjustType: "bottom" },
+        { adjustType: "left" },
+        { adjustType: "right" },
+        { adjustType: "top-left" },
+        { adjustType: "top-right" },
+        { adjustType: "bottom-left" },
+        { adjustType: "bottom-right" }
+      ].map((o) => ({
+        adjustType: o.adjustType,
+        // 调整点 类型定义
+        type: GraphType.Rect
+        // 记录所属 图形
+      })),
+      linkAnchors: [
+        { x: 0, y: 0, alias: "top", direction: "top" },
+        { x: 0, y: 0, alias: "bottom", direction: "bottom" },
+        { x: 0, y: 0, alias: "left", direction: "left" },
+        { x: 0, y: 0, alias: "right", direction: "right" },
+        { x: 0, y: 0, alias: "center" }
+      ]
+    });
+    /**
+     * 矩形 对应的 Konva 实例
+     */
+    __publicField(this, "rect");
+    this.rect = new Konva.Rect({
+      name: "graph",
+      x: 0,
+      y: 0,
+      width: 0,
+      height: 0,
+      stroke: "black",
+      strokeWidth: 1
+    });
+    this.group.add(this.rect);
+    this.group.position(this.dropPoint);
+  }
+  // 实现：更新 图形 的 调整点 的 锚点位置
+  static updateAnchorShadows(width, height, rotate, anchorShadows) {
+    for (const shadow of anchorShadows) {
+      switch (shadow.attrs.adjustType) {
+        case "top":
+          shadow.position({
+            x: width / 2,
+            y: 0
+          });
+          break;
+        case "bottom":
+          shadow.position({
+            x: width / 2,
+            y: height
+          });
+          break;
+        case "left":
+          shadow.position({
+            x: 0,
+            y: height / 2
+          });
+          break;
+        case "right":
+          shadow.position({
+            x: width,
+            y: height / 2
+          });
+          break;
+        case "top-left":
+          shadow.position({
+            x: 0,
+            y: 0
+          });
+          break;
+        case "top-right":
+          shadow.position({
+            x: width,
+            y: 0
+          });
+          break;
+        case "bottom-left":
+          shadow.position({
+            x: 0,
+            y: height
+          });
+          break;
+        case "bottom-right":
+          shadow.position({
+            x: width,
+            y: height
+          });
+          break;
+      }
+    }
+  }
+  // 实现：更新 图形 的 连接点 的 锚点位置
+  static updateLinkAnchorShadows(width, height, rotate, linkAnchorShadows) {
+    for (const shadow of linkAnchorShadows) {
+      switch (shadow.attrs.alias) {
+        case "top":
+          shadow.position({
+            x: width / 2,
+            y: 0
+          });
+          break;
+        case "bottom":
+          shadow.position({
+            x: width / 2,
+            y: height
+          });
+          break;
+        case "left":
+          shadow.position({
+            x: 0,
+            y: height / 2
+          });
+          break;
+        case "right":
+          shadow.position({
+            x: width,
+            y: height / 2
+          });
+          break;
+        case "center":
+          shadow.position({
+            x: width / 2,
+            y: height / 2
+          });
+          break;
+      }
+    }
+  }
+  // 实现：生成 调整点
+  static createAnchorShape(render21, graph, anchor, anchorShadow, adjustType, adjustGroupId) {
+    const stageState = render21.getStageState();
+    const x = render21.toStageValue(anchorShadow.getAbsolutePosition().x - stageState.x), y = render21.toStageValue(anchorShadow.getAbsolutePosition().y - stageState.y);
+    const offset = render21.pointSize + 5;
+    const shape = new Konva.Line({
+      name: "anchor",
+      anchor,
+      //
+      // stroke: colorMap[anchor.adjustType] ?? 'rgba(0,0,255,0.2)',
+      stroke: adjustType === anchor.adjustType && graph.id() === adjustGroupId ? "rgba(0,0,255,0.8)" : "rgba(0,0,255,0.2)",
+      strokeWidth: render21.toStageValue(2),
+      // 位置
+      x,
+      y,
+      // 路径
+      points: {
+        "top-left": lodash.flatten([
+          [-offset, offset / 2],
+          [-offset, -offset],
+          [offset / 2, -offset]
+        ]),
+        top: lodash.flatten([
+          [-offset, -offset],
+          [offset, -offset]
+        ]),
+        "top-right": lodash.flatten([
+          [-offset / 2, -offset],
+          [offset, -offset],
+          [offset, offset / 2]
+        ]),
+        right: lodash.flatten([
+          [offset, -offset],
+          [offset, offset]
+        ]),
+        "bottom-right": lodash.flatten([
+          [-offset / 2, offset],
+          [offset, offset],
+          [offset, -offset / 2]
+        ]),
+        bottom: lodash.flatten([
+          [-offset, offset],
+          [offset, offset]
+        ]),
+        "bottom-left": lodash.flatten([
+          [-offset, -offset / 2],
+          [-offset, offset],
+          [offset / 2, offset]
+        ]),
+        left: lodash.flatten([
+          [-offset, -offset],
+          [-offset, offset]
+        ])
+      }[anchor.adjustType] ?? [],
+      // 旋转角度
+      rotation: graph.getAbsoluteRotation()
+    });
+    shape.on("mouseenter", () => {
+      shape.stroke("rgba(0,0,255,0.8)");
+      document.body.style.cursor = "move";
+    });
+    shape.on("mouseleave", () => {
+      shape.stroke(shape.attrs.adjusting ? "rgba(0,0,255,0.8)" : "rgba(0,0,255,0.2)");
+      document.body.style.cursor = shape.attrs.adjusting ? "move" : "default";
+    });
+    return shape;
+  }
+  // 实现：调整 图形
+  static adjust(render21, graph, graphSnap, shapeRecord, shapeRecords, startPoint, endPoint) {
+    var _a, _b;
+    const rect = graph.findOne(".graph");
+    const rectSnap = graphSnap.findOne(".graph");
+    const anchors = graph.find(".anchor") ?? [];
+    const anchorsSnap = graphSnap.find(".anchor") ?? [];
+    const linkAnchors = graph.find(".link-anchor") ?? [];
+    const { shape: adjustShape } = shapeRecord;
+    if (rect && rectSnap) {
+      const [graphRotation, adjustType, ex, ey] = [
+        Math.round(graph.rotation()),
+        (_a = adjustShape.attrs.anchor) == null ? void 0 : _a.adjustType,
+        endPoint.x,
+        endPoint.y
+      ];
+      let anchorShadow, anchorShadowAcross;
+      switch (adjustType) {
+        case "top":
+          {
+            anchorShadow = anchorsSnap.find((o) => o.attrs.adjustType === "top");
+            anchorShadowAcross = anchorsSnap.find((o) => o.attrs.adjustType === "bottom");
+          }
+          break;
+        case "bottom":
+          {
+            anchorShadow = anchorsSnap.find((o) => o.attrs.adjustType === "bottom");
+            anchorShadowAcross = anchorsSnap.find((o) => o.attrs.adjustType === "top");
+          }
+          break;
+        case "left":
+          {
+            anchorShadow = anchorsSnap.find((o) => o.attrs.adjustType === "left");
+            anchorShadowAcross = anchorsSnap.find((o) => o.attrs.adjustType === "right");
+          }
+          break;
+        case "right":
+          {
+            anchorShadow = anchorsSnap.find((o) => o.attrs.adjustType === "right");
+            anchorShadowAcross = anchorsSnap.find((o) => o.attrs.adjustType === "left");
+          }
+          break;
+        case "top-left":
+          {
+            anchorShadow = anchorsSnap.find((o) => o.attrs.adjustType === "top-left");
+            anchorShadowAcross = anchorsSnap.find((o) => o.attrs.adjustType === "bottom-right");
+          }
+          break;
+        case "top-right":
+          {
+            anchorShadow = anchorsSnap.find((o) => o.attrs.adjustType === "top-right");
+            anchorShadowAcross = anchorsSnap.find((o) => o.attrs.adjustType === "bottom-left");
+          }
+          break;
+        case "bottom-left":
+          {
+            anchorShadow = anchorsSnap.find((o) => o.attrs.adjustType === "bottom-left");
+            anchorShadowAcross = anchorsSnap.find((o) => o.attrs.adjustType === "top-right");
+          }
+          break;
+        case "bottom-right":
+          {
+            anchorShadow = anchorsSnap.find((o) => o.attrs.adjustType === "bottom-right");
+            anchorShadowAcross = anchorsSnap.find((o) => o.attrs.adjustType === "top-left");
+          }
+          break;
+      }
+      if (anchorShadow && anchorShadowAcross) {
+        const { x: sx, y: sy } = anchorShadow.getAbsolutePosition();
+        const { x: ax, y: ay } = anchorShadowAcross.getAbsolutePosition();
+        {
+          const d1 = Math.sqrt(Math.pow(sx - ax, 2) + Math.pow(sy - ay, 2));
+          const d2 = Math.sqrt(Math.pow(ex - ax, 2) + Math.pow(ey - ay, 2));
+          const r1 = d2 / d1;
+          let zeroWidth = 1, zeroHeight = 1;
+          switch (adjustType) {
+            case "top":
+              {
+                if (graphRotation >= 45 && graphRotation < 135) {
+                  zeroHeight = ex <= ax ? 0 : 1;
+                } else if (graphRotation >= -135 && graphRotation < -45) {
+                  zeroHeight = ex >= ax ? 0 : 1;
+                } else if (graphRotation >= -45 && graphRotation < 45) {
+                  zeroHeight = ey >= ay ? 0 : 1;
+                } else {
+                  zeroHeight = ey <= ay ? 0 : 1;
+                }
+              }
+              break;
+            case "bottom":
+              {
+                if (graphRotation >= 45 && graphRotation < 135) {
+                  zeroHeight = ex <= ax ? 1 : 0;
+                } else if (graphRotation >= -135 && graphRotation < -45) {
+                  zeroHeight = ex >= ax ? 1 : 0;
+                } else if (graphRotation >= -45 && graphRotation < 45) {
+                  zeroHeight = ey >= ay ? 1 : 0;
+                } else {
+                  zeroHeight = ey <= ay ? 1 : 0;
+                }
+              }
+              break;
+            case "left":
+              {
+                if (graphRotation >= 45 && graphRotation < 135) {
+                  zeroWidth = ey >= ay ? 0 : 1;
+                } else if (graphRotation >= -135 && graphRotation < -45) {
+                  zeroWidth = ex <= ax ? 0 : 1;
+                } else if (graphRotation >= -45 && graphRotation < 45) {
+                  zeroWidth = ex >= ax ? 0 : 1;
+                } else {
+                  zeroWidth = ey <= ay ? 0 : 1;
+                }
+              }
+              break;
+            case "right":
+              {
+                if (graphRotation >= 45 && graphRotation < 135) {
+                  zeroWidth = ey >= ay ? 1 : 0;
+                } else if (graphRotation >= -135 && graphRotation < -45) {
+                  zeroWidth = ex <= ax ? 1 : 0;
+                } else if (graphRotation >= -45 && graphRotation < 45) {
+                  zeroWidth = ex >= ax ? 1 : 0;
+                } else {
+                  zeroWidth = ey <= ay ? 1 : 0;
+                }
+              }
+              break;
+            case "top-left":
+              {
+                if (graphRotation > -45 && graphRotation < 45) {
+                  if (ex >= ax && ey >= ay) {
+                    zeroWidth = 0;
+                    zeroHeight = 0;
+                  } else {
+                    zeroWidth = 1;
+                    zeroHeight = 1;
+                  }
+                } else if (graphRotation === 45) {
+                  if (ey >= ay) {
+                    zeroWidth = 0;
+                    zeroHeight = 0;
+                  } else {
+                    zeroWidth = 1;
+                    zeroHeight = 1;
+                  }
+                } else if (graphRotation > 45 && graphRotation < 135) {
+                  if (ex <= ax && ey >= ay) {
+                    zeroWidth = 0;
+                    zeroHeight = 0;
+                  } else {
+                    zeroWidth = 1;
+                    zeroHeight = 1;
+                  }
+                } else if (graphRotation === 135) {
+                  if (ex <= ax) {
+                    zeroWidth = 0;
+                    zeroHeight = 0;
+                  } else {
+                    zeroWidth = 1;
+                    zeroHeight = 1;
+                  }
+                } else if (graphRotation > 135 && graphRotation <= 180 || graphRotation >= -180 && graphRotation < -135) {
+                  if (ex <= ax && ey <= ay) {
+                    zeroWidth = 0;
+                    zeroHeight = 0;
+                  } else {
+                    zeroWidth = 1;
+                    zeroHeight = 1;
+                  }
+                } else if (graphRotation === -135) {
+                  if (ey <= ay) {
+                    zeroWidth = 0;
+                    zeroHeight = 0;
+                  } else {
+                    zeroWidth = 1;
+                    zeroHeight = 1;
+                  }
+                } else if (graphRotation > -135 && graphRotation < -45) {
+                  if (ex >= ax && ey <= ay) {
+                    zeroWidth = 0;
+                    zeroHeight = 0;
+                  } else {
+                    zeroWidth = 1;
+                    zeroHeight = 1;
+                  }
+                } else if (graphRotation === -45) {
+                  if (ex >= ax) {
+                    zeroWidth = 0;
+                    zeroHeight = 0;
+                  } else {
+                    zeroWidth = 1;
+                    zeroHeight = 1;
+                  }
+                }
+              }
+              break;
+            case "top-right":
+              {
+                if (graphRotation > -45 && graphRotation < 45) {
+                  if (ex <= ax && ey >= ay) {
+                    zeroWidth = 0;
+                    zeroHeight = 0;
+                  } else {
+                    zeroWidth = 1;
+                    zeroHeight = 1;
+                  }
+                } else if (graphRotation === 45) {
+                  if (ex <= ax) {
+                    zeroWidth = 0;
+                    zeroHeight = 0;
+                  } else {
+                    zeroWidth = 1;
+                    zeroHeight = 1;
+                  }
+                } else if (graphRotation > 45 && graphRotation < 135) {
+                  if (ex <= ax && ey <= ay) {
+                    zeroWidth = 0;
+                    zeroHeight = 0;
+                  } else {
+                    zeroWidth = 1;
+                    zeroHeight = 1;
+                  }
+                } else if (graphRotation === 135) {
+                  if (ey <= ay) {
+                    zeroWidth = 0;
+                    zeroHeight = 0;
+                  } else {
+                    zeroWidth = 1;
+                    zeroHeight = 1;
+                  }
+                } else if (graphRotation > 135 && graphRotation <= 180 || graphRotation >= -180 && graphRotation < -135) {
+                  if (ex >= ax && ey <= ay) {
+                    zeroWidth = 0;
+                    zeroHeight = 0;
+                  } else {
+                    zeroWidth = 1;
+                    zeroHeight = 1;
+                  }
+                } else if (graphRotation === -135) {
+                  if (ex >= ax) {
+                    zeroWidth = 0;
+                    zeroHeight = 0;
+                  } else {
+                    zeroWidth = 1;
+                    zeroHeight = 1;
+                  }
+                } else if (graphRotation > -135 && graphRotation < -45) {
+                  if (ex >= ax && ey >= ay) {
+                    zeroWidth = 0;
+                    zeroHeight = 0;
+                  } else {
+                    zeroWidth = 1;
+                    zeroHeight = 1;
+                  }
+                } else if (graphRotation === -45) {
+                  if (ey >= ay) {
+                    zeroWidth = 0;
+                    zeroHeight = 0;
+                  } else {
+                    zeroWidth = 1;
+                    zeroHeight = 1;
+                  }
+                }
+              }
+              break;
+            case "bottom-left":
+              {
+                if (graphRotation > -45 && graphRotation < 45) {
+                  if (ex >= ax && ey <= ay) {
+                    zeroWidth = 0;
+                    zeroHeight = 0;
+                  } else {
+                    zeroWidth = 1;
+                    zeroHeight = 1;
+                  }
+                } else if (graphRotation === 45) {
+                  if (ex >= ax) {
+                    zeroWidth = 0;
+                    zeroHeight = 0;
+                  } else {
+                    zeroWidth = 1;
+                    zeroHeight = 1;
+                  }
+                } else if (graphRotation > 45 && graphRotation < 135) {
+                  if (ex >= ax && ey >= ay) {
+                    zeroWidth = 0;
+                    zeroHeight = 0;
+                  } else {
+                    zeroWidth = 1;
+                    zeroHeight = 1;
+                  }
+                } else if (graphRotation === 135) {
+                  if (ey >= ay) {
+                    zeroWidth = 0;
+                    zeroHeight = 0;
+                  } else {
+                    zeroWidth = 1;
+                    zeroHeight = 1;
+                  }
+                } else if (graphRotation > 135 && graphRotation <= 180 || graphRotation >= -180 && graphRotation < -135) {
+                  if (ex <= ax && ey >= ay) {
+                    zeroWidth = 0;
+                    zeroHeight = 0;
+                  } else {
+                    zeroWidth = 1;
+                    zeroHeight = 1;
+                  }
+                } else if (graphRotation === -135) {
+                  if (ex <= ax) {
+                    zeroWidth = 0;
+                    zeroHeight = 0;
+                  } else {
+                    zeroWidth = 1;
+                    zeroHeight = 1;
+                  }
+                } else if (graphRotation > -135 && graphRotation < -45) {
+                  if (ex <= ax && ey <= ay) {
+                    zeroWidth = 0;
+                    zeroHeight = 0;
+                  } else {
+                    zeroWidth = 1;
+                    zeroHeight = 1;
+                  }
+                } else if (graphRotation === -45) {
+                  if (ey <= ay) {
+                    zeroWidth = 0;
+                    zeroHeight = 0;
+                  } else {
+                    zeroWidth = 1;
+                    zeroHeight = 1;
+                  }
+                }
+              }
+              break;
+            case "bottom-right":
+              {
+                if (graphRotation > -45 && graphRotation < 45) {
+                  if (ex <= ax && ey <= ay) {
+                    zeroWidth = 0;
+                    zeroHeight = 0;
+                  } else {
+                    zeroWidth = 1;
+                    zeroHeight = 1;
+                  }
+                } else if (graphRotation === 45) {
+                  if (ey <= ay) {
+                    zeroWidth = 0;
+                    zeroHeight = 0;
+                  } else {
+                    zeroWidth = 1;
+                    zeroHeight = 1;
+                  }
+                } else if (graphRotation > 45 && graphRotation < 135) {
+                  if (ex >= ax && ey <= ay) {
+                    zeroWidth = 0;
+                    zeroHeight = 0;
+                  } else {
+                    zeroWidth = 1;
+                    zeroHeight = 1;
+                  }
+                } else if (graphRotation === 135) {
+                  if (ex >= ax) {
+                    zeroWidth = 0;
+                    zeroHeight = 0;
+                  } else {
+                    zeroWidth = 1;
+                    zeroHeight = 1;
+                  }
+                } else if (graphRotation > 135 && graphRotation <= 180 || graphRotation >= -180 && graphRotation < -135) {
+                  if (ex >= ax && ey >= ay) {
+                    zeroWidth = 0;
+                    zeroHeight = 0;
+                  } else {
+                    zeroWidth = 1;
+                    zeroHeight = 1;
+                  }
+                } else if (graphRotation === -135) {
+                  if (ey >= ay) {
+                    zeroWidth = 0;
+                    zeroHeight = 0;
+                  } else {
+                    zeroWidth = 1;
+                    zeroHeight = 1;
+                  }
+                } else if (graphRotation > -135 && graphRotation < -45) {
+                  if (ex <= ax && ey >= ay) {
+                    zeroWidth = 0;
+                    zeroHeight = 0;
+                  } else {
+                    zeroWidth = 1;
+                    zeroHeight = 1;
+                  }
+                } else if (graphRotation === -45) {
+                  if (ex <= ax) {
+                    zeroWidth = 0;
+                    zeroHeight = 0;
+                  } else {
+                    zeroWidth = 1;
+                    zeroHeight = 1;
+                  }
+                }
+              }
+              break;
+          }
+          if (/-?(left|right)$/.test(adjustType)) {
+            graph.width(Math.max(2, graphSnap.width() * r1 * zeroWidth));
+          }
+          if (/^(top|bottom)-?/.test(adjustType)) {
+            graph.height(Math.max(2, graphSnap.height() * r1 * zeroHeight));
+          }
+        }
+        {
+          const [graphWidth2, graphHeight2] = [
+            graph.width() * graph.scaleX(),
+            graph.height() * graph.scaleY()
+          ];
+          const cos = Math.cos(graphRotation * Math.PI / 180);
+          const sin = Math.sin(graphRotation * Math.PI / 180);
+          const tan = Math.tan(graphRotation * Math.PI / 180);
+          switch (adjustType) {
+            case "top":
+              {
+                graph.x(ax - (graphWidth2 / 2 - graphHeight2 * tan) * cos);
+                if (graphRotation !== 90 && graphRotation !== -90) {
+                  graph.y(ay - (graphHeight2 / cos + (graphWidth2 / 2 - graphHeight2 * tan) * sin));
+                }
+              }
+              break;
+            case "bottom":
+              break;
+            case "left":
+              {
+                if ([90, -90].includes(graphRotation)) {
+                  graph.y(ay - graphWidth2);
+                } else if (Math.abs(graphRotation) === 180) {
+                  graph.x(ax + graphWidth2);
+                } else {
+                  const v1 = graphHeight2 / 2 / cos;
+                  const v2 = v1 * sin;
+                  const v3 = graphWidth2 - v2;
+                  const v4 = v3 * sin;
+                  graph.x(ax - v3 * cos);
+                  graph.y(ay - (v1 + v4));
+                }
+              }
+              break;
+            case "right":
+              break;
+            case "top-left":
+              {
+                graph.x(ax - (graphWidth2 - graphHeight2 * tan) * cos);
+                graph.y(ay - (graphWidth2 * sin + graphHeight2 * cos));
+              }
+              break;
+            case "top-right":
+              {
+                graph.x(ax + graphHeight2 * sin);
+                graph.y(ay - graphHeight2 * cos);
+              }
+              break;
+            case "bottom-left":
+              {
+                graph.x(ax - graphWidth2 * cos);
+                graph.y(ay - graphWidth2 * sin);
+              }
+              break;
+          }
+        }
+      }
+      const [graphWidth, graphHeight] = [graph.width(), graph.height()];
+      rect.width(graphWidth);
+      rect.height(graphHeight);
+      _Rect.updateAnchorShadows(graphWidth, graphHeight, graphRotation, anchors);
+      _Rect.updateLinkAnchorShadows(graphWidth, graphHeight, graphRotation, linkAnchors);
+      const stageState = render21.getStageState();
+      for (const anchor of anchors) {
+        for (const { shape } of shapeRecords) {
+          if (((_b = shape.attrs.anchor) == null ? void 0 : _b.adjustType) === anchor.attrs.adjustType) {
+            const anchorShadow2 = graph.find(`.anchor`).find((o) => o.attrs.adjustType === anchor.attrs.adjustType);
+            if (anchorShadow2) {
+              shape.position({
+                x: render21.toStageValue(anchorShadow2.getAbsolutePosition().x - stageState.x),
+                y: render21.toStageValue(anchorShadow2.getAbsolutePosition().y - stageState.y)
+              });
+              shape.rotation(graph.getAbsoluteRotation());
+            }
+          }
+        }
+      }
+    }
+  }
+  // 实现：拖动进行时
+  drawMove(point) {
+    let offsetX = point.x - this.dropPoint.x, offsetY = point.y - this.dropPoint.y;
+    if (offsetX < 1) {
+      offsetX = 1;
+    }
+    if (offsetY < 1) {
+      offsetY = 1;
+    }
+    this.rect.width(offsetX);
+    this.rect.height(offsetY);
+    this.group.size({
+      width: offsetX,
+      height: offsetY
+    });
+    _Rect.updateAnchorShadows(offsetX, offsetY, 1, this.anchorShadows);
+    _Rect.updateLinkAnchorShadows(offsetX, offsetY, 1, this.linkAnchorShadows);
+    this.render.redraw([GraphDraw.name, LinkDraw.name]);
+  }
+  // 实现：拖动结束
+  drawEnd() {
+    if (this.rect.width() <= 1 && this.rect.height() <= 1) {
+      const width = _Rect.size, height = width;
+      this.rect.width(width - this.rect.strokeWidth());
+      this.rect.height(height - this.rect.strokeWidth());
+      this.group.size({
+        width,
+        height
+      });
+      _Rect.updateAnchorShadows(width, height, 1, this.anchorShadows);
+      _Rect.updateLinkAnchorShadows(width, height, 1, this.linkAnchorShadows);
+      this.render.attractTool.alignLinesClear();
+      this.render.redraw([GraphDraw.name, LinkDraw.name]);
+    }
+  }
+};
+/**
+ * 默认图形大小
+ */
+__publicField(_Rect, "size", 100);
+let Rect2 = _Rect;
 const _GraphDraw = class _GraphDraw extends BaseDraw {
   constructor(render21, layer, option) {
     super(render21, layer);
@@ -27128,12 +27863,12 @@ const _GraphDraw = class _GraphDraw extends BaseDraw {
           }
         });
         this.render.stage.on("mousemove", () => {
-          var _a;
+          var _a, _b;
           if (this.state.adjusting && this.graphSnap) {
-            if (((_a = shape.attrs.anchor) == null ? void 0 : _a.type) === GraphType.Circle) {
-              if (shape.attrs.adjusting) {
-                const pos = this.getStagePoint(true);
-                if (pos) {
+            if (shape.attrs.adjusting) {
+              const pos = this.getStagePoint(true);
+              if (pos) {
+                if (((_a = shape.attrs.anchor) == null ? void 0 : _a.type) === GraphType.Circle) {
                   Circle2.adjust(
                     this.render,
                     graph,
@@ -27143,8 +27878,18 @@ const _GraphDraw = class _GraphDraw extends BaseDraw {
                     this.startPoint,
                     pos
                   );
-                  this.render.redraw([_GraphDraw.name, LinkDraw.name]);
+                } else if (((_b = shape.attrs.anchor) == null ? void 0 : _b.type) === GraphType.Rect) {
+                  Rect2.adjust(
+                    this.render,
+                    graph,
+                    this.graphSnap,
+                    shapeRecord,
+                    shapeRecords,
+                    this.startPoint,
+                    pos
+                  );
                 }
+                this.render.redraw([_GraphDraw.name, LinkDraw.name]);
               }
             }
           }
@@ -28018,6 +28763,8 @@ class GraphHandlers {
               if (point) {
                 if (this.render.graphType === GraphType.Circle) {
                   this.currentGraph = new Circle2(this.render, point);
+                } else if (this.render.graphType === GraphType.Rect) {
+                  this.currentGraph = new Rect2(this.render, point);
                 }
               }
             }
@@ -43488,7 +44235,7 @@ const IosUndo = /* @__PURE__ */ defineComponent({
     return openBlock(), createElementBlock("svg", _hoisted_1$3, _hoisted_3$3);
   }
 });
-const _withScopeId$1 = (n) => (pushScopeId("data-v-92ac384b"), n = n(), popScopeId(), n);
+const _withScopeId$1 = (n) => (pushScopeId("data-v-f7f7ff60"), n = n(), popScopeId(), n);
 const _hoisted_1$2 = { class: "main-header" };
 const _hoisted_2$2 = /* @__PURE__ */ _withScopeId$1(() => /* @__PURE__ */ createBaseVNode("img", {
   class: "main-header__logo",
@@ -44482,8 +45229,7 @@ const _sfc_main$2 = /* @__PURE__ */ defineComponent({
                   size: "tiny",
                   quaternary: "",
                   focusable: false,
-                  onClick: _cache[12] || (_cache[12] = ($event) => onGraph(GraphType.Rect)),
-                  disabled: ""
+                  onClick: _cache[12] || (_cache[12] = ($event) => onGraph(GraphType.Rect))
                 }, {
                   icon: withCtx(() => [
                     createVNode(unref(NIcon), {
@@ -44612,7 +45358,7 @@ const _export_sfc = (sfc, props) => {
   }
   return target;
 };
-const MainHeader = /* @__PURE__ */ _export_sfc(_sfc_main$2, [["__scopeId", "data-v-92ac384b"]]);
+const MainHeader = /* @__PURE__ */ _export_sfc(_sfc_main$2, [["__scopeId", "data-v-f7f7ff60"]]);
 const assetsModules = {
   svg: [
     {
@@ -45257,7 +46003,7 @@ const logArray = (words2) => {
     console.error(e);
   }
 };
-var define_BUILD_INFO_default = { lastBuildTime: "2024-08-20 18:54:14", git: { branch: "master", hash: "06cf08d6bcf062b1b2484ad0c678d15a5780130a", tag: "chapter21" } };
+var define_BUILD_INFO_default = { lastBuildTime: "2024-08-20 20:54:58", git: { branch: "master", hash: "6fe6678f99906632737031e617a2aea7403f8f7f", tag: "chapter21-dirty" } };
 const {
   lastBuildTime,
   git: { branch, tag, hash }
