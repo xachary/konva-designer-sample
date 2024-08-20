@@ -13,6 +13,11 @@ export interface GraphDrawState {
   /**
    * 调整中 id
    */
+  adjustGroupId: string
+
+  /**
+   * 调整中 类型
+   */
   adjustType: string
 }
 
@@ -29,7 +34,8 @@ export class GraphDraw extends Types.BaseDraw implements Types.Draw {
 
   state: GraphDrawState = {
     adjusting: false,
-    adjustType: ''
+    adjustType: '',
+    adjustGroupId: ''
   }
 
   /**
@@ -93,6 +99,7 @@ export class GraphDraw extends Types.BaseDraw implements Types.Draw {
         shape.on('mousedown', () => {
           this.state.adjusting = true
           this.state.adjustType = shape.attrs.anchor?.adjustType
+          this.state.adjustGroupId = graph.id()
 
           shape.setAttr('adjusting', true)
 
@@ -136,6 +143,7 @@ export class GraphDraw extends Types.BaseDraw implements Types.Draw {
         this.render.stage.on('mouseup', () => {
           this.state.adjusting = false
           this.state.adjustType = ''
+          this.state.adjustGroupId = ''
 
           // 恢复显示所有 调整点
           for (const { shape } of shapeRecords) {
@@ -188,7 +196,8 @@ export class GraphDraw extends Types.BaseDraw implements Types.Draw {
               graph,
               anchor,
               anchorShadow,
-              this.state.adjustType
+              this.state.adjustType,
+              this.state.adjustGroupId
             )
 
             shapeRecords.push({ shape, anchorShadow })

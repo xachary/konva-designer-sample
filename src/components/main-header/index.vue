@@ -641,6 +641,18 @@ const menuOptions = [
                         ),
                         key: '拐点旋转测试',
                     },
+                    {
+                        label: () => h(
+                            'a',
+                            {
+                                target: '_blank',
+                                rel: 'noopenner noreferrer',
+                                onClick: onAdjustTransformTest
+                            },
+                            '变换后调整测试'
+                        ),
+                        key: '变换后调整测试',
+                    },
                 ]
             }
         ]
@@ -785,6 +797,8 @@ watch(() => props.render, () => {
         props.render?.on('graph-type-change', (value) => {
             emit('update:graphType', value)
         })
+
+        // onAdjustTransformTest()
     }
 
 }, {
@@ -830,6 +844,10 @@ async function onLinkRotateTest() {
     props.render?.importExportTool.restore(json)
 }
 
+async function onAdjustTransformTest() {
+    const json = await (await fetch('./test/adjust-transform.json')).text()
+    props.render?.importExportTool.restore(json)
+}
 
 // 最大/最小化
 function onFull() {

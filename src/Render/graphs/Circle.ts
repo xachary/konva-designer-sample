@@ -124,12 +124,13 @@ export class Circle extends BaseGraph {
     }
   }
   // 实现：生成 调整点
-  static createAnchorShape(
+  static override createAnchorShape(
     render: Types.Render,
     graph: Konva.Group,
     anchor: Types.GraphAnchor,
     anchorShadow: Konva.Circle,
-    adjustType: string
+    adjustType: string,
+    adjustGroupId: string
   ): Konva.Shape {
     // stage 状态
     const stageState = render.getStageState()
@@ -144,7 +145,10 @@ export class Circle extends BaseGraph {
       anchor: anchor,
       //
       // stroke: colorMap[anchor.adjustType] ?? 'rgba(0,0,255,0.2)',
-      stroke: adjustType === anchor.adjustType ? 'rgba(0,0,255,0.8)' : 'rgba(0,0,255,0.2)',
+      stroke:
+        adjustType === anchor.adjustType && graph.id() === adjustGroupId
+          ? 'rgba(0,0,255,0.8)'
+          : 'rgba(0,0,255,0.2)',
       strokeWidth: render.toStageValue(2),
       // 位置
       x,
@@ -250,7 +254,7 @@ export class Circle extends BaseGraph {
         case 'bottom':
           {
             anchorShadow = anchorsSnap.find((o) => o.attrs.adjustType === 'bottom')
-            anchorShadowAcross = anchorsSnap.find((o) => o.attrs.adjustType === 'bottom')
+            anchorShadowAcross = anchorsSnap.find((o) => o.attrs.adjustType === 'top')
           }
           break
         case 'left':
@@ -299,6 +303,7 @@ export class Circle extends BaseGraph {
         {
           const d1 = Math.sqrt(Math.pow(sx - ax, 2) + Math.pow(sy - ay, 2))
           const d2 = Math.sqrt(Math.pow(ex - ax, 2) + Math.pow(ey - ay, 2))
+
           const r1 = d2 / d1
 
           let zeroWidth = 1,
@@ -658,6 +663,7 @@ export class Circle extends BaseGraph {
           }
         }
 
+        // TODO: 【Bug】经过 transformer 修改 大小后，调整位置错位
         // 调整位置
         {
           const cos = Math.cos((graphRotation * Math.PI) / 180)
@@ -740,18 +746,18 @@ export class Circle extends BaseGraph {
       circle.radiusY(graphHeight / 2)
 
       // 扩大事件触发区域
-      circle.hitFunc((context) => {
-        context.beginPath()
-        context.rect(
-          -graphWidth / 2 - render.pointSize - 5 * 2,
-          -graphHeight / 2 - render.pointSize - 5 * 2,
-          (graphWidth / 2 + render.pointSize + 5 * 2) * 2,
-          (graphHeight / 2 + render.pointSize + 5 * 2) * 2
-        )
-        context.closePath()
+      // circle.hitFunc((context) => {
+      //   context.beginPath()
+      //   context.rect(
+      //     -graphWidth / 2 - render.pointSize - 5 * 2,
+      //     -graphHeight / 2 - render.pointSize - 5 * 2,
+      //     (graphWidth / 2 + render.pointSize + 5 * 2) * 2,
+      //     (graphHeight / 2 + render.pointSize + 5 * 2) * 2
+      //   )
+      //   context.closePath()
 
-        context.fillStrokeShape(circle)
-      })
+      //   context.fillStrokeShape(circle)
+      // })
 
       // 更新 调整点 的 锚点 位置
       Circle.updateAnchorShadows(graphWidth, graphHeight, graphRotation, anchors)
@@ -892,18 +898,18 @@ export class Circle extends BaseGraph {
       this.circle.radiusY(radiusY - this.circle.strokeWidth())
 
       // 扩大事件触发区域
-      this.circle.hitFunc((context) => {
-        context.beginPath()
-        context.rect(
-          -radiusX - this.render.pointSize - 5 * 2,
-          -radiusY - this.render.pointSize - 5 * 2,
-          (radiusX + this.render.pointSize + 5 * 2) * 2,
-          (radiusY + this.render.pointSize + 5 * 2) * 2
-        )
-        context.closePath()
+      // this.circle.hitFunc((context) => {
+      //   context.beginPath()
+      //   context.rect(
+      //     -radiusX - this.render.pointSize - 5 * 2,
+      //     -radiusY - this.render.pointSize - 5 * 2,
+      //     (radiusX + this.render.pointSize + 5 * 2) * 2,
+      //     (radiusY + this.render.pointSize + 5 * 2) * 2
+      //   )
+      //   context.closePath()
 
-        context.fillStrokeShape(this.circle)
-      })
+      //   context.fillStrokeShape(this.circle)
+      // })
 
       // group 大小
       this.group.size({
