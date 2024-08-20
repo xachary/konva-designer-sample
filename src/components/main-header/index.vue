@@ -179,7 +179,7 @@
                 <NTooltip trigger="hover" :delay="1000">
                     <template #trigger>
                         <NButton tag="div" size="tiny" quaternary :focusable="false"
-                            @click="onGraph(Types.GraphType.Line)">
+                            @click="onGraph(Types.GraphType.Line)" disabled>
                             <template #icon>
                                 <NIcon :depth="props.graphType === Types.GraphType.Line ? 1 : 3">
                                     <Subtract20Regular />
@@ -192,7 +192,7 @@
                 <NTooltip trigger="hover" :delay="1000">
                     <template #trigger>
                         <NButton tag="div" size="tiny" quaternary :focusable="false"
-                            @click="onGraph(Types.GraphType.Curve)">
+                            @click="onGraph(Types.GraphType.Curve)" disabled>
                             <template #icon>
                                 <NIcon :depth="props.graphType === Types.GraphType.Curve ? 1 : 3">
                                     <DataLine20Regular />
@@ -205,7 +205,7 @@
                 <NTooltip trigger="hover" :delay="1000">
                     <template #trigger>
                         <NButton tag="div" size="tiny" quaternary :focusable="false"
-                            @click="onGraph(Types.GraphType.Rect)">
+                            @click="onGraph(Types.GraphType.Rect)" disabled>
                             <template #icon>
                                 <NIcon :depth="props.graphType === Types.GraphType.Rect ? 1 : 3">
                                     <RectangleLandscape16Regular />
