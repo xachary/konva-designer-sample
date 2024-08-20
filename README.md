@@ -66,6 +66,8 @@
 
 ![image](https://github.com/user-attachments/assets/43370884-c94b-4b0a-a06e-af55bbd7c4ff)
 
+![3](https://github.com/user-attachments/assets/af058ab2-1959-408a-9fa3-7f5aa99b112b)
+
 ## 功能点
 
 - 无限画布（√）
@@ -88,7 +90,7 @@
 - 对齐效果（√）
 - 连接线[自动、直线、折线]（√）
 - 素材组合[深度]（√）
-- 基本图形绘制（线、矩形、圆形）
+- 基本图形绘制（线、曲线、矩形、圆形✓）
 
 ## 需要解决的
 
