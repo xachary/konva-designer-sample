@@ -65,6 +65,9 @@ export class GraphHandlers implements Types.Handler {
               if (this.render.graphType === Types.GraphType.Circle) {
                 // 新建 圆/椭圆 实例
                 this.currentGraph = new Graphs.Circle(this.render, point)
+              } else if (this.render.graphType === Types.GraphType.Rect) {
+                // 新建 圆/椭圆 实例
+                this.currentGraph = new Graphs.Rect(this.render, point)
               }
             }
           }

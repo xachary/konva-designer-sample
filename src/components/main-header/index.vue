@@ -205,7 +205,7 @@
                 <NTooltip trigger="hover" :delay="1000">
                     <template #trigger>
                         <NButton tag="div" size="tiny" quaternary :focusable="false"
-                            @click="onGraph(Types.GraphType.Rect)" disabled>
+                            @click="onGraph(Types.GraphType.Rect)">
                             <template #icon>
                                 <NIcon :depth="props.graphType === Types.GraphType.Rect ? 1 : 3">
                                     <RectangleLandscape16Regular />

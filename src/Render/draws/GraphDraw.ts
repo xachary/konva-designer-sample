@@ -115,11 +115,11 @@ export class GraphDraw extends Types.BaseDraw implements Types.Draw {
         // 调整中
         this.render.stage.on('mousemove', () => {
           if (this.state.adjusting && this.graphSnap) {
-            if (shape.attrs.anchor?.type === Types.GraphType.Circle) {
+            if (shape.attrs.adjusting) {
               // 调整 圆/椭圆 图形
-              if (shape.attrs.adjusting) {
-                const pos = this.getStagePoint(true)
-                if (pos) {
+              const pos = this.getStagePoint(true)
+              if (pos) {
+                if (shape.attrs.anchor?.type === Types.GraphType.Circle) {
                   // 使用 圆/椭圆 静态处理方法
                   Graphs.Circle.adjust(
                     this.render,
@@ -130,10 +130,20 @@ export class GraphDraw extends Types.BaseDraw implements Types.Draw {
                     this.startPoint,
                     pos
                   )
-
-                  // 重绘
-                  this.render.redraw([Draws.GraphDraw.name, Draws.LinkDraw.name])
+                } else if (shape.attrs.anchor?.type === Types.GraphType.Rect) {
+                  // 使用 圆/椭圆 静态处理方法
+                  Graphs.Rect.adjust(
+                    this.render,
+                    graph,
+                    this.graphSnap,
+                    shapeRecord,
+                    shapeRecords,
+                    this.startPoint,
+                    pos
+                  )
                 }
+                // 重绘
+                this.render.redraw([Draws.GraphDraw.name, Draws.LinkDraw.name])
               }
             }
           }
