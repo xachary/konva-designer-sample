@@ -29942,11 +29942,12 @@ class AlignTool {
     this.render = render21;
   }
   calcNodeRotationInfo(node) {
+    const [nw, nh] = [node.width() * node.scaleX(), node.height() * node.scaleY()];
     const rotate = node.rotation();
-    const offsetLeft = node.height() * Math.sin(rotate * Math.PI / 180);
-    const offsetRight = node.width() * Math.cos(rotate * Math.PI / 180);
-    const offsetTop = node.height() * Math.cos(rotate * Math.PI / 180);
-    const offsetBottom = node.width() * Math.sin(rotate * Math.PI / 180);
+    const offsetLeft = nh * Math.sin(rotate * Math.PI / 180);
+    const offsetRight = nw * Math.cos(rotate * Math.PI / 180);
+    const offsetTop = nh * Math.cos(rotate * Math.PI / 180);
+    const offsetBottom = nw * Math.sin(rotate * Math.PI / 180);
     const width = Math.abs(offsetLeft) + Math.abs(offsetRight);
     const height = Math.abs(offsetTop) + Math.abs(offsetBottom);
     let x = node.x();
@@ -45256,7 +45257,7 @@ const logArray = (words2) => {
     console.error(e);
   }
 };
-var define_BUILD_INFO_default = { lastBuildTime: "2024-08-20 18:39:20", git: { branch: "master", hash: "90e08e04fc8d6e167706b764ad51ea04d00a3656", tag: "chapter20-dirty" } };
+var define_BUILD_INFO_default = { lastBuildTime: "2024-08-20 18:54:14", git: { branch: "master", hash: "06cf08d6bcf062b1b2484ad0c678d15a5780130a", tag: "chapter21" } };
 const {
   lastBuildTime,
   git: { branch, tag, hash }
