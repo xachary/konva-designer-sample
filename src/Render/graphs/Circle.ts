@@ -4,6 +4,8 @@ import Konva from 'konva'
 import * as Types from '../types'
 import * as Draws from '../draws'
 
+import { BaseGraph } from './BaseGraph'
+
 // const colorMap: { [index: string]: string } = {
 //   'top-left': 'rgba(255,0,0,0.2)',
 //   top: 'rgba(0,255,0,0.3)',
@@ -18,7 +20,7 @@ import * as Draws from '../draws'
 /**
  * 图形 圆/椭圆
  */
-export class Circle extends Types.BaseGraph {
+export class Circle extends BaseGraph {
   // 实现：更新 图形 的 调整点 的 锚点位置
   static override updateAnchorShadows(
     width: number,

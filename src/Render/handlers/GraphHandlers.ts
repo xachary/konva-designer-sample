@@ -21,7 +21,7 @@ export class GraphHandlers implements Types.Handler {
   /**
    * 当前新建图形类型
    */
-  currentGraph: Types.BaseGraph | undefined
+  currentGraph: Graphs.BaseGraph | undefined
 
   /**
    * 获取鼠标位置，并处理为 相对大小
