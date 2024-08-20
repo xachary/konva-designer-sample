@@ -1683,7 +1683,7 @@ function renderComponentRoot(instance) {
     slots,
     attrs,
     emit: emit2,
-    render: render17,
+    render: render21,
     renderCache,
     data,
     setupState,
@@ -1707,7 +1707,7 @@ function renderComponentRoot(instance) {
         }
       }) : proxyToUse;
       result2 = normalizeVNode(
-        render17.call(
+        render21.call(
           thisProxy,
           proxyToUse,
           renderCache,
@@ -2791,7 +2791,7 @@ function applyOptions(instance) {
     beforeUnmount,
     destroyed,
     unmounted,
-    render: render17,
+    render: render21,
     renderTracked,
     renderTriggered,
     errorCaptured,
@@ -2890,8 +2890,8 @@ function applyOptions(instance) {
       instance.exposed = {};
     }
   }
-  if (render17 && instance.render === NOOP) {
-    instance.render = render17;
+  if (render21 && instance.render === NOOP) {
+    instance.render = render21;
   }
   if (inheritAttrs != null) {
     instance.inheritAttrs = inheritAttrs;
@@ -3122,7 +3122,7 @@ function createAppContext() {
   };
 }
 let uid$1 = 0;
-function createAppAPI(render17, hydrate) {
+function createAppAPI(render21, hydrate) {
   return function createApp2(rootComponent, rootProps = null) {
     if (!isFunction$1(rootComponent)) {
       rootComponent = extend$1({}, rootComponent);
@@ -3193,7 +3193,7 @@ function createAppAPI(render17, hydrate) {
           if (isHydrate && hydrate) {
             hydrate(vnode, rootContainer);
           } else {
-            render17(vnode, rootContainer, namespace2);
+            render21(vnode, rootContainer, namespace2);
           }
           isMounted2 = true;
           app._container = rootContainer;
@@ -3203,7 +3203,7 @@ function createAppAPI(render17, hydrate) {
       },
       unmount() {
         if (isMounted2) {
-          render17(null, app._container);
+          render21(null, app._container);
           delete app._container.__vue_app__;
         }
       },
@@ -4951,7 +4951,7 @@ function baseCreateRenderer(options, createHydrationFns) {
     return hostNextSibling(vnode.anchor || vnode.el);
   };
   let isFlushing2 = false;
-  const render17 = (vnode, container, namespace2) => {
+  const render21 = (vnode, container, namespace2) => {
     if (vnode == null) {
       if (container._vnode) {
         unmount2(container._vnode, null, null, true);
@@ -4995,9 +4995,9 @@ function baseCreateRenderer(options, createHydrationFns) {
     );
   }
   return {
-    render: render17,
+    render: render21,
     hydrate,
-    createApp: createAppAPI(render17, hydrate)
+    createApp: createAppAPI(render21, hydrate)
   };
 }
 function resolveChildrenNamespace({ type, props }, currentNamespace) {
@@ -20417,14 +20417,14 @@ Factory_1$s.Factory.addGetterSetter(Arrow, "pointerLength", 10, (0, Validators_1
 Factory_1$s.Factory.addGetterSetter(Arrow, "pointerWidth", 10, (0, Validators_1$s.getNumberValidator)());
 Factory_1$s.Factory.addGetterSetter(Arrow, "pointerAtBeginning", false);
 Factory_1$s.Factory.addGetterSetter(Arrow, "pointerAtEnding", true);
-var Circle$1 = {};
-Object.defineProperty(Circle$1, "__esModule", { value: true });
-Circle$1.Circle = void 0;
+var Circle$2 = {};
+Object.defineProperty(Circle$2, "__esModule", { value: true });
+Circle$2.Circle = void 0;
 const Factory_1$r = Factory;
 const Shape_1$c = Shape;
 const Validators_1$r = Validators;
 const Global_1$c = Global;
-class Circle extends Shape_1$c.Shape {
+let Circle$1 = class Circle extends Shape_1$c.Shape {
   _sceneFunc(context) {
     context.beginPath();
     context.arc(0, 0, this.attrs.radius || 0, 0, Math.PI * 2, false);
@@ -20447,13 +20447,13 @@ class Circle extends Shape_1$c.Shape {
       this.radius(height / 2);
     }
   }
-}
-Circle$1.Circle = Circle;
-Circle.prototype._centroid = true;
-Circle.prototype.className = "Circle";
-Circle.prototype._attrsAffectingSize = ["radius"];
-(0, Global_1$c._registerNode)(Circle);
-Factory_1$r.Factory.addGetterSetter(Circle, "radius", 0, (0, Validators_1$r.getNumberValidator)());
+};
+Circle$2.Circle = Circle$1;
+Circle$1.prototype._centroid = true;
+Circle$1.prototype.className = "Circle";
+Circle$1.prototype._attrsAffectingSize = ["radius"];
+(0, Global_1$c._registerNode)(Circle$1);
+Factory_1$r.Factory.addGetterSetter(Circle$1, "radius", 0, (0, Validators_1$r.getNumberValidator)());
 var Ellipse$1 = {};
 Object.defineProperty(Ellipse$1, "__esModule", { value: true });
 Ellipse$1.Ellipse = void 0;
@@ -24203,7 +24203,7 @@ _FullInternals.Konva = void 0;
 const _CoreInternals_1 = _CoreInternals;
 const Arc_1 = Arc$1;
 const Arrow_1 = Arrow$1;
-const Circle_1 = Circle$1;
+const Circle_1 = Circle$2;
 const Ellipse_1 = Ellipse$1;
 const Image_1 = Image$2;
 const Label_1 = Label$1;
@@ -24290,11 +24290,11 @@ var MouseButton = /* @__PURE__ */ ((MouseButton2) => {
   return MouseButton2;
 })(MouseButton || {});
 class BaseDraw {
-  constructor(render17, layer) {
+  constructor(render21, layer) {
     __publicField(this, "render");
     __publicField(this, "layer");
     __publicField(this, "group");
-    this.render = render17;
+    this.render = render21;
     this.layer = layer;
     this.group = new Konva.Group();
   }
@@ -24344,9 +24344,22 @@ var LinkType = /* @__PURE__ */ ((LinkType2) => {
   LinkType2["manual"] = "manual";
   return LinkType2;
 })(LinkType || {});
+var GraphType = /* @__PURE__ */ ((GraphType2) => {
+  GraphType2["Line"] = "Line";
+  GraphType2["Curve"] = "Curve";
+  GraphType2["Rect"] = "Rect";
+  GraphType2["Circle"] = "Circle";
+  return GraphType2;
+})(GraphType || {});
+var AssetType = /* @__PURE__ */ ((AssetType2) => {
+  AssetType2["Image"] = "Image";
+  AssetType2["Json"] = "Json";
+  AssetType2["Graph"] = "Graph";
+  return AssetType2;
+})(AssetType || {});
 class BgDraw extends BaseDraw {
-  constructor(render17, layer, option) {
-    super(render17, layer);
+  constructor(render21, layer, option) {
+    super(render21, layer);
     __publicField(this, "option");
     this.option = option;
     this.group.listening(false);
@@ -24414,8 +24427,8 @@ class BgDraw extends BaseDraw {
 }
 __publicField(BgDraw, "name", "bg");
 class RulerDraw extends BaseDraw {
-  constructor(render17, layer, option) {
-    super(render17, layer);
+  constructor(render21, layer, option) {
+    super(render21, layer);
     __publicField(this, "option");
     this.option = option;
     this.group.listening(false);
@@ -24576,8 +24589,8 @@ class RulerDraw extends BaseDraw {
 }
 __publicField(RulerDraw, "name", "ruler");
 class RefLineDraw extends BaseDraw {
-  constructor(render17, layer, option) {
-    super(render17, layer);
+  constructor(render21, layer, option) {
+    super(render21, layer);
     __publicField(this, "option");
     __publicField(this, "handlers", {
       dom: {
@@ -24646,8 +24659,8 @@ class RefLineDraw extends BaseDraw {
 }
 __publicField(RefLineDraw, "name", "refLine");
 class ContextmenuDraw extends BaseDraw {
-  constructor(render17, layer, option) {
-    super(render17, layer);
+  constructor(render21, layer, option) {
+    super(render21, layer);
     __publicField(this, "option");
     __publicField(this, "state");
     __publicField(this, "handlers", {
@@ -24869,7 +24882,7 @@ class ContextmenuDraw extends BaseDraw {
           });
           group.add(rect);
           group.add(text);
-          rect.on("click", (e) => {
+          rect.on("pointerclick", (e) => {
             if (e.evt.button === MouseButton.左键) {
               menu.action(e);
               this.group.getChildren().forEach((o) => {
@@ -24919,8 +24932,8 @@ class ContextmenuDraw extends BaseDraw {
 }
 __publicField(ContextmenuDraw, "name", "contextmenu");
 class PreviewDraw extends BaseDraw {
-  constructor(render17, layer, option) {
-    super(render17, layer);
+  constructor(render21, layer, option) {
+    super(render21, layer);
     __publicField(this, "option");
     __publicField(this, "state", {
       moving: false
@@ -25238,8 +25251,8 @@ function aStar(config) {
   }
 }
 const _LinkDraw = class _LinkDraw extends BaseDraw {
-  constructor(render17, layer, option) {
-    super(render17, layer);
+  constructor(render21, layer, option) {
+    super(render21, layer);
     __publicField(this, "option");
     __publicField(this, "state", {
       linkingLine: null,
@@ -25566,6 +25579,8 @@ const _LinkDraw = class _LinkDraw extends BaseDraw {
             });
             this.group.add(linkLine);
             const manualingLine = new Konva.Line({
+              name: "manualing-line",
+              //
               stroke: "#ff0000",
               strokeWidth: 2,
               points: [],
@@ -25574,6 +25589,8 @@ const _LinkDraw = class _LinkDraw extends BaseDraw {
             this.group.add(manualingLine);
             for (let i = 0; i < linkPoints.length - 1; i++) {
               const circle = new Konva.Circle({
+                name: "link-manual-point",
+                //
                 id: nanoid(),
                 pairId: pair.id,
                 x: (linkPoints[i][0] + linkPoints[i + 1][0]) / 2,
@@ -25581,7 +25598,6 @@ const _LinkDraw = class _LinkDraw extends BaseDraw {
                 radius: this.render.toStageValue(this.render.bgSize / 2),
                 stroke: "rgba(0,0,255,0.1)",
                 strokeWidth: this.render.toStageValue(1),
-                name: "link-manual-point",
                 // opacity: 0,
                 linkManualIndex: i
                 // 当前拐点位置
@@ -25611,12 +25627,7 @@ const _LinkDraw = class _LinkDraw extends BaseDraw {
                 if (circle.attrs.dragStart) {
                   const pos = this.render.stage.getPointerPosition();
                   if (pos) {
-                    const { pos: transformerPos } = this.render.attractTool.attract({
-                      x: pos.x,
-                      y: pos.y,
-                      width: 1,
-                      height: 1
-                    });
+                    const { pos: transformerPos } = this.render.attractTool.attractPoint(pos);
                     circle.setAbsolutePosition(transformerPos);
                     const tempPoints = [...linkPoints];
                     tempPoints.splice(circle.attrs.linkManualIndex + 1, 0, [
@@ -25657,6 +25668,8 @@ const _LinkDraw = class _LinkDraw extends BaseDraw {
             }
             for (let i = 1; i < linkPoints.length - 1; i++) {
               const circle = new Konva.Circle({
+                name: "link-manual-point",
+                //
                 id: nanoid(),
                 pairId: pair.id,
                 x: linkPoints[i][0],
@@ -25664,7 +25677,6 @@ const _LinkDraw = class _LinkDraw extends BaseDraw {
                 radius: this.render.toStageValue(this.render.bgSize / 2),
                 stroke: "rgba(0,100,0,0.1)",
                 strokeWidth: this.render.toStageValue(1),
-                name: "link-manual-point",
                 // opacity: 0,
                 linkManualIndex: i
                 // 当前拐点位置
@@ -25692,12 +25704,7 @@ const _LinkDraw = class _LinkDraw extends BaseDraw {
                 if (circle.attrs.dragStart) {
                   const pos = this.render.stage.getPointerPosition();
                   if (pos) {
-                    const { pos: transformerPos } = this.render.attractTool.attract({
-                      x: pos.x,
-                      y: pos.y,
-                      width: 1,
-                      height: 1
-                    });
+                    const { pos: transformerPos } = this.render.attractTool.attractPoint(pos);
                     circle.setAbsolutePosition(transformerPos);
                     const tempPoints = [...linkPoints];
                     tempPoints[circle.attrs.linkManualIndex] = [
@@ -25926,7 +25933,6 @@ const _LinkDraw = class _LinkDraw extends BaseDraw {
                 for (const point of matrixPoints) {
                   this.group.add(
                     new Konva.Circle({
-                      name: "link-route",
                       id: nanoid(),
                       x: this.render.toStageValue(point.x),
                       y: this.render.toStageValue(point.y),
@@ -25989,6 +25995,8 @@ const _LinkDraw = class _LinkDraw extends BaseDraw {
         const anchor = this.render.layer.findOne(`#${point.id}`);
         if (anchor) {
           const circle = new Konva.Circle({
+            name: "link-point",
+            //
             id: point.id,
             groupId: group.id(),
             x: this.render.toStageValue(anchor.absolutePosition().x - stageState.x),
@@ -25996,8 +26004,8 @@ const _LinkDraw = class _LinkDraw extends BaseDraw {
             radius: this.render.toStageValue(this.option.size),
             stroke: "rgba(255,0,0,0.2)",
             strokeWidth: this.render.toStageValue(1),
-            name: "link-point",
-            opacity: point.visible ? 1 : 0
+            // 调整中，不显示连接点
+            opacity: point.visible && !this.render.draws[GraphDraw.name].state.adjusting ? 1 : 0
           });
           circle.on("mouseenter", () => {
             circle.stroke("rgba(255,0,0,0.5)");
@@ -26086,8 +26094,8 @@ const _LinkDraw = class _LinkDraw extends BaseDraw {
 __publicField(_LinkDraw, "name", "Link");
 let LinkDraw = _LinkDraw;
 class AttractDraw extends BaseDraw {
-  constructor(render17, layer, option) {
-    super(render17, layer);
+  constructor(render21, layer, option) {
+    super(render21, layer);
     __publicField(this, "option");
     __publicField(this, "on", {});
     this.option = option;
@@ -26144,8 +26152,1062 @@ class AttractDraw extends BaseDraw {
   }
 }
 __publicField(AttractDraw, "name", "Attract");
+class BaseGraph {
+  constructor(render21, dropPoint, config) {
+    //
+    __publicField(this, "render");
+    __publicField(this, "group");
+    __publicField(this, "id");
+    // 就是 group 的id
+    /**
+     * 鼠标按下位置
+     */
+    __publicField(this, "dropPoint", { x: 0, y: 0 });
+    /**
+     * 调整点 定义
+     */
+    __publicField(this, "anchors", []);
+    /**
+     * 调整点 的 锚点
+     */
+    __publicField(this, "anchorShadows", []);
+    /**
+     * 调整点 定义
+     */
+    __publicField(this, "linkAnchors", []);
+    /**
+     * 连接点 的 锚点
+     */
+    __publicField(this, "linkAnchorShadows", []);
+    this.render = render21;
+    this.dropPoint = dropPoint;
+    this.id = nanoid();
+    this.group = new Konva.Group({
+      id: this.id,
+      name: "asset",
+      assetType: AssetType.Graph
+    });
+    this.anchors = config.anchors.map((o) => ({
+      ...o,
+      // 补充信息
+      name: "anchor",
+      groupId: this.group.id()
+    }));
+    this.group.setAttr("anchors", this.anchors);
+    for (const anchor of this.anchors) {
+      const circle = new Konva.Circle({
+        id: anchor.id,
+        name: anchor.name,
+        radius: 0
+        // radius: this.render.toStageValue(1),
+        // fill: 'red'
+      });
+      this.anchorShadows.push(circle);
+      this.group.add(circle);
+    }
+    this.linkAnchors = config.linkAnchors.map(
+      (o) => ({
+        ...o,
+        id: nanoid(),
+        groupId: this.group.id(),
+        visible: false,
+        pairs: [],
+        direction: o.direction,
+        alias: o.alias
+      })
+    );
+    this.group.setAttrs({
+      points: this.linkAnchors
+    });
+    for (const point of this.linkAnchors) {
+      const circle = new Konva.Circle({
+        name: "link-anchor",
+        id: point.id,
+        x: point.x,
+        y: point.y,
+        radius: this.render.toStageValue(1),
+        stroke: "rgba(0,0,255,1)",
+        strokeWidth: this.render.toStageValue(2),
+        visible: false,
+        direction: point.direction,
+        alias: point.alias
+      });
+      this.linkAnchorShadows.push(circle);
+      this.group.add(circle);
+    }
+    this.group.on("mouseenter", () => {
+      this.render.linkTool.pointsVisible(true, this.group);
+    });
+    this.group.on("mouseleave", () => {
+      var _a;
+      this.render.linkTool.pointsVisible(false, this.group);
+      (_a = this.group.findOne("#hoverRect")) == null ? void 0 : _a.visible(false);
+    });
+    this.render.layer.add(this.group);
+    this.render.redraw();
+  }
+  /**
+   * 更新 图形 的 调整点 的 锚点位置
+   * @param width 图形 的 宽度
+   * @param height 图形 的 高度
+   * @param rotate 图形 的 旋转角度
+   * @param anchorShadows 图形 的 调整点 的 锚点
+   */
+  static updateAnchorShadows(width, height, rotate, anchorShadows) {
+    console.log("请实现 updateAnchorShadows", width, height, anchorShadows);
+  }
+  /**
+   * 更新 图形 的 连接点 的 锚点位置
+   * @param width 图形 的 宽度
+   * @param height 图形 的 高度
+   * @param rotate 图形 的 旋转角度
+   * @param anchors 图形 的 调整点 的 锚点
+   */
+  static updateLinkAnchorShadows(width, height, rotate, linkAnchorShadows) {
+    console.log("请实现 updateLinkAnchorShadows", width, height, linkAnchorShadows);
+  }
+  // static pointsVisible(render: Render, visible: boolean, group?: Konva.Group) {
+  //   // 所有图形
+  //   const groups = render.layer
+  //     .find('.asset')
+  //     .filter((o) => (group ? o === group : o.attrs.assetType === Types.AssetType.Graph)) as Konva.Group[]
+  //   for (const group of groups) {
+  //     const anchors = group.attrs.anchors ?? []
+  //     group.setAttrs({
+  //       anchors: anchors.map((o: Types.GraphAnchor) => ({ ...o, visible }))
+  //     })
+  //   }
+  //   if (!visible) {
+  //     document.body.style.cursor = 'default'
+  //   }
+  //   // 重绘
+  //   render.redraw(['Graph'])
+  // }
+  /**
+   * 生成 调整点
+   * @param render 渲染实例
+   * @param graph 图形
+   * @param anchor 调整点 定义
+   * @param anchorShadow 调整点 锚点
+   * @param adjustingId 正在操作的 调整点 id
+   * @returns
+   */
+  static createAnchorShape(render21, graph, anchor, anchorShadow, adjustingId) {
+    console.log("请实现 createAnchorShape", render21, graph, anchor, anchorShadow, adjustingId);
+    return new Konva.Shape();
+  }
+  /**
+   * 调整 图形
+   * @param render 渲染实例
+   * @param graph 图形
+   * @param graphSnap 图形 的 备份
+   * @param rect 当前 调整点
+   * @param rects 所有 调整点
+   * @param startPoint 鼠标按下位置
+   * @param endPoint 鼠标拖动位置
+   */
+  static adjust(render21, graph, graphSnap, rect, rects, startPoint, endPoint) {
+    console.log("请实现 updateAnchorShadows", render21, graph, rect, startPoint, endPoint);
+  }
+}
+const _Circle = class _Circle extends BaseGraph {
+  constructor(render21, dropPoint) {
+    super(render21, dropPoint, {
+      // 定义了 8 个 调整点
+      anchors: [
+        { id: "top" },
+        { id: "bottom" },
+        { id: "left" },
+        { id: "right" },
+        { id: "top-left" },
+        { id: "top-right" },
+        { id: "bottom-left" },
+        { id: "bottom-right" }
+      ].map((o) => ({
+        id: o.id,
+        // 调整点 类型定义
+        type: GraphType.Circle
+        // 记录所属 图形
+      })),
+      linkAnchors: [
+        { x: 0, y: 0, alias: "top", direction: "top" },
+        { x: 0, y: 0, alias: "bottom", direction: "bottom" },
+        { x: 0, y: 0, alias: "left", direction: "left" },
+        { x: 0, y: 0, alias: "right", direction: "right" },
+        { x: 0, y: 0, alias: "center" }
+      ]
+    });
+    /**
+     * 圆/椭圆 对应的 Konva 实例
+     */
+    __publicField(this, "circle");
+    this.circle = new Konva.Ellipse({
+      name: "graph",
+      x: 0,
+      y: 0,
+      radiusX: 0,
+      radiusY: 0,
+      stroke: "black",
+      strokeWidth: 1
+    });
+    this.group.add(this.circle);
+    this.group.position(this.dropPoint);
+  }
+  // 实现：更新 图形 的 调整点 的 锚点位置
+  static updateAnchorShadows(width, height, rotate, anchorShadows) {
+    for (const shadow of anchorShadows) {
+      switch (shadow.attrs.id) {
+        case "top":
+          shadow.position({
+            x: width / 2,
+            y: 0
+          });
+          break;
+        case "bottom":
+          shadow.position({
+            x: width / 2,
+            y: height
+          });
+          break;
+        case "left":
+          shadow.position({
+            x: 0,
+            y: height / 2
+          });
+          break;
+        case "right":
+          shadow.position({
+            x: width,
+            y: height / 2
+          });
+          break;
+        case "top-left":
+          shadow.position({
+            x: 0,
+            y: 0
+          });
+          break;
+        case "top-right":
+          shadow.position({
+            x: width,
+            y: 0
+          });
+          break;
+        case "bottom-left":
+          shadow.position({
+            x: 0,
+            y: height
+          });
+          break;
+        case "bottom-right":
+          shadow.position({
+            x: width,
+            y: height
+          });
+          break;
+      }
+    }
+  }
+  // 实现：更新 图形 的 连接点 的 锚点位置
+  static updateLinkAnchorShadows(width, height, rotate, linkAnchorShadows) {
+    for (const shadow of linkAnchorShadows) {
+      switch (shadow.attrs.alias) {
+        case "top":
+          shadow.position({
+            x: width / 2,
+            y: 0
+          });
+          break;
+        case "bottom":
+          shadow.position({
+            x: width / 2,
+            y: height
+          });
+          break;
+        case "left":
+          shadow.position({
+            x: 0,
+            y: height / 2
+          });
+          break;
+        case "right":
+          shadow.position({
+            x: width,
+            y: height / 2
+          });
+          break;
+        case "center":
+          shadow.position({
+            x: width / 2,
+            y: height / 2
+          });
+          break;
+      }
+    }
+  }
+  // 实现：生成 调整点
+  static createAnchorShape(render21, graph, anchor, anchorShadow, adjustingId) {
+    const stageState = render21.getStageState();
+    const x = render21.toStageValue(anchorShadow.getAbsolutePosition().x - stageState.x), y = render21.toStageValue(anchorShadow.getAbsolutePosition().y - stageState.y);
+    const offset = render21.pointSize + 5;
+    const shape = new Konva.Line({
+      name: "anchor",
+      anchor,
+      //
+      // stroke: colorMap[anchor.id] ?? 'rgba(0,0,255,0.2)',
+      stroke: adjustingId === anchor.id ? "rgba(0,0,255,0.8)" : "rgba(0,0,255,0.2)",
+      strokeWidth: render21.toStageValue(2),
+      // 位置
+      x,
+      y,
+      // 路径
+      points: {
+        "top-left": lodash.flatten([
+          [-offset, offset / 2],
+          [-offset, -offset],
+          [offset / 2, -offset]
+        ]),
+        top: lodash.flatten([
+          [-offset, -offset],
+          [offset, -offset]
+        ]),
+        "top-right": lodash.flatten([
+          [-offset / 2, -offset],
+          [offset, -offset],
+          [offset, offset / 2]
+        ]),
+        right: lodash.flatten([
+          [offset, -offset],
+          [offset, offset]
+        ]),
+        "bottom-right": lodash.flatten([
+          [-offset / 2, offset],
+          [offset, offset],
+          [offset, -offset / 2]
+        ]),
+        bottom: lodash.flatten([
+          [-offset, offset],
+          [offset, offset]
+        ]),
+        "bottom-left": lodash.flatten([
+          [-offset, -offset / 2],
+          [-offset, offset],
+          [offset / 2, offset]
+        ]),
+        left: lodash.flatten([
+          [-offset, -offset],
+          [-offset, offset]
+        ])
+      }[anchor.id] ?? [],
+      // 旋转角度
+      rotation: graph.getAbsoluteRotation()
+    });
+    shape.on("mouseenter", () => {
+      shape.stroke("rgba(0,0,255,0.8)");
+      document.body.style.cursor = "move";
+    });
+    shape.on("mouseleave", () => {
+      shape.stroke(shape.attrs.adjusting ? "rgba(0,0,255,0.8)" : "rgba(0,0,255,0.2)");
+      document.body.style.cursor = shape.attrs.adjusting ? "move" : "default";
+    });
+    return shape;
+  }
+  // 实现：调整 图形
+  static adjust(render21, graph, graphSnap, shapeRecord, shapeRecords, startPoint, endPoint) {
+    var _a, _b;
+    const circle = graph.findOne(".graph");
+    const circleSnap = graphSnap.findOne(".graph");
+    const anchors = graph.find(".anchor") ?? [];
+    const linkAnchors = graph.find(".link-anchor") ?? [];
+    const { shape: adjustShape } = shapeRecord;
+    if (circle && circleSnap) {
+      let [graphWidth, graphHeight] = [graph.width(), graph.height()];
+      const [graphRotation, anchorId, ex, ey] = [
+        Math.round(graph.rotation()),
+        (_a = adjustShape.attrs.anchor) == null ? void 0 : _a.id,
+        endPoint.x,
+        endPoint.y
+      ];
+      let anchorShadow, anchorShadowAcross;
+      switch (anchorId) {
+        case "top":
+          {
+            anchorShadow = graphSnap.findOne(`#top`);
+            anchorShadowAcross = graphSnap.findOne(`#bottom`);
+          }
+          break;
+        case "bottom":
+          {
+            anchorShadow = graphSnap.findOne(`#bottom`);
+            anchorShadowAcross = graphSnap.findOne(`#top`);
+          }
+          break;
+        case "left":
+          {
+            anchorShadow = graphSnap.findOne(`#left`);
+            anchorShadowAcross = graphSnap.findOne(`#right`);
+          }
+          break;
+        case "right":
+          {
+            anchorShadow = graphSnap.findOne(`#right`);
+            anchorShadowAcross = graphSnap.findOne(`#left`);
+          }
+          break;
+        case "top-left":
+          {
+            anchorShadow = graphSnap.findOne(`#top-left`);
+            anchorShadowAcross = graphSnap.findOne(`#bottom-right`);
+          }
+          break;
+        case "top-right":
+          {
+            anchorShadow = graphSnap.findOne(`#top-right`);
+            anchorShadowAcross = graphSnap.findOne(`#bottom-left`);
+          }
+          break;
+        case "bottom-left":
+          {
+            anchorShadow = graphSnap.findOne(`#bottom-left`);
+            anchorShadowAcross = graphSnap.findOne(`#top-right`);
+          }
+          break;
+        case "bottom-right":
+          {
+            anchorShadow = graphSnap.findOne(`#bottom-right`);
+            anchorShadowAcross = graphSnap.findOne(`#top-left`);
+          }
+          break;
+      }
+      if (anchorShadow && anchorShadowAcross) {
+        const { x: sx, y: sy } = anchorShadow.getAbsolutePosition();
+        const { x: ax, y: ay } = anchorShadowAcross.getAbsolutePosition();
+        {
+          const d1 = Math.sqrt(Math.pow(sx - ax, 2) + Math.pow(sy - ay, 2));
+          const d2 = Math.sqrt(Math.pow(ex - ax, 2) + Math.pow(ey - ay, 2));
+          const r1 = d2 / d1;
+          let zeroWidth = 1, zeroHeight = 1;
+          switch (anchorId) {
+            case "top":
+              {
+                if (graphRotation >= 45 && graphRotation < 135) {
+                  zeroHeight = ex <= ax ? 0 : 1;
+                } else if (graphRotation >= -135 && graphRotation < -45) {
+                  zeroHeight = ex >= ax ? 0 : 1;
+                } else if (graphRotation >= -45 && graphRotation < 45) {
+                  zeroHeight = ey >= ay ? 0 : 1;
+                } else {
+                  zeroHeight = ey <= ay ? 0 : 1;
+                }
+              }
+              break;
+            case "bottom":
+              {
+                if (graphRotation >= 45 && graphRotation < 135) {
+                  zeroHeight = ex <= ax ? 1 : 0;
+                } else if (graphRotation >= -135 && graphRotation < -45) {
+                  zeroHeight = ex >= ax ? 1 : 0;
+                } else if (graphRotation >= -45 && graphRotation < 45) {
+                  zeroHeight = ey >= ay ? 1 : 0;
+                } else {
+                  zeroHeight = ey <= ay ? 1 : 0;
+                }
+              }
+              break;
+            case "left":
+              {
+                if (graphRotation >= 45 && graphRotation < 135) {
+                  zeroWidth = ey >= ay ? 0 : 1;
+                } else if (graphRotation >= -135 && graphRotation < -45) {
+                  zeroWidth = ex <= ax ? 0 : 1;
+                } else if (graphRotation >= -45 && graphRotation < 45) {
+                  zeroWidth = ex >= ax ? 0 : 1;
+                } else {
+                  zeroWidth = ey <= ay ? 0 : 1;
+                }
+              }
+              break;
+            case "right":
+              {
+                if (graphRotation >= 45 && graphRotation < 135) {
+                  zeroWidth = ey >= ay ? 1 : 0;
+                } else if (graphRotation >= -135 && graphRotation < -45) {
+                  zeroWidth = ex <= ax ? 1 : 0;
+                } else if (graphRotation >= -45 && graphRotation < 45) {
+                  zeroWidth = ex >= ax ? 1 : 0;
+                } else {
+                  zeroWidth = ey <= ay ? 1 : 0;
+                }
+              }
+              break;
+            case "top-left":
+              {
+                if (graphRotation > -45 && graphRotation < 45) {
+                  if (ex >= ax && ey >= ay) {
+                    zeroWidth = 0;
+                    zeroHeight = 0;
+                  } else {
+                    zeroWidth = 1;
+                    zeroHeight = 1;
+                  }
+                } else if (graphRotation === 45) {
+                  if (ey >= ay) {
+                    zeroWidth = 0;
+                    zeroHeight = 0;
+                  } else {
+                    zeroWidth = 1;
+                    zeroHeight = 1;
+                  }
+                } else if (graphRotation > 45 && graphRotation < 135) {
+                  if (ex <= ax && ey >= ay) {
+                    zeroWidth = 0;
+                    zeroHeight = 0;
+                  } else {
+                    zeroWidth = 1;
+                    zeroHeight = 1;
+                  }
+                } else if (graphRotation === 135) {
+                  if (ex <= ax) {
+                    zeroWidth = 0;
+                    zeroHeight = 0;
+                  } else {
+                    zeroWidth = 1;
+                    zeroHeight = 1;
+                  }
+                } else if (graphRotation > 135 && graphRotation <= 180 || graphRotation >= -180 && graphRotation < -135) {
+                  if (ex <= ax && ey <= ay) {
+                    zeroWidth = 0;
+                    zeroHeight = 0;
+                  } else {
+                    zeroWidth = 1;
+                    zeroHeight = 1;
+                  }
+                } else if (graphRotation === -135) {
+                  if (ey <= ay) {
+                    zeroWidth = 0;
+                    zeroHeight = 0;
+                  } else {
+                    zeroWidth = 1;
+                    zeroHeight = 1;
+                  }
+                } else if (graphRotation > -135 && graphRotation < -45) {
+                  if (ex >= ax && ey <= ay) {
+                    zeroWidth = 0;
+                    zeroHeight = 0;
+                  } else {
+                    zeroWidth = 1;
+                    zeroHeight = 1;
+                  }
+                } else if (graphRotation === -45) {
+                  if (ex >= ax) {
+                    zeroWidth = 0;
+                    zeroHeight = 0;
+                  } else {
+                    zeroWidth = 1;
+                    zeroHeight = 1;
+                  }
+                }
+              }
+              break;
+            case "top-right":
+              {
+                if (graphRotation > -45 && graphRotation < 45) {
+                  if (ex <= ax && ey >= ay) {
+                    zeroWidth = 0;
+                    zeroHeight = 0;
+                  } else {
+                    zeroWidth = 1;
+                    zeroHeight = 1;
+                  }
+                } else if (graphRotation === 45) {
+                  if (ex <= ax) {
+                    zeroWidth = 0;
+                    zeroHeight = 0;
+                  } else {
+                    zeroWidth = 1;
+                    zeroHeight = 1;
+                  }
+                } else if (graphRotation > 45 && graphRotation < 135) {
+                  if (ex <= ax && ey <= ay) {
+                    zeroWidth = 0;
+                    zeroHeight = 0;
+                  } else {
+                    zeroWidth = 1;
+                    zeroHeight = 1;
+                  }
+                } else if (graphRotation === 135) {
+                  if (ey <= ay) {
+                    zeroWidth = 0;
+                    zeroHeight = 0;
+                  } else {
+                    zeroWidth = 1;
+                    zeroHeight = 1;
+                  }
+                } else if (graphRotation > 135 && graphRotation <= 180 || graphRotation >= -180 && graphRotation < -135) {
+                  if (ex >= ax && ey <= ay) {
+                    zeroWidth = 0;
+                    zeroHeight = 0;
+                  } else {
+                    zeroWidth = 1;
+                    zeroHeight = 1;
+                  }
+                } else if (graphRotation === -135) {
+                  if (ex >= ax) {
+                    zeroWidth = 0;
+                    zeroHeight = 0;
+                  } else {
+                    zeroWidth = 1;
+                    zeroHeight = 1;
+                  }
+                } else if (graphRotation > -135 && graphRotation < -45) {
+                  if (ex >= ax && ey >= ay) {
+                    zeroWidth = 0;
+                    zeroHeight = 0;
+                  } else {
+                    zeroWidth = 1;
+                    zeroHeight = 1;
+                  }
+                } else if (graphRotation === -45) {
+                  if (ey >= ay) {
+                    zeroWidth = 0;
+                    zeroHeight = 0;
+                  } else {
+                    zeroWidth = 1;
+                    zeroHeight = 1;
+                  }
+                }
+              }
+              break;
+            case "bottom-left":
+              {
+                if (graphRotation > -45 && graphRotation < 45) {
+                  if (ex >= ax && ey <= ay) {
+                    zeroWidth = 0;
+                    zeroHeight = 0;
+                  } else {
+                    zeroWidth = 1;
+                    zeroHeight = 1;
+                  }
+                } else if (graphRotation === 45) {
+                  if (ex >= ax) {
+                    zeroWidth = 0;
+                    zeroHeight = 0;
+                  } else {
+                    zeroWidth = 1;
+                    zeroHeight = 1;
+                  }
+                } else if (graphRotation > 45 && graphRotation < 135) {
+                  if (ex >= ax && ey >= ay) {
+                    zeroWidth = 0;
+                    zeroHeight = 0;
+                  } else {
+                    zeroWidth = 1;
+                    zeroHeight = 1;
+                  }
+                } else if (graphRotation === 135) {
+                  if (ey >= ay) {
+                    zeroWidth = 0;
+                    zeroHeight = 0;
+                  } else {
+                    zeroWidth = 1;
+                    zeroHeight = 1;
+                  }
+                } else if (graphRotation > 135 && graphRotation <= 180 || graphRotation >= -180 && graphRotation < -135) {
+                  if (ex <= ax && ey >= ay) {
+                    zeroWidth = 0;
+                    zeroHeight = 0;
+                  } else {
+                    zeroWidth = 1;
+                    zeroHeight = 1;
+                  }
+                } else if (graphRotation === -135) {
+                  if (ex <= ax) {
+                    zeroWidth = 0;
+                    zeroHeight = 0;
+                  } else {
+                    zeroWidth = 1;
+                    zeroHeight = 1;
+                  }
+                } else if (graphRotation > -135 && graphRotation < -45) {
+                  if (ex <= ax && ey <= ay) {
+                    zeroWidth = 0;
+                    zeroHeight = 0;
+                  } else {
+                    zeroWidth = 1;
+                    zeroHeight = 1;
+                  }
+                } else if (graphRotation === -45) {
+                  if (ey <= ay) {
+                    zeroWidth = 0;
+                    zeroHeight = 0;
+                  } else {
+                    zeroWidth = 1;
+                    zeroHeight = 1;
+                  }
+                }
+              }
+              break;
+            case "bottom-right":
+              {
+                if (graphRotation > -45 && graphRotation < 45) {
+                  if (ex <= ax && ey <= ay) {
+                    zeroWidth = 0;
+                    zeroHeight = 0;
+                  } else {
+                    zeroWidth = 1;
+                    zeroHeight = 1;
+                  }
+                } else if (graphRotation === 45) {
+                  if (ey <= ay) {
+                    zeroWidth = 0;
+                    zeroHeight = 0;
+                  } else {
+                    zeroWidth = 1;
+                    zeroHeight = 1;
+                  }
+                } else if (graphRotation > 45 && graphRotation < 135) {
+                  if (ex >= ax && ey <= ay) {
+                    zeroWidth = 0;
+                    zeroHeight = 0;
+                  } else {
+                    zeroWidth = 1;
+                    zeroHeight = 1;
+                  }
+                } else if (graphRotation === 135) {
+                  if (ex >= ax) {
+                    zeroWidth = 0;
+                    zeroHeight = 0;
+                  } else {
+                    zeroWidth = 1;
+                    zeroHeight = 1;
+                  }
+                } else if (graphRotation > 135 && graphRotation <= 180 || graphRotation >= -180 && graphRotation < -135) {
+                  if (ex >= ax && ey >= ay) {
+                    zeroWidth = 0;
+                    zeroHeight = 0;
+                  } else {
+                    zeroWidth = 1;
+                    zeroHeight = 1;
+                  }
+                } else if (graphRotation === -135) {
+                  if (ey >= ay) {
+                    zeroWidth = 0;
+                    zeroHeight = 0;
+                  } else {
+                    zeroWidth = 1;
+                    zeroHeight = 1;
+                  }
+                } else if (graphRotation > -135 && graphRotation < -45) {
+                  if (ex <= ax && ey >= ay) {
+                    zeroWidth = 0;
+                    zeroHeight = 0;
+                  } else {
+                    zeroWidth = 1;
+                    zeroHeight = 1;
+                  }
+                } else if (graphRotation === -45) {
+                  if (ex <= ax) {
+                    zeroWidth = 0;
+                    zeroHeight = 0;
+                  } else {
+                    zeroWidth = 1;
+                    zeroHeight = 1;
+                  }
+                }
+              }
+              break;
+          }
+          if (/-?(left|right)$/.test(anchorId)) {
+            graph.width(Math.max(2, graphSnap.width() * r1 * zeroWidth));
+            graphWidth = graph.width();
+          }
+          if (/^(top|bottom)-?/.test(anchorId)) {
+            graph.height(Math.max(2, graphSnap.height() * r1 * zeroHeight));
+            graphHeight = graph.height();
+          }
+        }
+        {
+          const cos = Math.cos(graphRotation * Math.PI / 180);
+          const sin = Math.sin(graphRotation * Math.PI / 180);
+          const tan = Math.tan(graphRotation * Math.PI / 180);
+          switch (anchorId) {
+            case "top":
+              {
+                graph.x(ax - (graphWidth / 2 - graphHeight * tan) * cos);
+                if (graphRotation !== 90 && graphRotation !== -90) {
+                  graph.y(ay - (graphHeight / cos + (graphWidth / 2 - graphHeight * tan) * sin));
+                }
+              }
+              break;
+            case "bottom":
+              break;
+            case "left":
+              {
+                if ([90, -90].includes(graphRotation)) {
+                  graph.y(ay - graphWidth);
+                } else if (Math.abs(graphRotation) === 180) {
+                  graph.x(ax + graphWidth);
+                } else {
+                  const v1 = graphHeight / 2 / cos;
+                  const v2 = v1 * sin;
+                  const v3 = graphWidth - v2;
+                  const v4 = v3 * sin;
+                  graph.x(ax - v3 * cos);
+                  graph.y(ay - (v1 + v4));
+                }
+              }
+              break;
+            case "right":
+              break;
+            case "top-left":
+              {
+                graph.x(ax - (graphWidth - graphHeight * tan) * cos);
+                graph.y(ay - (graphWidth * sin + graphHeight * cos));
+              }
+              break;
+            case "top-right":
+              {
+                graph.x(ax + graphHeight * sin);
+                graph.y(ay - graphHeight * cos);
+              }
+              break;
+            case "bottom-left":
+              {
+                graph.x(ax - graphWidth * cos);
+                graph.y(ay - graphWidth * sin);
+              }
+              break;
+          }
+        }
+      }
+      circle.x(graphWidth / 2);
+      circle.radiusX(graphWidth / 2);
+      circle.y(graphHeight / 2);
+      circle.radiusY(graphHeight / 2);
+      circle.hitFunc((context) => {
+        context.beginPath();
+        context.rect(
+          -graphWidth / 2 - render21.pointSize - 5 * 2,
+          -graphHeight / 2 - render21.pointSize - 5 * 2,
+          (graphWidth / 2 + render21.pointSize + 5 * 2) * 2,
+          (graphHeight / 2 + render21.pointSize + 5 * 2) * 2
+        );
+        context.closePath();
+        context.fillStrokeShape(circle);
+      });
+      _Circle.updateAnchorShadows(graphWidth, graphHeight, graphRotation, anchors);
+      _Circle.updateLinkAnchorShadows(graphWidth, graphHeight, graphRotation, linkAnchors);
+      const stageState = render21.getStageState();
+      for (const anchor of anchors) {
+        for (const { shape } of shapeRecords) {
+          if (((_b = shape.attrs.anchor) == null ? void 0 : _b.id) === anchor.attrs.id) {
+            const anchorShadow2 = graph.findOne(`#${anchor.attrs.id}`);
+            if (anchorShadow2) {
+              shape.position({
+                x: render21.toStageValue(anchorShadow2.getAbsolutePosition().x - stageState.x),
+                y: render21.toStageValue(anchorShadow2.getAbsolutePosition().y - stageState.y)
+              });
+              shape.rotation(graph.getAbsoluteRotation());
+            }
+          }
+        }
+      }
+    }
+  }
+  // 实现：拖动进行时
+  drawMove(point) {
+    let offsetX = point.x - this.dropPoint.x, offsetY = point.y - this.dropPoint.y;
+    if (offsetX < 1) {
+      offsetX = 1;
+    }
+    if (offsetY < 1) {
+      offsetY = 1;
+    }
+    const radiusX = offsetX / 2, radiusY = offsetY / 2;
+    this.circle.x(radiusX);
+    this.circle.y(radiusY);
+    this.circle.radiusX(radiusX);
+    this.circle.radiusY(radiusY);
+    this.group.size({
+      width: offsetX,
+      height: offsetY
+    });
+    _Circle.updateAnchorShadows(offsetX, offsetY, 1, this.anchorShadows);
+    _Circle.updateLinkAnchorShadows(offsetX, offsetY, 1, this.linkAnchorShadows);
+    this.render.redraw([GraphDraw.name, LinkDraw.name]);
+  }
+  // 实现：拖动结束
+  drawEnd() {
+    if (this.circle.radiusX() <= 1 && this.circle.radiusY() <= 1) {
+      const width = _Circle.size, height = width;
+      const radiusX = _Circle.size / 2, radiusY = radiusX;
+      this.circle.x(radiusX);
+      this.circle.y(radiusY);
+      this.circle.radiusX(radiusX - this.circle.strokeWidth());
+      this.circle.radiusY(radiusY - this.circle.strokeWidth());
+      this.circle.hitFunc((context) => {
+        context.beginPath();
+        context.rect(
+          -radiusX - this.render.pointSize - 5 * 2,
+          -radiusY - this.render.pointSize - 5 * 2,
+          (radiusX + this.render.pointSize + 5 * 2) * 2,
+          (radiusY + this.render.pointSize + 5 * 2) * 2
+        );
+        context.closePath();
+        context.fillStrokeShape(this.circle);
+      });
+      this.group.size({
+        width,
+        height
+      });
+      _Circle.updateAnchorShadows(width, height, 1, this.anchorShadows);
+      _Circle.updateLinkAnchorShadows(width, height, 1, this.linkAnchorShadows);
+      this.render.attractTool.alignLinesClear();
+      this.render.redraw([GraphDraw.name, LinkDraw.name]);
+    }
+  }
+};
+/**
+ * 默认图形大小
+ */
+__publicField(_Circle, "size", 100);
+let Circle2 = _Circle;
+const _GraphDraw = class _GraphDraw extends BaseDraw {
+  constructor(render21, layer, option) {
+    super(render21, layer);
+    __publicField(this, "option");
+    __publicField(this, "on", {});
+    __publicField(this, "state", {
+      adjusting: false,
+      adjustingId: ""
+    });
+    /**
+     * 鼠标按下 调整点 位置
+     */
+    __publicField(this, "startPoint", { x: 0, y: 0 });
+    /**
+     * 图形 group 镜像
+     */
+    __publicField(this, "graphSnap");
+    this.option = option;
+    this.group.name(this.constructor.name);
+  }
+  /**
+   * 获取鼠标位置，并处理为 相对大小
+   * @param attract 含磁贴计算
+   * @returns
+   */
+  getStagePoint(attract = false) {
+    const pos = this.render.stage.getPointerPosition();
+    if (pos) {
+      const stageState = this.render.getStageState();
+      if (attract) {
+        const { pos: transformerPos } = this.render.attractTool.attractPoint(pos);
+        return {
+          x: this.render.toStageValue(transformerPos.x - stageState.x),
+          y: this.render.toStageValue(transformerPos.y - stageState.y)
+        };
+      } else {
+        return {
+          x: this.render.toStageValue(pos.x - stageState.x),
+          y: this.render.toStageValue(pos.y - stageState.y)
+        };
+      }
+    }
+    return null;
+  }
+  // 调整 预处理、定位静态方法
+  adjusts(shapeDetailList) {
+    for (const { shapeRecords, graph } of shapeDetailList) {
+      for (const { shape } of shapeRecords) {
+        shape.setAttr("adjusting", false);
+      }
+      for (const shapeRecord of shapeRecords) {
+        const { shape } = shapeRecord;
+        shape.on("mousedown", () => {
+          var _a;
+          this.state.adjusting = true;
+          this.state.adjustingId = (_a = shape.attrs.anchor) == null ? void 0 : _a.id;
+          shape.setAttr("adjusting", true);
+          const pos = this.getStagePoint();
+          if (pos) {
+            this.startPoint = pos;
+            this.graphSnap = graph.clone();
+          }
+        });
+        this.render.stage.on("mousemove", () => {
+          var _a;
+          if (this.state.adjusting && this.graphSnap) {
+            if (((_a = shape.attrs.anchor) == null ? void 0 : _a.type) === GraphType.Circle) {
+              if (shape.attrs.adjusting) {
+                const pos = this.getStagePoint(true);
+                if (pos) {
+                  Circle2.adjust(
+                    this.render,
+                    graph,
+                    this.graphSnap,
+                    shapeRecord,
+                    shapeRecords,
+                    this.startPoint,
+                    pos
+                  );
+                  this.render.redraw([_GraphDraw.name, LinkDraw.name]);
+                }
+              }
+            }
+          }
+        });
+        this.render.stage.on("mouseup", () => {
+          var _a;
+          this.state.adjusting = false;
+          this.state.adjustingId = "";
+          for (const { shape: shape2 } of shapeRecords) {
+            shape2.opacity(1);
+            shape2.setAttr("adjusting", false);
+            shape2.stroke("rgba(0,0,255,0.2)");
+            document.body.style.cursor = "default";
+          }
+          (_a = this.graphSnap) == null ? void 0 : _a.destroy();
+          this.render.attractTool.alignLinesClear();
+        });
+        this.group.add(shape);
+      }
+    }
+  }
+  draw() {
+    this.clear();
+    const graphs = this.render.layer.find(".asset").filter((o) => o.attrs.assetType === AssetType.Graph);
+    const shapeDetailList = [];
+    for (const graph of graphs) {
+      if (!graph.attrs.selected) {
+        const anchors = graph.attrs.anchors ?? [];
+        const shapeRecords = [];
+        for (const anchor of anchors) {
+          const anchorShadow = graph.findOne(`#${anchor.id}`);
+          if (anchorShadow) {
+            const shape = Circle2.createAnchorShape(
+              this.render,
+              graph,
+              anchor,
+              anchorShadow,
+              this.state.adjustingId
+            );
+            shapeRecords.push({ shape, anchorShadow });
+          }
+        }
+        shapeDetailList.push({
+          graph,
+          shapeRecords
+        });
+      }
+    }
+    this.adjusts(shapeDetailList);
+  }
+};
+__publicField(_GraphDraw, "name", "Graph");
+let GraphDraw = _GraphDraw;
 class DragHandlers {
-  constructor(render17) {
+  constructor(render21) {
     __publicField(this, "render");
     // 右键是否按下
     __publicField(this, "mousedownRight", false);
@@ -26156,7 +27218,7 @@ class DragHandlers {
     __publicField(this, "handlers", {
       stage: {
         mousedown: (e) => {
-          if (!this.render.draws[LinkDraw.name].state.linkManualing) {
+          if (!this.render.draws[LinkDraw.name].state.linkManualing && !this.render.graphType) {
             if (e.evt.button === MouseButton.右键 || e.evt.ctrlKey && e.evt.button === MouseButton.左键) {
               const stageState = this.render.getStageState();
               this.mousedownRight = true;
@@ -26183,18 +27245,24 @@ class DragHandlers {
                 x: this.mousedownStagePos.x + offsetX,
                 y: this.mousedownStagePos.y + offsetY
               });
-              this.render.redraw([BgDraw.name, RulerDraw.name, PreviewDraw.name]);
+              this.render.redraw([
+                BgDraw.name,
+                GraphDraw.name,
+                LinkDraw.name,
+                RulerDraw.name,
+                PreviewDraw.name
+              ]);
             }
           }
         }
       }
     });
-    this.render = render17;
+    this.render = render21;
   }
 }
 __publicField(DragHandlers, "name", "Drag");
 class ZoomHandlers {
-  constructor(render17) {
+  constructor(render21) {
     __publicField(this, "render");
     // zoom 速度
     __publicField(this, "scaleBy", 0.1);
@@ -26223,6 +27291,7 @@ class ZoomHandlers {
               });
               this.render.redraw([
                 BgDraw.name,
+                GraphDraw.name,
                 LinkDraw.name,
                 RulerDraw.name,
                 RefLineDraw.name,
@@ -26233,12 +27302,12 @@ class ZoomHandlers {
         }
       }
     });
-    this.render = render17;
+    this.render = render21;
   }
 }
 __publicField(ZoomHandlers, "name", "Zoom");
 class DragOutsideHandlers {
-  constructor(render17) {
+  constructor(render21) {
     __publicField(this, "render");
     __publicField(this, "handlers", {
       dom: {
@@ -26274,7 +27343,8 @@ class DragOutsideHandlers {
                     id: nanoid(),
                     width: target.width(),
                     height: target.height(),
-                    name: "asset"
+                    name: "asset",
+                    assetType: AssetType.Image
                   });
                   group.add(target);
                   points = [
@@ -26297,7 +27367,10 @@ class DragOutsideHandlers {
                   ];
                 } else {
                   target.id(nanoid());
-                  target.name("asset");
+                  target.setAttrs({
+                    name: "asset",
+                    assetType: AssetType.Json
+                  });
                   group = target;
                   this.render.linkTool.groupIdCover(group);
                 }
@@ -26367,12 +27440,12 @@ class DragOutsideHandlers {
         }
       }
     });
-    this.render = render17;
+    this.render = render21;
   }
 }
 __publicField(DragOutsideHandlers, "name", "DragOutside");
 class SelectionHandlers {
-  constructor(render17) {
+  constructor(render21) {
     __publicField(this, "render");
     // selectRect 拉动的开始和结束坐标
     __publicField(this, "selectRectStartX", 0);
@@ -26385,42 +27458,45 @@ class SelectionHandlers {
     __publicField(this, "transformerMousedownPos", { x: 0, y: 0 });
     // 对齐线
     __publicField(this, "alignLines", []);
+    __publicField(this, "lastRotation", 0);
     __publicField(this, "handlers", {
       // 选择相关
       stage: {
         mousedown: (e) => {
-          const parent2 = e.target.getParent();
-          if (e.target === this.render.stage) {
-            this.render.selectionTool.selectingClear();
-            if (e.evt.button === MouseButton.左键 && !e.evt.ctrlKey) {
-              const pos = this.render.stage.getPointerPosition();
-              if (pos) {
-                this.selectRectStartX = pos.x;
-                this.selectRectStartY = pos.y;
-                this.selectRectEndX = pos.x;
-                this.selectRectEndY = pos.y;
-              }
-              this.render.selectRect.width(0);
-              this.render.selectRect.height(0);
-              this.selecting = true;
-            }
-            this.render.linkTool.pointsVisible(false);
-          } else if (parent2 instanceof Konva.Transformer)
-            ;
-          else if (parent2 instanceof Konva.Group) {
-            if (e.evt.button === MouseButton.左键 && !e.evt.ctrlKey) {
-              if (!this.render.ignore(parent2) && !this.render.ignoreDraw(e.target)) {
-                if (e.evt.ctrlKey || e.evt.metaKey) {
-                  this.render.selectionTool.select([
-                    ...this.render.selectionTool.selectingNodes,
-                    parent2
-                  ]);
-                } else {
-                  this.render.selectionTool.select([parent2]);
-                }
-              }
-            } else {
+          if (!this.render.graphType) {
+            const parent2 = e.target.getParent();
+            if (e.target === this.render.stage) {
               this.render.selectionTool.selectingClear();
+              if (e.evt.button === MouseButton.左键 && !e.evt.ctrlKey) {
+                const pos = this.render.stage.getPointerPosition();
+                if (pos) {
+                  this.selectRectStartX = pos.x;
+                  this.selectRectStartY = pos.y;
+                  this.selectRectEndX = pos.x;
+                  this.selectRectEndY = pos.y;
+                }
+                this.render.selectRect.width(0);
+                this.render.selectRect.height(0);
+                this.selecting = true;
+              }
+              this.render.linkTool.pointsVisible(false);
+            } else if (parent2 instanceof Konva.Transformer)
+              ;
+            else if (parent2 instanceof Konva.Group) {
+              if (e.evt.button === MouseButton.左键 && !e.evt.ctrlKey) {
+                if (!this.render.ignore(parent2) && !this.render.ignoreDraw(e.target)) {
+                  if (e.evt.ctrlKey || e.evt.metaKey) {
+                    this.render.selectionTool.select([
+                      ...this.render.selectionTool.selectingNodes,
+                      parent2
+                    ]);
+                  } else {
+                    this.render.selectionTool.select([parent2]);
+                  }
+                }
+              } else {
+                this.render.selectionTool.selectingClear();
+              }
             }
           }
         },
@@ -26530,13 +27606,63 @@ class SelectionHandlers {
             this.reset();
           }
         },
+        transformstart: () => {
+          const back = this.render.transformer.findOne(".back");
+          if (back) {
+            this.lastRotation = back.getAbsoluteRotation();
+          }
+        },
         transform: () => {
-          this.render.redraw([LinkDraw.name, PreviewDraw.name]);
+          const back = this.render.transformer.findOne(".back");
+          if (back) {
+            const stageState = this.render.getStageState();
+            const { x, y, width, height } = back.getClientRect();
+            const rotation = back.getAbsoluteRotation() - this.lastRotation;
+            const centerX = x + width / 2;
+            const centerY = y + height / 2;
+            const groups = this.render.transformer.nodes();
+            const points = groups.reduce((ps, group) => {
+              return ps.concat(Array.isArray(group.getAttr("points")) ? group.getAttr("points") : []);
+            }, []);
+            const pairs = points.reduce((ps, point) => {
+              return ps.concat(point.pairs ? point.pairs.filter((o) => !o.disabled) : []);
+            }, []);
+            for (const pair of pairs) {
+              const fromGroup = groups.find((o) => o.id() === pair.from.groupId);
+              const toGroup = groups.find((o) => o.id() === pair.to.groupId);
+              if (fromGroup && toGroup) {
+                if (fromGroup.attrs.manualPointsMap && fromGroup.attrs.manualPointsMapBefore) {
+                  let manualPoints = fromGroup.attrs.manualPointsMap[pair.id];
+                  const manualPointsBefore = fromGroup.attrs.manualPointsMapBefore[pair.id];
+                  if (Array.isArray(manualPoints) && Array.isArray(manualPointsBefore)) {
+                    manualPoints = manualPointsBefore.map((o) => {
+                      const { x: x2, y: y2 } = this.rotatePoint(
+                        this.render.toBoardValue(o.x) + stageState.x,
+                        this.render.toBoardValue(o.y) + stageState.y,
+                        centerX,
+                        centerY,
+                        rotation
+                      );
+                      return {
+                        x: this.render.toStageValue(x2 - stageState.x),
+                        y: this.render.toStageValue(y2 - stageState.y)
+                      };
+                    });
+                    fromGroup.setAttr("manualPointsMap", {
+                      ...fromGroup.attrs.manualPointsMap,
+                      [pair.id]: manualPoints
+                    });
+                  }
+                }
+              }
+            }
+          }
+          this.render.redraw([GraphDraw.name, LinkDraw.name, PreviewDraw.name]);
         },
         transformend: () => {
           this.reset();
           this.render.updateHistory();
-          this.render.redraw([LinkDraw.name, PreviewDraw.name]);
+          this.render.redraw([GraphDraw.name, LinkDraw.name, PreviewDraw.name]);
         },
         //
         dragstart: () => {
@@ -26544,7 +27670,7 @@ class SelectionHandlers {
         // 拖动
         dragmove: () => {
           const rect = this.render.transformer.findOne(".back").getClientRect();
-          const { pos: transformerPos, isAttract } = this.render.attractTool.attract(rect);
+          const { pos: transformerPos, isAttract } = this.render.attractTool.attractTransformer(rect);
           if (isAttract) {
             this.selectingNodesPositionByOffset({
               x: this.render.toStageValue(transformerPos.x - this.transformerMousedownPos.x),
@@ -26589,12 +27715,22 @@ class SelectionHandlers {
               }
             }
           }
-          this.render.redraw([LinkDraw.name, RulerDraw.name, PreviewDraw.name]);
+          this.render.redraw([
+            GraphDraw.name,
+            LinkDraw.name,
+            RulerDraw.name,
+            PreviewDraw.name
+          ]);
         },
         dragend: () => {
           this.reset();
           this.render.updateHistory();
-          this.render.redraw([LinkDraw.name, RulerDraw.name, PreviewDraw.name]);
+          this.render.redraw([
+            GraphDraw.name,
+            LinkDraw.name,
+            RulerDraw.name,
+            PreviewDraw.name
+          ]);
         },
         // 子节点 hover
         mousemove: () => {
@@ -26672,7 +27808,7 @@ class SelectionHandlers {
         return newPos;
       }
     });
-    this.render = render17;
+    this.render = render21;
   }
   // 对齐线清除
   alignLinesClear() {
@@ -26684,17 +27820,21 @@ class SelectionHandlers {
   // 通过偏移量移动【目标节点】
   selectingNodesPositionByOffset(offset) {
     for (const node of this.render.selectionTool.selectingNodes) {
-      const x = node.attrs.nodeMousedownPos.x + offset.x;
-      const y = node.attrs.nodeMousedownPos.y + offset.y;
-      node.x(x);
-      node.y(y);
+      if (node.attrs.nodeMousedownPos) {
+        const x = node.attrs.nodeMousedownPos.x + offset.x;
+        const y = node.attrs.nodeMousedownPos.y + offset.y;
+        node.x(x);
+        node.y(y);
+      }
     }
   }
   // 重置【目标节点】的 nodeMousedownPos
   selectingNodesPositionReset() {
     for (const node of this.render.selectionTool.selectingNodes) {
-      node.attrs.nodeMousedownPos.x = node.x();
-      node.attrs.nodeMousedownPos.y = node.y();
+      if (node.attrs.nodeMousedownPos) {
+        node.attrs.nodeMousedownPos.x = node.x();
+        node.attrs.nodeMousedownPos.y = node.y();
+      }
     }
   }
   // 重置 transformer 状态
@@ -26725,10 +27865,30 @@ class SelectionHandlers {
     this.transformerStateReset();
     this.selectingNodesPositionReset();
   }
+  /**
+   * 矩阵变换：坐标系中的一个点，围绕着另外一个点进行旋转
+   * -  -   -        - -   -   - -
+   * |x`|   |cos -sin| |x-a|   |a|
+   * |  | = |        | |   | +
+   * |y`|   |sin  cos| |y-b|   |b|
+   * -  -   -        - -   -   - -
+   * @param x 目标节点坐标 x
+   * @param y 目标节点坐标 y
+   * @param centerX 围绕的点坐标 x
+   * @param centerY 围绕的点坐标 y
+   * @param angle 旋转角度
+   * @returns
+   */
+  rotatePoint(x, y, centerX, centerY, angle) {
+    const radians = angle * Math.PI / 180;
+    const newX = Math.cos(radians) * (x - centerX) - Math.sin(radians) * (y - centerY) + centerX;
+    const newY = Math.sin(radians) * (x - centerX) + Math.cos(radians) * (y - centerY) + centerY;
+    return { x: newX, y: newY };
+  }
 }
 __publicField(SelectionHandlers, "name", "Selection");
 class KeyMoveHandlers {
-  constructor(render17) {
+  constructor(render21) {
     __publicField(this, "render");
     __publicField(this, "speed", 1);
     __publicField(this, "speedMax", 20);
@@ -26754,6 +27914,7 @@ class KeyMoveHandlers {
               }
               this.change();
               this.render.redraw([
+                GraphDraw.name,
                 LinkDraw.name,
                 AttractDraw.name,
                 RulerDraw.name,
@@ -26767,12 +27928,12 @@ class KeyMoveHandlers {
         }
       }
     });
-    this.render = render17;
+    this.render = render21;
   }
 }
 __publicField(KeyMoveHandlers, "name", "KeyMove");
 class ShutcutHandlers {
-  constructor(render17) {
+  constructor(render21) {
     __publicField(this, "render");
     __publicField(this, "handlers", {
       dom: {
@@ -26801,12 +27962,12 @@ class ShutcutHandlers {
         }
       }
     });
-    this.render = render17;
+    this.render = render21;
   }
 }
 __publicField(ShutcutHandlers, "name", "Shutcut");
 class LinkHandlers {
-  constructor(render17) {
+  constructor(render21) {
     __publicField(this, "render");
     __publicField(this, "handlers", {
       stage: {
@@ -26837,15 +27998,93 @@ class LinkHandlers {
         }
       }
     });
-    this.render = render17;
+    this.render = render21;
   }
 }
 __publicField(LinkHandlers, "name", "Link");
+class GraphHandlers {
+  constructor(render21) {
+    __publicField(this, "render");
+    /**
+     * 新建图形中
+     */
+    __publicField(this, "graphing", false);
+    /**
+     * 当前新建图形类型
+     */
+    __publicField(this, "currentGraph");
+    __publicField(this, "handlers", {
+      stage: {
+        mousedown: (e) => {
+          if (this.render.graphType) {
+            if (e.target === this.render.stage) {
+              this.graphing = true;
+              this.render.selectionTool.selectingClear();
+              const point = this.getStagePoint();
+              if (point) {
+                if (this.render.graphType === GraphType.Circle) {
+                  this.currentGraph = new Circle2(this.render, point);
+                }
+              }
+            }
+          }
+        },
+        mousemove: () => {
+          if (this.graphing) {
+            if (this.currentGraph) {
+              const pos = this.getStagePoint(true);
+              if (pos) {
+                this.currentGraph.drawMove(pos);
+              }
+            }
+          }
+        },
+        mouseup: () => {
+          if (this.graphing) {
+            if (this.currentGraph) {
+              this.currentGraph.drawEnd();
+            }
+            this.graphing = false;
+            this.render.changeGraphType();
+            this.render.attractTool.alignLinesClear();
+            this.render.redraw([GraphDraw.name, LinkDraw.name]);
+          }
+        }
+      }
+    });
+    this.render = render21;
+  }
+  /**
+   * 获取鼠标位置，并处理为 相对大小
+   * @param attract 含磁贴计算
+   * @returns
+   */
+  getStagePoint(attract = false) {
+    const pos = this.render.stage.getPointerPosition();
+    if (pos) {
+      const stageState = this.render.getStageState();
+      if (attract) {
+        const { pos: transformerPos } = this.render.attractTool.attractPoint(pos);
+        return {
+          x: this.render.toStageValue(transformerPos.x - stageState.x),
+          y: this.render.toStageValue(transformerPos.y - stageState.y)
+        };
+      } else {
+        return {
+          x: this.render.toStageValue(pos.x - stageState.x),
+          y: this.render.toStageValue(pos.y - stageState.y)
+        };
+      }
+    }
+    return null;
+  }
+}
+__publicField(GraphHandlers, "name", "Graph");
 const gifler = window.gifler;
 class AssetTool {
-  constructor(render17) {
+  constructor(render21) {
     __publicField(this, "render");
-    this.render = render17;
+    this.render = render21;
   }
   // 加载 svg xml
   async loadSvgXML(svgXML) {
@@ -26968,11 +28207,11 @@ class AssetTool {
 }
 __publicField(AssetTool, "name", "AssetTool");
 class SelectionTool {
-  constructor(render17) {
+  constructor(render21) {
     __publicField(this, "render");
     // 【被选中的】
     __publicField(this, "selectingNodes", []);
-    this.render = render17;
+    this.render = render21;
   }
   // 清空已选
   selectingClear() {
@@ -27000,6 +28239,7 @@ class SelectionTool {
     }
     this.selectingNodes = [];
     this.render.linkTool.pointsVisible(false);
+    this.render.redraw([GraphDraw.name, LinkDraw.name]);
   }
   // 选择节点
   select(nodes) {
@@ -27035,6 +28275,7 @@ class SelectionTool {
       this.selectingNodes = nodes;
       this.render.transformer.nodes(this.selectingNodes);
     }
+    this.render.redraw([GraphDraw.name, LinkDraw.name]);
   }
   // 更新节点位置
   selectingNodesMove(offset) {
@@ -27051,13 +28292,13 @@ class SelectionTool {
 }
 __publicField(SelectionTool, "name", "SelectionTool");
 class CopyTool {
-  constructor(render17) {
+  constructor(render21) {
     __publicField(this, "render");
     // 复制暂存
     __publicField(this, "pasteCache", []);
     // 粘贴次数（用于定义新节点的偏移距离）
     __publicField(this, "pasteCount", 1);
-    this.render = render17;
+    this.render = render21;
   }
   // 复制
   pasteStart() {
@@ -27239,6 +28480,7 @@ class CopyTool {
     this.render.selectionTool.select(clones);
     this.render.updateHistory();
     this.render.redraw([
+      GraphDraw.name,
       LinkDraw.name,
       AttractDraw.name,
       RulerDraw.name,
@@ -27248,9 +28490,9 @@ class CopyTool {
 }
 __publicField(CopyTool, "name", "CopyTool");
 class PositionTool {
-  constructor(render17) {
+  constructor(render21) {
     __publicField(this, "render");
-    this.render = render17;
+    this.render = render21;
   }
   // 恢复位置大小
   positionZoomReset() {
@@ -27268,6 +28510,7 @@ class PositionTool {
     });
     this.render.redraw([
       BgDraw.name,
+      GraphDraw.name,
       LinkDraw.name,
       RulerDraw.name,
       RefLineDraw.name,
@@ -27298,6 +28541,7 @@ class PositionTool {
     });
     this.render.redraw([
       BgDraw.name,
+      GraphDraw.name,
       LinkDraw.name,
       RulerDraw.name,
       RefLineDraw.name,
@@ -27307,9 +28551,9 @@ class PositionTool {
 }
 __publicField(PositionTool, "name", "PositionTool");
 class ZIndexTool {
-  constructor(render17) {
+  constructor(render21) {
     __publicField(this, "render");
-    this.render = render17;
+    this.render = render21;
   }
   // 获取移动节点
   getNodes(nodes) {
@@ -27388,6 +28632,7 @@ class ZIndexTool {
       this.updateLastZindex(sorted);
       this.render.updateHistory();
       this.render.redraw([
+        GraphDraw.name,
         LinkDraw.name,
         AttractDraw.name,
         RulerDraw.name,
@@ -27421,6 +28666,7 @@ class ZIndexTool {
       this.updateLastZindex(sorted);
       this.render.updateHistory();
       this.render.redraw([
+        GraphDraw.name,
         LinkDraw.name,
         AttractDraw.name,
         RulerDraw.name,
@@ -27447,6 +28693,7 @@ class ZIndexTool {
       this.updateLastZindex(sorted);
       this.render.updateHistory();
       this.render.redraw([
+        GraphDraw.name,
         LinkDraw.name,
         AttractDraw.name,
         RulerDraw.name,
@@ -27473,6 +28720,7 @@ class ZIndexTool {
       this.updateLastZindex(sorted);
       this.render.updateHistory();
       this.render.redraw([
+        GraphDraw.name,
         LinkDraw.name,
         AttractDraw.name,
         RulerDraw.name,
@@ -28208,10 +29456,54 @@ var canvas2svg = { exports: {} };
 })(canvas2svg);
 var canvas2svgExports = canvas2svg.exports;
 const C2S = /* @__PURE__ */ getDefaultExportFromCjs(canvas2svgExports);
+C2S.prototype.__applyCurrentDefaultPath = function() {
+  if (this.__currentElement.nodeName === "g") {
+    const g = this.__currentElement.querySelector("g");
+    if (g) {
+      const scale = g.getAttribute("transform");
+      if (scale) {
+        const match = scale.match(/scale\(([^),]+),([^)]+)\)/);
+        if (match) {
+          const [sx, sy] = [parseFloat(match[1]), parseFloat(match[2])];
+          let d = this.__currentDefaultPath;
+          const reg = /A ([^ ]+) ([^ ]+) /;
+          const match2 = d.match(reg);
+          if (match2) {
+            const [rx, ry] = [parseFloat(match2[1]), parseFloat(match2[2])];
+            d = d.replace(reg, `A ${rx * sx} ${ry * sy} `);
+            const path = document.createElementNS(
+              "http://www.w3.org/2000/svg",
+              "path"
+            );
+            path.setAttribute("d", d);
+            path.setAttribute("fill", "none");
+            this.__currentElement.append(path);
+          }
+        }
+      } else {
+        const d = this.__currentDefaultPath;
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        path.setAttribute("d", d);
+        path.setAttribute("fill", "none");
+        this.__currentElement.append(path);
+      }
+    }
+    console.warn(
+      "[Hacked] Attempted to apply path command to node " + this.__currentElement.nodeName
+    );
+    return;
+  }
+  if (this.__currentElement.nodeName === "path") {
+    const d = this.__currentDefaultPath;
+    this.__currentElement.setAttribute("d", d);
+  } else {
+    throw new Error("Attempted to apply path command to node " + this.__currentElement.nodeName);
+  }
+};
 class ImportExportTool {
-  constructor(render17) {
+  constructor(render21) {
     __publicField(this, "render");
-    this.render = render17;
+    this.render = render21;
   }
   /**
    * 获得显示内容
@@ -28378,6 +29670,7 @@ class ImportExportTool {
       }
       this.render.linkTool.pointsVisible(false);
       this.render.redraw([
+        GraphDraw.name,
         LinkDraw.name,
         AttractDraw.name,
         RulerDraw.name,
@@ -28532,23 +29825,24 @@ class ImportExportTool {
     let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity, minStartX = Infinity, minStartY = Infinity;
     for (const node of nodes) {
       if (node instanceof Konva.Group) {
-        if (node.x() < minX) {
-          minX = node.x();
+        const { x, y, width, height } = this.render.alignTool.calcNodeRotationInfo(node);
+        if (x < minX) {
+          minX = x;
         }
-        if (node.x() + node.width() > maxX) {
-          maxX = node.x() + node.width();
+        if (x + width > maxX) {
+          maxX = x + width;
         }
-        if (node.y() < minY) {
-          minY = node.y();
+        if (y < minY) {
+          minY = y;
         }
-        if (node.y() + node.height() > maxY) {
-          maxY = node.y() + node.height();
+        if (y + height > maxY) {
+          maxY = y + height;
         }
-        if (node.x() < minStartX) {
-          minStartX = node.x();
+        if (x < minStartX) {
+          minStartX = x;
         }
-        if (node.y() < minStartY) {
-          minStartY = node.y();
+        if (y < minStartY) {
+          minStartY = y;
         }
         if (node instanceof Konva.Group) {
           const clickMask = node.findOne("#click-mask");
@@ -28594,11 +29888,10 @@ class ImportExportTool {
         node.points(points);
       }
     }
-    const width = maxX - minX, height = maxY - minY;
     copy.x(0);
     copy.y(0);
-    copy.width(width);
-    copy.height(height);
+    copy.width(maxX - minX);
+    copy.height(maxY - minY);
     return copy;
   }
   /**
@@ -28635,9 +29928,9 @@ class ImportExportTool {
 }
 __publicField(ImportExportTool, "name", "ImportExportTool");
 class AlignTool {
-  constructor(render17) {
+  constructor(render21) {
     __publicField(this, "render");
-    this.render = render17;
+    this.render = render21;
   }
   calcNodeRotationInfo(node) {
     const rotate = node.rotation();
@@ -28750,6 +30043,7 @@ class AlignTool {
     }
     this.render.updateHistory();
     this.render.redraw([
+      GraphDraw.name,
       LinkDraw.name,
       AttractDraw.name,
       RulerDraw.name,
@@ -28759,9 +30053,9 @@ class AlignTool {
 }
 __publicField(AlignTool, "name", "AlignTool");
 class LinkTool {
-  constructor(render17) {
+  constructor(render21) {
     __publicField(this, "render");
-    this.render = render17;
+    this.render = render21;
   }
   pointsVisible(visible, group) {
     const start = group ?? this.render.layer;
@@ -28935,12 +30229,187 @@ class LinkTool {
 }
 __publicField(LinkTool, "name", "LinkTool");
 class AttractTool {
-  constructor(render17) {
+  constructor(render21) {
     __publicField(this, "render");
     // 对齐线
     __publicField(this, "alignLines", []);
+    __publicField(this, "attractPoint", (pos) => {
+      this.alignLinesClear();
+      const stageState = this.render.getStageState();
+      let newPosX = pos.x;
+      let newPosY = pos.y;
+      let isAttract = false;
+      let pairX = null;
+      let pairY = null;
+      if (this.render.config.attractNode) {
+        const sortX = [
+          {
+            value: this.render.toStageValue(newPosX - stageState.x)
+            // 左
+          }
+        ], sortY = [
+          {
+            value: this.render.toStageValue(newPosY - stageState.y)
+            // 上
+          }
+        ];
+        let XMin = Infinity;
+        let pairXMin = [];
+        let YMin = Infinity;
+        let pairYMin = [];
+        for (let i = 0; i < sortX.length - 1; i++) {
+          if (sortX[i].id === void 0 && sortX[i + 1].id !== void 0 || sortX[i].id !== void 0 && sortX[i + 1].id === void 0) {
+            const offset = Math.abs(sortX[i].value - sortX[i + 1].value);
+            if (offset < XMin) {
+              XMin = offset;
+              pairXMin = [[sortX[i], sortX[i + 1]]];
+            } else if (offset === XMin) {
+              pairXMin.push([sortX[i], sortX[i + 1]]);
+            }
+          }
+        }
+        for (let i = 0; i < sortY.length - 1; i++) {
+          if (sortY[i].id === void 0 && sortY[i + 1].id !== void 0 || sortY[i].id !== void 0 && sortY[i + 1].id === void 0) {
+            const offset = Math.abs(sortY[i].value - sortY[i + 1].value);
+            if (offset < YMin) {
+              YMin = offset;
+              pairYMin = [[sortY[i], sortY[i + 1]]];
+            } else if (offset === YMin) {
+              pairYMin.push([sortY[i], sortY[i + 1]]);
+            }
+          }
+        }
+        if (pairXMin[0]) {
+          if (Math.abs(pairXMin[0][0].value - pairXMin[0][1].value) < this.render.bgSize / 2) {
+            pairX = pairXMin[0];
+          }
+        }
+        if (pairYMin[0]) {
+          if (Math.abs(pairYMin[0][0].value - pairYMin[0][1].value) < this.render.bgSize / 2) {
+            pairY = pairYMin[0];
+          }
+        }
+        if ((pairX == null ? void 0 : pairX.length) === 2) {
+          for (const pair of pairXMin) {
+            const other2 = pair.find((o) => o.id !== void 0);
+            if (other2) {
+              const line = new Konva.Line({
+                points: lodash.flatten([
+                  [other2.value, this.render.toStageValue(-stageState.y)],
+                  [other2.value, this.render.toStageValue(this.render.stage.height() - stageState.y)]
+                ]),
+                stroke: "blue",
+                strokeWidth: this.render.toStageValue(1),
+                dash: [4, 4],
+                listening: false
+              });
+              this.alignLines.push(line);
+              this.render.layerCover.add(line);
+            }
+          }
+          const target = pairX.find((o) => o.id === void 0);
+          const other = pairX.find((o) => o.id !== void 0);
+          if (target && other) {
+            newPosX = newPosX - this.render.toBoardValue(target.value - other.value);
+            isAttract = true;
+          }
+        }
+        if ((pairY == null ? void 0 : pairY.length) === 2) {
+          for (const pair of pairYMin) {
+            const other2 = pair.find((o) => o.id !== void 0);
+            if (other2) {
+              const line = new Konva.Line({
+                points: lodash.flatten([
+                  [this.render.toStageValue(-stageState.x), other2.value],
+                  [this.render.toStageValue(this.render.stage.width() - stageState.x), other2.value]
+                ]),
+                stroke: "blue",
+                strokeWidth: this.render.toStageValue(1),
+                dash: [4, 4],
+                listening: false
+              });
+              this.alignLines.push(line);
+              this.render.layerCover.add(line);
+            }
+          }
+          const target = pairY.find((o) => o.id === void 0);
+          const other = pairY.find((o) => o.id !== void 0);
+          if (target && other) {
+            newPosY = newPosY - this.render.toBoardValue(target.value - other.value);
+            isAttract = true;
+          }
+        }
+      }
+      if (this.render.config.attractBg) {
+        if (pairX === null) {
+          const logicLeftX = this.render.toStageValue(newPosX - stageState.x);
+          const logicNumLeftX = Math.round(logicLeftX / this.render.bgSize);
+          const logicClosestLeftX = logicNumLeftX * this.render.bgSize;
+          const logicDiffLeftX = Math.abs(logicLeftX - logicClosestLeftX);
+          const logicRightX = this.render.toStageValue(newPosX - stageState.x);
+          const logicNumRightX = Math.round(logicRightX / this.render.bgSize);
+          const logicClosestRightX = logicNumRightX * this.render.bgSize;
+          const logicDiffRightX = Math.abs(logicRightX - logicClosestRightX);
+          const logicStageRightX = stageState.width;
+          const logicDiffStageRightX = Math.abs(logicRightX - logicStageRightX);
+          for (const diff of [
+            { type: "leftX", value: logicDiffLeftX },
+            { type: "rightX", value: logicDiffRightX },
+            { type: "stageRightX", value: logicDiffStageRightX }
+          ].sort((a, b) => a.value - b.value)) {
+            if (diff.value < 5) {
+              if (diff.type === "stageRightX") {
+                newPosX = this.render.toBoardValue(logicStageRightX) + stageState.x;
+              } else if (diff.type === "leftX") {
+                newPosX = this.render.toBoardValue(logicClosestLeftX) + stageState.x;
+              } else if (diff.type === "rightX") {
+                newPosX = this.render.toBoardValue(logicClosestRightX) + stageState.x;
+              }
+              isAttract = true;
+              break;
+            }
+          }
+        }
+        if (pairY === null) {
+          const logicTopY = this.render.toStageValue(newPosY - stageState.y);
+          const logicNumTopY = Math.round(logicTopY / this.render.bgSize);
+          const logicClosestTopY = logicNumTopY * this.render.bgSize;
+          const logicDiffTopY = Math.abs(logicTopY - logicClosestTopY);
+          const logicBottomY = this.render.toStageValue(newPosY - stageState.y);
+          const logicNumBottomY = Math.round(logicBottomY / this.render.bgSize);
+          const logicClosestBottomY = logicNumBottomY * this.render.bgSize;
+          const logicDiffBottomY = Math.abs(logicBottomY - logicClosestBottomY);
+          const logicStageBottomY = stageState.height;
+          const logicDiffStageBottomY = Math.abs(logicBottomY - logicStageBottomY);
+          for (const diff of [
+            { type: "topY", value: logicDiffTopY },
+            { type: "bottomY", value: logicDiffBottomY },
+            { type: "stageBottomY", value: logicDiffStageBottomY }
+          ].sort((a, b) => a.value - b.value)) {
+            if (diff.value < 5) {
+              if (diff.type === "stageBottomY") {
+                newPosY = this.render.toBoardValue(logicStageBottomY) + stageState.y;
+              } else if (diff.type === "topY") {
+                newPosY = this.render.toBoardValue(logicClosestTopY) + stageState.y;
+              } else if (diff.type === "bottomY") {
+                newPosY = this.render.toBoardValue(logicClosestBottomY) + stageState.y;
+              }
+              isAttract = true;
+              break;
+            }
+          }
+        }
+      }
+      return {
+        pos: {
+          x: newPosX,
+          y: newPosY
+        },
+        isAttract
+      };
+    });
     // 磁吸逻辑
-    __publicField(this, "attract", (rect) => {
+    __publicField(this, "attractTransformer", (rect) => {
       this.alignLinesClear();
       const stageState = this.render.getStageState();
       const width = this.render.transformer.width();
@@ -29107,7 +30576,7 @@ class AttractTool {
         isAttract
       };
     });
-    this.render = render17;
+    this.render = render21;
   }
   // 对齐线清除
   alignLinesClear() {
@@ -29251,6 +30720,8 @@ class Render {
     __publicField(this, "historyIndex", -1);
     // 调试模式
     __publicField(this, "debug", false);
+    // 画图类型
+    __publicField(this, "graphType");
     __publicField(this, "emitter", mitt());
     __publicField(this, "on");
     __publicField(this, "off");
@@ -29293,6 +30764,9 @@ class Render {
     this.draws[PreviewDraw.name] = new PreviewDraw(this, this.layerCover, {
       size: this.previewSize
     });
+    this.draws[GraphDraw.name] = new GraphDraw(this, this.layerCover, {
+      //
+    });
     this.assetTool = new AssetTool(this);
     this.selectionTool = new SelectionTool(this);
     this.copyTool = new CopyTool(this);
@@ -29310,6 +30784,7 @@ class Render {
     this.handlers[KeyMoveHandlers.name] = new KeyMoveHandlers(this);
     this.handlers[ShutcutHandlers.name] = new ShutcutHandlers(this);
     this.handlers[LinkHandlers.name] = new LinkHandlers(this);
+    this.handlers[GraphHandlers.name] = new GraphHandlers(this);
     this.init();
   }
   changeDebug(v) {
@@ -29415,7 +30890,14 @@ class Render {
   // 事件绑定
   eventBind() {
     var _a, _b;
-    for (const event of ["mousedown", "mouseup", "mousemove", "wheel", "contextmenu"]) {
+    for (const event of [
+      "mousedown",
+      "mouseup",
+      "mousemove",
+      "wheel",
+      "contextmenu",
+      "pointerclick"
+    ]) {
       this.stage.on(event, (e) => {
         var _a2, _b2, _c, _d, _e, _f, _g;
         (_a2 = e == null ? void 0 : e.evt) == null ? void 0 : _a2.preventDefault();
@@ -29457,6 +30939,7 @@ class Render {
     }
     for (const event of [
       "mousedown",
+      "transformstart",
       "transform",
       "transformend",
       "dragstart",
@@ -29509,7 +30992,7 @@ class Render {
   }
   // 忽略各 draw 的根 group
   ignoreDraw(node) {
-    return node.name() === BgDraw.name || node.name() === RulerDraw.name || node.name() === RefLineDraw.name || node.name() === ContextmenuDraw.name || node.name() === PreviewDraw.name || node.name() === LinkDraw.name || node.name() === AttractDraw.name;
+    return node.name() === BgDraw.name || node.name() === RulerDraw.name || node.name() === RefLineDraw.name || node.name() === ContextmenuDraw.name || node.name() === PreviewDraw.name || node.name() === LinkDraw.name || node.name() === AttractDraw.name || node.name() === GraphDraw.name;
   }
   // 忽略各 draw 的根 group
   ignoreLink(node) {
@@ -29520,6 +31003,8 @@ class Render {
     const all = [
       BgDraw.name,
       // 更新背景
+      GraphDraw.name,
+      // 更新图形调整点
       LinkDraw.name,
       // 更新连线
       AttractDraw.name,
@@ -29544,6 +31029,11 @@ class Render {
         this.draws[name].draw();
       }
     }
+  }
+  // 改变画图类型
+  changeGraphType(type) {
+    this.graphType = type;
+    this.emit("graph-type-change", this.graphType);
   }
 }
 let onceCbs = [];
@@ -38718,11 +40208,11 @@ const NDropdownRenderOption = /* @__PURE__ */ defineComponent({
   render() {
     const {
       rawNode: {
-        render: render17,
+        render: render21,
         props
       }
     } = this.tmNode;
-    return h("div", props, [render17 === null || render17 === void 0 ? void 0 : render17()]);
+    return h("div", props, [render21 === null || render21 === void 0 ? void 0 : render21()]);
   }
 });
 const NDropdownMenu = /* @__PURE__ */ defineComponent({
@@ -41485,12 +42975,12 @@ const NSpin = /* @__PURE__ */ defineComponent({
     })) : icon;
   }
 });
-const _hoisted_1$h = {
+const _hoisted_1$l = {
   xmlns: "http://www.w3.org/2000/svg",
   "xmlns:xlink": "http://www.w3.org/1999/xlink",
   viewBox: "0 0 16 16"
 };
-const _hoisted_2$h = /* @__PURE__ */ createBaseVNode(
+const _hoisted_2$l = /* @__PURE__ */ createBaseVNode(
   "g",
   {
     fill: "none"
@@ -41504,10 +42994,114 @@ const _hoisted_2$h = /* @__PURE__ */ createBaseVNode(
   -1
   /* HOISTED */
 );
-const _hoisted_3$h = [_hoisted_2$h];
+const _hoisted_3$l = [_hoisted_2$l];
 const AlignBottom16Regular = /* @__PURE__ */ defineComponent({
   name: "AlignBottom16Regular",
   render: function render2(_ctx, _cache) {
+    return openBlock(), createElementBlock("svg", _hoisted_1$l, _hoisted_3$l);
+  }
+});
+const _hoisted_1$k = {
+  xmlns: "http://www.w3.org/2000/svg",
+  "xmlns:xlink": "http://www.w3.org/1999/xlink",
+  viewBox: "0 0 16 16"
+};
+const _hoisted_2$k = /* @__PURE__ */ createBaseVNode(
+  "g",
+  {
+    fill: "none"
+  },
+  [
+    /* @__PURE__ */ createBaseVNode("path", {
+      d: "M15 7.5a.5.5 0 0 1-.5.5H14v1.25A1.75 1.75 0 0 1 12.25 11h-1.5A1.75 1.75 0 0 1 9 9.25V8H7v2.25A1.75 1.75 0 0 1 5.25 12h-1.5A1.75 1.75 0 0 1 2 10.25V8h-.5a.5.5 0 0 1 0-1H2V4.75C2 3.784 2.784 3 3.75 3h1.5C6.216 3 7 3.784 7 4.75V7h2V5.75C9 4.784 9.784 4 10.75 4h1.5c.966 0 1.75.784 1.75 1.75V7h.5a.5.5 0 0 1 .5.5zM3 10.25c0 .414.336.75.75.75h1.5a.75.75 0 0 0 .75-.75v-5.5A.75.75 0 0 0 5.25 4h-1.5a.75.75 0 0 0-.75.75v5.5zm7-1c0 .414.336.75.75.75h1.5a.75.75 0 0 0 .75-.75v-3.5a.75.75 0 0 0-.75-.75h-1.5a.75.75 0 0 0-.75.75v3.5z",
+      fill: "currentColor"
+    })
+  ],
+  -1
+  /* HOISTED */
+);
+const _hoisted_3$k = [_hoisted_2$k];
+const AlignCenterHorizontal16Regular = /* @__PURE__ */ defineComponent({
+  name: "AlignCenterHorizontal16Regular",
+  render: function render3(_ctx, _cache) {
+    return openBlock(), createElementBlock("svg", _hoisted_1$k, _hoisted_3$k);
+  }
+});
+const _hoisted_1$j = {
+  xmlns: "http://www.w3.org/2000/svg",
+  "xmlns:xlink": "http://www.w3.org/1999/xlink",
+  viewBox: "0 0 16 16"
+};
+const _hoisted_2$j = /* @__PURE__ */ createBaseVNode(
+  "g",
+  {
+    fill: "none"
+  },
+  [
+    /* @__PURE__ */ createBaseVNode("path", {
+      d: "M8.5 15a.5.5 0 0 1-.5-.5V14H6.75A1.75 1.75 0 0 1 5 12.25v-1.5C5 9.784 5.784 9 6.75 9H8V7H5.75A1.75 1.75 0 0 1 4 5.25v-1.5C4 2.784 4.784 2 5.75 2H8v-.5a.5.5 0 0 1 1 0V2h2.25c.966 0 1.75.784 1.75 1.75v1.5A1.75 1.75 0 0 1 11.25 7H9v2h1.25c.966 0 1.75.784 1.75 1.75v1.5A1.75 1.75 0 0 1 10.25 14H9v.5a.5.5 0 0 1-.5.5zM5.75 3a.75.75 0 0 0-.75.75v1.5c0 .414.336.75.75.75h5.5a.75.75 0 0 0 .75-.75v-1.5a.75.75 0 0 0-.75-.75h-5.5zm1 7a.75.75 0 0 0-.75.75v1.5c0 .414.336.75.75.75h3.5a.75.75 0 0 0 .75-.75v-1.5a.75.75 0 0 0-.75-.75h-3.5z",
+      fill: "currentColor"
+    })
+  ],
+  -1
+  /* HOISTED */
+);
+const _hoisted_3$j = [_hoisted_2$j];
+const AlignCenterVertical16Regular = /* @__PURE__ */ defineComponent({
+  name: "AlignCenterVertical16Regular",
+  render: function render4(_ctx, _cache) {
+    return openBlock(), createElementBlock("svg", _hoisted_1$j, _hoisted_3$j);
+  }
+});
+const _hoisted_1$i = {
+  xmlns: "http://www.w3.org/2000/svg",
+  "xmlns:xlink": "http://www.w3.org/1999/xlink",
+  viewBox: "0 0 16 16"
+};
+const _hoisted_2$i = /* @__PURE__ */ createBaseVNode(
+  "g",
+  {
+    fill: "none"
+  },
+  [
+    /* @__PURE__ */ createBaseVNode("path", {
+      d: "M2 1.5a.5.5 0 0 1 1 0v13a.5.5 0 0 1-1 0v-13zm3.75.5A1.75 1.75 0 0 0 4 3.75v1.5C4 6.216 4.784 7 5.75 7h6.5A1.75 1.75 0 0 0 14 5.25v-1.5A1.75 1.75 0 0 0 12.25 2h-6.5zM5 3.75A.75.75 0 0 1 5.75 3h6.5a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-.75.75h-6.5A.75.75 0 0 1 5 5.25v-1.5zM5.75 9A1.75 1.75 0 0 0 4 10.75v1.5c0 .966.784 1.75 1.75 1.75h4.5A1.75 1.75 0 0 0 12 12.25v-1.5A1.75 1.75 0 0 0 10.25 9h-4.5zM5 10.75a.75.75 0 0 1 .75-.75h4.5a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-.75.75h-4.5a.75.75 0 0 1-.75-.75v-1.5z",
+      fill: "currentColor"
+    })
+  ],
+  -1
+  /* HOISTED */
+);
+const _hoisted_3$i = [_hoisted_2$i];
+const AlignLeft16Regular = /* @__PURE__ */ defineComponent({
+  name: "AlignLeft16Regular",
+  render: function render5(_ctx, _cache) {
+    return openBlock(), createElementBlock("svg", _hoisted_1$i, _hoisted_3$i);
+  }
+});
+const _hoisted_1$h = {
+  xmlns: "http://www.w3.org/2000/svg",
+  "xmlns:xlink": "http://www.w3.org/1999/xlink",
+  viewBox: "0 0 16 16"
+};
+const _hoisted_2$h = /* @__PURE__ */ createBaseVNode(
+  "g",
+  {
+    fill: "none"
+  },
+  [
+    /* @__PURE__ */ createBaseVNode("path", {
+      d: "M14 1.5a.5.5 0 0 0-1 0v13a.5.5 0 0 0 1 0v-13zm-3.75.5c.966 0 1.75.784 1.75 1.75v1.5A1.75 1.75 0 0 1 10.25 7h-6.5A1.75 1.75 0 0 1 2 5.25v-1.5C2 2.784 2.784 2 3.75 2h6.5zM11 3.75a.75.75 0 0 0-.75-.75h-6.5a.75.75 0 0 0-.75.75v1.5c0 .414.336.75.75.75h6.5a.75.75 0 0 0 .75-.75v-1.5zM10.25 9c.966 0 1.75.784 1.75 1.75v1.5A1.75 1.75 0 0 1 10.25 14h-4.5A1.75 1.75 0 0 1 4 12.25v-1.5C4 9.784 4.784 9 5.75 9h4.5zm.75 1.75a.75.75 0 0 0-.75-.75h-4.5a.75.75 0 0 0-.75.75v1.5c0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75v-1.5z",
+      fill: "currentColor"
+    })
+  ],
+  -1
+  /* HOISTED */
+);
+const _hoisted_3$h = [_hoisted_2$h];
+const AlignRight16Regular = /* @__PURE__ */ defineComponent({
+  name: "AlignRight16Regular",
+  render: function render6(_ctx, _cache) {
     return openBlock(), createElementBlock("svg", _hoisted_1$h, _hoisted_3$h);
   }
 });
@@ -41523,7 +43117,7 @@ const _hoisted_2$g = /* @__PURE__ */ createBaseVNode(
   },
   [
     /* @__PURE__ */ createBaseVNode("path", {
-      d: "M15 7.5a.5.5 0 0 1-.5.5H14v1.25A1.75 1.75 0 0 1 12.25 11h-1.5A1.75 1.75 0 0 1 9 9.25V8H7v2.25A1.75 1.75 0 0 1 5.25 12h-1.5A1.75 1.75 0 0 1 2 10.25V8h-.5a.5.5 0 0 1 0-1H2V4.75C2 3.784 2.784 3 3.75 3h1.5C6.216 3 7 3.784 7 4.75V7h2V5.75C9 4.784 9.784 4 10.75 4h1.5c.966 0 1.75.784 1.75 1.75V7h.5a.5.5 0 0 1 .5.5zM3 10.25c0 .414.336.75.75.75h1.5a.75.75 0 0 0 .75-.75v-5.5A.75.75 0 0 0 5.25 4h-1.5a.75.75 0 0 0-.75.75v5.5zm7-1c0 .414.336.75.75.75h1.5a.75.75 0 0 0 .75-.75v-3.5a.75.75 0 0 0-.75-.75h-1.5a.75.75 0 0 0-.75.75v3.5z",
+      d: "M1.5 2a.5.5 0 0 0 0 1h13a.5.5 0 0 0 0-1h-13zM2 5.75C2 4.784 2.784 4 3.75 4h1.5C6.216 4 7 4.784 7 5.75v6.5A1.75 1.75 0 0 1 5.25 14h-1.5A1.75 1.75 0 0 1 2 12.25v-6.5zM3.75 5a.75.75 0 0 0-.75.75v6.5c0 .414.336.75.75.75h1.5a.75.75 0 0 0 .75-.75v-6.5A.75.75 0 0 0 5.25 5h-1.5zM9 5.75C9 4.784 9.784 4 10.75 4h1.5c.966 0 1.75.784 1.75 1.75v4.5A1.75 1.75 0 0 1 12.25 12h-1.5A1.75 1.75 0 0 1 9 10.25v-4.5zM10.75 5a.75.75 0 0 0-.75.75v4.5c0 .414.336.75.75.75h1.5a.75.75 0 0 0 .75-.75v-4.5a.75.75 0 0 0-.75-.75h-1.5z",
       fill: "currentColor"
     })
   ],
@@ -41531,9 +43125,9 @@ const _hoisted_2$g = /* @__PURE__ */ createBaseVNode(
   /* HOISTED */
 );
 const _hoisted_3$g = [_hoisted_2$g];
-const AlignCenterHorizontal16Regular = /* @__PURE__ */ defineComponent({
-  name: "AlignCenterHorizontal16Regular",
-  render: function render3(_ctx, _cache) {
+const AlignTop16Regular = /* @__PURE__ */ defineComponent({
+  name: "AlignTop16Regular",
+  render: function render7(_ctx, _cache) {
     return openBlock(), createElementBlock("svg", _hoisted_1$g, _hoisted_3$g);
   }
 });
@@ -41549,7 +43143,7 @@ const _hoisted_2$f = /* @__PURE__ */ createBaseVNode(
   },
   [
     /* @__PURE__ */ createBaseVNode("path", {
-      d: "M8.5 15a.5.5 0 0 1-.5-.5V14H6.75A1.75 1.75 0 0 1 5 12.25v-1.5C5 9.784 5.784 9 6.75 9H8V7H5.75A1.75 1.75 0 0 1 4 5.25v-1.5C4 2.784 4.784 2 5.75 2H8v-.5a.5.5 0 0 1 1 0V2h2.25c.966 0 1.75.784 1.75 1.75v1.5A1.75 1.75 0 0 1 11.25 7H9v2h1.25c.966 0 1.75.784 1.75 1.75v1.5A1.75 1.75 0 0 1 10.25 14H9v.5a.5.5 0 0 1-.5.5zM5.75 3a.75.75 0 0 0-.75.75v1.5c0 .414.336.75.75.75h5.5a.75.75 0 0 0 .75-.75v-1.5a.75.75 0 0 0-.75-.75h-5.5zm1 7a.75.75 0 0 0-.75.75v1.5c0 .414.336.75.75.75h3.5a.75.75 0 0 0 .75-.75v-1.5a.75.75 0 0 0-.75-.75h-3.5z",
+      d: "M7.146.646a.5.5 0 0 1 .708 0l1.5 1.5a.5.5 0 0 1 0 .708l-1.5 1.5a.5.5 0 1 1-.708-.708l.643-.642a5 5 0 0 0-2.937 8.88a.5.5 0 1 1-.63.777A6 6 0 0 1 7.797 2.003l-.65-.65a.5.5 0 0 1 0-.707zm3.929 2.766a.5.5 0 0 1 .703-.073a6 6 0 0 1-3.575 10.658l.65.65a.5.5 0 0 1-.707.707l-1.5-1.5a.5.5 0 0 1 0-.708l1.5-1.5a.5.5 0 0 1 .708.708l-.643.642a5 5 0 0 0 2.937-8.88a.5.5 0 0 1-.073-.704z",
       fill: "currentColor"
     })
   ],
@@ -41557,9 +43151,9 @@ const _hoisted_2$f = /* @__PURE__ */ createBaseVNode(
   /* HOISTED */
 );
 const _hoisted_3$f = [_hoisted_2$f];
-const AlignCenterVertical16Regular = /* @__PURE__ */ defineComponent({
-  name: "AlignCenterVertical16Regular",
-  render: function render4(_ctx, _cache) {
+const ArrowSync16Regular = /* @__PURE__ */ defineComponent({
+  name: "ArrowSync16Regular",
+  render: function render8(_ctx, _cache) {
     return openBlock(), createElementBlock("svg", _hoisted_1$f, _hoisted_3$f);
   }
 });
@@ -41575,7 +43169,7 @@ const _hoisted_2$e = /* @__PURE__ */ createBaseVNode(
   },
   [
     /* @__PURE__ */ createBaseVNode("path", {
-      d: "M2 1.5a.5.5 0 0 1 1 0v13a.5.5 0 0 1-1 0v-13zm3.75.5A1.75 1.75 0 0 0 4 3.75v1.5C4 6.216 4.784 7 5.75 7h6.5A1.75 1.75 0 0 0 14 5.25v-1.5A1.75 1.75 0 0 0 12.25 2h-6.5zM5 3.75A.75.75 0 0 1 5.75 3h6.5a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-.75.75h-6.5A.75.75 0 0 1 5 5.25v-1.5zM5.75 9A1.75 1.75 0 0 0 4 10.75v1.5c0 .966.784 1.75 1.75 1.75h4.5A1.75 1.75 0 0 0 12 12.25v-1.5A1.75 1.75 0 0 0 10.25 9h-4.5zM5 10.75a.75.75 0 0 1 .75-.75h4.5a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-.75.75h-4.5a.75.75 0 0 1-.75-.75v-1.5z",
+      d: "M7.3 1.5a.5.5 0 0 0-1 0v.8c0 .289.072.561.2.8A2.504 2.504 0 0 0 4.76 4.946A1.1 1.1 0 0 1 4 3.9V2.5a.5.5 0 0 0-1 0v1.4a2.1 2.1 0 0 0 1.7 2.062V7H2.5a.5.5 0 0 0 0 1h2.2v1.7c0 .108.005.215.015.32A2 2 0 0 0 3 12v1.5a.5.5 0 0 0 1 0V12a1 1 0 0 1 .966-1a3.3 3.3 0 0 0 6.068 0A1 1 0 0 1 12 12v1.5a.5.5 0 0 0 1 0V12a2 2 0 0 0-1.715-1.98a3.32 3.32 0 0 0 .015-.32V8h2.2a.5.5 0 0 0 0-1h-2.2V5.962A2.1 2.1 0 0 0 13 3.9V2.5a.5.5 0 0 0-1 0v1.4c0 .49-.32.904-.761 1.047A2.504 2.504 0 0 0 9.5 3.1c.127-.239.199-.511.199-.8v-.8a.5.5 0 0 0-1 0v.8a.7.7 0 1 1-1.4 0v-.8zm-1.6 6V5.491A1.5 1.5 0 0 1 7.2 4h1.6a1.5 1.5 0 0 1 1.5 1.5v4.2a2.3 2.3 0 0 1-4.6 0V7.5z",
       fill: "currentColor"
     })
   ],
@@ -41583,9 +43177,9 @@ const _hoisted_2$e = /* @__PURE__ */ createBaseVNode(
   /* HOISTED */
 );
 const _hoisted_3$e = [_hoisted_2$e];
-const AlignLeft16Regular = /* @__PURE__ */ defineComponent({
-  name: "AlignLeft16Regular",
-  render: function render5(_ctx, _cache) {
+const Bug16Regular = /* @__PURE__ */ defineComponent({
+  name: "Bug16Regular",
+  render: function render9(_ctx, _cache) {
     return openBlock(), createElementBlock("svg", _hoisted_1$e, _hoisted_3$e);
   }
 });
@@ -41601,7 +43195,7 @@ const _hoisted_2$d = /* @__PURE__ */ createBaseVNode(
   },
   [
     /* @__PURE__ */ createBaseVNode("path", {
-      d: "M14 1.5a.5.5 0 0 0-1 0v13a.5.5 0 0 0 1 0v-13zm-3.75.5c.966 0 1.75.784 1.75 1.75v1.5A1.75 1.75 0 0 1 10.25 7h-6.5A1.75 1.75 0 0 1 2 5.25v-1.5C2 2.784 2.784 2 3.75 2h6.5zM11 3.75a.75.75 0 0 0-.75-.75h-6.5a.75.75 0 0 0-.75.75v1.5c0 .414.336.75.75.75h6.5a.75.75 0 0 0 .75-.75v-1.5zM10.25 9c.966 0 1.75.784 1.75 1.75v1.5A1.75 1.75 0 0 1 10.25 14h-4.5A1.75 1.75 0 0 1 4 12.25v-1.5C4 9.784 4.784 9 5.75 9h4.5zm.75 1.75a.75.75 0 0 0-.75-.75h-4.5a.75.75 0 0 0-.75.75v1.5c0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75v-1.5z",
+      d: "M8 14A6 6 0 1 0 8 2a6 6 0 0 0 0 12zm0-1A5 5 0 1 1 8 3a5 5 0 0 1 0 10z",
       fill: "currentColor"
     })
   ],
@@ -41609,16 +43203,16 @@ const _hoisted_2$d = /* @__PURE__ */ createBaseVNode(
   /* HOISTED */
 );
 const _hoisted_3$d = [_hoisted_2$d];
-const AlignRight16Regular = /* @__PURE__ */ defineComponent({
-  name: "AlignRight16Regular",
-  render: function render6(_ctx, _cache) {
+const Circle16Regular = /* @__PURE__ */ defineComponent({
+  name: "Circle16Regular",
+  render: function render10(_ctx, _cache) {
     return openBlock(), createElementBlock("svg", _hoisted_1$d, _hoisted_3$d);
   }
 });
 const _hoisted_1$c = {
   xmlns: "http://www.w3.org/2000/svg",
   "xmlns:xlink": "http://www.w3.org/1999/xlink",
-  viewBox: "0 0 16 16"
+  viewBox: "0 0 20 20"
 };
 const _hoisted_2$c = /* @__PURE__ */ createBaseVNode(
   "g",
@@ -41627,7 +43221,7 @@ const _hoisted_2$c = /* @__PURE__ */ createBaseVNode(
   },
   [
     /* @__PURE__ */ createBaseVNode("path", {
-      d: "M1.5 2a.5.5 0 0 0 0 1h13a.5.5 0 0 0 0-1h-13zM2 5.75C2 4.784 2.784 4 3.75 4h1.5C6.216 4 7 4.784 7 5.75v6.5A1.75 1.75 0 0 1 5.25 14h-1.5A1.75 1.75 0 0 1 2 12.25v-6.5zM3.75 5a.75.75 0 0 0-.75.75v6.5c0 .414.336.75.75.75h1.5a.75.75 0 0 0 .75-.75v-6.5A.75.75 0 0 0 5.25 5h-1.5zM9 5.75C9 4.784 9.784 4 10.75 4h1.5c.966 0 1.75.784 1.75 1.75v4.5A1.75 1.75 0 0 1 12.25 12h-1.5A1.75 1.75 0 0 1 9 10.25v-4.5zM10.75 5a.75.75 0 0 0-.75.75v4.5c0 .414.336.75.75.75h1.5a.75.75 0 0 0 .75-.75v-4.5a.75.75 0 0 0-.75-.75h-1.5z",
+      d: "M15.5 4a1.5 1.5 0 1 0 0 3a1.5 1.5 0 0 0 0-3zM13 5.5a2.5 2.5 0 1 1 1.557 2.316l-1.282 1.923a2.5 2.5 0 1 1-3.83 3.185l-2.496 1.07a2.5 2.5 0 1 1-.394-.919l2.496-1.07a2.5 2.5 0 0 1 3.392-2.822l1.282-1.922A2.492 2.492 0 0 1 13 5.5zm-3 6a1.5 1.5 0 1 0 3 0a1.5 1.5 0 0 0-3 0zm-7 3a1.5 1.5 0 1 0 3 0a1.5 1.5 0 0 0-3 0z",
       fill: "currentColor"
     })
   ],
@@ -41635,70 +43229,18 @@ const _hoisted_2$c = /* @__PURE__ */ createBaseVNode(
   /* HOISTED */
 );
 const _hoisted_3$c = [_hoisted_2$c];
-const AlignTop16Regular = /* @__PURE__ */ defineComponent({
-  name: "AlignTop16Regular",
-  render: function render7(_ctx, _cache) {
+const DataLine20Regular = /* @__PURE__ */ defineComponent({
+  name: "DataLine20Regular",
+  render: function render11(_ctx, _cache) {
     return openBlock(), createElementBlock("svg", _hoisted_1$c, _hoisted_3$c);
   }
 });
 const _hoisted_1$b = {
   xmlns: "http://www.w3.org/2000/svg",
   "xmlns:xlink": "http://www.w3.org/1999/xlink",
-  viewBox: "0 0 16 16"
-};
-const _hoisted_2$b = /* @__PURE__ */ createBaseVNode(
-  "g",
-  {
-    fill: "none"
-  },
-  [
-    /* @__PURE__ */ createBaseVNode("path", {
-      d: "M7.146.646a.5.5 0 0 1 .708 0l1.5 1.5a.5.5 0 0 1 0 .708l-1.5 1.5a.5.5 0 1 1-.708-.708l.643-.642a5 5 0 0 0-2.937 8.88a.5.5 0 1 1-.63.777A6 6 0 0 1 7.797 2.003l-.65-.65a.5.5 0 0 1 0-.707zm3.929 2.766a.5.5 0 0 1 .703-.073a6 6 0 0 1-3.575 10.658l.65.65a.5.5 0 0 1-.707.707l-1.5-1.5a.5.5 0 0 1 0-.708l1.5-1.5a.5.5 0 0 1 .708.708l-.643.642a5 5 0 0 0 2.937-8.88a.5.5 0 0 1-.073-.704z",
-      fill: "currentColor"
-    })
-  ],
-  -1
-  /* HOISTED */
-);
-const _hoisted_3$b = [_hoisted_2$b];
-const ArrowSync16Regular = /* @__PURE__ */ defineComponent({
-  name: "ArrowSync16Regular",
-  render: function render8(_ctx, _cache) {
-    return openBlock(), createElementBlock("svg", _hoisted_1$b, _hoisted_3$b);
-  }
-});
-const _hoisted_1$a = {
-  xmlns: "http://www.w3.org/2000/svg",
-  "xmlns:xlink": "http://www.w3.org/1999/xlink",
-  viewBox: "0 0 16 16"
-};
-const _hoisted_2$a = /* @__PURE__ */ createBaseVNode(
-  "g",
-  {
-    fill: "none"
-  },
-  [
-    /* @__PURE__ */ createBaseVNode("path", {
-      d: "M7.3 1.5a.5.5 0 0 0-1 0v.8c0 .289.072.561.2.8A2.504 2.504 0 0 0 4.76 4.946A1.1 1.1 0 0 1 4 3.9V2.5a.5.5 0 0 0-1 0v1.4a2.1 2.1 0 0 0 1.7 2.062V7H2.5a.5.5 0 0 0 0 1h2.2v1.7c0 .108.005.215.015.32A2 2 0 0 0 3 12v1.5a.5.5 0 0 0 1 0V12a1 1 0 0 1 .966-1a3.3 3.3 0 0 0 6.068 0A1 1 0 0 1 12 12v1.5a.5.5 0 0 0 1 0V12a2 2 0 0 0-1.715-1.98a3.32 3.32 0 0 0 .015-.32V8h2.2a.5.5 0 0 0 0-1h-2.2V5.962A2.1 2.1 0 0 0 13 3.9V2.5a.5.5 0 0 0-1 0v1.4c0 .49-.32.904-.761 1.047A2.504 2.504 0 0 0 9.5 3.1c.127-.239.199-.511.199-.8v-.8a.5.5 0 0 0-1 0v.8a.7.7 0 1 1-1.4 0v-.8zm-1.6 6V5.491A1.5 1.5 0 0 1 7.2 4h1.6a1.5 1.5 0 0 1 1.5 1.5v4.2a2.3 2.3 0 0 1-4.6 0V7.5z",
-      fill: "currentColor"
-    })
-  ],
-  -1
-  /* HOISTED */
-);
-const _hoisted_3$a = [_hoisted_2$a];
-const Bug16Regular = /* @__PURE__ */ defineComponent({
-  name: "Bug16Regular",
-  render: function render9(_ctx, _cache) {
-    return openBlock(), createElementBlock("svg", _hoisted_1$a, _hoisted_3$a);
-  }
-});
-const _hoisted_1$9 = {
-  xmlns: "http://www.w3.org/2000/svg",
-  "xmlns:xlink": "http://www.w3.org/1999/xlink",
   viewBox: "0 0 20 20"
 };
-const _hoisted_2$9 = /* @__PURE__ */ createBaseVNode(
+const _hoisted_2$b = /* @__PURE__ */ createBaseVNode(
   "g",
   {
     fill: "none"
@@ -41712,19 +43254,19 @@ const _hoisted_2$9 = /* @__PURE__ */ createBaseVNode(
   -1
   /* HOISTED */
 );
-const _hoisted_3$9 = [_hoisted_2$9];
+const _hoisted_3$b = [_hoisted_2$b];
 const Flowchart20Regular = /* @__PURE__ */ defineComponent({
   name: "Flowchart20Regular",
-  render: function render10(_ctx, _cache) {
-    return openBlock(), createElementBlock("svg", _hoisted_1$9, _hoisted_3$9);
+  render: function render12(_ctx, _cache) {
+    return openBlock(), createElementBlock("svg", _hoisted_1$b, _hoisted_3$b);
   }
 });
-const _hoisted_1$8 = {
+const _hoisted_1$a = {
   xmlns: "http://www.w3.org/2000/svg",
   "xmlns:xlink": "http://www.w3.org/1999/xlink",
   viewBox: "0 0 24 24"
 };
-const _hoisted_2$8 = /* @__PURE__ */ createBaseVNode(
+const _hoisted_2$a = /* @__PURE__ */ createBaseVNode(
   "g",
   {
     fill: "none"
@@ -41738,19 +43280,19 @@ const _hoisted_2$8 = /* @__PURE__ */ createBaseVNode(
   -1
   /* HOISTED */
 );
-const _hoisted_3$8 = [_hoisted_2$8];
+const _hoisted_3$a = [_hoisted_2$a];
 const FullScreenMaximize24Regular = /* @__PURE__ */ defineComponent({
   name: "FullScreenMaximize24Regular",
-  render: function render11(_ctx, _cache) {
-    return openBlock(), createElementBlock("svg", _hoisted_1$8, _hoisted_3$8);
+  render: function render13(_ctx, _cache) {
+    return openBlock(), createElementBlock("svg", _hoisted_1$a, _hoisted_3$a);
   }
 });
-const _hoisted_1$7 = {
+const _hoisted_1$9 = {
   xmlns: "http://www.w3.org/2000/svg",
   "xmlns:xlink": "http://www.w3.org/1999/xlink",
   viewBox: "0 0 24 24"
 };
-const _hoisted_2$7 = /* @__PURE__ */ createBaseVNode(
+const _hoisted_2$9 = /* @__PURE__ */ createBaseVNode(
   "g",
   {
     fill: "none"
@@ -41764,19 +43306,19 @@ const _hoisted_2$7 = /* @__PURE__ */ createBaseVNode(
   -1
   /* HOISTED */
 );
-const _hoisted_3$7 = [_hoisted_2$7];
+const _hoisted_3$9 = [_hoisted_2$9];
 const FullScreenMinimize24Regular = /* @__PURE__ */ defineComponent({
   name: "FullScreenMinimize24Regular",
-  render: function render12(_ctx, _cache) {
-    return openBlock(), createElementBlock("svg", _hoisted_1$7, _hoisted_3$7);
+  render: function render14(_ctx, _cache) {
+    return openBlock(), createElementBlock("svg", _hoisted_1$9, _hoisted_3$9);
   }
 });
-const _hoisted_1$6 = {
+const _hoisted_1$8 = {
   xmlns: "http://www.w3.org/2000/svg",
   "xmlns:xlink": "http://www.w3.org/1999/xlink",
   viewBox: "0 0 20 20"
 };
-const _hoisted_2$6 = /* @__PURE__ */ createBaseVNode(
+const _hoisted_2$8 = /* @__PURE__ */ createBaseVNode(
   "g",
   {
     fill: "none"
@@ -41790,10 +43332,62 @@ const _hoisted_2$6 = /* @__PURE__ */ createBaseVNode(
   -1
   /* HOISTED */
 );
-const _hoisted_3$6 = [_hoisted_2$6];
+const _hoisted_3$8 = [_hoisted_2$8];
 const Line20Regular = /* @__PURE__ */ defineComponent({
   name: "Line20Regular",
-  render: function render13(_ctx, _cache) {
+  render: function render15(_ctx, _cache) {
+    return openBlock(), createElementBlock("svg", _hoisted_1$8, _hoisted_3$8);
+  }
+});
+const _hoisted_1$7 = {
+  xmlns: "http://www.w3.org/2000/svg",
+  "xmlns:xlink": "http://www.w3.org/1999/xlink",
+  viewBox: "0 0 20 20"
+};
+const _hoisted_2$7 = /* @__PURE__ */ createBaseVNode(
+  "g",
+  {
+    fill: "none"
+  },
+  [
+    /* @__PURE__ */ createBaseVNode("path", {
+      d: "M7.004 3a.5.5 0 0 1 .479.37l3.043 11.303l2.495-8.317a.5.5 0 0 1 .947-.032L15.347 10H17.5a.5.5 0 0 1 0 1H15a.5.5 0 0 1-.468-.324l-.98-2.612l-2.573 8.58a.5.5 0 0 1-.962-.014L6.986 5.37L5.48 10.637A.5.5 0 0 1 5 11H2.5a.5.5 0 0 1 0-1h2.123l1.896-6.637A.5.5 0 0 1 7.004 3z",
+      fill: "currentColor"
+    })
+  ],
+  -1
+  /* HOISTED */
+);
+const _hoisted_3$7 = [_hoisted_2$7];
+const Pulse20Regular = /* @__PURE__ */ defineComponent({
+  name: "Pulse20Regular",
+  render: function render16(_ctx, _cache) {
+    return openBlock(), createElementBlock("svg", _hoisted_1$7, _hoisted_3$7);
+  }
+});
+const _hoisted_1$6 = {
+  xmlns: "http://www.w3.org/2000/svg",
+  "xmlns:xlink": "http://www.w3.org/1999/xlink",
+  viewBox: "0 0 16 16"
+};
+const _hoisted_2$6 = /* @__PURE__ */ createBaseVNode(
+  "g",
+  {
+    fill: "none"
+  },
+  [
+    /* @__PURE__ */ createBaseVNode("path", {
+      d: "M1 5.5A2.5 2.5 0 0 1 3.5 3h9A2.5 2.5 0 0 1 15 5.5v5a2.5 2.5 0 0 1-2.5 2.5h-9A2.5 2.5 0 0 1 1 10.5v-5zM3.5 4A1.5 1.5 0 0 0 2 5.5v5A1.5 1.5 0 0 0 3.5 12h9a1.5 1.5 0 0 0 1.5-1.5v-5A1.5 1.5 0 0 0 12.5 4h-9z",
+      fill: "currentColor"
+    })
+  ],
+  -1
+  /* HOISTED */
+);
+const _hoisted_3$6 = [_hoisted_2$6];
+const RectangleLandscape16Regular = /* @__PURE__ */ defineComponent({
+  name: "RectangleLandscape16Regular",
+  render: function render17(_ctx, _cache) {
     return openBlock(), createElementBlock("svg", _hoisted_1$6, _hoisted_3$6);
   }
 });
@@ -41808,8 +43402,12 @@ const _hoisted_2$5 = /* @__PURE__ */ createBaseVNode(
     fill: "none"
   },
   [
-    /* @__PURE__ */ createBaseVNode("path", {
-      d: "M7.004 3a.5.5 0 0 1 .479.37l3.043 11.303l2.495-8.317a.5.5 0 0 1 .947-.032L15.347 10H17.5a.5.5 0 0 1 0 1H15a.5.5 0 0 1-.468-.324l-.98-2.612l-2.573 8.58a.5.5 0 0 1-.962-.014L6.986 5.37L5.48 10.637A.5.5 0 0 1 5 11H2.5a.5.5 0 0 1 0-1h2.123l1.896-6.637A.5.5 0 0 1 7.004 3z",
+    /* @__PURE__ */ createBaseVNode("rect", {
+      x: "3",
+      y: "9.5",
+      width: "14",
+      height: "1",
+      rx: ".5",
       fill: "currentColor"
     })
   ],
@@ -41817,9 +43415,9 @@ const _hoisted_2$5 = /* @__PURE__ */ createBaseVNode(
   /* HOISTED */
 );
 const _hoisted_3$5 = [_hoisted_2$5];
-const Pulse20Regular = /* @__PURE__ */ defineComponent({
-  name: "Pulse20Regular",
-  render: function render14(_ctx, _cache) {
+const Subtract20Regular = /* @__PURE__ */ defineComponent({
+  name: "Subtract20Regular",
+  render: function render18(_ctx, _cache) {
     return openBlock(), createElementBlock("svg", _hoisted_1$5, _hoisted_3$5);
   }
 });
@@ -41848,7 +43446,7 @@ const _hoisted_2$4 = /* @__PURE__ */ createBaseVNode(
 const _hoisted_3$4 = [_hoisted_2$4];
 const IosRedo = /* @__PURE__ */ defineComponent({
   name: "IosRedo",
-  render: function render15(_ctx, _cache) {
+  render: function render19(_ctx, _cache) {
     return openBlock(), createElementBlock("svg", _hoisted_1$4, _hoisted_3$4);
   }
 });
@@ -41876,11 +43474,11 @@ const _hoisted_2$3 = /* @__PURE__ */ createBaseVNode(
 const _hoisted_3$3 = [_hoisted_2$3];
 const IosUndo = /* @__PURE__ */ defineComponent({
   name: "IosUndo",
-  render: function render16(_ctx, _cache) {
+  render: function render20(_ctx, _cache) {
     return openBlock(), createElementBlock("svg", _hoisted_1$3, _hoisted_3$3);
   }
 });
-const _withScopeId$1 = (n) => (pushScopeId("data-v-1bb171cf"), n = n(), popScopeId(), n);
+const _withScopeId$1 = (n) => (pushScopeId("data-v-44b49836"), n = n(), popScopeId(), n);
 const _hoisted_1$2 = { class: "main-header" };
 const _hoisted_2$2 = /* @__PURE__ */ _withScopeId$1(() => /* @__PURE__ */ createBaseVNode("img", {
   class: "main-header__logo",
@@ -41899,9 +43497,10 @@ const _sfc_main$2 = /* @__PURE__ */ defineComponent({
   __name: "index",
   props: {
     render: {},
-    full: { type: Boolean, default: () => false }
+    full: { type: Boolean, default: () => false },
+    graphType: {}
   },
-  emits: ["update:full"],
+  emits: ["update:full", "update:graphType"],
   setup(__props, { emit: __emit }) {
     const emit2 = __emit;
     const props = __props;
@@ -41957,7 +43556,7 @@ const _sfc_main$2 = /* @__PURE__ */ defineComponent({
     }
     function onSavePNG() {
       if (props.render) {
-        const url = props.render.importExportTool.getAssetImage(3, "#ffffff");
+        const url = props.render.importExportTool.getAssetImage(2, "#ffffff");
         const a = document.createElement("a");
         const event = new MouseEvent("click");
         a.download = "image";
@@ -41968,7 +43567,7 @@ const _sfc_main$2 = /* @__PURE__ */ defineComponent({
     }
     function onSaveAssetPNG() {
       if (props.render) {
-        const url = props.render.importExportTool.getAssetImage(3);
+        const url = props.render.importExportTool.getAssetImage();
         const a = document.createElement("a");
         const event = new MouseEvent("click");
         a.download = "image";
@@ -42087,7 +43686,7 @@ const _sfc_main$2 = /* @__PURE__ */ defineComponent({
               },
               "另存为素材封面"
             ),
-            key: "png"
+            key: "asset-png"
           }
         ]
       },
@@ -42183,6 +43782,30 @@ const _sfc_main$2 = /* @__PURE__ */ defineComponent({
                   "大量自动连接线"
                 ),
                 key: "大量自动连接线"
+              },
+              {
+                label: () => h(
+                  "a",
+                  {
+                    target: "_blank",
+                    rel: "noopenner noreferrer",
+                    onClick: onSvgExportTest
+                  },
+                  "图形旋转导出测试"
+                ),
+                key: "图形旋转导出测试"
+              },
+              {
+                label: () => h(
+                  "a",
+                  {
+                    target: "_blank",
+                    rel: "noopenner noreferrer",
+                    onClick: onLinkRotateTest
+                  },
+                  "拐点旋转测试"
+                ),
+                key: "拐点旋转测试"
               }
             ]
           }
@@ -42302,7 +43925,7 @@ const _sfc_main$2 = /* @__PURE__ */ defineComponent({
       }
     }
     watch(() => props.render, () => {
-      var _a, _b, _c, _d, _e, _f;
+      var _a, _b, _c, _d, _e, _f, _g;
       if (props.render) {
         (_a = props.render) == null ? void 0 : _a.on("selection-change", (nodes) => {
           selection.value = nodes;
@@ -42322,6 +43945,9 @@ const _sfc_main$2 = /* @__PURE__ */ defineComponent({
         });
         (_f = props.render) == null ? void 0 : _f.on("loading", (value) => {
           loading.value = value;
+        });
+        (_g = props.render) == null ? void 0 : _g.on("graph-type-change", (value) => {
+          emit2("update:graphType", value);
         });
       }
     }, {
@@ -42362,10 +43988,23 @@ const _sfc_main$2 = /* @__PURE__ */ defineComponent({
       const json = await (await fetch("./test/huge-auto-link.json")).text();
       (_a = props.render) == null ? void 0 : _a.importExportTool.restore(json);
     }
+    async function onSvgExportTest() {
+      var _a;
+      const json = await (await fetch("./test/svg-export.json")).text();
+      (_a = props.render) == null ? void 0 : _a.importExportTool.restore(json);
+    }
+    async function onLinkRotateTest() {
+      var _a;
+      const json = await (await fetch("./test/link-rotate.json")).text();
+      (_a = props.render) == null ? void 0 : _a.importExportTool.restore(json);
+    }
     function onFull() {
       emit2("update:full", !props.full);
     }
     const loading = ref(false);
+    function onGraph(type) {
+      emit2("update:graphType", props.graphType === type ? void 0 : type);
+    }
     return (_ctx, _cache) => {
       return openBlock(), createElementBlock("div", _hoisted_1$2, [
         createBaseVNode("header", null, [
@@ -42754,6 +44393,127 @@ const _sfc_main$2 = /* @__PURE__ */ defineComponent({
                   size: "tiny",
                   quaternary: "",
                   focusable: false,
+                  onClick: _cache[10] || (_cache[10] = ($event) => onGraph(GraphType.Line))
+                }, {
+                  icon: withCtx(() => [
+                    createVNode(unref(NIcon), {
+                      depth: props.graphType === GraphType.Line ? 1 : 3
+                    }, {
+                      default: withCtx(() => [
+                        createVNode(unref(Subtract20Regular))
+                      ]),
+                      _: 1
+                    }, 8, ["depth"])
+                  ]),
+                  _: 1
+                })
+              ]),
+              default: withCtx(() => [
+                createTextVNode(" 画直线 ")
+              ]),
+              _: 1
+            }),
+            createVNode(unref(NTooltip), {
+              trigger: "hover",
+              delay: 1e3
+            }, {
+              trigger: withCtx(() => [
+                createVNode(unref(NButton), {
+                  tag: "div",
+                  size: "tiny",
+                  quaternary: "",
+                  focusable: false,
+                  onClick: _cache[11] || (_cache[11] = ($event) => onGraph(GraphType.Curve))
+                }, {
+                  icon: withCtx(() => [
+                    createVNode(unref(NIcon), {
+                      depth: props.graphType === GraphType.Curve ? 1 : 3
+                    }, {
+                      default: withCtx(() => [
+                        createVNode(unref(DataLine20Regular))
+                      ]),
+                      _: 1
+                    }, 8, ["depth"])
+                  ]),
+                  _: 1
+                })
+              ]),
+              default: withCtx(() => [
+                createTextVNode(" 画曲线 ")
+              ]),
+              _: 1
+            }),
+            createVNode(unref(NTooltip), {
+              trigger: "hover",
+              delay: 1e3
+            }, {
+              trigger: withCtx(() => [
+                createVNode(unref(NButton), {
+                  tag: "div",
+                  size: "tiny",
+                  quaternary: "",
+                  focusable: false,
+                  onClick: _cache[12] || (_cache[12] = ($event) => onGraph(GraphType.Rect))
+                }, {
+                  icon: withCtx(() => [
+                    createVNode(unref(NIcon), {
+                      depth: props.graphType === GraphType.Rect ? 1 : 3
+                    }, {
+                      default: withCtx(() => [
+                        createVNode(unref(RectangleLandscape16Regular))
+                      ]),
+                      _: 1
+                    }, 8, ["depth"])
+                  ]),
+                  _: 1
+                })
+              ]),
+              default: withCtx(() => [
+                createTextVNode(" 画矩形 ")
+              ]),
+              _: 1
+            }),
+            createVNode(unref(NTooltip), {
+              trigger: "hover",
+              delay: 1e3
+            }, {
+              trigger: withCtx(() => [
+                createVNode(unref(NButton), {
+                  tag: "div",
+                  size: "tiny",
+                  quaternary: "",
+                  focusable: false,
+                  onClick: _cache[13] || (_cache[13] = ($event) => onGraph(GraphType.Circle))
+                }, {
+                  icon: withCtx(() => [
+                    createVNode(unref(NIcon), {
+                      depth: props.graphType === GraphType.Circle ? 1 : 3
+                    }, {
+                      default: withCtx(() => [
+                        createVNode(unref(Circle16Regular))
+                      ]),
+                      _: 1
+                    }, 8, ["depth"])
+                  ]),
+                  _: 1
+                })
+              ]),
+              default: withCtx(() => [
+                createTextVNode(" 画圆 ")
+              ]),
+              _: 1
+            }),
+            createVNode(unref(NDivider), { vertical: "" }),
+            createVNode(unref(NTooltip), {
+              trigger: "hover",
+              delay: 1e3
+            }, {
+              trigger: withCtx(() => [
+                createVNode(unref(NButton), {
+                  tag: "div",
+                  size: "tiny",
+                  quaternary: "",
+                  focusable: false,
                   onClick: onDebug
                 }, {
                   icon: withCtx(() => [
@@ -42822,7 +44582,7 @@ const _export_sfc = (sfc, props) => {
   }
   return target;
 };
-const MainHeader = /* @__PURE__ */ _export_sfc(_sfc_main$2, [["__scopeId", "data-v-1bb171cf"]]);
+const MainHeader = /* @__PURE__ */ _export_sfc(_sfc_main$2, [["__scopeId", "data-v-44b49836"]]);
 const assetsModules = {
   svg: [
     {
@@ -43299,7 +45059,7 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
   }
 });
 const AssetBar = /* @__PURE__ */ _export_sfc(_sfc_main$1, [["__scopeId", "data-v-0d76df1f"]]);
-const _withScopeId = (n) => (pushScopeId("data-v-03704d3a"), n = n(), popScopeId(), n);
+const _withScopeId = (n) => (pushScopeId("data-v-f3edcbe1"), n = n(), popScopeId(), n);
 const _hoisted_1 = { class: "page" };
 const _hoisted_2 = /* @__PURE__ */ _withScopeId(() => /* @__PURE__ */ createBaseVNode("br", null, null, -1));
 const _hoisted_3 = /* @__PURE__ */ _withScopeId(() => /* @__PURE__ */ createBaseVNode("br", null, null, -1));
@@ -43311,7 +45071,7 @@ const _sfc_main = /* @__PURE__ */ defineComponent({
   setup(__props) {
     const boardElement = ref();
     const stageElement = ref();
-    let render17 = null;
+    let render21 = null;
     const ready = ref(false);
     const resizer = /* @__PURE__ */ (() => {
       let resizeObserver = null;
@@ -43341,12 +45101,16 @@ const _sfc_main = /* @__PURE__ */ defineComponent({
       };
     })();
     const full = ref(false);
+    const graphType = ref();
+    watch(() => graphType.value, () => {
+      render21 == null ? void 0 : render21.changeGraphType(graphType.value);
+    });
     function init2() {
       if (boardElement.value && stageElement.value) {
         resizer.init(boardElement.value, {
           resize: (x, y, width, height) => {
-            if (render17 === null) {
-              render17 = new Render(stageElement.value, {
+            if (render21 === null) {
+              render21 = new Render(stageElement.value, {
                 width,
                 height,
                 //
@@ -43360,7 +45124,7 @@ const _sfc_main = /* @__PURE__ */ defineComponent({
               });
               ready.value = true;
             }
-            render17.resize(width, height);
+            render21.resize(width, height);
           }
         });
       }
@@ -43373,10 +45137,12 @@ const _sfc_main = /* @__PURE__ */ defineComponent({
         withDirectives(createBaseVNode("header", null, [
           ready.value ? (openBlock(), createBlock(MainHeader, {
             key: 0,
-            render: unref(render17),
+            render: unref(render21),
             full: full.value,
-            "onUpdate:full": _cache[0] || (_cache[0] = ($event) => full.value = $event)
-          }, null, 8, ["render", "full"])) : createCommentVNode("", true)
+            "onUpdate:full": _cache[0] || (_cache[0] = ($event) => full.value = $event),
+            graphType: graphType.value,
+            "onUpdate:graphType": _cache[1] || (_cache[1] = ($event) => graphType.value = $event)
+          }, null, 8, ["render", "full", "graphType"])) : createCommentVNode("", true)
         ], 512), [
           [vShow, !full.value]
         ]),
@@ -43384,7 +45150,7 @@ const _sfc_main = /* @__PURE__ */ defineComponent({
           withDirectives(createBaseVNode("header", null, [
             ready.value ? (openBlock(), createBlock(AssetBar, {
               key: 0,
-              render: unref(render17)
+              render: unref(render21)
             }, null, 8, ["render"])) : createCommentVNode("", true)
           ], 512), [
             [vShow, !full.value]
@@ -43418,7 +45184,7 @@ const _sfc_main = /* @__PURE__ */ defineComponent({
           top: 40 + 8,
           right: 8,
           style: { "z-index": "100" },
-          onClick: _cache[1] || (_cache[1] = ($event) => full.value = !full.value)
+          onClick: _cache[2] || (_cache[2] = ($event) => full.value = !full.value)
         }, {
           default: withCtx(() => [
             createVNode(unref(NIcon), null, {
@@ -43436,7 +45202,7 @@ const _sfc_main = /* @__PURE__ */ defineComponent({
     };
   }
 });
-const App = /* @__PURE__ */ _export_sfc(_sfc_main, [["__scopeId", "data-v-03704d3a"]]);
+const App = /* @__PURE__ */ _export_sfc(_sfc_main, [["__scopeId", "data-v-f3edcbe1"]]);
 const optionsDefault = {
   colors: ["purple", "blue", "green", "blueviolet", "goldenrod", "brown", "chocolate"],
   type: "log"
@@ -43461,7 +45227,7 @@ const logArray = (words2) => {
     console.error(e);
   }
 };
-var define_BUILD_INFO_default = { lastBuildTime: "2024-08-09 17:04:57", git: { branch: "master", hash: "f2e2f9ca613000f51ef251493b13577381c63848", tag: "chapter20" } };
+var define_BUILD_INFO_default = { lastBuildTime: "2024-08-20 15:07:31", git: { branch: "master", hash: "7778c08aa482a3737bbbc35287c4a2d28f999402", tag: "chapter20" } };
 const {
   lastBuildTime,
   git: { branch, tag, hash }
