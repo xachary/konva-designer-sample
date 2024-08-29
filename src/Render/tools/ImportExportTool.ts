@@ -134,30 +134,7 @@ export class ImportExportTool {
       layer.add(...nodes)
       nodes = layer.getChildren()
 
-      // 计算节点占用的区域
-      let minX = 0
-      let maxX = copy.width() - this.render.rulerSize
-      let minY = 0
-      let maxY = copy.height() - this.render.rulerSize
       for (const node of nodes) {
-        const x = node.x()
-        const y = node.y()
-        const width = node.width()
-        const height = node.height()
-
-        if (x < minX) {
-          minX = x
-        }
-        if (x + width > maxX) {
-          maxX = x + width
-        }
-        if (y < minY) {
-          minY = y
-        }
-        if (y + height > maxY) {
-          maxY = y + height
-        }
-
         if (node.attrs.nodeMousedownPos) {
           // 修正正在选中的节点透明度
           node.setAttrs({
@@ -168,15 +145,6 @@ export class ImportExportTool {
 
       // 重新装载 layer
       copy.add(layer)
-
-      // 节点占用的区域
-      copy.setAttrs({
-        x: -minX,
-        y: -minY,
-        scale: { x: 1, y: 1 },
-        width: maxX - minX,
-        height: maxY - minY
-      })
 
       main.removeChildren()
       cover.removeChildren()
@@ -542,10 +510,15 @@ export class ImportExportTool {
       minStartX = Infinity,
       minStartY = Infinity
 
+    const stageState = this.render.getStageState()
     for (const node of nodes) {
       if (node instanceof Konva.Group) {
-        // 修复旋转导致的 x、y、width、height 不准确
-        const { x, y, width, height } = this.render.alignTool.calcNodeRotationInfo(node)
+        const { x, y, width, height } = ((rect) => ({
+          x: this.render.toStageValue(rect.x - stageState.x),
+          y: this.render.toStageValue(rect.y - stageState.y),
+          width: this.render.toStageValue(rect.width),
+          height: this.render.toStageValue(rect.height)
+        }))(node.getClientRect())
 
         if (x < minX) {
           minX = x
@@ -620,6 +593,8 @@ export class ImportExportTool {
     copy.y(0)
     copy.width(maxX - minX)
     copy.height(maxY - minY)
+
+    copy.scale({ x: 1, y: 1 })
 
     return copy
   }

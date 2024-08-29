@@ -395,8 +395,6 @@ export class LinkDraw extends Types.BaseDraw implements Types.Draw {
 
     // TODO: 算法建模考虑所有子元素（手动画折线可能更好用，缓一缓）
 
-    // TODO: 性能瓶颈，考虑持续缓存 pairs->groups->anchor，每当新增连接线、新增/改变拐点的时候刷新一次
-
     // 连接线
     for (const pair of pairs) {
       // 多层素材，需要排除内部 pair 对

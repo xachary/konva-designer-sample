@@ -12,48 +12,6 @@ export class AlignTool {
     this.render = render
   }
 
-  calcNodeRotationInfo(node: Konva.Node) {
-    const [nw, nh] = [node.width() * node.scaleX(), node.height() * node.scaleY()]
-    
-    const rotate = node.rotation()
-    const offsetLeft = nh * Math.sin((rotate * Math.PI) / 180)
-    const offsetRight = nw * Math.cos((rotate * Math.PI) / 180)
-    const offsetTop = nh * Math.cos((rotate * Math.PI) / 180)
-    const offsetBottom = nw * Math.sin((rotate * Math.PI) / 180)
-
-    const width = Math.abs(offsetLeft) + Math.abs(offsetRight)
-    const height = Math.abs(offsetTop) + Math.abs(offsetBottom)
-
-    let x = node.x()
-    if ((rotate >= 0 && rotate < 90) || (rotate >= -360 && rotate < -270)) {
-      x = x - Math.abs(offsetLeft)
-    } else if ((rotate >= 90 && rotate < 180) || (rotate >= -270 && rotate < -180)) {
-      x = x - width
-    } else if ((rotate >= 180 && rotate < 270) || (rotate >= -180 && rotate < -90)) {
-      x = x - Math.abs(offsetRight)
-    } else if ((rotate >= 270 && rotate < 360) || (rotate >= -90 && rotate < 0)) {
-      // 无需处理
-    }
-
-    let y = node.y()
-    if ((rotate >= 0 && rotate < 90) || (rotate >= -360 && rotate < -270)) {
-      // 无需处理
-    } else if ((rotate >= 90 && rotate < 180) || (rotate >= -270 && rotate < -180)) {
-      y = y - Math.abs(offsetTop)
-    } else if ((rotate >= 180 && rotate < 270) || (rotate >= -180 && rotate < -90)) {
-      y = y - height
-    } else if ((rotate >= 270 && rotate < 360) || (rotate >= -90 && rotate < 0)) {
-      y = y - Math.abs(offsetBottom)
-    }
-
-    return {
-      x,
-      y,
-      width,
-      height
-    }
-  }
-
   // 对齐参考点
   getAlignPoints(node?: Konva.Node | Konva.Transformer): { [index: string]: number } {
     let width = 0,
@@ -65,7 +23,7 @@ export class AlignTool {
       // stage 状态
       const stageState = this.render.getStageState()
 
-      const result = this.calcNodeRotationInfo(node)
+      const result = node.getClientRect()
 
       // 选择器
       // 转为 逻辑觉尺寸
@@ -78,7 +36,7 @@ export class AlignTool {
         this.render.toStageValue(result.y - stageState.y)
       ]
     } else if (node !== void 0) {
-      const result = this.calcNodeRotationInfo(node)
+      const result = node.getClientRect()
       // 节点
       // 逻辑尺寸
       ;[width, height] = [result.width, result.height]
@@ -110,7 +68,7 @@ export class AlignTool {
 
     // 移动逻辑
     for (const node of nodes) {
-      const { width, height, x, y } = this.calcNodeRotationInfo(node)
+      const { width, height, x, y } = node.getClientRect()
 
       switch (type) {
         case Types.AlignType.垂直居中:

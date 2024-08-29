@@ -141,9 +141,25 @@ export class GraphDraw extends Types.BaseDraw implements Types.Draw {
                     this.startPoint,
                     pos
                   )
+                } else if (shape.attrs.anchor?.type === Types.GraphType.Line) {
+                  // 使用 直线、折线 静态处理方法
+                  Graphs.Line.adjust(
+                    this.render,
+                    graph,
+                    this.graphSnap,
+                    shapeRecord,
+                    shapeRecords,
+                    this.startPoint,
+                    pos
+                  )
                 }
+
                 // 重绘
-                this.render.redraw([Draws.GraphDraw.name, Draws.LinkDraw.name])
+                this.render.redraw([
+                  Draws.GraphDraw.name,
+                  Draws.LinkDraw.name,
+                  Draws.PreviewDraw.name
+                ])
               }
             }
           }
@@ -151,6 +167,13 @@ export class GraphDraw extends Types.BaseDraw implements Types.Draw {
 
         // 调整结束
         this.render.stage.on('mouseup', () => {
+          if (shape.attrs.adjusting) {
+            // 更新历史
+            this.render.updateHistory()
+
+            // 重绘
+            this.render.redraw([Draws.GraphDraw.name, Draws.LinkDraw.name, Draws.PreviewDraw.name])
+          }
           this.state.adjusting = false
           this.state.adjustType = ''
           this.state.adjustGroupId = ''
@@ -159,7 +182,11 @@ export class GraphDraw extends Types.BaseDraw implements Types.Draw {
           for (const { shape } of shapeRecords) {
             shape.opacity(1)
             shape.setAttr('adjusting', false)
-            shape.stroke('rgba(0,0,255,0.2)')
+            if (shape.attrs.anchor?.type === Types.GraphType.Line) {
+              shape.fill('rgba(0,0,255,0.2)')
+            } else {
+              shape.stroke('rgba(0,0,255,0.2)')
+            }
             document.body.style.cursor = 'default'
           }
 
@@ -201,16 +228,56 @@ export class GraphDraw extends Types.BaseDraw implements Types.Draw {
             .find(`.anchor`)
             .find((o) => o.attrs.adjustType === anchor.adjustType) as Konva.Circle
           if (anchorShadow) {
-            const shape = Graphs.Circle.createAnchorShape(
-              this.render,
-              graph,
-              anchor,
-              anchorShadow,
-              this.state.adjustType,
-              this.state.adjustGroupId
-            )
+            switch (anchorShadow.attrs.anchorType) {
+              case Types.GraphType.Circle:
+                {
+                  const shape = Graphs.Circle.createAnchorShape(
+                    this.render,
+                    graph,
+                    anchor,
+                    anchorShadow,
+                    this.state.adjustType,
+                    this.state.adjustGroupId
+                  )
 
-            shapeRecords.push({ shape, anchorShadow })
+                  if (shape) {
+                    shapeRecords.push({ shape, anchorShadow })
+                  }
+                }
+                break
+              case Types.GraphType.Rect:
+                {
+                  const shape = Graphs.Rect.createAnchorShape(
+                    this.render,
+                    graph,
+                    anchor,
+                    anchorShadow,
+                    this.state.adjustType,
+                    this.state.adjustGroupId
+                  )
+
+                  if (shape) {
+                    shapeRecords.push({ shape, anchorShadow })
+                  }
+                }
+                break
+              case Types.GraphType.Line:
+                {
+                  const shape = Graphs.Line.createAnchorShape(
+                    this.render,
+                    graph,
+                    anchor,
+                    anchorShadow,
+                    this.state.adjustType,
+                    this.state.adjustGroupId
+                  )
+
+                  if (shape) {
+                    shapeRecords.push({ shape, anchorShadow })
+                  }
+                }
+                break
+            }
           }
         }
 

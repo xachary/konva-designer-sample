@@ -1,0 +1,263 @@
+{
+  "attrs": { "x": 277, "y": 299, "width": 526, "height": 648 },
+  "className": "Stage",
+  "children": [
+    {
+      "attrs": {},
+      "className": "Layer",
+      "children": [
+        {
+          "attrs": {
+            "id": "qoWpL_kOM-B_pOGNaD2P9",
+            "width": 200,
+            "height": 200,
+            "name": "asset",
+            "assetType": "Image",
+            "x": -99.5,
+            "y": -99.5,
+            "points": [
+              {
+                "x": 100,
+                "y": 100,
+                "id": "PsYKGT6i4pnUX3hFe9ojs",
+                "groupId": "qoWpL_kOM-B_pOGNaD2P9",
+                "visible": false,
+                "pairs": []
+              }
+            ],
+            "selected": false
+          },
+          "className": "Group",
+          "children": [
+            {
+              "attrs": {
+                "svgXML": "<?xml version=\"1.0\" standalone=\"no\"?><!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\"><svg class=\"icon\" width=\"200px\" height=\"200.00px\" viewBox=\"0 0 1024 1024\" version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M512 0c282.763636 0 512 229.236364 512 512S794.763636 1024 512 1024 0 794.763636 0 512 229.236364 0 512 0z m0 11.636364C235.659636 11.636364 11.636364 235.659636 11.636364 512s224.023273 500.363636 500.363636 500.363636 500.363636-224.023273 500.363636-500.363636S788.340364 11.636364 512 11.636364z\" /></svg>"
+              },
+              "className": "Image"
+            },
+            {
+              "attrs": {
+                "name": "link-anchor",
+                "id": "PsYKGT6i4pnUX3hFe9ojs",
+                "x": 100,
+                "y": 100,
+                "radius": 1,
+                "stroke": "rgba(0,0,255,1)",
+                "visible": false
+              },
+              "className": "Circle"
+            }
+          ]
+        },
+        {
+          "attrs": {
+            "id": "IHBagXR_gCU9d7uxU3_08",
+            "name": "asset",
+            "assetType": "Graph",
+            "anchors": [
+              {
+                "adjustType": "start",
+                "type": "Line",
+                "name": "anchor",
+                "groupId": "IHBagXR_gCU9d7uxU3_08"
+              },
+              {
+                "adjustType": "end",
+                "type": "Line",
+                "name": "anchor",
+                "groupId": "IHBagXR_gCU9d7uxU3_08"
+              }
+            ],
+            "points": [
+              {
+                "x": 0,
+                "y": 0,
+                "alias": "start",
+                "id": "K9k3X_vMeaxzfaBExxJwp",
+                "groupId": "IHBagXR_gCU9d7uxU3_08",
+                "visible": false,
+                "pairs": []
+              },
+              {
+                "x": 0,
+                "y": 0,
+                "alias": "end",
+                "id": "MQ7_ANAbmlt5FICCjrcjD",
+                "groupId": "IHBagXR_gCU9d7uxU3_08",
+                "visible": false,
+                "pairs": []
+              }
+            ],
+            "width": 1,
+            "height": 1,
+            "x": -100,
+            "y": -99
+          },
+          "className": "Group",
+          "children": [
+            {
+              "attrs": {
+                "adjustType": "start",
+                "anchorType": "Line",
+                "name": "anchor",
+                "x": -100,
+                "y": -101
+              },
+              "className": "Circle"
+            },
+            {
+              "attrs": {
+                "adjustType": "end",
+                "anchorType": "Line",
+                "name": "anchor",
+                "x": 200,
+                "y": 199
+              },
+              "className": "Circle"
+            },
+            {
+              "attrs": {
+                "name": "link-anchor",
+                "id": "K9k3X_vMeaxzfaBExxJwp",
+                "x": -100,
+                "y": -101,
+                "radius": 1,
+                "stroke": "rgba(0,0,255,1)",
+                "visible": false,
+                "alias": "start"
+              },
+              "className": "Circle"
+            },
+            {
+              "attrs": {
+                "name": "link-anchor",
+                "id": "MQ7_ANAbmlt5FICCjrcjD",
+                "x": 200,
+                "y": 199,
+                "radius": 1,
+                "stroke": "rgba(0,0,255,1)",
+                "visible": false,
+                "alias": "end"
+              },
+              "className": "Circle"
+            },
+            {
+              "attrs": {
+                "name": "graph",
+                "stroke": "black",
+                "strokeWidth": 1,
+                "hitStrokeWidth": 5,
+                "points": [-100, -101, 200, 199]
+              },
+              "className": "Line"
+            }
+          ]
+        },
+        {
+          "attrs": {
+            "id": "dqgSpVgr7LSvxAUAOwYaP",
+            "name": "asset",
+            "assetType": "Graph",
+            "anchors": [
+              {
+                "adjustType": "start",
+                "type": "Line",
+                "name": "anchor",
+                "groupId": "dqgSpVgr7LSvxAUAOwYaP"
+              },
+              {
+                "adjustType": "end",
+                "type": "Line",
+                "name": "anchor",
+                "groupId": "dqgSpVgr7LSvxAUAOwYaP"
+              }
+            ],
+            "points": [
+              {
+                "x": 0,
+                "y": 0,
+                "alias": "start",
+                "id": "mturAXmUjwBlsWRc6lS9o",
+                "groupId": "dqgSpVgr7LSvxAUAOwYaP",
+                "visible": false,
+                "pairs": []
+              },
+              {
+                "x": 0,
+                "y": 0,
+                "alias": "end",
+                "id": "hSSjQoDA7bgAUhuE-JjjM",
+                "groupId": "dqgSpVgr7LSvxAUAOwYaP",
+                "visible": false,
+                "pairs": []
+              }
+            ],
+            "width": 1,
+            "height": 1,
+            "x": 100,
+            "y": -100
+          },
+          "className": "Group",
+          "children": [
+            {
+              "attrs": {
+                "adjustType": "start",
+                "anchorType": "Line",
+                "name": "anchor",
+                "x": 100,
+                "y": -80
+              },
+              "className": "Circle"
+            },
+            {
+              "attrs": {
+                "adjustType": "end",
+                "anchorType": "Line",
+                "name": "anchor",
+                "x": -200,
+                "y": 200
+              },
+              "className": "Circle"
+            },
+            {
+              "attrs": {
+                "name": "link-anchor",
+                "id": "mturAXmUjwBlsWRc6lS9o",
+                "x": 100,
+                "y": -80,
+                "radius": 1,
+                "stroke": "rgba(0,0,255,1)",
+                "visible": false,
+                "alias": "start"
+              },
+              "className": "Circle"
+            },
+            {
+              "attrs": {
+                "name": "link-anchor",
+                "id": "hSSjQoDA7bgAUhuE-JjjM",
+                "x": -200,
+                "y": 200,
+                "radius": 1,
+                "stroke": "rgba(0,0,255,1)",
+                "visible": false,
+                "alias": "end"
+              },
+              "className": "Circle"
+            },
+            {
+              "attrs": {
+                "name": "graph",
+                "stroke": "black",
+                "strokeWidth": 1,
+                "hitStrokeWidth": 5,
+                "points": [100, -80, -200, 200]
+              },
+              "className": "Line"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

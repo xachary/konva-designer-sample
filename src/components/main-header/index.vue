@@ -179,7 +179,7 @@
                 <NTooltip trigger="hover" :delay="1000">
                     <template #trigger>
                         <NButton tag="div" size="tiny" quaternary :focusable="false"
-                            @click="onGraph(Types.GraphType.Line)" disabled>
+                            @click="onGraph(Types.GraphType.Line)">
                             <template #icon>
                                 <NIcon :depth="props.graphType === Types.GraphType.Line ? 1 : 3">
                                     <Subtract20Regular />
@@ -653,6 +653,18 @@ const menuOptions = [
                         ),
                         key: '变换后调整测试',
                     },
+                    {
+                        label: () => h(
+                            'a',
+                            {
+                                target: '_blank',
+                                rel: 'noopenner noreferrer',
+                                onClick: onAreaSizeTest
+                            },
+                            '占用区域大小测试'
+                        ),
+                        key: '占用区域大小测试',
+                    },
                 ]
             }
         ]
@@ -798,7 +810,17 @@ watch(() => props.render, () => {
             emit('update:graphType', value)
         })
 
+        // onLinkTest()
+        // onRotateTest()
+        // onAlignTest()
+        // onBigTest()
+        // onHugeTest()
+        // onHugeManualLinkTest()
+        // onHugeAutoLinkTest()
+        // onSvgExportTest()
+        // onLinkRotateTest()
         // onAdjustTransformTest()
+        // onAreaSizeTest()
     }
 
 }, {
@@ -838,14 +860,16 @@ async function onSvgExportTest() {
     const json = await (await fetch('./test/svg-export.json')).text()
     props.render?.importExportTool.restore(json)
 }
-
 async function onLinkRotateTest() {
     const json = await (await fetch('./test/link-rotate.json')).text()
     props.render?.importExportTool.restore(json)
 }
-
 async function onAdjustTransformTest() {
     const json = await (await fetch('./test/adjust-transform.json')).text()
+    props.render?.importExportTool.restore(json)
+}
+async function onAreaSizeTest() {
+    const json = await (await fetch('./test/area-size.json')).text()
     props.render?.importExportTool.restore(json)
 }
 

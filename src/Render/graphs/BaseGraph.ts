@@ -17,13 +17,8 @@ export abstract class BaseGraph {
    * @param rotate 图形 的 旋转角度
    * @param anchorShadows 图形 的 调整点 的 锚点
    */
-  static updateAnchorShadows(
-    width: number,
-    height: number,
-    rotate: number,
-    anchorShadows: Konva.Circle[]
-  ) {
-    console.log('请实现 updateAnchorShadows', width, height, anchorShadows)
+  static updateAnchorShadows(graph: Konva.Group, anchorShadows: Konva.Circle[]) {
+    console.log('请实现 updateAnchorShadows', graph, anchorShadows)
   }
 
   /**
@@ -33,35 +28,9 @@ export abstract class BaseGraph {
    * @param rotate 图形 的 旋转角度
    * @param anchors 图形 的 调整点 的 锚点
    */
-  static updateLinkAnchorShadows(
-    width: number,
-    height: number,
-    rotate: number,
-    linkAnchorShadows: Konva.Circle[]
-  ) {
-    console.log('请实现 updateLinkAnchorShadows', width, height, linkAnchorShadows)
+  static updateLinkAnchorShadows(graph: Konva.Group, linkAnchorShadows: Konva.Circle[]) {
+    console.log('请实现 updateLinkAnchorShadows', graph, linkAnchorShadows)
   }
-
-  // static pointsVisible(render: Render, visible: boolean, group?: Konva.Group) {
-  //   // 所有图形
-  //   const groups = render.layer
-  //     .find('.asset')
-  //     .filter((o) => (group ? o === group : o.attrs.assetType === Types.AssetType.Graph)) as Konva.Group[]
-
-  //   for (const group of groups) {
-  //     const anchors = group.attrs.anchors ?? []
-  //     group.setAttrs({
-  //       anchors: anchors.map((o: Types.GraphAnchor) => ({ ...o, visible }))
-  //     })
-  //   }
-
-  //   if (!visible) {
-  //     document.body.style.cursor = 'default'
-  //   }
-
-  //   // 重绘
-  //   render.redraw(['Graph'])
-  // }
 
   /**
    * 生成 调整点
@@ -80,7 +49,7 @@ export abstract class BaseGraph {
     anchorShadow: Konva.Circle,
     adjustType: string,
     adjustGroupId: string
-  ): Konva.Shape {
+  ): Konva.Shape | undefined {
     console.log(
       '请实现 createAnchorShape',
       render,
@@ -90,7 +59,7 @@ export abstract class BaseGraph {
       adjustType,
       adjustGroupId
     )
-    return new Konva.Shape()
+    return
   }
 
   /**
@@ -174,9 +143,10 @@ export abstract class BaseGraph {
     for (const anchor of this.anchors) {
       const circle = new Konva.Circle({
         adjustType: anchor.adjustType,
+        anchorType: anchor.type,
         name: anchor.name,
-        radius: 0
-        // radius: this.render.toStageValue(1),
+        radius: 0,
+        // radius: this.render.toStageValue(2),
         // fill: 'red'
       })
       this.anchorShadows.push(circle)

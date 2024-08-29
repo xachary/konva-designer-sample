@@ -62,10 +62,12 @@ export class PreviewDraw extends Types.BaseDraw implements Types.Draw {
       let minY = 0
       let maxY = group.height()
       for (const node of nodes) {
-        const x = node.x()
-        const y = node.y()
-        const width = node.width()
-        const height = node.height()
+        const { x, y, width, height } = ((rect) => ({
+          x: this.render.toStageValue(rect.x - stageState.x),
+          y: this.render.toStageValue(rect.y - stageState.y),
+          width: this.render.toStageValue(rect.width),
+          height: this.render.toStageValue(rect.height)
+        }))(node.getClientRect())
 
         if (x < minX) {
           minX = x
