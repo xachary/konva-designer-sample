@@ -83,6 +83,36 @@ export abstract class BaseGraph {
   ) {
     console.log('请实现 updateAnchorShadows', render, graph, rect, startPoint, endPoint)
   }
+
+  static draw(
+    graph: Konva.Group,
+    render: Types.Render,
+    adjustType: string,
+    adjustGroupId: string
+  ): {
+    anchorAndShadows: {
+      anchor: Types.GraphAnchor
+      anchorShadow: Konva.Circle
+      shape?: Konva.Shape
+    }[]
+  } {
+    // 调整点 信息
+    const anchors = (graph.attrs.anchors ?? []) as Types.GraphAnchor[]
+    // 调整点 锚点
+    const anchorShapes = graph.find(`.anchor`)
+    // 调整点 信息&锚点
+    const anchorAndShadows = anchors
+      .map((anchor) => ({
+        anchor,
+        anchorShadow: anchorShapes.find(
+          (shape) => shape.attrs.adjustType === anchor.adjustType
+        ) as Konva.Circle
+      }))
+      .filter((o) => o.anchorShadow !== void 0)
+
+    return { anchorAndShadows }
+  }
+
   //
   protected render: Render
   group: Konva.Group
@@ -115,6 +145,7 @@ export abstract class BaseGraph {
     config: {
       anchors: Types.GraphAnchor[]
       linkAnchors: Types.AssetInfoPoint[]
+      type: Types.GraphType
     }
   ) {
     this.render = render
@@ -125,7 +156,8 @@ export abstract class BaseGraph {
     this.group = new Konva.Group({
       id: this.id,
       name: 'asset',
-      assetType: Types.AssetType.Graph
+      assetType: Types.AssetType.Graph,
+      graphType: config.type
     })
 
     // 调整点 定义
@@ -133,7 +165,8 @@ export abstract class BaseGraph {
       ...o,
       // 补充信息
       name: 'anchor',
-      groupId: this.group.id()
+      groupId: this.group.id(),
+      type: config.type
     }))
 
     // 记录在 group 中
@@ -145,7 +178,7 @@ export abstract class BaseGraph {
         adjustType: anchor.adjustType,
         anchorType: anchor.type,
         name: anchor.name,
-        radius: 0,
+        radius: 0
         // radius: this.render.toStageValue(2),
         // fill: 'red'
       })

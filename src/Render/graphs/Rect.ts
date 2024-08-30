@@ -759,6 +759,40 @@ export class Rect extends BaseGraph {
       render.redraw([Draws.GraphDraw.name, Draws.LinkDraw.name, Draws.PreviewDraw.name])
     }
   }
+
+  /**
+   * 提供给 GraphDraw draw 使用
+   * @param graph 
+   * @param render 
+   * @param adjustType 
+   * @param adjustGroupId 
+   * @returns 
+   */
+  static override draw(
+    graph: Konva.Group,
+    render: Types.Render,
+    adjustType: string,
+    adjustGroupId: string
+  ) {
+    // 调整点 及其 锚点
+    const { anchorAndShadows } = super.draw(graph, render, adjustType, adjustGroupId)
+
+    for (const anchorAndShadow of anchorAndShadows) {
+      const shape = Rect.createAnchorShape(
+        render,
+        graph,
+        anchorAndShadow.anchor,
+        anchorAndShadow.anchorShadow,
+        adjustType,
+        adjustGroupId
+      )
+
+      anchorAndShadow.shape = shape
+    }
+
+    return { anchorAndShadows }
+  }
+
   /**
    * 默认图形大小
    */
@@ -770,6 +804,7 @@ export class Rect extends BaseGraph {
 
   constructor(render: Types.Render, dropPoint: Konva.Vector2d) {
     super(render, dropPoint, {
+      type: Types.GraphType.Rect, // 记录所属 图形
       // 定义了 8 个 调整点
       anchors: [
         { adjustType: 'top' },
@@ -781,8 +816,7 @@ export class Rect extends BaseGraph {
         { adjustType: 'bottom-left' },
         { adjustType: 'bottom-right' }
       ].map((o) => ({
-        adjustType: o.adjustType, // 调整点 类型定义
-        type: Types.GraphType.Rect // 记录所属 图形
+        adjustType: o.adjustType // 调整点 类型定义
       })),
       linkAnchors: [
         { x: 0, y: 0, alias: 'top', direction: 'top' },

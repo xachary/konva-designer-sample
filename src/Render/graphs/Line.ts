@@ -219,19 +219,23 @@ export class Line extends BaseGraph {
         if (anchorShadow) {
           {
             const points = line.points()
+
+            const linkPoints = [
+              [points[0], points[1]],
+              [points[points.length - 2], points[points.length - 1]]
+            ]
+
             switch (adjustType) {
               case 'start':
                 {
-                  points.shift()
-                  points.shift()
-                  line.points([sx - rx, sy - ry].concat(...points))
+                  linkPoints[0] = [sx - rx, sy - ry]
+                  line.points(_.flatten(linkPoints))
                 }
                 break
               case 'end':
                 {
-                  points.pop()
-                  points.pop()
-                  line.points(points.concat([sx - rx, sy - ry]))
+                  linkPoints[linkPoints.length - 1] = [sx - rx, sy - ry]
+                  line.points(_.flatten(linkPoints))
                 }
                 break
             }
@@ -268,6 +272,32 @@ export class Line extends BaseGraph {
       render.redraw([Draws.GraphDraw.name, Draws.LinkDraw.name, Draws.PreviewDraw.name])
     }
   }
+
+  static override draw(
+    graph: Konva.Group,
+    render: Types.Render,
+    adjustType: string,
+    adjustGroupId: string
+  ) {
+    // 调整点 及其 锚点
+    const { anchorAndShadows } = super.draw(graph, render, adjustType, adjustGroupId)
+
+    for (const anchorAndShadow of anchorAndShadows) {
+      const shape = Line.createAnchorShape(
+        render,
+        graph,
+        anchorAndShadow.anchor,
+        anchorAndShadow.anchorShadow,
+        adjustType,
+        adjustGroupId
+      )
+
+      anchorAndShadow.shape = shape
+    }
+
+    return { anchorAndShadows }
+  }
+
   /**
    * 默认图形大小
    */
@@ -279,10 +309,10 @@ export class Line extends BaseGraph {
 
   constructor(render: Types.Render, dropPoint: Konva.Vector2d) {
     super(render, dropPoint, {
+      type: Types.GraphType.Line,
       // 定义了 2 个 调整点
       anchors: [{ adjustType: 'start' }, { adjustType: 'end' }].map((o) => ({
-        adjustType: o.adjustType, // 调整点 类型定义
-        type: Types.GraphType.Line // 记录所属 图形
+        adjustType: o.adjustType // 调整点 类型定义
       })),
       linkAnchors: [
         { x: 0, y: 0, alias: 'start' },
@@ -318,13 +348,14 @@ export class Line extends BaseGraph {
     const offsetX = point.x - this.dropPoint.x,
       offsetY = point.y - this.dropPoint.y
 
+    // 起点、终点
+    const linkPoints = [
+      [this.line.x(), this.line.y()],
+      [this.line.x() + offsetX, this.line.y() + offsetY]
+    ]
+
     // 直线、折线 路径
-    this.line.points(
-      _.flatten([
-        [this.line.x(), this.line.y()],
-        [this.line.x() + offsetX, this.line.y() + offsetY]
-      ])
-    )
+    this.line.points(_.flatten(linkPoints))
 
     // 更新 图形 的 调整点 的 锚点位置
     Line.updateAnchorShadows(this.group, this.anchorShadows, this.line)
@@ -345,28 +376,29 @@ export class Line extends BaseGraph {
       const width = Line.size,
         height = width
 
+      // 起点、终点
+      const linkPoints = [
+        [this.line.x(), this.line.y()],
+        [this.line.x() + width, this.line.y() + height]
+      ]
+
       // 直线、折线 位置大小
-      this.line.points(
-        _.flatten([
-          [this.line.x(), this.line.y()],
-          [this.line.x() + width, this.line.y() + height]
-        ])
-      )
-
-      // 更新 图形 的 调整点 的 锚点位置
-      Line.updateAnchorShadows(this.group, this.anchorShadows, this.line)
-
-      // 更新 图形 的 连接点 的 锚点位置
-      Line.updateLinkAnchorShadows(this.group, this.linkAnchorShadows, this.line)
-
-      // 对齐线清除
-      this.render.attractTool.alignLinesClear()
-
-      // 更新历史
-      this.render.updateHistory()
-
-      // 重绘
-      this.render.redraw([Draws.GraphDraw.name, Draws.LinkDraw.name, Draws.PreviewDraw.name])
+      this.line.points(_.flatten(linkPoints))
     }
+
+    // 更新 图形 的 调整点 的 锚点位置
+    Line.updateAnchorShadows(this.group, this.anchorShadows, this.line)
+
+    // 更新 图形 的 连接点 的 锚点位置
+    Line.updateLinkAnchorShadows(this.group, this.linkAnchorShadows, this.line)
+
+    // 对齐线清除
+    this.render.attractTool.alignLinesClear()
+
+    // 更新历史
+    this.render.updateHistory()
+
+    // 重绘
+    this.render.redraw([Draws.GraphDraw.name, Draws.LinkDraw.name, Draws.PreviewDraw.name])
   }
 }
