@@ -156,7 +156,7 @@ export class GraphDraw extends Types.BaseDraw implements Types.Draw {
                 this.state.adjustGroupId = graph.id()
 
                 this.state.startPointCurrent = pos
-                
+
                 this.state.graphCurrent = graph
                 this.state.graphCurrentSnap = graph.clone()
 
@@ -177,13 +177,8 @@ export class GraphDraw extends Types.BaseDraw implements Types.Draw {
                         this.render,
                         graph,
                         this.state.graphCurrentSnap,
-                        { shape, anchorShadow: anchorAndShadow.anchorShadow },
-                        anchorAndShadows
-                          .filter((o) => o.shape !== void 0)
-                          .map((o) => ({
-                            shape: o.shape!,
-                            anchorShadow: o.anchorShadow
-                          })),
+                        shape,
+                        anchorAndShadows,
                         this.state.startPointCurrent,
                         pos
                       )
@@ -193,13 +188,8 @@ export class GraphDraw extends Types.BaseDraw implements Types.Draw {
                         this.render,
                         graph,
                         this.state.graphCurrentSnap,
-                        { shape, anchorShadow: anchorAndShadow.anchorShadow },
-                        anchorAndShadows
-                          .filter((o) => o.shape !== void 0)
-                          .map((o) => ({
-                            shape: o.shape!,
-                            anchorShadow: o.anchorShadow
-                          })),
+                        shape,
+                        anchorAndShadows,
                         this.state.startPointCurrent,
                         pos
                       )
@@ -209,13 +199,8 @@ export class GraphDraw extends Types.BaseDraw implements Types.Draw {
                         this.render,
                         graph,
                         this.state.graphCurrentSnap,
-                        { shape, anchorShadow: anchorAndShadow.anchorShadow },
-                        anchorAndShadows
-                          .filter((o) => o.shape !== void 0)
-                          .map((o) => ({
-                            shape: o.shape!,
-                            anchorShadow: o.anchorShadow
-                          })),
+                        shape,
+                        anchorAndShadows,
                         this.state.startPointCurrent,
                         pos
                       )

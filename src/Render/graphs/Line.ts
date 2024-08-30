@@ -72,75 +72,89 @@ export class Line extends BaseGraph {
   }
 
   // 实现：生成 调整点
-  static override createAnchorShape(
+  static override createAnchorShapes(
     render: Types.Render,
     graph: Konva.Group,
-    anchor: Types.GraphAnchor,
-    anchorShadow: Konva.Circle,
+    anchorAndShadows: {
+      anchor: Types.GraphAnchor
+      anchorShadow: Konva.Circle
+      shape?: Konva.Shape
+    }[],
     adjustType: string,
     adjustGroupId: string
-  ): Konva.Shape | undefined {
+  ): {
+    anchorAndShadows: {
+      anchor: Types.GraphAnchor
+      anchorShadow: Konva.Circle
+      shape?: Konva.Shape | undefined
+    }[]
+  } {
     // stage 状态
     const stageState = render.getStageState()
 
-    const shape = graph.findOne('.graph') as Konva.Line
+    const graphShape = graph.findOne('.graph') as Konva.Line
 
-    if (shape) {
-      let rotate = 0
+    if (graphShape) {
+      for (const anchorAndShadow of anchorAndShadows) {
+        let rotate = 0
+        const { anchor, anchorShadow } = anchorAndShadow
 
-      const points = shape.points()
-      if (anchor.adjustType === 'start') {
-        rotate = Line.calculateAngle(points[2] - points[0], points[3] - points[1])
-      } else if (anchor.adjustType === 'end') {
-        rotate = Line.calculateAngle(
-          points[points.length - 2] - points[points.length - 4],
-          points[points.length - 1] - points[points.length - 3]
-        )
+        const points = graphShape.points()
+        if (anchor.adjustType === 'start') {
+          rotate = Line.calculateAngle(points[2] - points[0], points[3] - points[1])
+        } else if (anchor.adjustType === 'end') {
+          rotate = Line.calculateAngle(
+            points[points.length - 2] - points[points.length - 4],
+            points[points.length - 1] - points[points.length - 3]
+          )
+        }
+
+        const x = render.toStageValue(anchorShadow.getAbsolutePosition().x - stageState.x),
+          y = render.toStageValue(anchorShadow.getAbsolutePosition().y - stageState.y)
+
+        const cos = Math.cos((rotate * Math.PI) / 180)
+        const sin = Math.sin((rotate * Math.PI) / 180)
+
+        const offset = render.toStageValue(render.pointSize + 5)
+
+        const offsetX = offset * sin
+        const offsetY = offset * cos
+
+        const anchorShape = new Konva.Circle({
+          name: 'anchor',
+          anchor: anchor,
+          //
+          fill:
+            adjustType === anchor.adjustType && graph.id() === adjustGroupId
+              ? 'rgba(0,0,255,0.8)'
+              : 'rgba(0,0,255,0.2)',
+          radius: render.toStageValue(3),
+          strokeWidth: 0,
+          // 位置
+          x: x,
+          y: y,
+          offsetX:
+            anchor.adjustType === 'start' ? offsetX : anchor.adjustType === 'end' ? -offsetX : 0,
+          offsetY:
+            anchor.adjustType === 'start' ? offsetY : anchor.adjustType === 'end' ? -offsetY : 0,
+          // 旋转角度
+          rotation: graph.getAbsoluteRotation()
+        })
+
+        anchorShape.on('mouseenter', () => {
+          anchorShape.fill('rgba(0,0,255,0.8)')
+          document.body.style.cursor = 'move'
+        })
+        anchorShape.on('mouseleave', () => {
+          anchorShape.fill(anchorShape.attrs.adjusting ? 'rgba(0,0,255,0.8)' : 'rgba(0,0,255,0.2)')
+          document.body.style.cursor = anchorShape.attrs.adjusting ? 'move' : 'default'
+        })
+
+        anchorAndShadow.shape = anchorShape
       }
-
-      const x = render.toStageValue(anchorShadow.getAbsolutePosition().x - stageState.x),
-        y = render.toStageValue(anchorShadow.getAbsolutePosition().y - stageState.y)
-
-      const cos = Math.cos((rotate * Math.PI) / 180)
-      const sin = Math.sin((rotate * Math.PI) / 180)
-
-      const offset = render.toStageValue(render.pointSize + 5)
-
-      const offsetX = offset * sin
-      const offsetY = offset * cos
-
-      const anchorShape = new Konva.Circle({
-        name: 'anchor',
-        anchor: anchor,
-        //
-        fill:
-          adjustType === anchor.adjustType && graph.id() === adjustGroupId
-            ? 'rgba(0,0,255,0.8)'
-            : 'rgba(0,0,255,0.2)',
-        radius: render.toStageValue(3),
-        strokeWidth: 0,
-        // 位置
-        x: x,
-        y: y,
-        offsetX:
-          anchor.adjustType === 'start' ? offsetX : anchor.adjustType === 'end' ? -offsetX : 0,
-        offsetY:
-          anchor.adjustType === 'start' ? offsetY : anchor.adjustType === 'end' ? -offsetY : 0,
-        // 旋转角度
-        rotation: graph.getAbsoluteRotation()
-      })
-
-      anchorShape.on('mouseenter', () => {
-        anchorShape.fill('rgba(0,0,255,0.8)')
-        document.body.style.cursor = 'move'
-      })
-      anchorShape.on('mouseleave', () => {
-        anchorShape.fill(anchorShape.attrs.adjusting ? 'rgba(0,0,255,0.8)' : 'rgba(0,0,255,0.2)')
-        document.body.style.cursor = anchorShape.attrs.adjusting ? 'move' : 'default'
-      })
-
-      return anchorShape
     }
+
+    return { anchorAndShadows }
   }
 
   /**
@@ -173,8 +187,12 @@ export class Line extends BaseGraph {
     render: Types.Render,
     graph: Konva.Group,
     graphSnap: Konva.Group,
-    shapeRecord: Types.GraphAnchorShape,
-    shapeRecords: Types.GraphAnchorShape[],
+    adjustShape: Konva.Shape,
+    anchorAndShadows: {
+      anchor: Types.GraphAnchor
+      anchorShadow: Konva.Circle
+      shape?: Konva.Shape | undefined
+    }[],
     startPoint: Konva.Vector2d,
     endPoint: Konva.Vector2d
   ) {
@@ -190,8 +208,6 @@ export class Line extends BaseGraph {
 
     // 连接点 锚点
     const linkAnchors = (graph.find('.link-anchor') ?? []) as Konva.Circle[]
-
-    const { shape: adjustShape } = shapeRecord
 
     if (line && lineSnap) {
       // stage 状态
@@ -251,18 +267,20 @@ export class Line extends BaseGraph {
 
       // 更新 调整点 位置
       for (const anchor of anchors) {
-        for (const { shape } of shapeRecords) {
-          if (shape.attrs.anchor?.adjustType === anchor.attrs.adjustType) {
-            const anchorShadow = graph
-              .find(`.anchor`)
-              .find((o) => o.attrs.adjustType === anchor.attrs.adjustType)
+        for (const { shape } of anchorAndShadows) {
+          if (shape) {
+            if (shape.attrs.anchor?.adjustType === anchor.attrs.adjustType) {
+              const anchorShadow = graph
+                .find(`.anchor`)
+                .find((o) => o.attrs.adjustType === anchor.attrs.adjustType)
 
-            if (anchorShadow) {
-              shape.position({
-                x: render.toStageValue(anchorShadow.getAbsolutePosition().x - stageState.x),
-                y: render.toStageValue(anchorShadow.getAbsolutePosition().y - stageState.y)
-              })
-              shape.rotation(graph.getAbsoluteRotation())
+              if (anchorShadow) {
+                shape.position({
+                  x: render.toStageValue(anchorShadow.getAbsolutePosition().x - stageState.x),
+                  y: render.toStageValue(anchorShadow.getAbsolutePosition().y - stageState.y)
+                })
+                shape.rotation(graph.getAbsoluteRotation())
+              }
             }
           }
         }
@@ -282,20 +300,7 @@ export class Line extends BaseGraph {
     // 调整点 及其 锚点
     const { anchorAndShadows } = super.draw(graph, render, adjustType, adjustGroupId)
 
-    for (const anchorAndShadow of anchorAndShadows) {
-      const shape = Line.createAnchorShape(
-        render,
-        graph,
-        anchorAndShadow.anchor,
-        anchorAndShadow.anchorShadow,
-        adjustType,
-        adjustGroupId
-      )
-
-      anchorAndShadow.shape = shape
-    }
-
-    return { anchorAndShadows }
+    return Line.createAnchorShapes(render, graph, anchorAndShadows, adjustType, adjustGroupId)
   }
 
   /**
