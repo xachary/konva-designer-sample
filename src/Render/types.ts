@@ -135,13 +135,16 @@ export enum AlignType {
   下对齐 = 'Bottom'
 }
 
+// 连接线 类型
 export enum LinkType {
   'auto' = 'auto',
   'straight' = 'straight', // 直线
   'manual' = 'manual' // 手动折线
 }
 
-// 连接对
+/**
+ * 连接对
+ */
 export interface LinkDrawPair {
   id: string
   from: {
@@ -158,7 +161,9 @@ export interface LinkDrawPair {
   linkType?: LinkType // 连接线类型
 }
 
-// 连接点
+/**
+ * 连接点
+ */
 export interface LinkDrawPoint {
   id: string
   groupId: string
@@ -171,19 +176,28 @@ export interface LinkDrawPoint {
   alias?: string
 }
 
+/**
+ * 连接线 拐点
+ */
 export interface ManualPoint {
   x: number
   y: number
 }
 
+/**
+ * 连接线 拐点 表
+ */
+export interface ManualPointsMap {
+  [index: string]: ManualPoint[]
+}
+
+/**
+ * 直线、折线 拐点
+ */
 export interface LineManualPoint {
   x: number
   y: number
   index: number
-}
-
-export interface ManualPointsMap {
-  [index: string]: ManualPoint[]
 }
 
 /**
@@ -209,6 +223,9 @@ export interface GraphAnchor {
   adjusted?: boolean
 }
 
+/**
+ * 图形 的 调整点 图形、锚点关系
+ */
 export interface GraphAnchorShape {
   shape: Konva.Shape
   anchorShadow: Konva.Circle
@@ -223,6 +240,9 @@ export enum AssetType {
   'Graph' = 'Graph'
 }
 
+/**
+ * 对齐信息
+ */
 export interface SortItem {
   id?: number // 有 id 就是其他节点，否则就是 选择目标
   value: number // 左、垂直中、右的 x 坐标值; 上、水平中、下的 y 坐标值；
