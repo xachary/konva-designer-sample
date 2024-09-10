@@ -16,9 +16,9 @@ export interface GraphDrawState {
   adjustGroupId: string
 
   /**
-   * 调整中 类型
+   * 调整中 调整点
    */
-  adjustType: string
+  adjustAnchor?: Types.GraphAnchor
 
   /**
    * 鼠标按下 调整点 位置
@@ -49,7 +49,6 @@ export class GraphDraw extends Types.BaseDraw implements Types.Draw {
 
   state: GraphDrawState = {
     adjusting: false,
-    adjustType: '',
     adjustGroupId: '',
     startPointCurrent: { x: 0, y: 0 }
   }
@@ -107,36 +106,21 @@ export class GraphDraw extends Types.BaseDraw implements Types.Draw {
         switch (graph.attrs.graphType) {
           case Types.GraphType.Circle:
             {
-              const res = Graphs.Circle.draw(
-                graph,
-                this.render,
-                this.state.adjustType,
-                this.state.adjustGroupId
-              )
+              const res = Graphs.Circle.draw(graph, this.render, this.state.adjustAnchor)
 
               anchorAndShadows = res.anchorAndShadows
             }
             break
           case Types.GraphType.Rect:
             {
-              const res = Graphs.Rect.draw(
-                graph,
-                this.render,
-                this.state.adjustType,
-                this.state.adjustGroupId
-              )
+              const res = Graphs.Rect.draw(graph, this.render, this.state.adjustAnchor)
 
               anchorAndShadows = res.anchorAndShadows
             }
             break
           case Types.GraphType.Line:
             {
-              const res = Graphs.Line.draw(
-                graph,
-                this.render,
-                this.state.adjustType,
-                this.state.adjustGroupId
-              )
+              const res = Graphs.Line.draw(graph, this.render, this.state.adjustAnchor)
 
               anchorAndShadows = res.anchorAndShadows
             }
@@ -152,7 +136,7 @@ export class GraphDraw extends Types.BaseDraw implements Types.Draw {
               const pos = this.getStagePoint()
               if (pos) {
                 this.state.adjusting = true
-                this.state.adjustType = shape.attrs.anchor?.adjustType
+                this.state.adjustAnchor = shape.attrs.anchor
                 this.state.adjustGroupId = graph.id()
 
                 this.state.startPointCurrent = pos
@@ -161,6 +145,15 @@ export class GraphDraw extends Types.BaseDraw implements Types.Draw {
                 this.state.graphCurrentSnap = graph.clone()
 
                 shape.setAttr('adjusting', true)
+
+                if (this.state.adjustAnchor) {
+                  switch (shape.attrs.anchor?.type) {
+                    case Types.GraphType.Line:
+                      // 使用 直线、折线 静态处理方法
+                      Graphs.Line.adjustStart(this.render, graph, this.state.adjustAnchor, pos)
+                      break
+                  }
+                }
               }
             })
 
@@ -171,39 +164,43 @@ export class GraphDraw extends Types.BaseDraw implements Types.Draw {
                   // 调整 圆/椭圆 图形
                   const pos = this.getStagePoint(true)
                   if (pos) {
-                    if (shape.attrs.anchor?.type === Types.GraphType.Circle) {
-                      // 使用 圆/椭圆 静态处理方法
-                      Graphs.Circle.adjust(
-                        this.render,
-                        graph,
-                        this.state.graphCurrentSnap,
-                        shape,
-                        anchorAndShadows,
-                        this.state.startPointCurrent,
-                        pos
-                      )
-                    } else if (shape.attrs.anchor?.type === Types.GraphType.Rect) {
-                      // 使用 圆/椭圆 静态处理方法
-                      Graphs.Rect.adjust(
-                        this.render,
-                        graph,
-                        this.state.graphCurrentSnap,
-                        shape,
-                        anchorAndShadows,
-                        this.state.startPointCurrent,
-                        pos
-                      )
-                    } else if (shape.attrs.anchor?.type === Types.GraphType.Line) {
-                      // 使用 直线、折线 静态处理方法
-                      Graphs.Line.adjust(
-                        this.render,
-                        graph,
-                        this.state.graphCurrentSnap,
-                        shape,
-                        anchorAndShadows,
-                        this.state.startPointCurrent,
-                        pos
-                      )
+                    switch (shape.attrs.anchor?.type) {
+                      case Types.GraphType.Circle:
+                        // 使用 圆/椭圆 静态处理方法
+                        Graphs.Circle.adjust(
+                          this.render,
+                          graph,
+                          this.state.graphCurrentSnap,
+                          shape,
+                          anchorAndShadows,
+                          this.state.startPointCurrent,
+                          pos
+                        )
+                        break
+                      case Types.GraphType.Rect:
+                        // 使用 圆/椭圆 静态处理方法
+                        Graphs.Rect.adjust(
+                          this.render,
+                          graph,
+                          this.state.graphCurrentSnap,
+                          shape,
+                          anchorAndShadows,
+                          this.state.startPointCurrent,
+                          pos
+                        )
+                        break
+                      case Types.GraphType.Line:
+                        // 使用 直线、折线 静态处理方法
+                        Graphs.Line.adjust(
+                          this.render,
+                          graph,
+                          this.state.graphCurrentSnap,
+                          shape,
+                          anchorAndShadows,
+                          this.state.startPointCurrent,
+                          pos
+                        )
+                        break
                     }
 
                     // 重绘
@@ -231,7 +228,7 @@ export class GraphDraw extends Types.BaseDraw implements Types.Draw {
                 ])
               }
               this.state.adjusting = false
-              this.state.adjustType = ''
+              this.state.adjustAnchor = undefined
               this.state.adjustGroupId = ''
 
               // 恢复显示所有 调整点
@@ -240,7 +237,11 @@ export class GraphDraw extends Types.BaseDraw implements Types.Draw {
                   shape.opacity(1)
                   shape.setAttr('adjusting', false)
                   if (shape.attrs.anchor?.type === Types.GraphType.Line) {
-                    shape.fill('rgba(0,0,255,0.2)')
+                    if (shape.attrs.anchor.adjusted) {
+                      shape.fill('rgba(0,0,0,0.4)')
+                    } else {
+                      shape.fill('rgba(0,0,255,0.2)')
+                    }
                   } else {
                     shape.stroke('rgba(0,0,255,0.2)')
                   }

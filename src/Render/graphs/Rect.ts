@@ -119,8 +119,7 @@ export class Rect extends BaseGraph {
       anchorShadow: Konva.Circle
       shape?: Konva.Shape
     }[],
-    adjustType: string,
-    adjustGroupId: string
+    adjustAnchor?: Types.GraphAnchor
   ): {
     anchorAndShadows: {
       anchor: Types.GraphAnchor
@@ -145,7 +144,7 @@ export class Rect extends BaseGraph {
         //
         // stroke: colorMap[anchor.adjustType] ?? 'rgba(0,0,255,0.2)',
         stroke:
-          adjustType === anchor.adjustType && graph.id() === adjustGroupId
+          adjustAnchor?.adjustType === anchor.adjustType && adjustAnchor?.groupId === graph.id()
             ? 'rgba(0,0,255,0.8)'
             : 'rgba(0,0,255,0.2)',
         strokeWidth: render.toStageValue(2),
@@ -783,22 +782,12 @@ export class Rect extends BaseGraph {
 
   /**
    * 提供给 GraphDraw draw 使用
-   * @param graph
-   * @param render
-   * @param adjustType
-   * @param adjustGroupId
-   * @returns
    */
-  static override draw(
-    graph: Konva.Group,
-    render: Types.Render,
-    adjustType: string,
-    adjustGroupId: string
-  ) {
+  static override draw(graph: Konva.Group, render: Types.Render, adjustAnchor?: Types.GraphAnchor) {
     // 调整点 及其 锚点
-    const { anchorAndShadows } = super.draw(graph, render, adjustType, adjustGroupId)
+    const { anchorAndShadows } = super.draw(graph, render, adjustAnchor)
 
-    return Rect.createAnchorShapes(render, graph, anchorAndShadows, adjustType, adjustGroupId)
+    return Rect.createAnchorShapes(render, graph, anchorAndShadows, adjustAnchor)
   }
 
   /**

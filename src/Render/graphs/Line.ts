@@ -80,8 +80,7 @@ export class Line extends BaseGraph {
       anchorShadow: Konva.Circle
       shape?: Konva.Shape
     }[],
-    adjustType: string,
-    adjustGroupId: string
+    adjustAnchor?: Types.GraphAnchor
   ): {
     anchorAndShadows: {
       anchor: Types.GraphAnchor
@@ -95,62 +94,96 @@ export class Line extends BaseGraph {
     const graphShape = graph.findOne('.graph') as Konva.Line
 
     if (graphShape) {
+      const points = graphShape.points()
+
       for (const anchorAndShadow of anchorAndShadows) {
         let rotate = 0
         const { anchor, anchorShadow } = anchorAndShadow
 
-        const points = graphShape.points()
-        if (anchor.adjustType === 'start') {
-          rotate = Line.calculateAngle(points[2] - points[0], points[3] - points[1])
-        } else if (anchor.adjustType === 'end') {
-          rotate = Line.calculateAngle(
-            points[points.length - 2] - points[points.length - 4],
-            points[points.length - 1] - points[points.length - 3]
-          )
-        }
-
         const x = render.toStageValue(anchorShadow.getAbsolutePosition().x - stageState.x),
           y = render.toStageValue(anchorShadow.getAbsolutePosition().y - stageState.y)
 
-        const cos = Math.cos((rotate * Math.PI) / 180)
-        const sin = Math.sin((rotate * Math.PI) / 180)
+        if (anchor.adjustType === 'manual') {
+          const anchorShape = new Konva.Circle({
+            name: 'anchor',
+            anchor: anchor,
+            //
+            fill: anchor.adjusted ? 'rgba(0,0,0,0.4)' : 'rgba(0,0,255,0.2)',
+            radius: render.toStageValue(3),
+            strokeWidth: 0,
+            // 位置
+            x: x,
+            y: y,
+            // 旋转角度
+            rotation: graph.getAbsoluteRotation()
+          })
 
-        const offset = render.toStageValue(render.pointSize + 5)
+          anchorShape.on('mouseenter', () => {
+            anchorShape.fill('rgba(0,0,255,0.8)')
+            document.body.style.cursor = 'move'
+            anchorShape.radius(render.toStageValue(7))
+          })
+          anchorShape.on('mouseleave', () => {
+            anchorShape.fill(
+              anchorShape.attrs.anchor?.adjusted ? 'rgba(0,0,0,0.4)' : 'rgba(0,0,255,0.2)'
+            )
+            anchorShape.radius(render.toStageValue(3))
+            document.body.style.cursor = anchorShape.attrs.adjusting ? 'move' : 'default'
+          })
 
-        const offsetX = offset * sin
-        const offsetY = offset * cos
+          anchorAndShadow.shape = anchorShape
+        } else {
+          if (anchor.adjustType === 'start') {
+            rotate = Line.calculateAngle(points[2] - points[0], points[3] - points[1])
+          } else if (anchor.adjustType === 'end') {
+            rotate = Line.calculateAngle(
+              points[points.length - 2] - points[points.length - 4],
+              points[points.length - 1] - points[points.length - 3]
+            )
+          }
 
-        const anchorShape = new Konva.Circle({
-          name: 'anchor',
-          anchor: anchor,
-          //
-          fill:
-            adjustType === anchor.adjustType && graph.id() === adjustGroupId
-              ? 'rgba(0,0,255,0.8)'
-              : 'rgba(0,0,255,0.2)',
-          radius: render.toStageValue(3),
-          strokeWidth: 0,
-          // 位置
-          x: x,
-          y: y,
-          offsetX:
-            anchor.adjustType === 'start' ? offsetX : anchor.adjustType === 'end' ? -offsetX : 0,
-          offsetY:
-            anchor.adjustType === 'start' ? offsetY : anchor.adjustType === 'end' ? -offsetY : 0,
-          // 旋转角度
-          rotation: graph.getAbsoluteRotation()
-        })
+          const cos = Math.cos((rotate * Math.PI) / 180)
+          const sin = Math.sin((rotate * Math.PI) / 180)
 
-        anchorShape.on('mouseenter', () => {
-          anchorShape.fill('rgba(0,0,255,0.8)')
-          document.body.style.cursor = 'move'
-        })
-        anchorShape.on('mouseleave', () => {
-          anchorShape.fill(anchorShape.attrs.adjusting ? 'rgba(0,0,255,0.8)' : 'rgba(0,0,255,0.2)')
-          document.body.style.cursor = anchorShape.attrs.adjusting ? 'move' : 'default'
-        })
+          const offset = render.toStageValue(render.pointSize + 5)
 
-        anchorAndShadow.shape = anchorShape
+          const offsetX = offset * sin
+          const offsetY = offset * cos
+
+          const anchorShape = new Konva.Circle({
+            name: 'anchor',
+            anchor: anchor,
+            //
+            fill:
+              adjustAnchor?.adjustType === anchor.adjustType && adjustAnchor?.groupId === graph.id()
+                ? 'rgba(0,0,255,0.8)'
+                : 'rgba(0,0,255,0.2)',
+            radius: render.toStageValue(3),
+            strokeWidth: 0,
+            // 位置
+            x: x,
+            y: y,
+            offsetX:
+              anchor.adjustType === 'start' ? offsetX : anchor.adjustType === 'end' ? -offsetX : 0,
+            offsetY:
+              anchor.adjustType === 'start' ? offsetY : anchor.adjustType === 'end' ? -offsetY : 0,
+            // 旋转角度
+            rotation: graph.getAbsoluteRotation()
+          })
+
+          anchorShape.on('mouseenter', () => {
+            anchorShape.fill('rgba(0,0,255,0.8)')
+            document.body.style.cursor = 'move'
+          })
+          anchorShape.on('mouseleave', () => {
+            anchorShape.fill(
+              anchorShape.attrs.adjusting ? 'rgba(0,0,255,0.8)' : 'rgba(0,0,255,0.2)'
+            )
+            document.body.style.cursor = anchorShape.attrs.adjusting ? 'move' : 'default'
+          })
+
+          anchorAndShadow.shape = anchorShape
+        }
       }
     }
 
@@ -230,34 +263,76 @@ export class Line extends BaseGraph {
         const { x: sx, y: sy } = Line.rotatePoint(ex, ey, centerX, centerY, -graphRotation)
         const { x: rx, y: ry } = Line.rotatePoint(x, y, centerX, centerY, -graphRotation)
 
-        const anchorShadow = anchorsSnap.find((o) => o.attrs.adjustType === adjustType)
+        const points = line.points()
+        const manualPoints = (line.attrs.manualPoints ?? []) as Types.LineManualPoint[]
 
-        if (anchorShadow) {
-          {
-            const points = line.points()
+        if (adjustType === 'manual') {
+          if (adjustShape.attrs.anchor?.manualIndex !== void 0) {
+            const index = adjustShape.attrs.anchor?.adjusted
+              ? adjustShape.attrs.anchor?.manualIndex
+              : adjustShape.attrs.anchor?.manualIndex + 1
+
+            const manualPointIndex = manualPoints.findIndex((o) => o.index === index)
+
+            if (manualPointIndex > -1) {
+              manualPoints[manualPointIndex].x = sx - rx
+              manualPoints[manualPointIndex].y = sy - ry
+            }
 
             const linkPoints = [
               [points[0], points[1]],
+              ...manualPoints.sort((a, b) => a.index - b.index).map((o) => [o.x, o.y]),
               [points[points.length - 2], points[points.length - 1]]
             ]
 
-            switch (adjustType) {
-              case 'start':
-                {
-                  linkPoints[0] = [sx - rx, sy - ry]
-                  line.points(_.flatten(linkPoints))
-                }
-                break
-              case 'end':
-                {
-                  linkPoints[linkPoints.length - 1] = [sx - rx, sy - ry]
-                  line.points(_.flatten(linkPoints))
-                }
-                break
+            line.setAttr('manualPoints', manualPoints)
+
+            line.points(_.flatten(linkPoints))
+
+            //
+            const adjustAnchorShadow = anchors.find(
+              (o) => o.attrs.adjustType === 'manual' && o.attrs.manualIndex === index
+            )
+            if (adjustAnchorShadow) {
+              adjustAnchorShadow.position({
+                x: sx - rx,
+                y: sy - ry
+              })
+            }
+          }
+        } else {
+          const anchor = anchors.find((o) => o.attrs.adjustType === adjustType)
+          const anchorShadow = anchorsSnap.find((o) => o.attrs.adjustType === adjustType)
+
+          if (anchor && anchorShadow) {
+            {
+              const linkPoints = [
+                [points[0], points[1]],
+                ...manualPoints.sort((a, b) => a.index - b.index).map((o) => [o.x, o.y]),
+                [points[points.length - 2], points[points.length - 1]]
+              ]
+
+              switch (adjustType) {
+                case 'start':
+                  {
+                    linkPoints[0] = [sx - rx, sy - ry]
+                    line.points(_.flatten(linkPoints))
+                  }
+                  break
+                case 'end':
+                  {
+                    linkPoints[linkPoints.length - 1] = [sx - rx, sy - ry]
+                    line.points(_.flatten(linkPoints))
+                  }
+                  break
+              }
             }
           }
         }
       }
+
+      // 更新 调整点（拐点）
+      Line.updateAnchor(render, graph)
 
       // 更新 调整点 的 锚点 位置
       Line.updateAnchorShadows(graph, anchors, line)
@@ -291,16 +366,30 @@ export class Line extends BaseGraph {
     }
   }
 
-  static override draw(
-    graph: Konva.Group,
-    render: Types.Render,
-    adjustType: string,
-    adjustGroupId: string
-  ) {
-    // 调整点 及其 锚点
-    const { anchorAndShadows } = super.draw(graph, render, adjustType, adjustGroupId)
+  /**
+   * 提供给 GraphDraw draw 使用
+   */
+  static override draw(graph: Konva.Group, render: Types.Render, adjustAnchor?: Types.GraphAnchor) {
+    // 调整点 信息
+    const anchors = (graph.attrs.anchors ?? []) as (Types.GraphAnchor & {
+      manualIndex?: number
+      adjusted?: boolean
+    })[]
+    // 调整点 锚点
+    const anchorShapes = graph.find(`.anchor`)
+    // 调整点 信息&锚点
+    const anchorAndShadows = anchors
+      .map((anchor) => ({
+        anchor,
+        anchorShadow: anchorShapes.find(
+          (shape) =>
+            shape.attrs.adjustType === anchor.adjustType &&
+            shape.attrs.manualIndex === anchor.manualIndex
+        ) as Konva.Circle
+      }))
+      .filter((o) => o.anchorShadow !== void 0)
 
-    return Line.createAnchorShapes(render, graph, anchorAndShadows, adjustType, adjustGroupId)
+    return Line.createAnchorShapes(render, graph, anchorAndShadows, adjustAnchor)
   }
 
   /**
@@ -391,6 +480,9 @@ export class Line extends BaseGraph {
       this.line.points(_.flatten(linkPoints))
     }
 
+    // 更新 调整点（拐点）
+    Line.updateAnchor(this.render, this.group)
+
     // 更新 图形 的 调整点 的 锚点位置
     Line.updateAnchorShadows(this.group, this.anchorShadows, this.line)
 
@@ -405,5 +497,150 @@ export class Line extends BaseGraph {
 
     // 重绘
     this.render.redraw([Draws.GraphDraw.name, Draws.LinkDraw.name, Draws.PreviewDraw.name])
+  }
+
+  /**
+   * 更新 调整点（拐点）
+   * @param render
+   * @param graph
+   */
+  static updateAnchor(render: Types.Render, graph: Konva.Group) {
+    const anchors = graph.attrs.anchors ?? []
+    const anchorShadows = graph.find('.anchor') ?? []
+
+    const shape = graph.findOne('.graph') as Konva.Line
+
+    if (shape) {
+      // 已拐
+      let manualPoints = (shape.attrs.manualPoints ?? []) as Types.LineManualPoint[]
+      const points = shape.points()
+
+      // 调整点 + 拐点
+      const linkPoints = [
+        [points[0], points[1]],
+        ...manualPoints.sort((a, b) => a.index - b.index).map((o) => [o.x, o.y]),
+        [points[points.length - 2], points[points.length - 1]]
+      ]
+
+      // 清空 调整点（拐点）,保留 start end
+      anchors.splice(2)
+      const shadows = anchorShadows.splice(2)
+      for (const shadow of shadows) {
+        shadow.remove()
+        shadow.destroy()
+      }
+
+      manualPoints = []
+
+      for (let i = linkPoints.length - 1; i > 0; i--) {
+        linkPoints.splice(i, 0, [])
+      }
+
+      // 调整点（拐点）
+      for (let i = 1; i < linkPoints.length - 1; i++) {
+        const anchor = {
+          type: graph.attrs.graphType,
+          adjustType: 'manual',
+          //
+          name: 'anchor',
+          groupId: graph.id(),
+          //
+          manualIndex: i,
+          adjusted: false
+        }
+
+        if (linkPoints[i].length === 0) {
+          anchor.adjusted = false
+
+          // 新增
+          const prev = linkPoints[i - 1]
+          const next = linkPoints[i + 1]
+
+          const circle = new Konva.Circle({
+            adjustType: anchor.adjustType,
+            anchorType: anchor.type,
+            name: anchor.name,
+            manualIndex: anchor.manualIndex,
+            radius: 0,
+            // radius: render.toStageValue(2),
+            // fill: 'red',
+            //
+            x: (prev[0] + next[0]) / 2,
+            y: (prev[1] + next[1]) / 2,
+            anchor
+          })
+
+          graph.add(circle)
+        } else {
+          anchor.adjusted = true
+
+          // 已拐
+          const circle = new Konva.Circle({
+            adjustType: anchor.adjustType,
+            anchorType: anchor.type,
+            name: anchor.name,
+            manualIndex: anchor.manualIndex,
+            adjusted: true,
+            radius: 0,
+            // radius: render.toStageValue(2),
+            // fill: 'red',
+            //
+            x: linkPoints[i][0],
+            y: linkPoints[i][1],
+            anchor
+          })
+
+          graph.add(circle)
+
+          manualPoints.push({
+            x: linkPoints[i][0],
+            y: linkPoints[i][1],
+            index: anchor.manualIndex
+          })
+        }
+
+        anchors.push(anchor)
+      }
+
+      shape.setAttr('manualPoints', manualPoints)
+
+      graph.setAttr('anchors', anchors)
+    }
+  }
+
+  /**
+   * 调整之前
+   */
+  static adjustStart(
+    render: Types.Render,
+    graph: Konva.Group,
+    adjustAnchor: Types.GraphAnchor & { manualIndex?: number; adjusted?: boolean },
+    endPoint: Konva.Vector2d
+  ) {
+    const { x: gx, y: gy } = graph.position()
+
+    const shape = graph.findOne('.graph') as Konva.Line
+
+    if (shape && typeof adjustAnchor.manualIndex === 'number') {
+      const manualPoints = (shape.attrs.manualPoints ?? []) as Types.LineManualPoint[]
+      if (adjustAnchor.adjusted) {
+        // const manualPointIndex = manualPoints.findIndex((o) => o.index === adjustAnchor.manualIndex)
+        // if (manualPointIndex > -1) {
+        //   manualPoints[manualPointIndex].x = endPoint.x - gx
+        //   manualPoints[manualPointIndex].y = endPoint.y - gy
+        // }
+        // shape.setAttr('manualPoints', manualPoints)
+      } else {
+        manualPoints.push({
+          x: endPoint.x - gx,
+          y: endPoint.y - gy,
+          index: adjustAnchor.manualIndex
+        })
+        shape.setAttr('manualPoints', manualPoints)
+      }
+
+      // 更新 调整点（拐点）
+      Line.updateAnchor(render, graph)
+    }
   }
 }

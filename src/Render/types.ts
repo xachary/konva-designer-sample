@@ -176,6 +176,12 @@ export interface ManualPoint {
   y: number
 }
 
+export interface LineManualPoint {
+  x: number
+  y: number
+  index: number
+}
+
 export interface ManualPointsMap {
   [index: string]: ManualPoint[]
 }
@@ -199,6 +205,8 @@ export interface GraphAnchor {
   //
   name?: string
   groupId?: string
+  //
+  adjusted?: boolean
 }
 
 export interface GraphAnchorShape {

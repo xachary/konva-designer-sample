@@ -17,8 +17,13 @@ export abstract class BaseGraph {
    * @param rotate 图形 的 旋转角度
    * @param anchorShadows 图形 的 调整点 的 锚点
    */
-  static updateAnchorShadows(graph: Konva.Group, anchorShadows: Konva.Circle[]) {
-    console.log('请实现 updateAnchorShadows', graph, anchorShadows)
+  static updateAnchorShadows(
+    // eslint-disable-next-line
+    graph: Konva.Group,
+    // eslint-disable-next-line
+    anchorShadows: Konva.Circle[]
+  ) {
+    console.log('请实现 updateAnchorShadows')
   }
 
   /**
@@ -28,8 +33,13 @@ export abstract class BaseGraph {
    * @param rotate 图形 的 旋转角度
    * @param anchors 图形 的 调整点 的 锚点
    */
-  static updateLinkAnchorShadows(graph: Konva.Group, linkAnchorShadows: Konva.Circle[]) {
-    console.log('请实现 updateLinkAnchorShadows', graph, linkAnchorShadows)
+  static updateLinkAnchorShadows(
+    // eslint-disable-next-line
+    graph: Konva.Group,
+    // eslint-disable-next-line
+    linkAnchorShadows: Konva.Circle[]
+  ) {
+    console.log('请实现 updateLinkAnchorShadows')
   }
 
   /**
@@ -37,29 +47,24 @@ export abstract class BaseGraph {
    * @param render 渲染实例
    * @param graph 图形
    * @param anchorAndShadows 调整点 及其 锚点
-   * @param adjustType 正在操作的 调整点 类型
-   * @param adjustGroupId 正在操作的 group Id
+   * @param adjustAnchor 正在操作的 调整点
    * @returns
    */
   static createAnchorShapes(
+    // eslint-disable-next-line
     render: Render,
+    // eslint-disable-next-line
     graph: Konva.Group,
+    // eslint-disable-next-line
     anchorAndShadows: {
       anchor: Types.GraphAnchor
       anchorShadow: Konva.Circle
       shape?: Konva.Shape
     }[],
-    adjustType: string,
-    adjustGroupId: string
+    // eslint-disable-next-line
+    adjustAnchor: Types.GraphAnchor,
   ) {
-    console.log(
-      '请实现 createAnchorShapes',
-      render,
-      graph,
-      anchorAndShadows,
-      adjustType,
-      adjustGroupId
-    )
+    console.log('请实现 createAnchorShapes')
     return
   }
 
@@ -74,28 +79,26 @@ export abstract class BaseGraph {
    * @param endPoint 鼠标拖动位置
    */
   static adjust(
+    // eslint-disable-next-line
     render: Render,
+    // eslint-disable-next-line
     graph: Konva.Group,
+    // eslint-disable-next-line
     graphSnap: Konva.Group,
+    // eslint-disable-next-line
     adjustShape: Konva.Shape,
+    // eslint-disable-next-line
     anchorAndShadows: {
       anchor: Types.GraphAnchor
       anchorShadow: Konva.Circle
       shape?: Konva.Shape | undefined
     }[],
+    // eslint-disable-next-line
     startPoint: Konva.Vector2d,
+    // eslint-disable-next-line
     endPoint: Konva.Vector2d
   ) {
-    console.log(
-      '请实现 updateAnchorShadows',
-      render,
-      graph,
-      graphSnap,
-      adjustShape,
-      anchorAndShadows,
-      startPoint,
-      endPoint
-    )
+    console.log('请实现 updateAnchorShadows')
   }
 
   static draw(
@@ -103,9 +106,7 @@ export abstract class BaseGraph {
     // eslint-disable-next-line
     render: Types.Render,
     // eslint-disable-next-line
-    adjustType: string,
-    // eslint-disable-next-line
-    adjustGroupId: string
+    adjustAnchor?: Types.GraphAnchor,
   ): {
     anchorAndShadows: {
       anchor: Types.GraphAnchor
