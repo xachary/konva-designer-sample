@@ -68,6 +68,8 @@
 
 ![3](https://github.com/user-attachments/assets/af058ab2-1959-408a-9fa3-7f5aa99b112b)
 
+![5](https://github.com/user-attachments/assets/14a51452-e498-4eac-8196-c2410650ba78)
+
 ## 功能点
 
 - 无限画布（√）
@@ -90,9 +92,9 @@
 - 对齐效果（√）
 - 连接线[自动、直线、折线]（√）
 - 素材组合[深度]（√）
-- 基本图形绘制（线、曲线、矩形✓、圆形✓）
+- 基本图形绘制（线✓、曲线✓、矩形✓、圆形✓）
+- 层级结构面板
 
 ## 需要解决的
 
 - 自动连接线需优化
-- 节点 destory 后 JS event listeners 不降反升
