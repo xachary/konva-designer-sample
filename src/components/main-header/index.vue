@@ -192,7 +192,7 @@
                 <NTooltip trigger="hover" :delay="1000">
                     <template #trigger>
                         <NButton tag="div" size="tiny" quaternary :focusable="false"
-                            @click="onGraph(Types.GraphType.Curve)" disabled>
+                            @click="onGraph(Types.GraphType.Curve)">
                             <template #icon>
                                 <NIcon :depth="props.graphType === Types.GraphType.Curve ? 1 : 3">
                                     <DataLine20Regular />

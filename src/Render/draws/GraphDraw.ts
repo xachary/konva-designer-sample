@@ -125,6 +125,14 @@ export class GraphDraw extends Types.BaseDraw implements Types.Draw {
               anchorAndShadows = res.anchorAndShadows
             }
             break
+
+          case Types.GraphType.Curve:
+            {
+              const res = Graphs.Curve.draw(graph, this.render, this.state.adjustAnchor)
+
+              anchorAndShadows = res.anchorAndShadows
+            }
+            break
         }
 
         for (const anchorAndShadow of anchorAndShadows) {
@@ -151,6 +159,10 @@ export class GraphDraw extends Types.BaseDraw implements Types.Draw {
                     case Types.GraphType.Line:
                       // 使用 直线、折线 静态处理方法
                       Graphs.Line.adjustStart(this.render, graph, this.state.adjustAnchor, pos)
+                      break
+                    case Types.GraphType.Curve:
+                      // 使用 直线、折线 静态处理方法
+                      Graphs.Curve.adjustStart(this.render, graph, this.state.adjustAnchor, pos)
                       break
                   }
                 }
@@ -201,6 +213,18 @@ export class GraphDraw extends Types.BaseDraw implements Types.Draw {
                           pos
                         )
                         break
+                      case Types.GraphType.Curve:
+                        // 使用 直线、折线 静态处理方法
+                        Graphs.Curve.adjust(
+                          this.render,
+                          graph,
+                          this.state.graphCurrentSnap,
+                          shape,
+                          anchorAndShadows,
+                          this.state.startPointCurrent,
+                          pos
+                        )
+                        break
                     }
 
                     // 重绘
@@ -236,7 +260,9 @@ export class GraphDraw extends Types.BaseDraw implements Types.Draw {
                 if (shape) {
                   shape.opacity(1)
                   shape.setAttr('adjusting', false)
-                  if (shape.attrs.anchor?.type === Types.GraphType.Line) {
+                  if (
+                    [Types.GraphType.Line, Types.GraphType.Curve].includes(shape.attrs.anchor?.type)
+                  ) {
                     if (shape.attrs.anchor.adjusted) {
                       shape.fill('rgba(0,0,0,0.4)')
                     } else {

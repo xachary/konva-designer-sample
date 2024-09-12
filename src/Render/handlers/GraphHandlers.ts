@@ -71,6 +71,9 @@ export class GraphHandlers implements Types.Handler {
               } else if (this.render.graphType === Types.GraphType.Line) {
                 // 新建 直线、折线
                 this.currentGraph = new Graphs.Line(this.render, point)
+              } else if (this.render.graphType === Types.GraphType.Curve) {
+                // 新建 曲线
+                this.currentGraph = new Graphs.Curve(this.render, point)
               }
             }
           }

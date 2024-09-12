@@ -7,9 +7,9 @@ import * as Draws from '../draws'
 import { BaseGraph } from './BaseGraph'
 
 /**
- * 直线、折线
+ * 曲线
  */
-export class Line extends BaseGraph {
+export class Curve extends BaseGraph {
   // 实现：更新 图形 的 调整点 的 锚点位置
   static override updateAnchorShadows(
     graph: Konva.Group,
@@ -134,9 +134,9 @@ export class Line extends BaseGraph {
           anchorAndShadow.shape = anchorShape
         } else {
           if (anchor.adjustType === 'start') {
-            rotate = Line.calculateAngle(points[2] - points[0], points[3] - points[1])
+            rotate = Curve.calculateAngle(points[2] - points[0], points[3] - points[1])
           } else if (anchor.adjustType === 'end') {
-            rotate = Line.calculateAngle(
+            rotate = Curve.calculateAngle(
               points[points.length - 2] - points[points.length - 4],
               points[points.length - 1] - points[points.length - 3]
             )
@@ -229,7 +229,7 @@ export class Line extends BaseGraph {
     startPoint: Konva.Vector2d,
     endPoint: Konva.Vector2d
   ) {
-    // 目标 直线、折线
+    // 目标 曲线
     const line = graph.findOne('.graph') as Konva.Line
     // 镜像
     const lineSnap = graphSnap.findOne('.graph') as Konva.Line
@@ -260,8 +260,8 @@ export class Line extends BaseGraph {
 
         const [centerX, centerY] = [cx + cw / 2, cy + ch / 2]
 
-        const { x: sx, y: sy } = Line.rotatePoint(ex, ey, centerX, centerY, -graphRotation)
-        const { x: rx, y: ry } = Line.rotatePoint(x, y, centerX, centerY, -graphRotation)
+        const { x: sx, y: sy } = Curve.rotatePoint(ex, ey, centerX, centerY, -graphRotation)
+        const { x: rx, y: ry } = Curve.rotatePoint(x, y, centerX, centerY, -graphRotation)
 
         const points = line.points()
         const manualPoints = (line.attrs.manualPoints ?? []) as Types.LineManualPoint[]
@@ -332,13 +332,13 @@ export class Line extends BaseGraph {
       }
 
       // 更新 调整点（拐点）
-      Line.updateAnchor(render, graph)
+      Curve.updateAnchor(render, graph)
 
       // 更新 调整点 的 锚点 位置
-      Line.updateAnchorShadows(graph, anchors, line)
+      Curve.updateAnchorShadows(graph, anchors, line)
 
       // 更新 图形 的 连接点 的 锚点位置
-      Line.updateLinkAnchorShadows(graph, linkAnchors, line)
+      Curve.updateLinkAnchorShadows(graph, linkAnchors, line)
 
       // 更新 调整点 位置
       for (const anchor of anchors) {
@@ -389,7 +389,7 @@ export class Line extends BaseGraph {
       }))
       .filter((o) => o.anchorShadow !== void 0)
 
-    return Line.createAnchorShapes(render, graph, anchorAndShadows, adjustAnchor)
+    return Curve.createAnchorShapes(render, graph, anchorAndShadows, adjustAnchor)
   }
 
   /**
@@ -397,13 +397,13 @@ export class Line extends BaseGraph {
    */
   static size = 100
   /**
-   * 直线、折线 对应的 Konva 实例
+   * 曲线 对应的 Konva 实例
    */
   private line: Konva.Line
 
   constructor(render: Types.Render, dropPoint: Konva.Vector2d) {
     super(render, dropPoint, {
-      type: Types.GraphType.Line,
+      type: Types.GraphType.Curve,
       // 定义了 2 个 调整点
       anchors: [{ adjustType: 'start' }, { adjustType: 'end' }].map((o) => ({
         adjustType: o.adjustType // 调整点 类型定义
@@ -414,7 +414,7 @@ export class Line extends BaseGraph {
       ] as Types.AssetInfoPoint[]
     })
 
-    // 新建 直线、折线
+    // 新建 曲线
     this.line = new Konva.Line({
       name: 'graph',
       x: 0,
@@ -422,6 +422,7 @@ export class Line extends BaseGraph {
       stroke: 'black',
       strokeWidth: 1,
       hitStrokeWidth: render.toStageValue(5),
+      tension: 0.5
     })
 
     // 给予 1 像素，防止导出图片 toDataURL 失败
@@ -448,14 +449,14 @@ export class Line extends BaseGraph {
       [this.line.x() + offsetX, this.line.y() + offsetY]
     ]
 
-    // 直线、折线 路径
+    // 曲线 路径
     this.line.points(_.flatten(linkPoints))
 
     // 更新 图形 的 调整点 的 锚点位置
-    Line.updateAnchorShadows(this.group, this.anchorShadows, this.line)
+    Curve.updateAnchorShadows(this.group, this.anchorShadows, this.line)
 
     // 更新 图形 的 连接点 的 锚点位置
-    Line.updateLinkAnchorShadows(this.group, this.linkAnchorShadows, this.line)
+    Curve.updateLinkAnchorShadows(this.group, this.linkAnchorShadows, this.line)
 
     // 重绘
     this.render.redraw([Draws.GraphDraw.name, Draws.LinkDraw.name, Draws.PreviewDraw.name])
@@ -467,7 +468,7 @@ export class Line extends BaseGraph {
       // 加入只点击，无拖动
 
       // 默认大小
-      const width = Line.size,
+      const width = Curve.size,
         height = width
 
       // 起点、终点
@@ -476,18 +477,18 @@ export class Line extends BaseGraph {
         [this.line.x() + width, this.line.y() + height]
       ]
 
-      // 直线、折线 位置大小
+      // 曲线 位置大小
       this.line.points(_.flatten(linkPoints))
     }
 
     // 更新 调整点（拐点）
-    Line.updateAnchor(this.render, this.group)
+    Curve.updateAnchor(this.render, this.group)
 
     // 更新 图形 的 调整点 的 锚点位置
-    Line.updateAnchorShadows(this.group, this.anchorShadows, this.line)
+    Curve.updateAnchorShadows(this.group, this.anchorShadows, this.line)
 
     // 更新 图形 的 连接点 的 锚点位置
-    Line.updateLinkAnchorShadows(this.group, this.linkAnchorShadows, this.line)
+    Curve.updateLinkAnchorShadows(this.group, this.linkAnchorShadows, this.line)
 
     // 对齐线清除
     this.render.attractTool.alignLinesClear()
@@ -640,7 +641,7 @@ export class Line extends BaseGraph {
       }
 
       // 更新 调整点（拐点）
-      Line.updateAnchor(render, graph)
+      Curve.updateAnchor(render, graph)
     }
   }
 }
