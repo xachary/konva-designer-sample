@@ -28259,6 +28259,446 @@ const _Line = class _Line extends BaseGraph {
  */
 __publicField(_Line, "size", 100);
 let Line2 = _Line;
+const _Curve = class _Curve extends BaseGraph {
+  constructor(render21, dropPoint) {
+    super(render21, dropPoint, {
+      type: GraphType.Curve,
+      // 定义了 2 个 调整点
+      anchors: [{ adjustType: "start" }, { adjustType: "end" }].map((o) => ({
+        adjustType: o.adjustType
+        // 调整点 类型定义
+      })),
+      linkAnchors: [
+        { x: 0, y: 0, alias: "start" },
+        { x: 0, y: 0, alias: "end" }
+      ]
+    });
+    /**
+     * 曲线 对应的 Konva 实例
+     */
+    __publicField(this, "line");
+    this.line = new Konva.Line({
+      name: "graph",
+      x: 0,
+      y: 0,
+      stroke: "black",
+      strokeWidth: 1,
+      hitStrokeWidth: render21.toStageValue(5),
+      tension: 0.5
+    });
+    this.group.size({
+      width: 1,
+      height: 1
+    });
+    this.group.add(this.line);
+    this.group.position(this.dropPoint);
+  }
+  // 实现：更新 图形 的 调整点 的 锚点位置
+  static updateAnchorShadows(graph, anchorShadows, shape) {
+    if (shape) {
+      const points = shape.points();
+      for (const shadow of anchorShadows) {
+        switch (shadow.attrs.adjustType) {
+          case "start":
+            shadow.position({
+              x: points[0],
+              y: points[1]
+            });
+            break;
+          case "end":
+            shadow.position({
+              x: points[points.length - 2],
+              y: points[points.length - 1]
+            });
+            break;
+        }
+      }
+    }
+  }
+  // 实现：更新 图形 的 连接点 的 锚点位置
+  static updateLinkAnchorShadows(graph, linkAnchorShadows, shape) {
+    if (shape) {
+      const points = shape.points();
+      for (const shadow of linkAnchorShadows) {
+        switch (shadow.attrs.alias) {
+          case "start":
+            shadow.position({
+              x: points[0],
+              y: points[1]
+            });
+            break;
+          case "end":
+            shadow.position({
+              x: points[points.length - 2],
+              y: points[points.length - 1]
+            });
+            break;
+        }
+      }
+    }
+  }
+  static calculateAngle(sideA, sideB) {
+    const angleInRadians = Math.atan2(sideA, sideB);
+    const angleInDegrees = angleInRadians * (180 / Math.PI);
+    return angleInDegrees;
+  }
+  // 实现：生成 调整点
+  static createAnchorShapes(render21, graph, anchorAndShadows, adjustAnchor) {
+    const stageState = render21.getStageState();
+    const graphShape = graph.findOne(".graph");
+    if (graphShape) {
+      const points = graphShape.points();
+      for (const anchorAndShadow of anchorAndShadows) {
+        let rotate = 0;
+        const { anchor, anchorShadow } = anchorAndShadow;
+        const x = render21.toStageValue(anchorShadow.getAbsolutePosition().x - stageState.x), y = render21.toStageValue(anchorShadow.getAbsolutePosition().y - stageState.y);
+        if (anchor.adjustType === "manual") {
+          const anchorShape = new Konva.Circle({
+            name: "anchor",
+            anchor,
+            //
+            fill: anchor.adjusted ? "rgba(0,0,0,0.4)" : "rgba(0,0,255,0.2)",
+            radius: render21.toStageValue(3),
+            strokeWidth: 0,
+            // 位置
+            x,
+            y,
+            // 旋转角度
+            rotation: graph.getAbsoluteRotation()
+          });
+          anchorShape.on("mouseenter", () => {
+            anchorShape.fill("rgba(0,0,255,0.8)");
+            document.body.style.cursor = "move";
+            anchorShape.radius(render21.toStageValue(7));
+          });
+          anchorShape.on("mouseleave", () => {
+            var _a;
+            anchorShape.fill(
+              ((_a = anchorShape.attrs.anchor) == null ? void 0 : _a.adjusted) ? "rgba(0,0,0,0.4)" : "rgba(0,0,255,0.2)"
+            );
+            anchorShape.radius(render21.toStageValue(3));
+            document.body.style.cursor = anchorShape.attrs.adjusting ? "move" : "default";
+          });
+          anchorAndShadow.shape = anchorShape;
+        } else {
+          if (anchor.adjustType === "start") {
+            rotate = _Curve.calculateAngle(points[2] - points[0], points[3] - points[1]);
+          } else if (anchor.adjustType === "end") {
+            rotate = _Curve.calculateAngle(
+              points[points.length - 2] - points[points.length - 4],
+              points[points.length - 1] - points[points.length - 3]
+            );
+          }
+          const cos = Math.cos(rotate * Math.PI / 180);
+          const sin = Math.sin(rotate * Math.PI / 180);
+          const offset = render21.toStageValue(render21.pointSize + 5);
+          const offsetX = offset * sin;
+          const offsetY = offset * cos;
+          const anchorShape = new Konva.Circle({
+            name: "anchor",
+            anchor,
+            //
+            fill: (adjustAnchor == null ? void 0 : adjustAnchor.adjustType) === anchor.adjustType && (adjustAnchor == null ? void 0 : adjustAnchor.groupId) === graph.id() ? "rgba(0,0,255,0.8)" : "rgba(0,0,255,0.2)",
+            radius: render21.toStageValue(3),
+            strokeWidth: 0,
+            // 位置
+            x,
+            y,
+            offsetX: anchor.adjustType === "start" ? offsetX : anchor.adjustType === "end" ? -offsetX : 0,
+            offsetY: anchor.adjustType === "start" ? offsetY : anchor.adjustType === "end" ? -offsetY : 0,
+            // 旋转角度
+            rotation: graph.getAbsoluteRotation()
+          });
+          anchorShape.on("mouseenter", () => {
+            anchorShape.fill("rgba(0,0,255,0.8)");
+            document.body.style.cursor = "move";
+          });
+          anchorShape.on("mouseleave", () => {
+            anchorShape.fill(
+              anchorShape.attrs.adjusting ? "rgba(0,0,255,0.8)" : "rgba(0,0,255,0.2)"
+            );
+            document.body.style.cursor = anchorShape.attrs.adjusting ? "move" : "default";
+          });
+          anchorAndShadow.shape = anchorShape;
+        }
+      }
+    }
+    return { anchorAndShadows };
+  }
+  /**
+   * 矩阵变换：坐标系中的一个点，围绕着另外一个点进行旋转
+   * -  -   -        - -   -   - -
+   * |x`|   |cos -sin| |x-a|   |a|
+   * |  | = |        | |   | +
+   * |y`|   |sin  cos| |y-b|   |b|
+   * -  -   -        - -   -   - -
+   * @param x 目标节点坐标 x
+   * @param y 目标节点坐标 y
+   * @param centerX 围绕的点坐标 x
+   * @param centerY 围绕的点坐标 y
+   * @param angle 旋转角度
+   * @returns
+   */
+  static rotatePoint(x, y, centerX, centerY, angle) {
+    const radians = angle * Math.PI / 180;
+    const newX = Math.cos(radians) * (x - centerX) - Math.sin(radians) * (y - centerY) + centerX;
+    const newY = Math.sin(radians) * (x - centerX) + Math.cos(radians) * (y - centerY) + centerY;
+    return { x: newX, y: newY };
+  }
+  // 实现：调整 图形
+  static adjust(render21, graph, graphSnap, adjustShape, anchorAndShadows, startPoint, endPoint) {
+    var _a, _b, _c, _d, _e, _f;
+    const line = graph.findOne(".graph");
+    const lineSnap = graphSnap.findOne(".graph");
+    const anchors = graph.find(".anchor") ?? [];
+    const anchorsSnap = graphSnap.find(".anchor") ?? [];
+    const linkAnchors = graph.find(".link-anchor") ?? [];
+    if (line && lineSnap) {
+      const stageState = render21.getStageState();
+      {
+        const [graphRotation, adjustType, ex, ey] = [
+          Math.round(graph.rotation()),
+          (_a = adjustShape.attrs.anchor) == null ? void 0 : _a.adjustType,
+          endPoint.x,
+          endPoint.y
+        ];
+        const { x: cx, y: cy, width: cw, height: ch } = graphSnap.getClientRect();
+        const { x, y } = graph.position();
+        const [centerX, centerY] = [cx + cw / 2, cy + ch / 2];
+        const { x: sx, y: sy } = _Curve.rotatePoint(ex, ey, centerX, centerY, -graphRotation);
+        const { x: rx, y: ry } = _Curve.rotatePoint(x, y, centerX, centerY, -graphRotation);
+        const points = line.points();
+        const manualPoints = line.attrs.manualPoints ?? [];
+        if (adjustType === "manual") {
+          if (((_b = adjustShape.attrs.anchor) == null ? void 0 : _b.manualIndex) !== void 0) {
+            const index = ((_c = adjustShape.attrs.anchor) == null ? void 0 : _c.adjusted) ? (_d = adjustShape.attrs.anchor) == null ? void 0 : _d.manualIndex : ((_e = adjustShape.attrs.anchor) == null ? void 0 : _e.manualIndex) + 1;
+            const manualPointIndex = manualPoints.findIndex((o) => o.index === index);
+            if (manualPointIndex > -1) {
+              manualPoints[manualPointIndex].x = sx - rx;
+              manualPoints[manualPointIndex].y = sy - ry;
+            }
+            const linkPoints = [
+              [points[0], points[1]],
+              ...manualPoints.sort((a, b) => a.index - b.index).map((o) => [o.x, o.y]),
+              [points[points.length - 2], points[points.length - 1]]
+            ];
+            line.setAttr("manualPoints", manualPoints);
+            line.points(lodash.flatten(linkPoints));
+            const adjustAnchorShadow = anchors.find(
+              (o) => o.attrs.adjustType === "manual" && o.attrs.manualIndex === index
+            );
+            if (adjustAnchorShadow) {
+              adjustAnchorShadow.position({
+                x: sx - rx,
+                y: sy - ry
+              });
+            }
+          }
+        } else {
+          const anchor = anchors.find((o) => o.attrs.adjustType === adjustType);
+          const anchorShadow = anchorsSnap.find((o) => o.attrs.adjustType === adjustType);
+          if (anchor && anchorShadow) {
+            {
+              const linkPoints = [
+                [points[0], points[1]],
+                ...manualPoints.sort((a, b) => a.index - b.index).map((o) => [o.x, o.y]),
+                [points[points.length - 2], points[points.length - 1]]
+              ];
+              switch (adjustType) {
+                case "start":
+                  {
+                    linkPoints[0] = [sx - rx, sy - ry];
+                    line.points(lodash.flatten(linkPoints));
+                  }
+                  break;
+                case "end":
+                  {
+                    linkPoints[linkPoints.length - 1] = [sx - rx, sy - ry];
+                    line.points(lodash.flatten(linkPoints));
+                  }
+                  break;
+              }
+            }
+          }
+        }
+      }
+      _Curve.updateAnchor(render21, graph);
+      _Curve.updateAnchorShadows(graph, anchors, line);
+      _Curve.updateLinkAnchorShadows(graph, linkAnchors, line);
+      for (const anchor of anchors) {
+        for (const { shape } of anchorAndShadows) {
+          if (shape) {
+            if (((_f = shape.attrs.anchor) == null ? void 0 : _f.adjustType) === anchor.attrs.adjustType) {
+              const anchorShadow = graph.find(`.anchor`).find((o) => o.attrs.adjustType === anchor.attrs.adjustType);
+              if (anchorShadow) {
+                shape.position({
+                  x: render21.toStageValue(anchorShadow.getAbsolutePosition().x - stageState.x),
+                  y: render21.toStageValue(anchorShadow.getAbsolutePosition().y - stageState.y)
+                });
+                shape.rotation(graph.getAbsoluteRotation());
+              }
+            }
+          }
+        }
+      }
+      render21.redraw([GraphDraw.name, LinkDraw.name, PreviewDraw.name]);
+    }
+  }
+  /**
+   * 提供给 GraphDraw draw 使用
+   */
+  static draw(graph, render21, adjustAnchor) {
+    const anchors = graph.attrs.anchors ?? [];
+    const anchorShapes = graph.find(`.anchor`);
+    const anchorAndShadows = anchors.map((anchor) => ({
+      anchor,
+      anchorShadow: anchorShapes.find(
+        (shape) => shape.attrs.adjustType === anchor.adjustType && shape.attrs.manualIndex === anchor.manualIndex
+      )
+    })).filter((o) => o.anchorShadow !== void 0);
+    return _Curve.createAnchorShapes(render21, graph, anchorAndShadows, adjustAnchor);
+  }
+  // 实现：拖动进行时
+  drawMove(point) {
+    const offsetX = point.x - this.dropPoint.x, offsetY = point.y - this.dropPoint.y;
+    const linkPoints = [
+      [this.line.x(), this.line.y()],
+      [this.line.x() + offsetX, this.line.y() + offsetY]
+    ];
+    this.line.points(lodash.flatten(linkPoints));
+    _Curve.updateAnchorShadows(this.group, this.anchorShadows, this.line);
+    _Curve.updateLinkAnchorShadows(this.group, this.linkAnchorShadows, this.line);
+    this.render.redraw([GraphDraw.name, LinkDraw.name, PreviewDraw.name]);
+  }
+  // 实现：拖动结束
+  drawEnd() {
+    if (this.line.width() <= 1 && this.line.height() <= 1) {
+      const width = _Curve.size, height = width;
+      const linkPoints = [
+        [this.line.x(), this.line.y()],
+        [this.line.x() + width, this.line.y() + height]
+      ];
+      this.line.points(lodash.flatten(linkPoints));
+    }
+    _Curve.updateAnchor(this.render, this.group);
+    _Curve.updateAnchorShadows(this.group, this.anchorShadows, this.line);
+    _Curve.updateLinkAnchorShadows(this.group, this.linkAnchorShadows, this.line);
+    this.render.attractTool.alignLinesClear();
+    this.render.updateHistory();
+    this.render.redraw([GraphDraw.name, LinkDraw.name, PreviewDraw.name]);
+  }
+  /**
+   * 更新 调整点（拐点）
+   * @param render
+   * @param graph
+   */
+  static updateAnchor(render21, graph) {
+    const anchors = graph.attrs.anchors ?? [];
+    const anchorShadows = graph.find(".anchor") ?? [];
+    const shape = graph.findOne(".graph");
+    if (shape) {
+      let manualPoints = shape.attrs.manualPoints ?? [];
+      const points = shape.points();
+      const linkPoints = [
+        [points[0], points[1]],
+        ...manualPoints.sort((a, b) => a.index - b.index).map((o) => [o.x, o.y]),
+        [points[points.length - 2], points[points.length - 1]]
+      ];
+      anchors.splice(2);
+      const shadows = anchorShadows.splice(2);
+      for (const shadow of shadows) {
+        shadow.remove();
+        shadow.destroy();
+      }
+      manualPoints = [];
+      for (let i = linkPoints.length - 1; i > 0; i--) {
+        linkPoints.splice(i, 0, []);
+      }
+      for (let i = 1; i < linkPoints.length - 1; i++) {
+        const anchor = {
+          type: graph.attrs.graphType,
+          adjustType: "manual",
+          //
+          name: "anchor",
+          groupId: graph.id(),
+          //
+          manualIndex: i,
+          adjusted: false
+        };
+        if (linkPoints[i].length === 0) {
+          anchor.adjusted = false;
+          const prev = linkPoints[i - 1];
+          const next = linkPoints[i + 1];
+          const circle = new Konva.Circle({
+            adjustType: anchor.adjustType,
+            anchorType: anchor.type,
+            name: anchor.name,
+            manualIndex: anchor.manualIndex,
+            radius: 0,
+            // radius: render.toStageValue(2),
+            // fill: 'red',
+            //
+            x: (prev[0] + next[0]) / 2,
+            y: (prev[1] + next[1]) / 2,
+            anchor
+          });
+          graph.add(circle);
+        } else {
+          anchor.adjusted = true;
+          const circle = new Konva.Circle({
+            adjustType: anchor.adjustType,
+            anchorType: anchor.type,
+            name: anchor.name,
+            manualIndex: anchor.manualIndex,
+            adjusted: true,
+            radius: 0,
+            // radius: render.toStageValue(2),
+            // fill: 'red',
+            //
+            x: linkPoints[i][0],
+            y: linkPoints[i][1],
+            anchor
+          });
+          graph.add(circle);
+          manualPoints.push({
+            x: linkPoints[i][0],
+            y: linkPoints[i][1],
+            index: anchor.manualIndex
+          });
+        }
+        anchors.push(anchor);
+      }
+      shape.setAttr("manualPoints", manualPoints);
+      graph.setAttr("anchors", anchors);
+    }
+  }
+  /**
+   * 调整之前
+   */
+  static adjustStart(render21, graph, adjustAnchor, endPoint) {
+    const { x: gx, y: gy } = graph.position();
+    const shape = graph.findOne(".graph");
+    if (shape && typeof adjustAnchor.manualIndex === "number") {
+      const manualPoints = shape.attrs.manualPoints ?? [];
+      if (adjustAnchor.adjusted)
+        ;
+      else {
+        manualPoints.push({
+          x: endPoint.x - gx,
+          y: endPoint.y - gy,
+          index: adjustAnchor.manualIndex
+        });
+        shape.setAttr("manualPoints", manualPoints);
+      }
+      _Curve.updateAnchor(render21, graph);
+    }
+  }
+};
+/**
+ * 默认图形大小
+ */
+__publicField(_Curve, "size", 100);
+let Curve = _Curve;
 const _GraphDraw = class _GraphDraw extends BaseDraw {
   constructor(render21, layer, option) {
     super(render21, layer);
@@ -28321,6 +28761,12 @@ const _GraphDraw = class _GraphDraw extends BaseDraw {
               anchorAndShadows = res.anchorAndShadows;
             }
             break;
+          case GraphType.Curve:
+            {
+              const res = Curve.draw(graph, this.render, this.state.adjustAnchor);
+              anchorAndShadows = res.anchorAndShadows;
+            }
+            break;
         }
         for (const anchorAndShadow of anchorAndShadows) {
           const { shape } = anchorAndShadow;
@@ -28340,6 +28786,9 @@ const _GraphDraw = class _GraphDraw extends BaseDraw {
                   switch ((_a = shape.attrs.anchor) == null ? void 0 : _a.type) {
                     case GraphType.Line:
                       Line2.adjustStart(this.render, graph, this.state.adjustAnchor, pos);
+                      break;
+                    case GraphType.Curve:
+                      Curve.adjustStart(this.render, graph, this.state.adjustAnchor, pos);
                       break;
                   }
                 }
@@ -28385,6 +28834,17 @@ const _GraphDraw = class _GraphDraw extends BaseDraw {
                           pos
                         );
                         break;
+                      case GraphType.Curve:
+                        Curve.adjust(
+                          this.render,
+                          graph,
+                          this.state.graphCurrentSnap,
+                          shape,
+                          anchorAndShadows,
+                          this.state.startPointCurrent,
+                          pos
+                        );
+                        break;
                     }
                     this.render.redraw([
                       _GraphDraw.name,
@@ -28412,7 +28872,7 @@ const _GraphDraw = class _GraphDraw extends BaseDraw {
                 if (shape2) {
                   shape2.opacity(1);
                   shape2.setAttr("adjusting", false);
-                  if (((_a = shape2.attrs.anchor) == null ? void 0 : _a.type) === GraphType.Line) {
+                  if ([GraphType.Line, GraphType.Curve].includes((_a = shape2.attrs.anchor) == null ? void 0 : _a.type)) {
                     if (shape2.attrs.anchor.adjusted) {
                       shape2.fill("rgba(0,0,0,0.4)");
                     } else {
@@ -29258,6 +29718,8 @@ class GraphHandlers {
                   this.currentGraph = new Rect2(this.render, point);
                 } else if (this.render.graphType === GraphType.Line) {
                   this.currentGraph = new Line2(this.render, point);
+                } else if (this.render.graphType === GraphType.Curve) {
+                  this.currentGraph = new Curve(this.render, point);
                 }
               }
             }
@@ -44673,7 +45135,7 @@ const IosUndo = /* @__PURE__ */ defineComponent({
     return openBlock(), createElementBlock("svg", _hoisted_1$3, _hoisted_3$3);
   }
 });
-const _withScopeId$1 = (n) => (pushScopeId("data-v-67f31d83"), n = n(), popScopeId(), n);
+const _withScopeId$1 = (n) => (pushScopeId("data-v-7d0e86a9"), n = n(), popScopeId(), n);
 const _hoisted_1$2 = { class: "main-header" };
 const _hoisted_2$2 = /* @__PURE__ */ _withScopeId$1(() => /* @__PURE__ */ createBaseVNode("img", {
   class: "main-header__logo",
@@ -45652,8 +46114,7 @@ const _sfc_main$2 = /* @__PURE__ */ defineComponent({
                   size: "tiny",
                   quaternary: "",
                   focusable: false,
-                  onClick: _cache[11] || (_cache[11] = ($event) => onGraph(GraphType.Curve)),
-                  disabled: ""
+                  onClick: _cache[11] || (_cache[11] = ($event) => onGraph(GraphType.Curve))
                 }, {
                   icon: withCtx(() => [
                     createVNode(unref(NIcon), {
@@ -45812,7 +46273,7 @@ const _export_sfc = (sfc, props) => {
   }
   return target;
 };
-const MainHeader = /* @__PURE__ */ _export_sfc(_sfc_main$2, [["__scopeId", "data-v-67f31d83"]]);
+const MainHeader = /* @__PURE__ */ _export_sfc(_sfc_main$2, [["__scopeId", "data-v-7d0e86a9"]]);
 const assetsModules = {
   svg: [
     {
@@ -46457,7 +46918,7 @@ const logArray = (words2) => {
     console.error(e);
   }
 };
-var define_BUILD_INFO_default = { lastBuildTime: "2024-09-10 15:03:34", git: { branch: "master", hash: "be4f1c07e1db179acd9ba5e015267b8fa622a8eb", tag: "chapter21" } };
+var define_BUILD_INFO_default = { lastBuildTime: "2024-09-12 15:29:12", git: { branch: "master", hash: "2934559ab22dc4d730ad49e787f0e7e949ee4c08", tag: "chapter21" } };
 const {
   lastBuildTime,
   git: { branch, tag, hash }
