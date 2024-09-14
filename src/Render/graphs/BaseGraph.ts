@@ -62,7 +62,7 @@ export abstract class BaseGraph {
       shape?: Konva.Shape
     }[],
     // eslint-disable-next-line
-    adjustAnchor: Types.GraphAnchor,
+    adjustAnchor: Types.GraphAnchor
   ) {
     console.log('请实现 createAnchorShapes')
     return
@@ -106,7 +106,7 @@ export abstract class BaseGraph {
     // eslint-disable-next-line
     render: Types.Render,
     // eslint-disable-next-line
-    adjustAnchor?: Types.GraphAnchor,
+    adjustAnchor?: Types.GraphAnchor
   ): {
     anchorAndShadows: {
       anchor: Types.GraphAnchor
@@ -175,7 +175,8 @@ export abstract class BaseGraph {
       id: this.id,
       name: 'asset',
       assetType: Types.AssetType.Graph,
-      graphType: config.type
+      graphType: config.type,
+      draggable: true
     })
 
     // 调整点 定义

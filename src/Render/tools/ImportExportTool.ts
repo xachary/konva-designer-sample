@@ -246,6 +246,11 @@ export class ImportExportTool {
       await this.restoreImage(nodes)
 
       for (const node of nodes) {
+        // 重置旧数据节点为可 draggable
+        // 为了使旧数据和新节点一样
+        // 可以直接被拖动
+        node.draggable(true)
+        //
         node.off('mouseenter')
         node.on('mouseenter', () => {
           // 显示 连接点

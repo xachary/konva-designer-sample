@@ -71,7 +71,8 @@ export class DragOutsideHandlers implements Types.Handler {
                   width: target.width(),
                   height: target.height(),
                   name: 'asset',
-                  assetType: Types.AssetType.Image
+                  assetType: Types.AssetType.Image,
+                  draggable: true
                 })
 
                 group.add(target)
@@ -99,7 +100,8 @@ export class DragOutsideHandlers implements Types.Handler {
                 target.id(nanoid())
                 target.setAttrs({
                   name: 'asset',
-                  assetType: Types.AssetType.Json
+                  assetType: Types.AssetType.Json,
+                  draggable: true
                 })
                 group = target
                 this.render.linkTool.groupIdCover(group)

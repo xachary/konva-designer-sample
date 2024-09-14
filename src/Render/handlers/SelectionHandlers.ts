@@ -174,6 +174,11 @@ export class SelectionHandlers implements Types.Handler {
                 } else {
                   // 单选
                   this.render.selectionTool.select([parent])
+
+                  // 单选时无法通过 transformer 获取拖动初始位置 transformerMousedownPos
+                  // 此时直接取目标的 getClientRect 位置
+                  const rect = parent.getClientRect()
+                  this.transformerMousedownPos = { x: rect.x, y: rect.y }
                 }
               }
             } else {
