@@ -108,7 +108,7 @@ export class RulerDraw extends Types.BaseDraw implements Types.Draw {
                 fontSize: this.render.toStageValue(fontSize),
                 fill: '#999',
                 align: 'center',
-                verticalAlign: 'bottom',
+                verticalAlign: 'middle',
                 lineHeight: 1.6
               })
 
@@ -118,7 +118,7 @@ export class RulerDraw extends Types.BaseDraw implements Types.Draw {
               ) {
                 fontSize -= 1
                 text.fontSize(this.render.toStageValue(fontSize))
-                text.y(this.render.toStageValue(this.option.size / 2 - fontSize) / 2)
+                text.y(this.render.toStageValue(this.option.size / 2 - fontSize))
               }
               text.x(nx - text.width() / 2)
               groupTop.add(text)
