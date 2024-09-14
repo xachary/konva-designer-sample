@@ -26188,7 +26188,8 @@ class BaseGraph {
       id: this.id,
       name: "asset",
       assetType: AssetType.Graph,
-      graphType: config.type
+      graphType: config.type,
+      draggable: true
     });
     this.anchors = config.anchors.map((o) => ({
       ...o,
@@ -29034,7 +29035,8 @@ class DragOutsideHandlers {
                     width: target.width(),
                     height: target.height(),
                     name: "asset",
-                    assetType: AssetType.Image
+                    assetType: AssetType.Image,
+                    draggable: true
                   });
                   group.add(target);
                   points = [
@@ -29059,7 +29061,8 @@ class DragOutsideHandlers {
                   target.id(nanoid());
                   target.setAttrs({
                     name: "asset",
-                    assetType: AssetType.Json
+                    assetType: AssetType.Json,
+                    draggable: true
                   });
                   group = target;
                   this.render.linkTool.groupIdCover(group);
@@ -29182,6 +29185,8 @@ class SelectionHandlers {
                     ]);
                   } else {
                     this.render.selectionTool.select([parent2]);
+                    const rect = parent2.getClientRect();
+                    this.transformerMousedownPos = { x: rect.x, y: rect.y };
                   }
                 }
               } else {
@@ -31328,6 +31333,7 @@ class ImportExportTool {
       const nodes = main.getChildren();
       await this.restoreImage(nodes);
       for (const node of nodes) {
+        node.draggable(true);
         node.off("mouseenter");
         node.on("mouseenter", () => {
           this.render.linkTool.pointsVisible(true, node);
@@ -46918,7 +46924,7 @@ const logArray = (words2) => {
     console.error(e);
   }
 };
-var define_BUILD_INFO_default = { lastBuildTime: "2024-09-12 15:29:12", git: { branch: "master", hash: "2934559ab22dc4d730ad49e787f0e7e949ee4c08", tag: "chapter21" } };
+var define_BUILD_INFO_default = { lastBuildTime: "2024-09-14 17:00:45", git: { branch: "master", hash: "918507c3585be79f7f88200e865d43ec1ed6553b", tag: "chapter22" } };
 const {
   lastBuildTime,
   git: { branch, tag, hash }
