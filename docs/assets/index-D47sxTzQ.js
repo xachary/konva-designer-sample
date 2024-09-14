@@ -24502,13 +24502,13 @@ class RulerDraw extends BaseDraw {
                 fontSize: this.render.toStageValue(fontSize2),
                 fill: "#999",
                 align: "center",
-                verticalAlign: "bottom",
+                verticalAlign: "middle",
                 lineHeight: 1.6
               });
               while (this.render.toStageValue(text.width()) > this.render.toStageValue(cellSize) * 4.6) {
                 fontSize2 -= 1;
                 text.fontSize(this.render.toStageValue(fontSize2));
-                text.y(this.render.toStageValue(this.option.size / 2 - fontSize2) / 2);
+                text.y(this.render.toStageValue(this.option.size / 2 - fontSize2));
               }
               text.x(nx - text.width() / 2);
               groupTop.add(text);
@@ -46924,7 +46924,7 @@ const logArray = (words2) => {
     console.error(e);
   }
 };
-var define_BUILD_INFO_default = { lastBuildTime: "2024-09-14 17:00:45", git: { branch: "master", hash: "918507c3585be79f7f88200e865d43ec1ed6553b", tag: "chapter22" } };
+var define_BUILD_INFO_default = { lastBuildTime: "2024-09-14 17:29:32", git: { branch: "master", hash: "79eb570146c07b8f61e03728b794a8a8f5b34d43", tag: "chapter22" } };
 const {
   lastBuildTime,
   git: { branch, tag, hash }
