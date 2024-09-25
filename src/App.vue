@@ -124,6 +124,10 @@ function init() {
             tabCurrent.value = 'asset'
           } else {
             // 多选
+            assetCurrent.value = undefined
+            assetSettingsModel.value = undefined
+
+            tabCurrent.value = 'page'
           }
         })
       }
