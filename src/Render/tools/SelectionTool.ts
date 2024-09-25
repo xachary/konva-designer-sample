@@ -15,10 +15,10 @@ export class SelectionTool {
   selectingNodes: Konva.Node[] = []
 
   // 清空已选
-  selectingClear() {
+  selectingClear(slient = false) {
     // 选择变化了
     if (this.selectingNodes.length > 0) {
-      this.render.emit('selection-change', [])
+      !slient && this.render.emit('selection-change', [])
     }
     // 清空选择
     this.render.transformer.nodes([])
@@ -67,11 +67,9 @@ export class SelectionTool {
   // 选择节点
   select(nodes: Konva.Node[]) {
     // 选择变化了
-    if (nodes.length !== this.selectingNodes.length) {
-      this.render.emit('selection-change', nodes)
-    }
-    // 选之前，清一下
-    this.selectingClear()
+    this.render.emit('selection-change', nodes)
+    
+    this.selectingClear(true)
 
     if (nodes.length > 0) {
       // 最大zIndex

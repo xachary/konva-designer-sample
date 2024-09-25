@@ -505,4 +505,124 @@ export class Render {
     this.graphType = type
     this.emit('graph-type-change', this.graphType)
   }
+
+  // 页面设置 默认值
+  static PageSettingsDefault: Types.PageSettings = {
+    background: 'transparent',
+    stroke: 'rgb(0,0,0)',
+    fill: 'rgb(0,0,0)'
+  }
+
+  // 获取页面设置
+  getPageSettings(): Types.PageSettings {
+    return this.stage.attrs.pageSettings ?? { ...Render.PageSettingsDefault }
+  }
+
+  // 更新页面设置
+  setPageSettings(settings: Types.PageSettings) {
+    this.stage.setAttr('pageSettings', settings)
+
+    // 更新背景
+    this.updateBackground()
+
+    // 更新历史
+    this.updateHistory()
+
+    // console.log(this.stage.attrs)
+  }
+
+  // 获取背景
+  getBackground() {
+    return this.draws[Draws.BgDraw.name].layer.findOne(
+      `.${Draws.BgDraw.name}__background`
+    ) as Konva.Rect
+  }
+
+  // 更新背景
+  updateBackground() {
+    const background = this.getBackground()
+
+    if (background) {
+      background.fill(this.getPageSettings().background ?? 'transparent')
+    }
+
+    this.draws[Draws.BgDraw.name].draw()
+    this.draws[Draws.PreviewDraw.name].draw()
+  }
+
+  // 素材设置 默认值
+  static AssetSettingsDefault: Types.AssetSettings = {
+    stroke: '',
+    fill: ''
+  }
+
+  // 获取素材设置
+  getAssetSettings(asset?: Konva.Node): Types.AssetSettings {
+    const base = asset?.attrs.assetSettings ?? { ...Render.AssetSettingsDefault }
+    return {
+      // 特定
+      ...base,
+      // 继承全局
+      stroke: base.stroke || this.getPageSettings().stroke,
+      fill: base.fill || this.getPageSettings().fill
+    }
+  }
+
+  // 设置 svgXML 样式（部分）
+  setSvgXMLSettings(xml: string, settings: Types.AssetSettings) {
+    const reg = /<(circle|ellipse|line|path|polygon|rect|text|textPath|tref|tspan)[^>/]*\/?>/g
+
+    const shapes = xml.match(reg)
+
+    const regStroke = / stroke="([^"]*)"/
+    const regFill = / fill="([^"]*)"/
+
+    for (const shape of shapes ?? []) {
+      let result = shape
+
+      if (settings.stroke) {
+        if (regStroke.test(shape)) {
+          result = result.replace(regStroke, ` stroke="${settings.stroke}"`)
+        } else {
+          result = result.replace(/(<[^>/]*)(\/?>)/, `$1 stroke="${settings.stroke}" $2`)
+        }
+      }
+
+      if (settings.fill) {
+        if (regFill.test(shape)) {
+          result = result.replace(regFill, ` fill="${settings.fill}"`)
+        } else {
+          result = result.replace(/(<[^>/]*)(\/?>)/, `$1 fill="${settings.fill}" $2`)
+        }
+      }
+
+      xml = xml.replace(shape, result)
+    }
+
+    return xml
+  }
+
+  // 更新素材设置
+  async setAssetSettings(asset: Konva.Node, settings: Types.AssetSettings) {
+    asset.setAttr('assetSettings', settings)
+    if (asset instanceof Konva.Group) {
+      const node = asset.children[0] as Konva.Shape
+      if (node instanceof Konva.Image) {
+        if (node.attrs.svgXML) {
+          const n = await this.assetTool.loadSvgXML(
+            this.setSvgXMLSettings(node.attrs.svgXML, settings)
+          )
+          node.parent?.add(n)
+          node.remove()
+          node.destroy()
+          n.zIndex(0)
+        }
+      }
+    }
+
+    this.draws[Draws.BgDraw.name].draw()
+    this.draws[Draws.GraphDraw.name].draw()
+    this.draws[Draws.LinkDraw.name].draw()
+    this.draws[Draws.PreviewDraw.name].draw()
+  }
 }

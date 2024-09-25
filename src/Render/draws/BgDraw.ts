@@ -32,14 +32,30 @@ export class BgDraw extends Types.BaseDraw implements Types.Draw {
       const cellSize = this.option.size
 
       // 列数
-      const lenX = Math.ceil(this.render.toStageValue(stageState.width + this.render.rulerSize) / cellSize)
+      const lenX = Math.ceil(
+        this.render.toStageValue(stageState.width + this.render.rulerSize) / cellSize
+      )
       // 行数
-      const lenY = Math.ceil(this.render.toStageValue(stageState.height + this.render.rulerSize) / cellSize)
+      const lenY = Math.ceil(
+        this.render.toStageValue(stageState.height + this.render.rulerSize) / cellSize
+      )
 
       const startX = -Math.ceil(this.render.toStageValue(stageState.x) / cellSize)
       const startY = -Math.ceil(this.render.toStageValue(stageState.y) / cellSize)
 
       const group = new Konva.Group()
+
+      group.add(
+        new Konva.Rect({
+          name: `${this.constructor.name}__background`,
+          x: this.render.toStageValue(-stageState.x + this.render.rulerSize),
+          y: this.render.toStageValue(-stageState.y + this.render.rulerSize),
+          width: this.render.toStageValue(stageState.width),
+          height: this.render.toStageValue(stageState.height),
+          listening: false,
+          fill: this.render.getPageSettings().background
+        })
+      )
 
       group.add(
         new Konva.Rect({

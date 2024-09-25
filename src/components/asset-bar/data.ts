@@ -260,7 +260,8 @@ export const assetsModules: {
     { url: './json/2.json', avatar: './json/2.png' },
     { url: './json/3.json', avatar: './json/3.png' },
     { url: './json/4.json', avatar: './json/4.png' },
-    { url: './json/5.json', avatar: './json/5.png' }
+    { url: './json/5.json', avatar: './json/5.png' },
+    { url: './json/6.json', avatar: './json/6.png' }
   ],
   more: [
     { url: './img/svg/a-CT2xianghu.svg' },

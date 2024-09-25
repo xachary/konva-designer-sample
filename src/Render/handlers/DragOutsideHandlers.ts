@@ -52,9 +52,9 @@ export class DragOutsideHandlers implements Types.Handler {
           const pos = this.render.stage.getPointerPosition()
           if (pos) {
             this.render.assetTool[
-              type === 'svg'
+              type === Types.ImageType.svg
                 ? `loadSvg`
-                : type === 'gif'
+                : type === Types.ImageType.gif
                   ? 'loadGif'
                   : type === 'json'
                     ? 'loadJson'
@@ -72,8 +72,18 @@ export class DragOutsideHandlers implements Types.Handler {
                   height: target.height(),
                   name: 'asset',
                   assetType: Types.AssetType.Image,
-                  draggable: true
+                  draggable: true,
+                  imageType:
+                    type !== 'json'
+                      ? type === Types.ImageType.svg
+                        ? Types.ImageType.svg
+                        : type === Types.ImageType.gif
+                          ? Types.ImageType.gif
+                          : Types.ImageType.other
+                      : undefined
                 })
+
+                this.render.setAssetSettings(group, this.render.getAssetSettings())
 
                 group.add(target)
 

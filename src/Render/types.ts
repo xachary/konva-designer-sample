@@ -24,6 +24,8 @@ export type RenderEvents = {
   ['scale-change']: number
   ['loading']: boolean
   ['graph-type-change']: GraphType | undefined
+  //
+  ['page-settings-change']: PageSettings
 }
 
 export interface Handler {
@@ -241,9 +243,35 @@ export enum AssetType {
 }
 
 /**
+ * 图片类型
+ */
+export enum ImageType {
+  'svg' = 'svg',
+  'gif' = 'gif',
+  'other' = 'other'
+}
+
+/**
  * 对齐信息
  */
 export interface SortItem {
   id?: number // 有 id 就是其他节点，否则就是 选择目标
   value: number // 左、垂直中、右的 x 坐标值; 上、水平中、下的 y 坐标值；
+}
+
+/**
+ * 页面设置
+ */
+export interface PageSettings {
+  background: string
+  stroke: string
+  fill: string
+}
+
+/**
+ * 素材设置
+ */
+export interface AssetSettings {
+  stroke: string
+  fill: string
 }

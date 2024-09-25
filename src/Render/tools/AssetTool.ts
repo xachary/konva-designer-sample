@@ -32,7 +32,7 @@ export class AssetTool {
   // 加载 svg
   async loadSvg(src: string) {
     const svgXML = await (await fetch(src)).text()
-    return this.loadSvgXML(svgXML)
+    return this.loadSvgXML(this.render.setSvgXMLSettings(svgXML, this.render.getAssetSettings()))
   }
 
   // 加载 gif

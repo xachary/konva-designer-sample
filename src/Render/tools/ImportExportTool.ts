@@ -131,6 +131,7 @@ export class ImportExportTool {
 
       // 重新装载节点
       const layer = new Konva.Layer()
+
       layer.add(...nodes)
       nodes = layer.getChildren()
 
@@ -281,6 +282,13 @@ export class ImportExportTool {
       // 往 main layer 插入新节点
       this.render.layer.add(...nodes)
 
+      // 同步页面设置
+      this.render.stage.setAttr('pageSettings', stage.attrs.pageSettings)
+      this.render.emit('page-settings-change', this.render.getPageSettings())
+
+      // 更新背景
+      this.render.updateBackground()
+
       // 上一步、下一步 无需更新 history 记录
       if (!silent) {
         // 更新历史
@@ -298,6 +306,8 @@ export class ImportExportTool {
         Draws.RulerDraw.name,
         Draws.PreviewDraw.name
       ])
+
+      stage.destroy()
     } catch (e) {
       console.error(e)
     } finally {
@@ -325,7 +335,7 @@ export class ImportExportTool {
       y: 0,
       width: copy.width(),
       height: copy.height(),
-      fill: bgColor
+      fill: bgColor ?? this.render.getPageSettings().background
     })
 
     // 添加背景
@@ -360,7 +370,7 @@ export class ImportExportTool {
       y: -copy.y(),
       width: copy.width(),
       height: copy.height(),
-      fill: bgColor
+      fill: bgColor ?? this.render.getPageSettings().background
     })
 
     // 添加背景
@@ -470,6 +480,12 @@ export class ImportExportTool {
     const copy = this.getAssetView()
     // 获取 main layer
     const main = copy.children[0] as Konva.Layer
+
+    // 添加背景
+    // const background = this.render.getBackground()
+    // main.add(background)
+    // background.moveToBottom()
+
     // 获取 layer 的 canvas context
     const ctx = main.canvas.context._context
 
@@ -482,8 +498,15 @@ export class ImportExportTool {
       main.draw()
 
       // 获得 svg
-      const rawSvg = c2s.getSerializedSvg()
+      let rawSvg = c2s.getSerializedSvg()
       console.log(rawSvg)
+
+      // 添加背景
+      rawSvg = rawSvg.replace(
+        /(<defs\/><g><rect fill=")([^"]+)(")/,
+        `$1${this.render.getPageSettings().background}$3`
+      )
+
       // 替换 image 链接
       const svg = await this.parseImage(rawSvg)
       console.log(svg)
@@ -611,8 +634,16 @@ export class ImportExportTool {
   getAsset() {
     const copy = this.getAssetView()
 
+    // 添加背景
+    const background = this.render.getBackground()
+    background.width(copy.width())
+    background.height(copy.height())
+    copy.children[0].add(background)
+    background.moveToBottom()
+
     const json = copy.toJSON()
     const obj = JSON.parse(json)
+
     const assets = obj.children[0].children
 
     for (const asset of assets) {

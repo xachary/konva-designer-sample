@@ -112,7 +112,7 @@ export class PreviewDraw extends Types.BaseDraw implements Types.Draw {
         height: group.height(),
         stroke: '#666',
         strokeWidth: this.render.toStageValue(1),
-        fill: '#eee'
+        fill: this.render.getPageSettings().background
       })
 
       // 根据预览框内部拖动，同步画布的移动
