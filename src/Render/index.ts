@@ -500,10 +500,19 @@ export class Render {
     }
   }
 
+  changeDraggable(disabled: boolean) {
+    this.layer.children.forEach((asset) => {
+      asset.draggable(disabled)
+    })
+  }
+
   // 改变画图类型
   changeGraphType(type?: Types.GraphType) {
     this.graphType = type
     this.emit('graph-type-change', this.graphType)
+
+    // 绘制 Graph 的时候，不允许直接拖动其他素材
+    this.changeDraggable(this.graphType === void 0)
   }
 
   // 页面设置 默认值

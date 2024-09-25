@@ -111,6 +111,9 @@ export class ImportExportTool {
         // 如果当前被选中，listening 会是 false，需恢复
         node.listening(true)
 
+        // 恢复 draggable（因为，绘制 Graph 的时候，不允许直接拖动其他素材）
+        node.draggable(true)
+
         for (const child of (node as Konva.Group).children) {
           if (this.render.ignoreSelect(child)) {
             child.remove()
