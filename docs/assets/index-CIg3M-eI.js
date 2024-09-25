@@ -56896,7 +56896,7 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
   }
 });
 const AssetBar = /* @__PURE__ */ _export_sfc(_sfc_main$1, [["__scopeId", "data-v-0d76df1f"]]);
-const _withScopeId = (n) => (pushScopeId("data-v-383b12eb"), n = n(), popScopeId(), n);
+const _withScopeId = (n) => (pushScopeId("data-v-fd4e3112"), n = n(), popScopeId(), n);
 const _hoisted_1 = { class: "page" };
 const _hoisted_2 = /* @__PURE__ */ _withScopeId(() => /* @__PURE__ */ createBaseVNode("footer", null, null, -1));
 const _sfc_main = /* @__PURE__ */ defineComponent({
@@ -56973,8 +56973,11 @@ const _sfc_main = /* @__PURE__ */ defineComponent({
                 assetCurrent.value = nodes[0];
                 assetSettingsModel.value = render22.getAssetSettings(nodes[0]);
                 tabCurrent.value = "asset";
-              } else
-                ;
+              } else {
+                assetCurrent.value = void 0;
+                assetSettingsModel.value = void 0;
+                tabCurrent.value = "page";
+              }
             });
           }
         });
@@ -57148,71 +57151,67 @@ const _sfc_main = /* @__PURE__ */ defineComponent({
                   tab: "素材",
                   disabled: assetCurrent.value === void 0
                 }, {
-                  default: withCtx(() => {
-                    var _a, _b, _c;
-                    return [
-                      createTextVNode(toDisplayString(Object.keys((_c = (_b = assetCurrent.value) == null ? void 0 : _b.children[((_a = assetCurrent.value) == null ? void 0 : _a.children.length) - 1]) == null ? void 0 : _c.attrs)) + " ", 1),
-                      assetSettingsModel.value ? (openBlock(), createBlock(unref(NForm), {
-                        key: 0,
-                        ref: "formRef",
-                        model: assetSettingsModel.value,
-                        rules: {},
-                        "label-placement": "top",
-                        size: "small"
-                      }, {
-                        default: withCtx(() => {
-                          var _a2, _b2;
-                          return [
-                            ((_a2 = assetCurrent.value) == null ? void 0 : _a2.attrs.imageType) === ImageType.svg ? (openBlock(), createBlock(unref(NFormItem), {
-                              key: 0,
-                              label: "线条颜色",
-                              path: "stroke"
-                            }, {
-                              default: withCtx(() => [
-                                createVNode(unref(NColorPicker), {
-                                  value: assetSettingsModelStorke.value,
-                                  "onUpdate:value": _cache[14] || (_cache[14] = ($event) => assetSettingsModelStorke.value = $event),
-                                  "onUpdate:show": _cache[15] || (_cache[15] = (v) => {
-                                    assetSettingsModel.value && !v && (assetSettingsModelStorke.value = assetSettingsModel.value.stroke);
-                                  }),
-                                  actions: ["clear", "confirm"],
-                                  "show-preview": "",
-                                  onConfirm: _cache[16] || (_cache[16] = (v) => {
-                                    assetSettingsModel.value && (assetSettingsModel.value.stroke = v);
-                                  }),
-                                  onClear: _cache[17] || (_cache[17] = ($event) => assetSettingsModel.value && (assetSettingsModel.value.stroke = "#000"))
-                                }, null, 8, ["value"])
-                              ]),
-                              _: 1
-                            })) : createCommentVNode("", true),
-                            ((_b2 = assetCurrent.value) == null ? void 0 : _b2.attrs.imageType) === ImageType.svg ? (openBlock(), createBlock(unref(NFormItem), {
-                              key: 1,
-                              label: "填充颜色",
-                              path: "fill"
-                            }, {
-                              default: withCtx(() => [
-                                createVNode(unref(NColorPicker), {
-                                  value: assetSettingsModelFill.value,
-                                  "onUpdate:value": _cache[18] || (_cache[18] = ($event) => assetSettingsModelFill.value = $event),
-                                  "onUpdate:show": _cache[19] || (_cache[19] = (v) => {
-                                    assetSettingsModel.value && !v && (assetSettingsModelFill.value = assetSettingsModel.value.fill);
-                                  }),
-                                  actions: ["clear", "confirm"],
-                                  "show-preview": "",
-                                  onConfirm: _cache[20] || (_cache[20] = (v) => {
-                                    assetSettingsModel.value && (assetSettingsModel.value.fill = v);
-                                  }),
-                                  onClear: _cache[21] || (_cache[21] = ($event) => assetSettingsModel.value && (assetSettingsModel.value.fill = "#000"))
-                                }, null, 8, ["value"])
-                              ]),
-                              _: 1
-                            })) : createCommentVNode("", true)
-                          ];
-                        }),
-                        _: 1
-                      }, 8, ["model"])) : createCommentVNode("", true)
-                    ];
-                  }),
+                  default: withCtx(() => [
+                    assetSettingsModel.value ? (openBlock(), createBlock(unref(NForm), {
+                      key: 0,
+                      ref: "formRef",
+                      model: assetSettingsModel.value,
+                      rules: {},
+                      "label-placement": "top",
+                      size: "small"
+                    }, {
+                      default: withCtx(() => {
+                        var _a, _b;
+                        return [
+                          ((_a = assetCurrent.value) == null ? void 0 : _a.attrs.imageType) === ImageType.svg ? (openBlock(), createBlock(unref(NFormItem), {
+                            key: 0,
+                            label: "线条颜色",
+                            path: "stroke"
+                          }, {
+                            default: withCtx(() => [
+                              createVNode(unref(NColorPicker), {
+                                value: assetSettingsModelStorke.value,
+                                "onUpdate:value": _cache[14] || (_cache[14] = ($event) => assetSettingsModelStorke.value = $event),
+                                "onUpdate:show": _cache[15] || (_cache[15] = (v) => {
+                                  assetSettingsModel.value && !v && (assetSettingsModelStorke.value = assetSettingsModel.value.stroke);
+                                }),
+                                actions: ["clear", "confirm"],
+                                "show-preview": "",
+                                onConfirm: _cache[16] || (_cache[16] = (v) => {
+                                  assetSettingsModel.value && (assetSettingsModel.value.stroke = v);
+                                }),
+                                onClear: _cache[17] || (_cache[17] = ($event) => assetSettingsModel.value && (assetSettingsModel.value.stroke = "#000"))
+                              }, null, 8, ["value"])
+                            ]),
+                            _: 1
+                          })) : createCommentVNode("", true),
+                          ((_b = assetCurrent.value) == null ? void 0 : _b.attrs.imageType) === ImageType.svg ? (openBlock(), createBlock(unref(NFormItem), {
+                            key: 1,
+                            label: "填充颜色",
+                            path: "fill"
+                          }, {
+                            default: withCtx(() => [
+                              createVNode(unref(NColorPicker), {
+                                value: assetSettingsModelFill.value,
+                                "onUpdate:value": _cache[18] || (_cache[18] = ($event) => assetSettingsModelFill.value = $event),
+                                "onUpdate:show": _cache[19] || (_cache[19] = (v) => {
+                                  assetSettingsModel.value && !v && (assetSettingsModelFill.value = assetSettingsModel.value.fill);
+                                }),
+                                actions: ["clear", "confirm"],
+                                "show-preview": "",
+                                onConfirm: _cache[20] || (_cache[20] = (v) => {
+                                  assetSettingsModel.value && (assetSettingsModel.value.fill = v);
+                                }),
+                                onClear: _cache[21] || (_cache[21] = ($event) => assetSettingsModel.value && (assetSettingsModel.value.fill = "#000"))
+                              }, null, 8, ["value"])
+                            ]),
+                            _: 1
+                          })) : createCommentVNode("", true)
+                        ];
+                      }),
+                      _: 1
+                    }, 8, ["model"])) : createCommentVNode("", true)
+                  ]),
                   _: 1
                 }, 8, ["disabled"])
               ]),
@@ -57247,7 +57246,7 @@ const _sfc_main = /* @__PURE__ */ defineComponent({
     };
   }
 });
-const App = /* @__PURE__ */ _export_sfc(_sfc_main, [["__scopeId", "data-v-383b12eb"]]);
+const App = /* @__PURE__ */ _export_sfc(_sfc_main, [["__scopeId", "data-v-fd4e3112"]]);
 const optionsDefault = {
   colors: ["purple", "blue", "green", "blueviolet", "goldenrod", "brown", "chocolate"],
   type: "log"
@@ -57272,7 +57271,7 @@ const logArray = (words2) => {
     console.error(e);
   }
 };
-var define_BUILD_INFO_default = { lastBuildTime: "2024-09-25 13:15:33", git: { branch: "master", hash: "92dc1e3eff42a95b7a69326c1d96e411cc4774de", tag: "chapter22" } };
+var define_BUILD_INFO_default = { lastBuildTime: "2024-09-25 13:17:54", git: { branch: "master", hash: "8a2ed287dd0834c464db770f94ef4b2ec38183ab", tag: "chapter22-dirty" } };
 const {
   lastBuildTime,
   git: { branch, tag, hash }
