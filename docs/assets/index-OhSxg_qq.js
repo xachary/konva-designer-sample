@@ -31259,6 +31259,7 @@ class ImportExportTool {
       });
       for (const node of nodes) {
         node.listening(true);
+        node.draggable(true);
         for (const child of node.children) {
           if (this.render.ignoreSelect(child)) {
             child.remove();
@@ -32727,10 +32728,16 @@ const _Render = class _Render {
       }
     }
   }
+  changeDraggable(disabled) {
+    this.layer.children.forEach((asset) => {
+      asset.draggable(disabled);
+    });
+  }
   // 改变画图类型
   changeGraphType(type4) {
     this.graphType = type4;
     this.emit("graph-type-change", this.graphType);
+    this.changeDraggable(this.graphType === void 0);
   }
   // 获取页面设置
   getPageSettings() {
@@ -56673,7 +56680,8 @@ const assetsModules = {
     { url: "./json/3.json", avatar: "./json/3.png" },
     { url: "./json/4.json", avatar: "./json/4.png" },
     { url: "./json/5.json", avatar: "./json/5.png" },
-    { url: "./json/6.json", avatar: "./json/6.png" }
+    { url: "./json/6.json", avatar: "./json/6.png" },
+    { url: "./json/7.json", avatar: "./json/7.png" }
   ],
   more: [
     { url: "./img/svg/a-CT2xianghu.svg" },
@@ -57271,7 +57279,7 @@ const logArray = (words2) => {
     console.error(e);
   }
 };
-var define_BUILD_INFO_default = { lastBuildTime: "2024-09-25 13:17:54", git: { branch: "master", hash: "8a2ed287dd0834c464db770f94ef4b2ec38183ab", tag: "chapter22-dirty" } };
+var define_BUILD_INFO_default = { lastBuildTime: "2024-09-25 17:05:07", git: { branch: "master", hash: "b88f3c0eb3fe2ff7b2b6f42328910a695ecf54f4", tag: "chapter22" } };
 const {
   lastBuildTime,
   git: { branch, tag, hash }
