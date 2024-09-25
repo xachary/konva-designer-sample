@@ -61,7 +61,8 @@ export class Render {
     shouldOverdrawWholeArea: true,
     borderDash: [4, 4],
     padding: 1,
-    rotationSnaps: [0, 45, 90, 135, 180, 225, 270, 315, 360]
+    rotationSnaps: [0, 45, 90, 135, 180, 225, 270, 315, 360],
+    flipEnabled: false
   })
 
   // 选择框

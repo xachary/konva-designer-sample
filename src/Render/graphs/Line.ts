@@ -275,8 +275,8 @@ export class Line extends BaseGraph {
             const manualPointIndex = manualPoints.findIndex((o) => o.index === index)
 
             if (manualPointIndex > -1) {
-              manualPoints[manualPointIndex].x = sx - rx
-              manualPoints[manualPointIndex].y = sy - ry
+              manualPoints[manualPointIndex].x = (sx - rx) / graph.scaleX()
+              manualPoints[manualPointIndex].y = (sy - ry) / graph.scaleY()
             }
 
             const linkPoints = [
@@ -295,8 +295,8 @@ export class Line extends BaseGraph {
             )
             if (adjustAnchorShadow) {
               adjustAnchorShadow.position({
-                x: sx - rx,
-                y: sy - ry
+                x: (sx - rx) / graph.scaleX(),
+                y: (sy - ry) / graph.scaleY()
               })
             }
           }
@@ -315,13 +315,16 @@ export class Line extends BaseGraph {
               switch (adjustType) {
                 case 'start':
                   {
-                    linkPoints[0] = [sx - rx, sy - ry]
+                    linkPoints[0] = [(sx - rx) / graph.scaleX(), (sy - ry) / graph.scaleY()]
                     line.points(_.flatten(linkPoints))
                   }
                   break
                 case 'end':
                   {
-                    linkPoints[linkPoints.length - 1] = [sx - rx, sy - ry]
+                    linkPoints[linkPoints.length - 1] = [
+                      (sx - rx) / graph.scaleX(),
+                      (sy - ry) / graph.scaleY()
+                    ]
                     line.points(_.flatten(linkPoints))
                   }
                   break
@@ -421,7 +424,7 @@ export class Line extends BaseGraph {
       y: 0,
       stroke: 'black',
       strokeWidth: 1,
-      hitStrokeWidth: render.toStageValue(5),
+      hitStrokeWidth: render.toStageValue(5)
     })
 
     // 给予 1 像素，防止导出图片 toDataURL 失败
