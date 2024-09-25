@@ -28056,8 +28056,8 @@ const _Line = class _Line extends BaseGraph {
             const index = ((_c = adjustShape.attrs.anchor) == null ? void 0 : _c.adjusted) ? (_d = adjustShape.attrs.anchor) == null ? void 0 : _d.manualIndex : ((_e = adjustShape.attrs.anchor) == null ? void 0 : _e.manualIndex) + 1;
             const manualPointIndex = manualPoints.findIndex((o) => o.index === index);
             if (manualPointIndex > -1) {
-              manualPoints[manualPointIndex].x = sx - rx;
-              manualPoints[manualPointIndex].y = sy - ry;
+              manualPoints[manualPointIndex].x = (sx - rx) / graph.scaleX();
+              manualPoints[manualPointIndex].y = (sy - ry) / graph.scaleY();
             }
             const linkPoints = [
               [points[0], points[1]],
@@ -28071,8 +28071,8 @@ const _Line = class _Line extends BaseGraph {
             );
             if (adjustAnchorShadow) {
               adjustAnchorShadow.position({
-                x: sx - rx,
-                y: sy - ry
+                x: (sx - rx) / graph.scaleX(),
+                y: (sy - ry) / graph.scaleY()
               });
             }
           }
@@ -28089,13 +28089,16 @@ const _Line = class _Line extends BaseGraph {
               switch (adjustType) {
                 case "start":
                   {
-                    linkPoints[0] = [sx - rx, sy - ry];
+                    linkPoints[0] = [(sx - rx) / graph.scaleX(), (sy - ry) / graph.scaleY()];
                     line.points(lodash.flatten(linkPoints));
                   }
                   break;
                 case "end":
                   {
-                    linkPoints[linkPoints.length - 1] = [sx - rx, sy - ry];
+                    linkPoints[linkPoints.length - 1] = [
+                      (sx - rx) / graph.scaleX(),
+                      (sy - ry) / graph.scaleY()
+                    ];
                     line.points(lodash.flatten(linkPoints));
                   }
                   break;
@@ -28496,8 +28499,8 @@ const _Curve = class _Curve extends BaseGraph {
             const index = ((_c = adjustShape.attrs.anchor) == null ? void 0 : _c.adjusted) ? (_d = adjustShape.attrs.anchor) == null ? void 0 : _d.manualIndex : ((_e = adjustShape.attrs.anchor) == null ? void 0 : _e.manualIndex) + 1;
             const manualPointIndex = manualPoints.findIndex((o) => o.index === index);
             if (manualPointIndex > -1) {
-              manualPoints[manualPointIndex].x = sx - rx;
-              manualPoints[manualPointIndex].y = sy - ry;
+              manualPoints[manualPointIndex].x = (sx - rx) / graph.scaleX();
+              manualPoints[manualPointIndex].y = (sy - ry) / graph.scaleY();
             }
             const linkPoints = [
               [points[0], points[1]],
@@ -28511,8 +28514,8 @@ const _Curve = class _Curve extends BaseGraph {
             );
             if (adjustAnchorShadow) {
               adjustAnchorShadow.position({
-                x: sx - rx,
-                y: sy - ry
+                x: (sx - rx) / graph.scaleX(),
+                y: (sy - ry) / graph.scaleY()
               });
             }
           }
@@ -28529,13 +28532,16 @@ const _Curve = class _Curve extends BaseGraph {
               switch (adjustType) {
                 case "start":
                   {
-                    linkPoints[0] = [sx - rx, sy - ry];
+                    linkPoints[0] = [(sx - rx) / graph.scaleX(), (sy - ry) / graph.scaleY()];
                     line.points(lodash.flatten(linkPoints));
                   }
                   break;
                 case "end":
                   {
-                    linkPoints[linkPoints.length - 1] = [sx - rx, sy - ry];
+                    linkPoints[linkPoints.length - 1] = [
+                      (sx - rx) / graph.scaleX(),
+                      (sy - ry) / graph.scaleY()
+                    ];
                     line.points(lodash.flatten(linkPoints));
                   }
                   break;
@@ -32398,7 +32404,8 @@ const _Render = class _Render {
       shouldOverdrawWholeArea: true,
       borderDash: [4, 4],
       padding: 1,
-      rotationSnaps: [0, 45, 90, 135, 180, 225, 270, 315, 360]
+      rotationSnaps: [0, 45, 90, 135, 180, 225, 270, 315, 360],
+      flipEnabled: false
     }));
     // 选择框
     __publicField(this, "selectRect", new Konva.Rect({
@@ -57279,7 +57286,7 @@ const logArray = (words2) => {
     console.error(e);
   }
 };
-var define_BUILD_INFO_default = { lastBuildTime: "2024-09-25 17:05:07", git: { branch: "master", hash: "b88f3c0eb3fe2ff7b2b6f42328910a695ecf54f4", tag: "chapter22" } };
+var define_BUILD_INFO_default = { lastBuildTime: "2024-09-25 17:37:22", git: { branch: "master", hash: "1be7814091f6d60446bd3dc642aa6cd939fcfee5", tag: "chapter22-dirty" } };
 const {
   lastBuildTime,
   git: { branch, tag, hash }
