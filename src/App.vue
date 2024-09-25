@@ -231,8 +231,8 @@ watch(() => assetSettingsModel.value, () => {
           </n-form>
         </n-tab-pane>
         <n-tab-pane name="asset" tab="素材" :disabled="assetCurrent === void 0">
-          {{ Object.keys((assetCurrent as Konva.Group)?.children[(assetCurrent as
-            Konva.Group)?.children.length - 1]?.attrs) }}
+          <!-- {{ Object.keys((assetCurrent as Konva.Group)?.children[(assetCurrent as
+            Konva.Group)?.children.length - 1]?.attrs) }} -->
           <n-form ref="formRef" :model="assetSettingsModel" :rules="{}" label-placement="top" size="small"
             v-if="assetSettingsModel">
             <n-form-item label="线条颜色" path="stroke" v-if="assetCurrent?.attrs.imageType === Types.ImageType.svg">
