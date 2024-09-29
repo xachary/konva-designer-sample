@@ -29121,6 +29121,7 @@ class DragHandlers {
             if (e.evt.button === MouseButton.右键 || e.evt.ctrlKey && e.evt.button === MouseButton.左键) {
               const stageState = this.render.getStageState();
               this.mousedownRight = true;
+              this.render.changeDraggable(false);
               this.mousedownStagePos = { x: stageState.x, y: stageState.y };
               const pos = this.render.stage.getPointerPosition();
               if (pos) {
@@ -29132,6 +29133,7 @@ class DragHandlers {
         },
         mouseup: () => {
           this.mousedownRight = false;
+          this.render.changeDraggable(true);
           document.body.style.cursor = "default";
         },
         mousemove: () => {
@@ -58043,7 +58045,7 @@ const logArray = (words2) => {
     console.error(e);
   }
 };
-var define_BUILD_INFO_default = { lastBuildTime: "2024-09-29 18:00:51", git: { branch: "master", hash: "b2c80d859910245447de87a771c78c2bace99803", tag: "chapter23-dirty" } };
+var define_BUILD_INFO_default = { lastBuildTime: "2024-09-29 18:16:13", git: { branch: "master", hash: "dbe20ac35acbc95a7ef1349398d2dc382d422e06", tag: "chapter23-dirty" } };
 const {
   lastBuildTime,
   git: { branch, tag, hash }
