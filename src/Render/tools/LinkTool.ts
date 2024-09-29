@@ -30,7 +30,7 @@ export class LinkTool {
     }
 
     // 拐点操作中，此处不重绘
-    if (!(this.render.draws[Draws.LinkDraw.name] as Draws.LinkDraw).state.linkManualing) {
+    if (!(this.render.draws[Draws.LinkDraw.name] as Draws.LinkDraw)?.state.linkManualing) {
       // 重绘
       this.render.redraw([
         Draws.LinkDraw.name,

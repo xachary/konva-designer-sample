@@ -491,12 +491,12 @@ export class Render {
       // 选择性 draw 也要保持顺序
       for (const name of all) {
         if (drawNames.includes(name)) {
-          this.draws[name].draw()
+          this.draws[name]?.draw()
         }
       }
     } else {
       for (const name of all) {
-        this.draws[name].draw()
+        this.draws[name]?.draw()
       }
     }
   }

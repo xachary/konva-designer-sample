@@ -451,7 +451,7 @@ function onAlign(type: Types.AlignType) {
 const currentLinkType = ref(Types.LinkType.manual)
 
 function onLinkTypeChange(linkType: Types.LinkType) {
-    (props.render?.draws[Draws.LinkDraw.name] as Draws.LinkDraw).changeLinkType(linkType)
+    (props.render?.draws[Draws.LinkDraw.name] as Draws.LinkDraw)?.changeLinkType(linkType)
 }
 
 // 调试模式

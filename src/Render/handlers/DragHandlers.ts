@@ -25,7 +25,7 @@ export class DragHandlers implements Types.Handler {
         // 拐点操作中，防止异常拖动
         // 新建图形并拖动中
         if (
-          !(this.render.draws[Draws.LinkDraw.name] as Draws.LinkDraw).state.linkManualing &&
+          !(this.render.draws[Draws.LinkDraw.name] as Draws.LinkDraw)?.state.linkManualing &&
           !this.render.graphType
         ) {
           if (
