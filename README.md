@@ -70,6 +70,8 @@
 
 ![5](https://github.com/user-attachments/assets/14a51452-e498-4eac-8196-c2410650ba78)
 
+![2](https://github.com/user-attachments/assets/4b5ad7ed-77c8-4fa1-8342-f37dcbeb1951)
+
 ## 功能点
 
 - 无限画布（√）
