@@ -119,6 +119,7 @@ export class Rect extends BaseGraph {
       anchorShadow: Konva.Circle
       shape?: Konva.Shape
     }[],
+    // eslint-disable-next-line
     adjustAnchor?: Types.GraphAnchor
   ): {
     anchorAndShadows: {
@@ -846,9 +847,9 @@ export class Rect extends BaseGraph {
       y: 0,
       width: 0,
       height: 0,
-      stroke: 'black',
+      stroke: this.render.getPageSettings().stroke,
+      // fill: this.render.getPageSettings().fill,
       strokeWidth: 1,
-      hitStrokeWidth: render.toStageValue(render.bgSize * 2 + 2)
     })
 
     // 加入

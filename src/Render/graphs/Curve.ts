@@ -463,14 +463,16 @@ export class Curve extends BaseGraph {
     })
 
     // 新建 曲线
-    this.line = new Konva.Line({
+    this.line = new Konva.Arrow({
       name: 'graph',
       x: 0,
       y: 0,
-      stroke: 'black',
+      stroke: this.render.getPageSettings().stroke,
+      fill: this.render.getPageSettings().stroke,
       strokeWidth: 1,
       points: [],
-      pointerWidth: 0,
+      pointerAtBeginning: false,
+      pointerAtEnding: false,
       tension: 0.5
     })
 
@@ -513,7 +515,7 @@ export class Curve extends BaseGraph {
 
   // 实现：拖动结束
   override drawEnd(): void {
-    if (this.line.width() <= 1 && this.line.height() <= 1) {
+    if (this.line.width() <= 10 && this.line.height() <= 10) {
       // 加入只点击，无拖动
 
       // 默认大小

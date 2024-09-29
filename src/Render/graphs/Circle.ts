@@ -130,6 +130,7 @@ export class Circle extends BaseGraph {
       anchorShadow: Konva.Circle
       shape?: Konva.Shape
     }[],
+    // eslint-disable-next-line
     adjustAnchor?: Types.GraphAnchor
   ): {
     anchorAndShadows: {
@@ -859,7 +860,8 @@ export class Circle extends BaseGraph {
       y: 0,
       radiusX: 0,
       radiusY: 0,
-      stroke: 'black',
+      stroke: this.render.getPageSettings().stroke,
+      // fill: this.render.getPageSettings().fill,
       strokeWidth: 1
     })
 

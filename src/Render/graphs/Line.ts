@@ -459,10 +459,12 @@ export class Line extends BaseGraph {
       name: 'graph',
       x: 0,
       y: 0,
-      stroke: 'black',
+      stroke: this.render.getPageSettings().stroke,
+      fill: this.render.getPageSettings().stroke,
       strokeWidth: 1,
       points: [],
-      pointerWidth: 0
+      pointerAtBeginning: false,
+      pointerAtEnding: false,
     })
 
     // 给予 1 像素，防止导出图片 toDataURL 失败
@@ -504,7 +506,7 @@ export class Line extends BaseGraph {
 
   // 实现：拖动结束
   override drawEnd(): void {
-    if (this.line.width() <= 1 && this.line.height() <= 1) {
+    if (this.line.width() <= 10 && this.line.height() <= 10) {
       // 加入只点击，无拖动
 
       // 默认大小

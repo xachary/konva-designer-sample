@@ -274,4 +274,6 @@ export interface PageSettings {
 export interface AssetSettings {
   stroke: string
   fill: string
+  arrowStart: boolean
+  arrowEnd: boolean
 }

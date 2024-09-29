@@ -563,12 +563,19 @@ export class Render {
   // 素材设置 默认值
   static AssetSettingsDefault: Types.AssetSettings = {
     stroke: '',
-    fill: ''
+    fill: '',
+    arrowStart: false,
+    arrowEnd: false
   }
 
   // 获取素材设置
   getAssetSettings(asset?: Konva.Node): Types.AssetSettings {
     const base = asset?.attrs.assetSettings ?? { ...Render.AssetSettingsDefault }
+
+    // 绘制图形，默认不填充
+    if (asset?.attrs.assetType === Types.AssetType.Graph) {
+      base.fill = 'transparent'
+    }
     return {
       // 特定
       ...base,
@@ -616,16 +623,33 @@ export class Render {
   async setAssetSettings(asset: Konva.Node, settings: Types.AssetSettings) {
     asset.setAttr('assetSettings', settings)
     if (asset instanceof Konva.Group) {
-      const node = asset.children[0] as Konva.Shape
-      if (node instanceof Konva.Image) {
-        if (node.attrs.svgXML) {
-          const n = await this.assetTool.loadSvgXML(
-            this.setSvgXMLSettings(node.attrs.svgXML, settings)
-          )
-          node.parent?.add(n)
-          node.remove()
-          node.destroy()
-          n.zIndex(0)
+      if (asset.attrs.imageType === Types.ImageType.svg) {
+        const node = asset.children[0] as Konva.Shape
+        if (node instanceof Konva.Image) {
+          if (node.attrs.svgXML) {
+            const n = await this.assetTool.loadSvgXML(
+              this.setSvgXMLSettings(node.attrs.svgXML, settings)
+            )
+            node.parent?.add(n)
+            node.remove()
+            node.destroy()
+            n.zIndex(0)
+          }
+        }
+      } else if (asset.attrs.assetType === Types.AssetType.Graph) {
+        const node = asset.findOne('.graph')
+        if (node instanceof Konva.Shape) {
+          node.stroke(settings.stroke)
+          if (node instanceof Konva.Arrow) {
+            // 箭头跟随 stroke
+            node.fill(settings.stroke)
+          } else {
+            node.fill(settings.fill)
+          }
+          if (node instanceof Konva.Arrow) {
+            node.pointerAtBeginning(settings.arrowStart)
+            node.pointerAtEnding(settings.arrowEnd)
+          }
         }
       }
     }

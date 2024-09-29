@@ -6,7 +6,7 @@ import type Konva from 'konva'
 import { Render } from './Render'
 import * as Types from './Render/types'
 
-import { NIcon, NFloatButton, NTabs, NTabPane, NForm, NFormItem, NColorPicker } from 'naive-ui'
+import { NIcon, NFloatButton, NTabs, NTabPane, NForm, NFormItem, NColorPicker, NCheckbox } from 'naive-ui'
 
 import {
   FullScreenMinimize24Regular
@@ -239,19 +239,30 @@ watch(() => assetSettingsModel.value, () => {
             Konva.Group)?.children.length - 1]?.attrs) }} -->
           <n-form ref="formRef" :model="assetSettingsModel" :rules="{}" label-placement="top" size="small"
             v-if="assetSettingsModel">
-            <n-form-item label="线条颜色" path="stroke" v-if="assetCurrent?.attrs.imageType === Types.ImageType.svg">
+            <n-form-item label="线条颜色" path="stroke"
+              v-if="assetCurrent?.attrs.imageType === Types.ImageType.svg || assetCurrent?.attrs.assetType === Types.AssetType.Graph">
               <n-color-picker v-model:value="assetSettingsModelStorke" @update:show="(v: boolean) => {
                 assetSettingsModel && !v && (assetSettingsModelStorke = assetSettingsModel.stroke)
               }" :actions="['clear', 'confirm']" show-preview
                 @confirm="(v: string) => { assetSettingsModel && (assetSettingsModel.stroke = v) }"
                 @clear="assetSettingsModel && (assetSettingsModel.stroke = '#000')"></n-color-picker>
             </n-form-item>
-            <n-form-item label="填充颜色" path="fill" v-if="assetCurrent?.attrs.imageType === Types.ImageType.svg">
+            <n-form-item label="填充颜色" path="fill"
+              v-if="assetCurrent?.attrs.imageType === Types.ImageType.svg || assetCurrent?.attrs.graphType === Types.GraphType.Rect || assetCurrent?.attrs.graphType === Types.GraphType.Circle">
               <n-color-picker v-model:value="assetSettingsModelFill" @update:show="(v: boolean) => {
                 assetSettingsModel && !v && (assetSettingsModelFill = assetSettingsModel.fill)
               }" :actions="['clear', 'confirm']" show-preview
                 @confirm="(v: string) => { assetSettingsModel && (assetSettingsModel.fill = v) }"
                 @clear="assetSettingsModel && (assetSettingsModel.fill = '#000')"></n-color-picker>
+            </n-form-item>
+            <n-form-item label="箭头" path="fill"
+              v-if="assetCurrent?.attrs.graphType === Types.GraphType.Line || assetCurrent?.attrs.graphType === Types.GraphType.Curve">
+              <n-checkbox v-model:checked="assetSettingsModel.arrowStart">
+                开始
+              </n-checkbox>
+              <n-checkbox v-model:checked="assetSettingsModel.arrowEnd">
+                结束
+              </n-checkbox>
             </n-form-item>
           </n-form>
         </n-tab-pane>
