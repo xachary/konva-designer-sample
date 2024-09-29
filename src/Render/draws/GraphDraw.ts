@@ -247,6 +247,7 @@ export class GraphDraw extends Types.BaseDraw implements Types.Draw {
             this.render.stage.on('mouseup', () => {
               graph.setAttr('adjusting', false)
               // 防止二次 hover 失效
+              graph.setAttr('hover', false)
               graph.setAttr('hoverAnchor', false)
 
               if (this.state.adjusting) {
