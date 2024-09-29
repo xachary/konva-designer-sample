@@ -29025,6 +29025,7 @@ const _GraphDraw = class _GraphDraw extends BaseDraw {
             this.render.stage.on("mouseup", () => {
               var _a;
               graph.setAttr("adjusting", false);
+              graph.setAttr("hover", false);
               graph.setAttr("hoverAnchor", false);
               if (this.state.adjusting) {
                 this.render.updateHistory();
@@ -57417,7 +57418,7 @@ const logArray = (words2) => {
     console.error(e);
   }
 };
-var define_BUILD_INFO_default = { lastBuildTime: "2024-09-29 13:06:17", git: { branch: "master", hash: "11347de90be7b8a4f119c8b14dc816b6fe14fa3a", tag: "chapter23" } };
+var define_BUILD_INFO_default = { lastBuildTime: "2024-09-29 13:18:34", git: { branch: "master", hash: "3eeb93fac3fa10cf2eb9487b59e522a9f0af0cea", tag: "chapter23-dirty" } };
 const {
   lastBuildTime,
   git: { branch, tag, hash }
