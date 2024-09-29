@@ -25029,7 +25029,7 @@ class PreviewDraw extends BaseDraw {
         height: group.height(),
         stroke: "#666",
         strokeWidth: this.render.toStageValue(1),
-        fill: this.render.getPageSettings().background
+        fill: !this.render.getPageSettings().background || this.render.getPageSettings().background === "transparent" ? "#fff" : this.render.getPageSettings().background
       });
       const move2 = () => {
         this.state.moving = true;
@@ -26180,6 +26180,8 @@ class BaseGraph {
     //
     __publicField(this, "render");
     __publicField(this, "group");
+    // 占用区域，用于识别 hover 态
+    __publicField(this, "hoverRect");
     __publicField(this, "id");
     // 就是 group 的id
     /**
@@ -26211,6 +26213,13 @@ class BaseGraph {
       assetType: AssetType.Graph,
       graphType: config.type,
       draggable: true
+    });
+    this.hoverRect = new Konva.Rect({
+      name: "hoverRect",
+      x: 0,
+      y: 0,
+      // fill: 'rgba(255,0,0,0.2)',
+      hitStrokeWidth: this.render.toStageValue(this.render.bgSize * 2 + 2)
     });
     this.anchors = config.anchors.map((o) => ({
       ...o,
@@ -26262,14 +26271,6 @@ class BaseGraph {
       this.linkAnchorShadows.push(circle);
       this.group.add(circle);
     }
-    this.group.on("mouseenter", () => {
-      this.render.linkTool.pointsVisible(true, this.group);
-    });
-    this.group.on("mouseleave", () => {
-      var _a;
-      this.render.linkTool.pointsVisible(false, this.group);
-      (_a = this.group.findOne("#hoverRect")) == null ? void 0 : _a.visible(false);
-    });
     this.render.layer.add(this.group);
     this.render.redraw();
   }
@@ -26315,8 +26316,15 @@ class BaseGraph {
    * @param startPoint 鼠标按下位置
    * @param endPoint 鼠标拖动位置
    */
-  static adjust(render22, graph, graphSnap, adjustShape, anchorAndShadows, startPoint, endPoint) {
-    console.log("请实现 updateAnchorShadows");
+  static adjust(render22, graph, graphSnap, adjustShape, anchorAndShadows, startPoint, endPoint, hoverRect, hoverSize, hoverPos) {
+    hoverRect == null ? void 0 : hoverRect.position({
+      x: (hoverPos == null ? void 0 : hoverPos.x) ?? 0,
+      y: (hoverPos == null ? void 0 : hoverPos.y) ?? 0
+    });
+    hoverRect == null ? void 0 : hoverRect.size({
+      width: (hoverSize == null ? void 0 : hoverSize.width) ?? graph.width(),
+      height: (hoverSize == null ? void 0 : hoverSize.height) ?? graph.height()
+    });
   }
   static draw(graph, render22, adjustAnchor) {
     const anchors = graph.attrs.anchors ?? [];
@@ -26328,6 +26336,38 @@ class BaseGraph {
       )
     })).filter((o) => o.anchorShadow !== void 0);
     return { anchorAndShadows };
+  }
+  /**
+   * 调整结束
+   */
+  drawEnd(size2) {
+    this.hoverRect.size({
+      width: (size2 == null ? void 0 : size2.width) ?? this.group.width(),
+      height: (size2 == null ? void 0 : size2.height) ?? this.group.height()
+    });
+    this.hoverRect.on("mouseenter", () => {
+      if (!this.group.attrs.hoverAnchor) {
+        this.group.setAttr("hover", true);
+        this.render.redraw([GraphDraw.name]);
+      }
+      setTimeout(() => {
+        this.group.setAttr("hoverAnchor", false);
+      });
+      this.render.linkTool.pointsVisible(true, this.group);
+    });
+    this.hoverRect.on("mouseleave", () => {
+      var _a;
+      setTimeout(() => {
+        if (!this.group.attrs.hoverAnchor) {
+          this.group.setAttr("hover", false);
+          this.group.setAttr("hoverAnchor", false);
+          this.render.redraw([GraphDraw.name]);
+        }
+      });
+      this.render.linkTool.pointsVisible(false, this.group);
+      (_a = this.group.findOne("#hoverRect")) == null ? void 0 : _a.visible(false);
+    });
+    this.group.add(this.hoverRect);
   }
 }
 const _Circle = class _Circle extends BaseGraph {
@@ -26478,8 +26518,7 @@ const _Circle = class _Circle extends BaseGraph {
         name: "anchor",
         anchor,
         //
-        // stroke: colorMap[anchor.adjustType] ?? 'rgba(0,0,255,0.2)',
-        stroke: (adjustAnchor == null ? void 0 : adjustAnchor.adjustType) === anchor.adjustType && (adjustAnchor == null ? void 0 : adjustAnchor.groupId) === graph.id() ? "rgba(0,0,255,0.8)" : "rgba(0,0,255,0.2)",
+        stroke: `rgba(0,0,255,0.4)`,
         strokeWidth: render22.toStageValue(2),
         hitStrokeWidth: render22.toStageValue(3),
         // 位置
@@ -26525,22 +26564,26 @@ const _Circle = class _Circle extends BaseGraph {
           ])
         }[anchor.adjustType] ?? [],
         // 旋转角度
-        rotation: graph.getAbsoluteRotation()
+        rotation: graph.getAbsoluteRotation(),
+        visible: graph.attrs.adjusting || graph.attrs.hover === true
       });
       anchorShape.on("mouseenter", () => {
-        anchorShape.stroke("rgba(0,0,255,0.8)");
         document.body.style.cursor = "move";
+        graph.setAttr("hover", true);
+        graph.setAttr("hoverAnchor", true);
       });
       anchorShape.on("mouseleave", () => {
-        anchorShape.stroke(anchorShape.attrs.adjusting ? "rgba(0,0,255,0.8)" : "rgba(0,0,255,0.2)");
         document.body.style.cursor = anchorShape.attrs.adjusting ? "move" : "default";
+        graph.setAttr("hover", false);
+        graph.setAttr("hoverAnchor", false);
+        render22.redraw([GraphDraw.name]);
       });
       anchorAndShadow.shape = anchorShape;
     }
     return { anchorAndShadows };
   }
   // 实现：调整 图形
-  static adjust(render22, graph, graphSnap, adjustShape, anchorAndShadows, startPoint, endPoint) {
+  static adjust(render22, graph, graphSnap, adjustShape, anchorAndShadows, startPoint, endPoint, hoverRect) {
     var _a, _b;
     const circle = graph.findOne(".graph");
     const circleSnap = graphSnap.findOne(".graph");
@@ -27034,6 +27077,16 @@ const _Circle = class _Circle extends BaseGraph {
       }
       render22.redraw([GraphDraw.name, LinkDraw.name, PreviewDraw.name]);
     }
+    BaseGraph.adjust(
+      render22,
+      graph,
+      graphSnap,
+      adjustShape,
+      anchorAndShadows,
+      startPoint,
+      endPoint,
+      hoverRect
+    );
   }
   /**
    * 提供给 GraphDraw draw 使用
@@ -27083,6 +27136,7 @@ const _Circle = class _Circle extends BaseGraph {
       this.render.updateHistory();
       this.render.redraw([GraphDraw.name, LinkDraw.name, PreviewDraw.name]);
     }
+    super.drawEnd();
   }
 };
 /**
@@ -27128,7 +27182,8 @@ const _Rect = class _Rect extends BaseGraph {
       width: 0,
       height: 0,
       stroke: "black",
-      strokeWidth: 1
+      strokeWidth: 1,
+      hitStrokeWidth: render22.toStageValue(render22.bgSize * 2 + 2)
     });
     this.group.add(this.rect);
     this.group.position(this.dropPoint);
@@ -27238,8 +27293,7 @@ const _Rect = class _Rect extends BaseGraph {
         name: "anchor",
         anchor,
         //
-        // stroke: colorMap[anchor.adjustType] ?? 'rgba(0,0,255,0.2)',
-        stroke: (adjustAnchor == null ? void 0 : adjustAnchor.adjustType) === anchor.adjustType && (adjustAnchor == null ? void 0 : adjustAnchor.groupId) === graph.id() ? "rgba(0,0,255,0.8)" : "rgba(0,0,255,0.2)",
+        stroke: `rgba(0,0,255,0.4)`,
         strokeWidth: render22.toStageValue(2),
         hitStrokeWidth: render22.toStageValue(3),
         // 位置
@@ -27285,22 +27339,26 @@ const _Rect = class _Rect extends BaseGraph {
           ])
         }[anchor.adjustType] ?? [],
         // 旋转角度
-        rotation: graph.getAbsoluteRotation()
+        rotation: graph.getAbsoluteRotation(),
+        visible: graph.attrs.adjusting || graph.attrs.hover === true
       });
       anchorShape.on("mouseenter", () => {
-        anchorShape.stroke("rgba(0,0,255,0.8)");
         document.body.style.cursor = "move";
+        graph.setAttr("hover", true);
+        graph.setAttr("hoverAnchor", true);
       });
       anchorShape.on("mouseleave", () => {
-        anchorShape.stroke(anchorShape.attrs.adjusting ? "rgba(0,0,255,0.8)" : "rgba(0,0,255,0.2)");
         document.body.style.cursor = anchorShape.attrs.adjusting ? "move" : "default";
+        graph.setAttr("hover", false);
+        graph.setAttr("hoverAnchor", false);
+        render22.redraw([GraphDraw.name]);
       });
       anchorAndShadow.shape = anchorShape;
     }
     return { anchorAndShadows };
   }
   // 实现：调整 图形
-  static adjust(render22, graph, graphSnap, adjustShape, anchorAndShadows, startPoint, endPoint) {
+  static adjust(render22, graph, graphSnap, adjustShape, anchorAndShadows, startPoint, endPoint, hoverRect) {
     var _a, _b;
     const rect = graph.findOne(".graph");
     const rectSnap = graphSnap.findOne(".graph");
@@ -27792,6 +27850,16 @@ const _Rect = class _Rect extends BaseGraph {
       }
       render22.redraw([GraphDraw.name, LinkDraw.name, PreviewDraw.name]);
     }
+    BaseGraph.adjust(
+      render22,
+      graph,
+      graphSnap,
+      adjustShape,
+      anchorAndShadows,
+      startPoint,
+      endPoint,
+      hoverRect
+    );
   }
   /**
    * 提供给 GraphDraw draw 使用
@@ -27835,6 +27903,7 @@ const _Rect = class _Rect extends BaseGraph {
       this.render.updateHistory();
       this.render.redraw([GraphDraw.name, LinkDraw.name, PreviewDraw.name]);
     }
+    super.drawEnd();
   }
 };
 /**
@@ -27865,8 +27934,7 @@ const _Line = class _Line extends BaseGraph {
       x: 0,
       y: 0,
       stroke: "black",
-      strokeWidth: 1,
-      hitStrokeWidth: render22.toStageValue(5)
+      strokeWidth: 1
     });
     this.group.size({
       width: 1,
@@ -27939,27 +28007,26 @@ const _Line = class _Line extends BaseGraph {
             name: "anchor",
             anchor,
             //
-            fill: anchor.adjusted ? "rgba(0,0,0,0.4)" : "rgba(0,0,255,0.2)",
-            radius: render22.toStageValue(3),
+            fill: anchor.adjusted ? `rgba(0,0,0,0.4)` : `rgba(0,0,255,0.4)`,
+            radius: render22.toStageValue(5),
             strokeWidth: 0,
             // 位置
             x,
             y,
             // 旋转角度
-            rotation: graph.getAbsoluteRotation()
+            rotation: graph.getAbsoluteRotation(),
+            visible: graph.attrs.adjusting || graph.attrs.hover === true
           });
           anchorShape.on("mouseenter", () => {
-            anchorShape.fill("rgba(0,0,255,0.8)");
             document.body.style.cursor = "move";
-            anchorShape.radius(render22.toStageValue(7));
+            graph.setAttr("hover", true);
+            graph.setAttr("hoverAnchor", true);
           });
           anchorShape.on("mouseleave", () => {
-            var _a;
-            anchorShape.fill(
-              ((_a = anchorShape.attrs.anchor) == null ? void 0 : _a.adjusted) ? "rgba(0,0,0,0.4)" : "rgba(0,0,255,0.2)"
-            );
-            anchorShape.radius(render22.toStageValue(3));
             document.body.style.cursor = anchorShape.attrs.adjusting ? "move" : "default";
+            graph.setAttr("hover", false);
+            graph.setAttr("hoverAnchor", false);
+            render22.redraw([GraphDraw.name]);
           });
           anchorAndShadow.shape = anchorShape;
         } else {
@@ -27973,15 +28040,15 @@ const _Line = class _Line extends BaseGraph {
           }
           const cos = Math.cos(rotate * Math.PI / 180);
           const sin = Math.sin(rotate * Math.PI / 180);
-          const offset = render22.toStageValue(render22.pointSize + 5);
+          const offset = render22.toStageValue(render22.pointSize - 20);
           const offsetX = offset * sin;
           const offsetY = offset * cos;
           const anchorShape = new Konva.Circle({
             name: "anchor",
             anchor,
             //
-            fill: (adjustAnchor == null ? void 0 : adjustAnchor.adjustType) === anchor.adjustType && (adjustAnchor == null ? void 0 : adjustAnchor.groupId) === graph.id() ? "rgba(0,0,255,0.8)" : "rgba(0,0,255,0.2)",
-            radius: render22.toStageValue(3),
+            fill: `rgba(0,0,255,0.4)`,
+            radius: render22.toStageValue(5),
             strokeWidth: 0,
             // 位置
             x,
@@ -27989,17 +28056,19 @@ const _Line = class _Line extends BaseGraph {
             offsetX: anchor.adjustType === "start" ? offsetX : anchor.adjustType === "end" ? -offsetX : 0,
             offsetY: anchor.adjustType === "start" ? offsetY : anchor.adjustType === "end" ? -offsetY : 0,
             // 旋转角度
-            rotation: graph.getAbsoluteRotation()
+            rotation: graph.getAbsoluteRotation(),
+            visible: graph.attrs.adjusting || graph.attrs.hover === true
           });
           anchorShape.on("mouseenter", () => {
-            anchorShape.fill("rgba(0,0,255,0.8)");
             document.body.style.cursor = "move";
+            graph.setAttr("hover", true);
+            graph.setAttr("hoverAnchor", true);
           });
           anchorShape.on("mouseleave", () => {
-            anchorShape.fill(
-              anchorShape.attrs.adjusting ? "rgba(0,0,255,0.8)" : "rgba(0,0,255,0.2)"
-            );
             document.body.style.cursor = anchorShape.attrs.adjusting ? "move" : "default";
+            graph.setAttr("hover", false);
+            graph.setAttr("hoverAnchor", false);
+            render22.redraw([GraphDraw.name]);
           });
           anchorAndShadow.shape = anchorShape;
         }
@@ -28028,7 +28097,7 @@ const _Line = class _Line extends BaseGraph {
     return { x: newX, y: newY };
   }
   // 实现：调整 图形
-  static adjust(render22, graph, graphSnap, adjustShape, anchorAndShadows, startPoint, endPoint) {
+  static adjust(render22, graph, graphSnap, adjustShape, anchorAndShadows, startPoint, endPoint, hoverRect) {
     var _a, _b, _c, _d, _e, _f;
     const line = graph.findOne(".graph");
     const lineSnap = graphSnap.findOne(".graph");
@@ -28128,6 +28197,35 @@ const _Line = class _Line extends BaseGraph {
       }
       render22.redraw([GraphDraw.name, LinkDraw.name, PreviewDraw.name]);
     }
+    BaseGraph.adjust(
+      render22,
+      graph,
+      graphSnap,
+      adjustShape,
+      anchorAndShadows,
+      startPoint,
+      endPoint,
+      hoverRect,
+      line.size(),
+      {
+        x: Math.min(
+          ...line.points().reduce((arr, item, idx) => {
+            if (idx % 2 === 0) {
+              arr.push(item);
+            }
+            return arr;
+          }, [])
+        ),
+        y: Math.min(
+          ...line.points().reduce((arr, item, idx) => {
+            if (idx % 2 === 1) {
+              arr.push(item);
+            }
+            return arr;
+          }, [])
+        )
+      }
+    );
   }
   /**
    * 提供给 GraphDraw draw 使用
@@ -28171,6 +28269,7 @@ const _Line = class _Line extends BaseGraph {
     this.render.attractTool.alignLinesClear();
     this.render.updateHistory();
     this.render.redraw([GraphDraw.name, LinkDraw.name, PreviewDraw.name]);
+    super.drawEnd(this.line.size());
   }
   /**
    * 更新 调整点（拐点）
@@ -28308,7 +28407,6 @@ const _Curve = class _Curve extends BaseGraph {
       y: 0,
       stroke: "black",
       strokeWidth: 1,
-      hitStrokeWidth: render22.toStageValue(5),
       tension: 0.5
     });
     this.group.size({
@@ -28382,27 +28480,26 @@ const _Curve = class _Curve extends BaseGraph {
             name: "anchor",
             anchor,
             //
-            fill: anchor.adjusted ? "rgba(0,0,0,0.4)" : "rgba(0,0,255,0.2)",
-            radius: render22.toStageValue(3),
+            fill: anchor.adjusted ? `rgba(0,0,0,0.4)` : `rgba(0,0,255,0.4)`,
+            radius: render22.toStageValue(5),
             strokeWidth: 0,
             // 位置
             x,
             y,
             // 旋转角度
-            rotation: graph.getAbsoluteRotation()
+            rotation: graph.getAbsoluteRotation(),
+            visible: graph.attrs.adjusting || graph.attrs.hover === true
           });
           anchorShape.on("mouseenter", () => {
-            anchorShape.fill("rgba(0,0,255,0.8)");
             document.body.style.cursor = "move";
-            anchorShape.radius(render22.toStageValue(7));
+            graph.setAttr("hover", true);
+            graph.setAttr("hoverAnchor", true);
           });
           anchorShape.on("mouseleave", () => {
-            var _a;
-            anchorShape.fill(
-              ((_a = anchorShape.attrs.anchor) == null ? void 0 : _a.adjusted) ? "rgba(0,0,0,0.4)" : "rgba(0,0,255,0.2)"
-            );
-            anchorShape.radius(render22.toStageValue(3));
             document.body.style.cursor = anchorShape.attrs.adjusting ? "move" : "default";
+            graph.setAttr("hover", false);
+            graph.setAttr("hoverAnchor", false);
+            render22.redraw([GraphDraw.name]);
           });
           anchorAndShadow.shape = anchorShape;
         } else {
@@ -28416,15 +28513,15 @@ const _Curve = class _Curve extends BaseGraph {
           }
           const cos = Math.cos(rotate * Math.PI / 180);
           const sin = Math.sin(rotate * Math.PI / 180);
-          const offset = render22.toStageValue(render22.pointSize + 5);
+          const offset = render22.toStageValue(render22.pointSize - 20);
           const offsetX = offset * sin;
           const offsetY = offset * cos;
           const anchorShape = new Konva.Circle({
             name: "anchor",
             anchor,
             //
-            fill: (adjustAnchor == null ? void 0 : adjustAnchor.adjustType) === anchor.adjustType && (adjustAnchor == null ? void 0 : adjustAnchor.groupId) === graph.id() ? "rgba(0,0,255,0.8)" : "rgba(0,0,255,0.2)",
-            radius: render22.toStageValue(3),
+            fill: `rgba(0,0,255,0.4)`,
+            radius: render22.toStageValue(5),
             strokeWidth: 0,
             // 位置
             x,
@@ -28432,17 +28529,19 @@ const _Curve = class _Curve extends BaseGraph {
             offsetX: anchor.adjustType === "start" ? offsetX : anchor.adjustType === "end" ? -offsetX : 0,
             offsetY: anchor.adjustType === "start" ? offsetY : anchor.adjustType === "end" ? -offsetY : 0,
             // 旋转角度
-            rotation: graph.getAbsoluteRotation()
+            rotation: graph.getAbsoluteRotation(),
+            visible: graph.attrs.adjusting || graph.attrs.hover === true
           });
           anchorShape.on("mouseenter", () => {
-            anchorShape.fill("rgba(0,0,255,0.8)");
             document.body.style.cursor = "move";
+            graph.setAttr("hover", true);
+            graph.setAttr("hoverAnchor", true);
           });
           anchorShape.on("mouseleave", () => {
-            anchorShape.fill(
-              anchorShape.attrs.adjusting ? "rgba(0,0,255,0.8)" : "rgba(0,0,255,0.2)"
-            );
             document.body.style.cursor = anchorShape.attrs.adjusting ? "move" : "default";
+            graph.setAttr("hover", false);
+            graph.setAttr("hoverAnchor", false);
+            render22.redraw([GraphDraw.name]);
           });
           anchorAndShadow.shape = anchorShape;
         }
@@ -28471,7 +28570,7 @@ const _Curve = class _Curve extends BaseGraph {
     return { x: newX, y: newY };
   }
   // 实现：调整 图形
-  static adjust(render22, graph, graphSnap, adjustShape, anchorAndShadows, startPoint, endPoint) {
+  static adjust(render22, graph, graphSnap, adjustShape, anchorAndShadows, startPoint, endPoint, hoverRect) {
     var _a, _b, _c, _d, _e, _f;
     const line = graph.findOne(".graph");
     const lineSnap = graphSnap.findOne(".graph");
@@ -28571,6 +28670,40 @@ const _Curve = class _Curve extends BaseGraph {
       }
       render22.redraw([GraphDraw.name, LinkDraw.name, PreviewDraw.name]);
     }
+    const allXs = line.points().reduce((arr, item, idx) => {
+      if (idx % 2 === 0) {
+        arr.push(item);
+      }
+      return arr;
+    }, []);
+    const allYs = line.points().reduce((arr, item, idx) => {
+      if (idx % 2 === 1) {
+        arr.push(item);
+      }
+      return arr;
+    }, []);
+    const minX = Math.min(...allXs);
+    const maxX = Math.max(...allXs);
+    const minY = Math.min(...allYs);
+    const maxY = Math.max(...allYs);
+    BaseGraph.adjust(
+      render22,
+      graph,
+      graphSnap,
+      adjustShape,
+      anchorAndShadows,
+      startPoint,
+      endPoint,
+      hoverRect,
+      {
+        width: maxX - minX,
+        height: maxY - minY
+      },
+      {
+        x: minX,
+        y: minY
+      }
+    );
   }
   /**
    * 提供给 GraphDraw draw 使用
@@ -28614,6 +28747,7 @@ const _Curve = class _Curve extends BaseGraph {
     this.render.attractTool.alignLinesClear();
     this.render.updateHistory();
     this.render.redraw([GraphDraw.name, LinkDraw.name, PreviewDraw.name]);
+    super.drawEnd(this.line.size());
   }
   /**
    * 更新 调整点（拐点）
@@ -28809,6 +28943,7 @@ const _GraphDraw = class _GraphDraw extends BaseDraw {
                 this.state.startPointCurrent = pos;
                 this.state.graphCurrent = graph;
                 this.state.graphCurrentSnap = graph.clone();
+                graph.setAttr("adjusting", true);
                 shape.setAttr("adjusting", true);
                 if (this.state.adjustAnchor) {
                   switch ((_a = shape.attrs.anchor) == null ? void 0 : _a.type) {
@@ -28837,7 +28972,8 @@ const _GraphDraw = class _GraphDraw extends BaseDraw {
                           shape,
                           anchorAndShadows,
                           this.state.startPointCurrent,
-                          pos
+                          pos,
+                          graph.findOne(".hoverRect")
                         );
                         break;
                       case GraphType.Rect:
@@ -28848,7 +28984,8 @@ const _GraphDraw = class _GraphDraw extends BaseDraw {
                           shape,
                           anchorAndShadows,
                           this.state.startPointCurrent,
-                          pos
+                          pos,
+                          graph.findOne(".hoverRect")
                         );
                         break;
                       case GraphType.Line:
@@ -28859,7 +28996,8 @@ const _GraphDraw = class _GraphDraw extends BaseDraw {
                           shape,
                           anchorAndShadows,
                           this.state.startPointCurrent,
-                          pos
+                          pos,
+                          graph.findOne(".hoverRect")
                         );
                         break;
                       case GraphType.Curve:
@@ -28870,7 +29008,8 @@ const _GraphDraw = class _GraphDraw extends BaseDraw {
                           shape,
                           anchorAndShadows,
                           this.state.startPointCurrent,
-                          pos
+                          pos,
+                          graph.findOne(".hoverRect")
                         );
                         break;
                     }
@@ -28884,8 +29023,10 @@ const _GraphDraw = class _GraphDraw extends BaseDraw {
               }
             });
             this.render.stage.on("mouseup", () => {
-              var _a, _b;
-              if (shape.attrs.adjusting) {
+              var _a;
+              graph.setAttr("adjusting", false);
+              graph.setAttr("hoverAnchor", false);
+              if (this.state.adjusting) {
                 this.render.updateHistory();
                 this.render.redraw([
                   _GraphDraw.name,
@@ -28898,21 +29039,11 @@ const _GraphDraw = class _GraphDraw extends BaseDraw {
               this.state.adjustGroupId = "";
               for (const { shape: shape2 } of anchorAndShadows) {
                 if (shape2) {
-                  shape2.opacity(1);
                   shape2.setAttr("adjusting", false);
-                  if ([GraphType.Line, GraphType.Curve].includes((_a = shape2.attrs.anchor) == null ? void 0 : _a.type)) {
-                    if (shape2.attrs.anchor.adjusted) {
-                      shape2.fill("rgba(0,0,0,0.4)");
-                    } else {
-                      shape2.fill("rgba(0,0,255,0.2)");
-                    }
-                  } else {
-                    shape2.stroke("rgba(0,0,255,0.2)");
-                  }
                 }
-                document.body.style.cursor = "default";
               }
-              (_b = this.state.graphCurrentSnap) == null ? void 0 : _b.destroy();
+              document.body.style.cursor = "default";
+              (_a = this.state.graphCurrentSnap) == null ? void 0 : _a.destroy();
               this.render.attractTool.alignLinesClear();
             });
             this.group.add(shape);
@@ -57286,7 +57417,7 @@ const logArray = (words2) => {
     console.error(e);
   }
 };
-var define_BUILD_INFO_default = { lastBuildTime: "2024-09-25 17:37:22", git: { branch: "master", hash: "1be7814091f6d60446bd3dc642aa6cd939fcfee5", tag: "chapter22-dirty" } };
+var define_BUILD_INFO_default = { lastBuildTime: "2024-09-29 13:06:17", git: { branch: "master", hash: "11347de90be7b8a4f119c8b14dc816b6fe14fa3a", tag: "chapter23" } };
 const {
   lastBuildTime,
   git: { branch, tag, hash }
