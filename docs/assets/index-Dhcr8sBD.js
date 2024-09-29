@@ -26340,7 +26340,12 @@ class BaseGraph {
   /**
    * 调整结束
    */
-  drawEnd(size2) {
+  drawEnd(size2, pos) {
+    var _a;
+    (_a = this.hoverRect) == null ? void 0 : _a.position({
+      x: (pos == null ? void 0 : pos.x) ?? 0,
+      y: (pos == null ? void 0 : pos.y) ?? 0
+    });
     this.hoverRect.size({
       width: (size2 == null ? void 0 : size2.width) ?? this.group.width(),
       height: (size2 == null ? void 0 : size2.height) ?? this.group.height()
@@ -26356,7 +26361,7 @@ class BaseGraph {
       this.render.linkTool.pointsVisible(true, this.group);
     });
     this.hoverRect.on("mouseleave", () => {
-      var _a;
+      var _a2;
       setTimeout(() => {
         if (!this.group.attrs.hoverAnchor) {
           this.group.setAttr("hover", false);
@@ -26365,7 +26370,7 @@ class BaseGraph {
         }
       });
       this.render.linkTool.pointsVisible(false, this.group);
-      (_a = this.group.findOne("#hoverRect")) == null ? void 0 : _a.visible(false);
+      (_a2 = this.group.findOne("#hoverRect")) == null ? void 0 : _a2.visible(false);
     });
     this.group.add(this.hoverRect);
   }
@@ -27929,12 +27934,14 @@ const _Line = class _Line extends BaseGraph {
      * 直线、折线 对应的 Konva 实例
      */
     __publicField(this, "line");
-    this.line = new Konva.Line({
+    this.line = new Konva.Arrow({
       name: "graph",
       x: 0,
       y: 0,
       stroke: "black",
-      strokeWidth: 1
+      strokeWidth: 1,
+      points: [],
+      pointerWidth: 0
     });
     this.group.size({
       width: 1,
@@ -28269,7 +28276,24 @@ const _Line = class _Line extends BaseGraph {
     this.render.attractTool.alignLinesClear();
     this.render.updateHistory();
     this.render.redraw([GraphDraw.name, LinkDraw.name, PreviewDraw.name]);
-    super.drawEnd(this.line.size());
+    super.drawEnd(this.line.size(), {
+      x: Math.min(
+        ...this.line.points().reduce((arr, item, idx) => {
+          if (idx % 2 === 0) {
+            arr.push(item);
+          }
+          return arr;
+        }, [])
+      ),
+      y: Math.min(
+        ...this.line.points().reduce((arr, item, idx) => {
+          if (idx % 2 === 1) {
+            arr.push(item);
+          }
+          return arr;
+        }, [])
+      )
+    });
   }
   /**
    * 更新 调整点（拐点）
@@ -28407,6 +28431,8 @@ const _Curve = class _Curve extends BaseGraph {
       y: 0,
       stroke: "black",
       strokeWidth: 1,
+      points: [],
+      pointerWidth: 0,
       tension: 0.5
     });
     this.group.size({
@@ -28747,7 +28773,24 @@ const _Curve = class _Curve extends BaseGraph {
     this.render.attractTool.alignLinesClear();
     this.render.updateHistory();
     this.render.redraw([GraphDraw.name, LinkDraw.name, PreviewDraw.name]);
-    super.drawEnd(this.line.size());
+    super.drawEnd(this.line.size(), {
+      x: Math.min(
+        ...this.line.points().reduce((arr, item, idx) => {
+          if (idx % 2 === 0) {
+            arr.push(item);
+          }
+          return arr;
+        }, [])
+      ),
+      y: Math.min(
+        ...this.line.points().reduce((arr, item, idx) => {
+          if (idx % 2 === 1) {
+            arr.push(item);
+          }
+          return arr;
+        }, [])
+      )
+    });
   }
   /**
    * 更新 调整点（拐点）
@@ -32973,7 +33016,9 @@ __publicField(_Render, "PageSettingsDefault", {
 // 素材设置 默认值
 __publicField(_Render, "AssetSettingsDefault", {
   stroke: "",
-  fill: ""
+  fill: "",
+  arrowStart: false,
+  arrowEnd: false
 });
 let Render = _Render;
 let onceCbs = [];
@@ -35595,7 +35640,7 @@ function getOffset(placement, offsetRect, targetRect, offsetTopToStandardPlaceme
       };
   }
 }
-const style$p = c([
+const style$q = c([
   c(".v-binder-follower-container", {
     position: "absolute",
     left: "0",
@@ -35677,7 +35722,7 @@ const VFollower = /* @__PURE__ */ defineComponent({
       }
     });
     const ssrAdapter2 = useSsrAdapter();
-    style$p.mount({
+    style$q.mount({
       id: "vueuc/binder",
       head: true,
       anchorMetaName: cssrAnchorMetaName$1,
@@ -36456,7 +36501,7 @@ const VXScroll = /* @__PURE__ */ defineComponent({
   }
 });
 const hiddenAttr = "v-hidden";
-const style$o = c("[v-hidden]", {
+const style$p = c("[v-hidden]", {
   display: "none!important"
 });
 const VOverflow = /* @__PURE__ */ defineComponent({
@@ -36557,7 +36602,7 @@ const VOverflow = /* @__PURE__ */ defineComponent({
       }
     }
     const ssrAdapter2 = useSsrAdapter();
-    style$o.mount({
+    style$p.mount({
       id: "vueuc/overflow",
       head: true,
       anchorMetaName: cssrAnchorMetaName$1,
@@ -37033,7 +37078,7 @@ function useFormItem(props, {
     }
   };
 }
-const commonVariables$6 = {
+const commonVariables$7 = {
   fontFamily: 'v-sans, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"',
   fontFamilyMono: "v-mono, SFMono-Regular, Menlo, Consolas, Courier, monospace",
   fontWeight: "400",
@@ -37063,7 +37108,7 @@ const {
   fontSize,
   fontFamily,
   lineHeight
-} = commonVariables$6;
+} = commonVariables$7;
 const globalStyle = c$1("body", `
  margin: 0;
  font-size: ${fontSize};
@@ -38254,7 +38299,7 @@ const NFadeInExpandTransition = /* @__PURE__ */ defineComponent({
     };
   }
 });
-const style$n = cB("base-icon", `
+const style$o = cB("base-icon", `
  height: 1em;
  width: 1em;
  line-height: 1em;
@@ -38289,7 +38334,7 @@ const NBaseIcon = /* @__PURE__ */ defineComponent({
     onMouseup: Function
   },
   setup(props) {
-    useStyle("-base-icon", style$n, toRef(props, "clsPrefix"));
+    useStyle("-base-icon", style$o, toRef(props, "clsPrefix"));
   },
   render() {
     return h("i", {
@@ -38304,7 +38349,7 @@ const NBaseIcon = /* @__PURE__ */ defineComponent({
     }, this.$slots);
   }
 });
-const style$m = cB("base-close", `
+const style$n = cB("base-close", `
  display: flex;
  align-items: center;
  justify-content: center;
@@ -38373,7 +38418,7 @@ const NBaseClose = /* @__PURE__ */ defineComponent({
     absolute: Boolean
   },
   setup(props) {
-    useStyle("-base-close", style$m, toRef(props, "clsPrefix"));
+    useStyle("-base-close", style$n, toRef(props, "clsPrefix"));
     return () => {
       const {
         clsPrefix,
@@ -38407,7 +38452,7 @@ const NBaseClose = /* @__PURE__ */ defineComponent({
 });
 const {
   cubicBezierEaseInOut: cubicBezierEaseInOut$4
-} = commonVariables$6;
+} = commonVariables$7;
 function iconSwitchTransition({
   originalTransform = "",
   left = 0,
@@ -38432,7 +38477,7 @@ function iconSwitchTransition({
     transition
   })];
 }
-const style$l = c$1([c$1("@keyframes rotator", `
+const style$m = c$1([c$1("@keyframes rotator", `
  0% {
  -webkit-transform: rotate(0deg);
  transform: rotate(0deg);
@@ -38496,7 +38541,7 @@ const NBaseLoading = /* @__PURE__ */ defineComponent({
     }
   }, exposedLoadingProps),
   setup(props) {
-    useStyle("-base-loading", style$l, toRef(props, "clsPrefix"));
+    useStyle("-base-loading", style$m, toRef(props, "clsPrefix"));
   },
   render() {
     const {
@@ -39251,7 +39296,7 @@ function neutral(alpha) {
 }
 const derived = Object.assign(Object.assign({
   name: "common"
-}, commonVariables$6), {
+}, commonVariables$7), {
   baseColor: base.neutralBase,
   // primary color
   primaryColor: base.primaryDefault,
@@ -39359,7 +39404,7 @@ const commonVars$2 = {
   railInsetVertical: "2px 4px 2px auto",
   railColor: "transparent"
 };
-function self$i(vars) {
+function self$j(vars) {
   const {
     scrollbarColor,
     scrollbarColorHover,
@@ -39378,12 +39423,12 @@ function self$i(vars) {
 const scrollbarLight = {
   name: "Scrollbar",
   common: commonLight,
-  self: self$i
+  self: self$j
 };
 const scrollbarLight$1 = scrollbarLight;
 const {
   cubicBezierEaseInOut: cubicBezierEaseInOut$3
-} = commonVariables$6;
+} = commonVariables$7;
 function fadeInTransition({
   name = "fade-in",
   enterDuration = "0.2s",
@@ -39401,7 +39446,7 @@ function fadeInTransition({
     opacity: 1
   })];
 }
-const style$k = cB("scrollbar", `
+const style$l = cB("scrollbar", `
  overflow: hidden;
  position: relative;
  z-index: auto;
@@ -39518,7 +39563,7 @@ const Scrollbar = /* @__PURE__ */ defineComponent({
     let memoMouseX = 0;
     let memoMouseY = 0;
     const isIos2 = useIsIos();
-    const themeRef = useTheme("Scrollbar", "-scrollbar", style$k, scrollbarLight$1, props, mergedClsPrefixRef);
+    const themeRef = useTheme("Scrollbar", "-scrollbar", style$l, scrollbarLight$1, props, mergedClsPrefixRef);
     const yBarSizeRef = computed(() => {
       const {
         value: containerHeight
@@ -40193,7 +40238,7 @@ const XScrollbar = Scrollbar;
 const {
   cubicBezierEaseIn: cubicBezierEaseIn$1,
   cubicBezierEaseOut: cubicBezierEaseOut$1
-} = commonVariables$6;
+} = commonVariables$7;
 function fadeInScaleUpTransition({
   transformOrigin = "inherit",
   duration: duration2 = ".2s",
@@ -40215,7 +40260,7 @@ function fadeInScaleUpTransition({
     transform: `${originalTransform} scale(1)`
   })];
 }
-const style$j = cB("base-wave", `
+const style$k = cB("base-wave", `
  position: absolute;
  left: 0;
  right: 0;
@@ -40232,7 +40277,7 @@ const NBaseWave = /* @__PURE__ */ defineComponent({
     }
   },
   setup(props) {
-    useStyle("-base-wave", style$j, toRef(props, "clsPrefix"));
+    useStyle("-base-wave", style$k, toRef(props, "clsPrefix"));
     const selfRef = ref(null);
     const activeRef = ref(false);
     let animationTimerId = null;
@@ -40273,7 +40318,7 @@ const NBaseWave = /* @__PURE__ */ defineComponent({
     });
   }
 });
-const commonVariables$5 = {
+const commonVariables$6 = {
   space: "6px",
   spaceArrow: "10px",
   arrowOffset: "10px",
@@ -40281,7 +40326,7 @@ const commonVariables$5 = {
   arrowHeight: "6px",
   padding: "8px 14px"
 };
-function self$h(vars) {
+function self$i(vars) {
   const {
     boxShadow2,
     popoverColor,
@@ -40290,7 +40335,7 @@ function self$h(vars) {
     fontSize: fontSize2,
     dividerColor
   } = vars;
-  return Object.assign(Object.assign({}, commonVariables$5), {
+  return Object.assign(Object.assign({}, commonVariables$6), {
     fontSize: fontSize2,
     borderRadius,
     color: popoverColor,
@@ -40302,7 +40347,7 @@ function self$h(vars) {
 const popoverLight = {
   name: "Popover",
   common: commonLight,
-  self: self$h
+  self: self$i
 };
 const popoverLight$1 = popoverLight;
 const oppositePlacement = {
@@ -40312,7 +40357,7 @@ const oppositePlacement = {
   right: "left"
 };
 const arrowSize = "var(--n-arrow-height) * 1.414";
-const style$i = c$1([cB("popover", `
+const style$j = c$1([cB("popover", `
  transition:
  box-shadow .3s var(--n-bezier),
  background-color .3s var(--n-bezier),
@@ -40526,7 +40571,7 @@ const NPopoverBody = /* @__PURE__ */ defineComponent({
       mergedClsPrefixRef,
       inlineThemeDisabled
     } = useConfig(props);
-    const themeRef = useTheme("Popover", "-popover", style$i, popoverLight$1, props, mergedClsPrefixRef);
+    const themeRef = useTheme("Popover", "-popover", style$j, popoverLight$1, props, mergedClsPrefixRef);
     const followerRef = ref(null);
     const NPopover2 = inject("NPopover");
     const bodyRef = ref(null);
@@ -41283,7 +41328,7 @@ const NPopover = /* @__PURE__ */ defineComponent({
     });
   }
 });
-const style$h = cB("base-clear", `
+const style$i = cB("base-clear", `
  flex-shrink: 0;
  height: 1em;
  width: 1em;
@@ -41323,7 +41368,7 @@ const NBaseClear = /* @__PURE__ */ defineComponent({
     onClear: Function
   },
   setup(props) {
-    useStyle("-base-clear", style$h, toRef(props, "clsPrefix"));
+    useStyle("-base-clear", style$i, toRef(props, "clsPrefix"));
     return {
       handleMouseDown(e) {
         e.preventDefault();
@@ -41410,7 +41455,7 @@ const NBaseSuffix = /* @__PURE__ */ defineComponent({
 });
 const {
   cubicBezierEaseInOut: cubicBezierEaseInOut$2
-} = commonVariables$6;
+} = commonVariables$7;
 function fadeInWidthExpandTransition({
   duration: duration2 = ".2s",
   delay: delay2 = ".1s"
@@ -41441,7 +41486,7 @@ const {
   cubicBezierEaseInOut: cubicBezierEaseInOut$1,
   cubicBezierEaseOut,
   cubicBezierEaseIn
-} = commonVariables$6;
+} = commonVariables$7;
 function fadeInHeightExpandTransition({
   overflow = "hidden",
   duration: duration2 = ".3s",
@@ -41489,14 +41534,14 @@ function fadeInHeightExpandTransition({
 const isChrome = isBrowser$2 && "chrome" in window;
 isBrowser$2 && navigator.userAgent.includes("Firefox");
 const isSafari = isBrowser$2 && navigator.userAgent.includes("Safari") && !isChrome;
-const commonVariables$4 = {
+const commonVariables$5 = {
   paddingTiny: "0 8px",
   paddingSmall: "0 10px",
   paddingMedium: "0 12px",
   paddingLarge: "0 14px",
   clearSize: "16px"
 };
-function self$g(vars) {
+function self$h(vars) {
   const {
     textColor2,
     textColor3,
@@ -41531,7 +41576,7 @@ function self$g(vars) {
     iconColorHover,
     iconColorPressed
   } = vars;
-  return Object.assign(Object.assign({}, commonVariables$4), {
+  return Object.assign(Object.assign({}, commonVariables$5), {
     countTextColorDisabled: textColorDisabled,
     countTextColor: textColor3,
     heightTiny,
@@ -41599,7 +41644,7 @@ function self$g(vars) {
 const inputLight = {
   name: "Input",
   common: commonLight,
-  self: self$g
+  self: self$h
 };
 const inputLight$1 = inputLight;
 const inputInjectionKey = createInjectionKey("n-input");
@@ -41715,7 +41760,7 @@ const WordCount = /* @__PURE__ */ defineComponent({
     };
   }
 });
-const style$g = cB("input", `
+const style$h = cB("input", `
  max-width: 100%;
  cursor: text;
  line-height: 1.5;
@@ -42079,7 +42124,7 @@ const NInput = /* @__PURE__ */ defineComponent({
       inlineThemeDisabled,
       mergedRtlRef
     } = useConfig(props);
-    const themeRef = useTheme("Input", "-input", style$g, inputLight$1, props, mergedClsPrefixRef);
+    const themeRef = useTheme("Input", "-input", style$h, inputLight$1, props, mergedClsPrefixRef);
     if (isSafari) {
       useStyle("-input-safari", safariStyle, mergedClsPrefixRef);
     }
@@ -43202,7 +43247,7 @@ const NInput = /* @__PURE__ */ defineComponent({
     }) : null);
   }
 });
-const style$f = cB("input-group", `
+const style$g = cB("input-group", `
  display: inline-flex;
  width: 100%;
  flex-wrap: nowrap;
@@ -43266,7 +43311,7 @@ const NInputGroup = /* @__PURE__ */ defineComponent({
     const {
       mergedClsPrefixRef
     } = useConfig(props);
-    useStyle("-input-group", style$f, mergedClsPrefixRef);
+    useStyle("-input-group", style$g, mergedClsPrefixRef);
     return {
       mergedClsPrefix: mergedClsPrefixRef
     };
@@ -43287,7 +43332,7 @@ function createPressedColor(rgb) {
   return composite(rgb, [0, 0, 0, 0.12]);
 }
 const buttonGroupInjectionKey = createInjectionKey("n-button-group");
-const commonVariables$3 = {
+const commonVariables$4 = {
   paddingTiny: "0 6px",
   paddingSmall: "0 10px",
   paddingMedium: "0 14px",
@@ -43306,7 +43351,7 @@ const commonVariables$3 = {
   iconSizeLarge: "20px",
   rippleDuration: ".6s"
 };
-function self$f(vars) {
+function self$g(vars) {
   const {
     heightTiny,
     heightSmall,
@@ -43343,7 +43388,7 @@ function self$f(vars) {
     buttonColor2Pressed,
     fontWeightStrong
   } = vars;
-  return Object.assign(Object.assign({}, commonVariables$3), {
+  return Object.assign(Object.assign({}, commonVariables$4), {
     heightTiny,
     heightSmall,
     heightMedium,
@@ -43543,10 +43588,10 @@ function self$f(vars) {
 const buttonLight = {
   name: "Button",
   common: commonLight,
-  self: self$f
+  self: self$g
 };
 const buttonLight$1 = buttonLight;
-const style$e = c$1([cB("button", `
+const style$f = c$1([cB("button", `
  margin: 0;
  font-weight: var(--n-font-weight);
  line-height: 1;
@@ -43845,7 +43890,7 @@ const Button = /* @__PURE__ */ defineComponent({
       mergedClsPrefixRef,
       mergedRtlRef
     } = useConfig(props);
-    const themeRef = useTheme("Button", "-button", style$e, buttonLight$1, props, mergedClsPrefixRef);
+    const themeRef = useTheme("Button", "-button", style$f, buttonLight$1, props, mergedClsPrefixRef);
     const rtlEnabledRef = useRtl("Button", mergedRtlRef, mergedClsPrefixRef);
     const cssVarsRef = computed(() => {
       const theme = themeRef.value;
@@ -44191,7 +44236,7 @@ const Button = /* @__PURE__ */ defineComponent({
   }
 });
 const NButton = Button;
-function self$e(vars) {
+function self$f(vars) {
   const {
     fontSize: fontSize2,
     boxShadow2,
@@ -44230,7 +44275,7 @@ const colorPickerLight = createTheme({
     Input: inputLight$1,
     Button: buttonLight$1
   },
-  self: self$e
+  self: self$f
 });
 const colorPickerLight$1 = colorPickerLight;
 function deriveDefaultValue(modes, showAlpha) {
@@ -45151,7 +45196,7 @@ const ColorPreview = /* @__PURE__ */ defineComponent({
     }));
   }
 });
-const style$d = c$1([cB("color-picker", `
+const style$e = c$1([cB("color-picker", `
  display: inline-block;
  box-sizing: border-box;
  height: var(--n-height);
@@ -45396,7 +45441,7 @@ const NColorPicker = /* @__PURE__ */ defineComponent({
       namespaceRef,
       inlineThemeDisabled
     } = useConfig(props);
-    const themeRef = useTheme("ColorPicker", "-color-picker", style$d, colorPickerLight$1, props, mergedClsPrefixRef);
+    const themeRef = useTheme("ColorPicker", "-color-picker", style$e, colorPickerLight$1, props, mergedClsPrefixRef);
     provide(colorPickerInjectionKey, {
       themeRef,
       renderLabelRef: toRef(props, "renderLabel"),
@@ -45925,7 +45970,7 @@ const NColorPicker = /* @__PURE__ */ defineComponent({
     }));
   }
 });
-const commonVariables$2 = {
+const commonVariables$3 = {
   paddingSmall: "12px 16px 12px",
   paddingMedium: "19px 24px 20px",
   paddingLarge: "23px 32px 24px",
@@ -45937,7 +45982,7 @@ const commonVariables$2 = {
   closeIconSize: "18px",
   closeSize: "22px"
 };
-function self$d(vars) {
+function self$e(vars) {
   const {
     primaryColor,
     borderRadius,
@@ -45958,7 +46003,7 @@ function self$d(vars) {
     popoverColor,
     actionColor
   } = vars;
-  return Object.assign(Object.assign({}, commonVariables$2), {
+  return Object.assign(Object.assign({}, commonVariables$3), {
     lineHeight: lineHeight2,
     color: cardColor,
     colorModal: modalColor,
@@ -45989,10 +46034,10 @@ function self$d(vars) {
 const cardLight = {
   name: "Card",
   common: commonLight,
-  self: self$d
+  self: self$e
 };
 const cardLight$1 = cardLight;
-const style$c = c$1([cB("card", `
+const style$d = c$1([cB("card", `
  font-size: var(--n-font-size);
  line-height: var(--n-line-height);
  display: flex;
@@ -46152,7 +46197,7 @@ const NCard = /* @__PURE__ */ defineComponent({
       mergedClsPrefixRef,
       mergedRtlRef
     } = useConfig(props);
-    const themeRef = useTheme("Card", "-card", style$c, cardLight$1, props, mergedClsPrefixRef);
+    const themeRef = useTheme("Card", "-card", style$d, cardLight$1, props, mergedClsPrefixRef);
     const rtlEnabledRef = useRtl("Card", mergedRtlRef, mergedClsPrefixRef);
     const cssVarsRef = computed(() => {
       const {
@@ -46320,6 +46365,527 @@ const NCard = /* @__PURE__ */ defineComponent({
         role: "none"
       }, mergedChildren);
     }));
+  }
+});
+const commonVariables$2 = {
+  sizeSmall: "14px",
+  sizeMedium: "16px",
+  sizeLarge: "18px",
+  labelPadding: "0 8px",
+  labelFontWeight: "400"
+};
+function self$d(vars) {
+  const {
+    baseColor,
+    inputColorDisabled,
+    cardColor,
+    modalColor,
+    popoverColor,
+    textColorDisabled,
+    borderColor,
+    primaryColor,
+    textColor2,
+    fontSizeSmall,
+    fontSizeMedium,
+    fontSizeLarge,
+    borderRadiusSmall,
+    lineHeight: lineHeight2
+  } = vars;
+  return Object.assign(Object.assign({}, commonVariables$2), {
+    labelLineHeight: lineHeight2,
+    fontSizeSmall,
+    fontSizeMedium,
+    fontSizeLarge,
+    borderRadius: borderRadiusSmall,
+    color: baseColor,
+    colorChecked: primaryColor,
+    colorDisabled: inputColorDisabled,
+    colorDisabledChecked: inputColorDisabled,
+    colorTableHeader: cardColor,
+    colorTableHeaderModal: modalColor,
+    colorTableHeaderPopover: popoverColor,
+    checkMarkColor: baseColor,
+    checkMarkColorDisabled: textColorDisabled,
+    checkMarkColorDisabledChecked: textColorDisabled,
+    border: `1px solid ${borderColor}`,
+    borderDisabled: `1px solid ${borderColor}`,
+    borderDisabledChecked: `1px solid ${borderColor}`,
+    borderChecked: `1px solid ${primaryColor}`,
+    borderFocus: `1px solid ${primaryColor}`,
+    boxShadowFocus: `0 0 0 2px ${changeColor(primaryColor, {
+      alpha: 0.3
+    })}`,
+    textColor: textColor2,
+    textColorDisabled
+  });
+}
+const checkboxLight = {
+  name: "Checkbox",
+  common: commonLight,
+  self: self$d
+};
+const checkboxLight$1 = checkboxLight;
+const CheckMark = h("svg", {
+  viewBox: "0 0 64 64",
+  class: "check-icon"
+}, h("path", {
+  d: "M50.42,16.76L22.34,39.45l-8.1-11.46c-1.12-1.58-3.3-1.96-4.88-0.84c-1.58,1.12-1.95,3.3-0.84,4.88l10.26,14.51  c0.56,0.79,1.42,1.31,2.38,1.45c0.16,0.02,0.32,0.03,0.48,0.03c0.8,0,1.57-0.27,2.2-0.78l30.99-25.03c1.5-1.21,1.74-3.42,0.52-4.92  C54.13,15.78,51.93,15.55,50.42,16.76z"
+}));
+const LineMark = h("svg", {
+  viewBox: "0 0 100 100",
+  class: "line-icon"
+}, h("path", {
+  d: "M80.2,55.5H21.4c-2.8,0-5.1-2.5-5.1-5.5l0,0c0-3,2.3-5.5,5.1-5.5h58.7c2.8,0,5.1,2.5,5.1,5.5l0,0C85.2,53.1,82.9,55.5,80.2,55.5z"
+}));
+const checkboxGroupInjectionKey = createInjectionKey("n-checkbox-group");
+const style$c = c$1([
+  cB("checkbox", `
+ font-size: var(--n-font-size);
+ outline: none;
+ cursor: pointer;
+ display: inline-flex;
+ flex-wrap: nowrap;
+ align-items: flex-start;
+ word-break: break-word;
+ line-height: var(--n-size);
+ --n-merged-color-table: var(--n-color-table);
+ `, [cM("show-label", "line-height: var(--n-label-line-height);"), c$1("&:hover", [cB("checkbox-box", [cE("border", "border: var(--n-border-checked);")])]), c$1("&:focus:not(:active)", [cB("checkbox-box", [cE("border", `
+ border: var(--n-border-focus);
+ box-shadow: var(--n-box-shadow-focus);
+ `)])]), cM("inside-table", [cB("checkbox-box", `
+ background-color: var(--n-merged-color-table);
+ `)]), cM("checked", [cB("checkbox-box", `
+ background-color: var(--n-color-checked);
+ `, [cB("checkbox-icon", [
+    // if not set width to 100%, safari & old chrome won't display the icon
+    c$1(".check-icon", `
+ opacity: 1;
+ transform: scale(1);
+ `)
+  ])])]), cM("indeterminate", [cB("checkbox-box", [cB("checkbox-icon", [c$1(".check-icon", `
+ opacity: 0;
+ transform: scale(.5);
+ `), c$1(".line-icon", `
+ opacity: 1;
+ transform: scale(1);
+ `)])])]), cM("checked, indeterminate", [c$1("&:focus:not(:active)", [cB("checkbox-box", [cE("border", `
+ border: var(--n-border-checked);
+ box-shadow: var(--n-box-shadow-focus);
+ `)])]), cB("checkbox-box", `
+ background-color: var(--n-color-checked);
+ border-left: 0;
+ border-top: 0;
+ `, [cE("border", {
+    border: "var(--n-border-checked)"
+  })])]), cM("disabled", {
+    cursor: "not-allowed"
+  }, [cM("checked", [cB("checkbox-box", `
+ background-color: var(--n-color-disabled-checked);
+ `, [cE("border", {
+    border: "var(--n-border-disabled-checked)"
+  }), cB("checkbox-icon", [c$1(".check-icon, .line-icon", {
+    fill: "var(--n-check-mark-color-disabled-checked)"
+  })])])]), cB("checkbox-box", `
+ background-color: var(--n-color-disabled);
+ `, [cE("border", `
+ border: var(--n-border-disabled);
+ `), cB("checkbox-icon", [c$1(".check-icon, .line-icon", `
+ fill: var(--n-check-mark-color-disabled);
+ `)])]), cE("label", `
+ color: var(--n-text-color-disabled);
+ `)]), cB("checkbox-box-wrapper", `
+ position: relative;
+ width: var(--n-size);
+ flex-shrink: 0;
+ flex-grow: 0;
+ user-select: none;
+ -webkit-user-select: none;
+ `), cB("checkbox-box", `
+ position: absolute;
+ left: 0;
+ top: 50%;
+ transform: translateY(-50%);
+ height: var(--n-size);
+ width: var(--n-size);
+ display: inline-block;
+ box-sizing: border-box;
+ border-radius: var(--n-border-radius);
+ background-color: var(--n-color);
+ transition: background-color 0.3s var(--n-bezier);
+ `, [cE("border", `
+ transition:
+ border-color .3s var(--n-bezier),
+ box-shadow .3s var(--n-bezier);
+ border-radius: inherit;
+ position: absolute;
+ left: 0;
+ right: 0;
+ top: 0;
+ bottom: 0;
+ border: var(--n-border);
+ `), cB("checkbox-icon", `
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ position: absolute;
+ left: 1px;
+ right: 1px;
+ top: 1px;
+ bottom: 1px;
+ `, [c$1(".check-icon, .line-icon", `
+ width: 100%;
+ fill: var(--n-check-mark-color);
+ opacity: 0;
+ transform: scale(0.5);
+ transform-origin: center;
+ transition:
+ fill 0.3s var(--n-bezier),
+ transform 0.3s var(--n-bezier),
+ opacity 0.3s var(--n-bezier),
+ border-color 0.3s var(--n-bezier);
+ `), iconSwitchTransition({
+    left: "1px",
+    top: "1px"
+  })])]), cE("label", `
+ color: var(--n-text-color);
+ transition: color .3s var(--n-bezier);
+ user-select: none;
+ -webkit-user-select: none;
+ padding: var(--n-label-padding);
+ font-weight: var(--n-label-font-weight);
+ `, [c$1("&:empty", {
+    display: "none"
+  })])]),
+  // modal table header checkbox
+  insideModal(cB("checkbox", `
+ --n-merged-color-table: var(--n-color-table-modal);
+ `)),
+  // popover table header checkbox
+  insidePopover(cB("checkbox", `
+ --n-merged-color-table: var(--n-color-table-popover);
+ `))
+]);
+const checkboxProps = Object.assign(Object.assign({}, useTheme.props), {
+  size: String,
+  checked: {
+    type: [Boolean, String, Number],
+    default: void 0
+  },
+  defaultChecked: {
+    type: [Boolean, String, Number],
+    default: false
+  },
+  value: [String, Number],
+  disabled: {
+    type: Boolean,
+    default: void 0
+  },
+  indeterminate: Boolean,
+  label: String,
+  focusable: {
+    type: Boolean,
+    default: true
+  },
+  checkedValue: {
+    type: [Boolean, String, Number],
+    default: true
+  },
+  uncheckedValue: {
+    type: [Boolean, String, Number],
+    default: false
+  },
+  "onUpdate:checked": [Function, Array],
+  onUpdateChecked: [Function, Array],
+  // private
+  privateInsideTable: Boolean,
+  // deprecated
+  onChange: [Function, Array]
+});
+const NCheckbox = /* @__PURE__ */ defineComponent({
+  name: "Checkbox",
+  props: checkboxProps,
+  setup(props) {
+    const NCheckboxGroup = inject(checkboxGroupInjectionKey, null);
+    const selfRef = ref(null);
+    const {
+      mergedClsPrefixRef,
+      inlineThemeDisabled,
+      mergedRtlRef
+    } = useConfig(props);
+    const uncontrolledCheckedRef = ref(props.defaultChecked);
+    const controlledCheckedRef = toRef(props, "checked");
+    const mergedCheckedRef = useMergedState(controlledCheckedRef, uncontrolledCheckedRef);
+    const renderedCheckedRef = useMemo(() => {
+      if (NCheckboxGroup) {
+        const groupValueSet = NCheckboxGroup.valueSetRef.value;
+        if (groupValueSet && props.value !== void 0) {
+          return groupValueSet.has(props.value);
+        }
+        return false;
+      } else {
+        return mergedCheckedRef.value === props.checkedValue;
+      }
+    });
+    const formItem = useFormItem(props, {
+      mergedSize(NFormItem2) {
+        const {
+          size: size2
+        } = props;
+        if (size2 !== void 0)
+          return size2;
+        if (NCheckboxGroup) {
+          const {
+            value: mergedSize
+          } = NCheckboxGroup.mergedSizeRef;
+          if (mergedSize !== void 0) {
+            return mergedSize;
+          }
+        }
+        if (NFormItem2) {
+          const {
+            mergedSize
+          } = NFormItem2;
+          if (mergedSize !== void 0)
+            return mergedSize.value;
+        }
+        return "medium";
+      },
+      mergedDisabled(NFormItem2) {
+        const {
+          disabled
+        } = props;
+        if (disabled !== void 0)
+          return disabled;
+        if (NCheckboxGroup) {
+          if (NCheckboxGroup.disabledRef.value)
+            return true;
+          const {
+            maxRef: {
+              value: max2
+            },
+            checkedCountRef
+          } = NCheckboxGroup;
+          if (max2 !== void 0 && checkedCountRef.value >= max2 && !renderedCheckedRef.value) {
+            return true;
+          }
+          const {
+            minRef: {
+              value: min2
+            }
+          } = NCheckboxGroup;
+          if (min2 !== void 0 && checkedCountRef.value <= min2 && renderedCheckedRef.value) {
+            return true;
+          }
+        }
+        if (NFormItem2) {
+          return NFormItem2.disabled.value;
+        }
+        return false;
+      }
+    });
+    const {
+      mergedDisabledRef,
+      mergedSizeRef
+    } = formItem;
+    const themeRef = useTheme("Checkbox", "-checkbox", style$c, checkboxLight$1, props, mergedClsPrefixRef);
+    function toggle(e) {
+      if (NCheckboxGroup && props.value !== void 0) {
+        NCheckboxGroup.toggleCheckbox(!renderedCheckedRef.value, props.value);
+      } else {
+        const {
+          onChange,
+          "onUpdate:checked": _onUpdateCheck,
+          onUpdateChecked
+        } = props;
+        const {
+          nTriggerFormInput,
+          nTriggerFormChange
+        } = formItem;
+        const nextChecked = renderedCheckedRef.value ? props.uncheckedValue : props.checkedValue;
+        if (_onUpdateCheck) {
+          call(_onUpdateCheck, nextChecked, e);
+        }
+        if (onUpdateChecked) {
+          call(onUpdateChecked, nextChecked, e);
+        }
+        if (onChange)
+          call(onChange, nextChecked, e);
+        nTriggerFormInput();
+        nTriggerFormChange();
+        uncontrolledCheckedRef.value = nextChecked;
+      }
+    }
+    function handleClick2(e) {
+      if (!mergedDisabledRef.value) {
+        toggle(e);
+      }
+    }
+    function handleKeyUp(e) {
+      if (mergedDisabledRef.value)
+        return;
+      switch (e.key) {
+        case " ":
+        case "Enter":
+          toggle(e);
+      }
+    }
+    function handleKeyDown(e) {
+      switch (e.key) {
+        case " ":
+          e.preventDefault();
+      }
+    }
+    const exposedMethods = {
+      focus: () => {
+        var _a;
+        (_a = selfRef.value) === null || _a === void 0 ? void 0 : _a.focus();
+      },
+      blur: () => {
+        var _a;
+        (_a = selfRef.value) === null || _a === void 0 ? void 0 : _a.blur();
+      }
+    };
+    const rtlEnabledRef = useRtl("Checkbox", mergedRtlRef, mergedClsPrefixRef);
+    const cssVarsRef = computed(() => {
+      const {
+        value: mergedSize
+      } = mergedSizeRef;
+      const {
+        common: {
+          cubicBezierEaseInOut: cubicBezierEaseInOut2
+        },
+        self: {
+          borderRadius,
+          color,
+          colorChecked,
+          colorDisabled,
+          colorTableHeader,
+          colorTableHeaderModal,
+          colorTableHeaderPopover,
+          checkMarkColor,
+          checkMarkColorDisabled,
+          border,
+          borderFocus,
+          borderDisabled,
+          borderChecked,
+          boxShadowFocus,
+          textColor,
+          textColorDisabled,
+          checkMarkColorDisabledChecked,
+          colorDisabledChecked,
+          borderDisabledChecked,
+          labelPadding,
+          labelLineHeight,
+          labelFontWeight,
+          [createKey("fontSize", mergedSize)]: fontSize2,
+          [createKey("size", mergedSize)]: size2
+        }
+      } = themeRef.value;
+      return {
+        "--n-label-line-height": labelLineHeight,
+        "--n-label-font-weight": labelFontWeight,
+        "--n-size": size2,
+        "--n-bezier": cubicBezierEaseInOut2,
+        "--n-border-radius": borderRadius,
+        "--n-border": border,
+        "--n-border-checked": borderChecked,
+        "--n-border-focus": borderFocus,
+        "--n-border-disabled": borderDisabled,
+        "--n-border-disabled-checked": borderDisabledChecked,
+        "--n-box-shadow-focus": boxShadowFocus,
+        "--n-color": color,
+        "--n-color-checked": colorChecked,
+        "--n-color-table": colorTableHeader,
+        "--n-color-table-modal": colorTableHeaderModal,
+        "--n-color-table-popover": colorTableHeaderPopover,
+        "--n-color-disabled": colorDisabled,
+        "--n-color-disabled-checked": colorDisabledChecked,
+        "--n-text-color": textColor,
+        "--n-text-color-disabled": textColorDisabled,
+        "--n-check-mark-color": checkMarkColor,
+        "--n-check-mark-color-disabled": checkMarkColorDisabled,
+        "--n-check-mark-color-disabled-checked": checkMarkColorDisabledChecked,
+        "--n-font-size": fontSize2,
+        "--n-label-padding": labelPadding
+      };
+    });
+    const themeClassHandle = inlineThemeDisabled ? useThemeClass("checkbox", computed(() => mergedSizeRef.value[0]), cssVarsRef, props) : void 0;
+    return Object.assign(formItem, exposedMethods, {
+      rtlEnabled: rtlEnabledRef,
+      selfRef,
+      mergedClsPrefix: mergedClsPrefixRef,
+      mergedDisabled: mergedDisabledRef,
+      renderedChecked: renderedCheckedRef,
+      mergedTheme: themeRef,
+      labelId: createId(),
+      handleClick: handleClick2,
+      handleKeyUp,
+      handleKeyDown,
+      cssVars: inlineThemeDisabled ? void 0 : cssVarsRef,
+      themeClass: themeClassHandle === null || themeClassHandle === void 0 ? void 0 : themeClassHandle.themeClass,
+      onRender: themeClassHandle === null || themeClassHandle === void 0 ? void 0 : themeClassHandle.onRender
+    });
+  },
+  render() {
+    var _a;
+    const {
+      $slots,
+      renderedChecked,
+      mergedDisabled,
+      indeterminate,
+      privateInsideTable,
+      cssVars,
+      labelId,
+      label,
+      mergedClsPrefix,
+      focusable,
+      handleKeyUp,
+      handleKeyDown,
+      handleClick: handleClick2
+    } = this;
+    (_a = this.onRender) === null || _a === void 0 ? void 0 : _a.call(this);
+    const labelNode = resolveWrappedSlot($slots.default, (children) => {
+      if (label || children) {
+        return h("span", {
+          class: `${mergedClsPrefix}-checkbox__label`,
+          id: labelId
+        }, label || children);
+      }
+      return null;
+    });
+    return h("div", {
+      ref: "selfRef",
+      class: [`${mergedClsPrefix}-checkbox`, this.themeClass, this.rtlEnabled && `${mergedClsPrefix}-checkbox--rtl`, renderedChecked && `${mergedClsPrefix}-checkbox--checked`, mergedDisabled && `${mergedClsPrefix}-checkbox--disabled`, indeterminate && `${mergedClsPrefix}-checkbox--indeterminate`, privateInsideTable && `${mergedClsPrefix}-checkbox--inside-table`, labelNode && `${mergedClsPrefix}-checkbox--show-label`],
+      tabindex: mergedDisabled || !focusable ? void 0 : 0,
+      role: "checkbox",
+      "aria-checked": indeterminate ? "mixed" : renderedChecked,
+      "aria-labelledby": labelId,
+      style: cssVars,
+      onKeyup: handleKeyUp,
+      onKeydown: handleKeyDown,
+      onClick: handleClick2,
+      onMousedown: () => {
+        on("selectstart", window, (e) => {
+          e.preventDefault();
+        }, {
+          once: true
+        });
+      }
+    }, h("div", {
+      class: `${mergedClsPrefix}-checkbox-box-wrapper`
+    }, " ", h("div", {
+      class: `${mergedClsPrefix}-checkbox-box`
+    }, h(NIconSwitchTransition, null, {
+      default: () => this.indeterminate ? h("div", {
+        key: "indeterminate",
+        class: `${mergedClsPrefix}-checkbox-icon`
+      }, LineMark) : h("div", {
+        key: "check",
+        class: `${mergedClsPrefix}-checkbox-icon`
+      }, CheckMark)
+    }), h("div", {
+      class: `${mergedClsPrefix}-checkbox-box__border`
+    }))), labelNode);
   }
 });
 function self$c(vars) {
@@ -50716,7 +51282,7 @@ function formItemRule(props) {
 }
 const {
   cubicBezierEaseInOut
-} = commonVariables$6;
+} = commonVariables$7;
 function fadeDownTransition({
   name = "fade-down",
   fromOffset = "-4px",
@@ -57043,7 +57609,7 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
   }
 });
 const AssetBar = /* @__PURE__ */ _export_sfc(_sfc_main$1, [["__scopeId", "data-v-0d76df1f"]]);
-const _withScopeId = (n) => (pushScopeId("data-v-fd4e3112"), n = n(), popScopeId(), n);
+const _withScopeId = (n) => (pushScopeId("data-v-814e6cd4"), n = n(), popScopeId(), n);
 const _hoisted_1 = { class: "page" };
 const _hoisted_2 = /* @__PURE__ */ _withScopeId(() => /* @__PURE__ */ createBaseVNode("footer", null, null, -1));
 const _sfc_main = /* @__PURE__ */ defineComponent({
@@ -57207,7 +57773,7 @@ const _sfc_main = /* @__PURE__ */ defineComponent({
               size: "small",
               animated: "",
               value: tabCurrent.value,
-              "onUpdate:value": _cache[22] || (_cache[22] = ($event) => tabCurrent.value = $event)
+              "onUpdate:value": _cache[24] || (_cache[24] = ($event) => tabCurrent.value = $event)
             }, {
               default: withCtx(() => [
                 createVNode(unref(NTabPane), {
@@ -57308,7 +57874,7 @@ const _sfc_main = /* @__PURE__ */ defineComponent({
                       size: "small"
                     }, {
                       default: withCtx(() => {
-                        var _a, _b;
+                        var _a, _b, _c;
                         return [
                           ((_a = assetCurrent.value) == null ? void 0 : _a.attrs.imageType) === ImageType.svg ? (openBlock(), createBlock(unref(NFormItem), {
                             key: 0,
@@ -57353,6 +57919,33 @@ const _sfc_main = /* @__PURE__ */ defineComponent({
                               }, null, 8, ["value"])
                             ]),
                             _: 1
+                          })) : createCommentVNode("", true),
+                          ((_c = assetCurrent.value) == null ? void 0 : _c.attrs.assetType) === AssetType.Graph ? (openBlock(), createBlock(unref(NFormItem), {
+                            key: 2,
+                            label: "箭头",
+                            path: "fill"
+                          }, {
+                            default: withCtx(() => [
+                              createVNode(unref(NCheckbox), {
+                                checked: assetSettingsModel.value.arrowStart,
+                                "onUpdate:checked": _cache[22] || (_cache[22] = ($event) => assetSettingsModel.value.arrowStart = $event)
+                              }, {
+                                default: withCtx(() => [
+                                  createTextVNode(" 开始 ")
+                                ]),
+                                _: 1
+                              }, 8, ["checked"]),
+                              createVNode(unref(NCheckbox), {
+                                checked: assetSettingsModel.value.arrowEnd,
+                                "onUpdate:checked": _cache[23] || (_cache[23] = ($event) => assetSettingsModel.value.arrowEnd = $event)
+                              }, {
+                                default: withCtx(() => [
+                                  createTextVNode(" 开始 ")
+                                ]),
+                                _: 1
+                              }, 8, ["checked"])
+                            ]),
+                            _: 1
                           })) : createCommentVNode("", true)
                         ];
                       }),
@@ -57375,7 +57968,7 @@ const _sfc_main = /* @__PURE__ */ defineComponent({
           top: 40 + 8,
           right: 8,
           style: { "z-index": "100" },
-          onClick: _cache[23] || (_cache[23] = ($event) => full.value = !full.value)
+          onClick: _cache[25] || (_cache[25] = ($event) => full.value = !full.value)
         }, {
           default: withCtx(() => [
             createVNode(unref(NIcon), null, {
@@ -57393,7 +57986,7 @@ const _sfc_main = /* @__PURE__ */ defineComponent({
     };
   }
 });
-const App = /* @__PURE__ */ _export_sfc(_sfc_main, [["__scopeId", "data-v-fd4e3112"]]);
+const App = /* @__PURE__ */ _export_sfc(_sfc_main, [["__scopeId", "data-v-814e6cd4"]]);
 const optionsDefault = {
   colors: ["purple", "blue", "green", "blueviolet", "goldenrod", "brown", "chocolate"],
   type: "log"
@@ -57418,7 +58011,7 @@ const logArray = (words2) => {
     console.error(e);
   }
 };
-var define_BUILD_INFO_default = { lastBuildTime: "2024-09-29 13:18:34", git: { branch: "master", hash: "3eeb93fac3fa10cf2eb9487b59e522a9f0af0cea", tag: "chapter23-dirty" } };
+var define_BUILD_INFO_default = { lastBuildTime: "2024-09-29 13:39:38", git: { branch: "master", hash: "63e19efe9c10f32d14fa301dcedfb3b4f354bc90", tag: "chapter23-dirty" } };
 const {
   lastBuildTime,
   git: { branch, tag, hash }
