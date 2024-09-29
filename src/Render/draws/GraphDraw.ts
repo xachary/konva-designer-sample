@@ -152,6 +152,7 @@ export class GraphDraw extends Types.BaseDraw implements Types.Draw {
                 this.state.graphCurrent = graph
                 this.state.graphCurrentSnap = graph.clone()
 
+                graph.setAttr('adjusting', true)
                 shape.setAttr('adjusting', true)
 
                 if (this.state.adjustAnchor) {
@@ -186,7 +187,8 @@ export class GraphDraw extends Types.BaseDraw implements Types.Draw {
                           shape,
                           anchorAndShadows,
                           this.state.startPointCurrent,
-                          pos
+                          pos,
+                          graph.findOne('.hoverRect')
                         )
                         break
                       case Types.GraphType.Rect:
@@ -198,7 +200,8 @@ export class GraphDraw extends Types.BaseDraw implements Types.Draw {
                           shape,
                           anchorAndShadows,
                           this.state.startPointCurrent,
-                          pos
+                          pos,
+                          graph.findOne('.hoverRect')
                         )
                         break
                       case Types.GraphType.Line:
@@ -210,7 +213,8 @@ export class GraphDraw extends Types.BaseDraw implements Types.Draw {
                           shape,
                           anchorAndShadows,
                           this.state.startPointCurrent,
-                          pos
+                          pos,
+                          graph.findOne('.hoverRect')
                         )
                         break
                       case Types.GraphType.Curve:
@@ -222,7 +226,8 @@ export class GraphDraw extends Types.BaseDraw implements Types.Draw {
                           shape,
                           anchorAndShadows,
                           this.state.startPointCurrent,
-                          pos
+                          pos,
+                          graph.findOne('.hoverRect')
                         )
                         break
                     }
@@ -240,7 +245,11 @@ export class GraphDraw extends Types.BaseDraw implements Types.Draw {
 
             // 调整结束
             this.render.stage.on('mouseup', () => {
-              if (shape.attrs.adjusting) {
+              graph.setAttr('adjusting', false)
+              // 防止二次 hover 失效
+              graph.setAttr('hoverAnchor', false)
+
+              if (this.state.adjusting) {
                 // 更新历史
                 this.render.updateHistory()
 
@@ -258,23 +267,10 @@ export class GraphDraw extends Types.BaseDraw implements Types.Draw {
               // 恢复显示所有 调整点
               for (const { shape } of anchorAndShadows) {
                 if (shape) {
-                  shape.opacity(1)
                   shape.setAttr('adjusting', false)
-                  if (
-                    [Types.GraphType.Line, Types.GraphType.Curve].includes(shape.attrs.anchor?.type)
-                  ) {
-                    if (shape.attrs.anchor.adjusted) {
-                      shape.fill('rgba(0,0,0,0.4)')
-                    } else {
-                      shape.fill('rgba(0,0,255,0.2)')
-                    }
-                  } else {
-                    shape.stroke('rgba(0,0,255,0.2)')
-                  }
                 }
-
-                document.body.style.cursor = 'default'
               }
+              document.body.style.cursor = 'default'
 
               // 销毁 镜像
               this.state.graphCurrentSnap?.destroy()

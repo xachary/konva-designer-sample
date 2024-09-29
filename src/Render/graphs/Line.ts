@@ -80,6 +80,7 @@ export class Line extends BaseGraph {
       anchorShadow: Konva.Circle
       shape?: Konva.Shape
     }[],
+    // eslint-disable-next-line
     adjustAnchor?: Types.GraphAnchor
   ): {
     anchorAndShadows: {
@@ -108,27 +109,30 @@ export class Line extends BaseGraph {
             name: 'anchor',
             anchor: anchor,
             //
-            fill: anchor.adjusted ? 'rgba(0,0,0,0.4)' : 'rgba(0,0,255,0.2)',
-            radius: render.toStageValue(3),
+            fill: anchor.adjusted ? `rgba(0,0,0,0.4)` : `rgba(0,0,255,0.4)`,
+            radius: render.toStageValue(5),
             strokeWidth: 0,
             // 位置
             x: x,
             y: y,
             // 旋转角度
-            rotation: graph.getAbsoluteRotation()
+            rotation: graph.getAbsoluteRotation(),
+            visible: graph.attrs.adjusting || graph.attrs.hover === true
           })
 
           anchorShape.on('mouseenter', () => {
-            anchorShape.fill('rgba(0,0,255,0.8)')
             document.body.style.cursor = 'move'
-            anchorShape.radius(render.toStageValue(7))
+
+            graph.setAttr('hover', true)
+            graph.setAttr('hoverAnchor', true)
           })
           anchorShape.on('mouseleave', () => {
-            anchorShape.fill(
-              anchorShape.attrs.anchor?.adjusted ? 'rgba(0,0,0,0.4)' : 'rgba(0,0,255,0.2)'
-            )
-            anchorShape.radius(render.toStageValue(3))
             document.body.style.cursor = anchorShape.attrs.adjusting ? 'move' : 'default'
+
+            graph.setAttr('hover', false)
+            graph.setAttr('hoverAnchor', false)
+            // 进入其他元素区域时离开需要靠它 redraw
+            render.redraw([Draws.GraphDraw.name])
           })
 
           anchorAndShadow.shape = anchorShape
@@ -145,7 +149,7 @@ export class Line extends BaseGraph {
           const cos = Math.cos((rotate * Math.PI) / 180)
           const sin = Math.sin((rotate * Math.PI) / 180)
 
-          const offset = render.toStageValue(render.pointSize + 5)
+          const offset = render.toStageValue(render.pointSize - 20)
 
           const offsetX = offset * sin
           const offsetY = offset * cos
@@ -154,11 +158,8 @@ export class Line extends BaseGraph {
             name: 'anchor',
             anchor: anchor,
             //
-            fill:
-              adjustAnchor?.adjustType === anchor.adjustType && adjustAnchor?.groupId === graph.id()
-                ? 'rgba(0,0,255,0.8)'
-                : 'rgba(0,0,255,0.2)',
-            radius: render.toStageValue(3),
+            fill: `rgba(0,0,255,0.4)`,
+            radius: render.toStageValue(5),
             strokeWidth: 0,
             // 位置
             x: x,
@@ -168,18 +169,23 @@ export class Line extends BaseGraph {
             offsetY:
               anchor.adjustType === 'start' ? offsetY : anchor.adjustType === 'end' ? -offsetY : 0,
             // 旋转角度
-            rotation: graph.getAbsoluteRotation()
+            rotation: graph.getAbsoluteRotation(),
+            visible: graph.attrs.adjusting || graph.attrs.hover === true
           })
 
           anchorShape.on('mouseenter', () => {
-            anchorShape.fill('rgba(0,0,255,0.8)')
             document.body.style.cursor = 'move'
+
+            graph.setAttr('hover', true)
+            graph.setAttr('hoverAnchor', true)
           })
           anchorShape.on('mouseleave', () => {
-            anchorShape.fill(
-              anchorShape.attrs.adjusting ? 'rgba(0,0,255,0.8)' : 'rgba(0,0,255,0.2)'
-            )
             document.body.style.cursor = anchorShape.attrs.adjusting ? 'move' : 'default'
+
+            graph.setAttr('hover', false)
+            graph.setAttr('hoverAnchor', false)
+            // 进入其他元素区域时离开需要靠它 redraw
+            render.redraw([Draws.GraphDraw.name])
           })
 
           anchorAndShadow.shape = anchorShape
@@ -227,7 +233,8 @@ export class Line extends BaseGraph {
       shape?: Konva.Shape | undefined
     }[],
     startPoint: Konva.Vector2d,
-    endPoint: Konva.Vector2d
+    endPoint: Konva.Vector2d,
+    hoverRect?: Konva.Rect
   ) {
     // 目标 直线、折线
     const line = graph.findOne('.graph') as Konva.Line
@@ -367,6 +374,36 @@ export class Line extends BaseGraph {
       // 重绘
       render.redraw([Draws.GraphDraw.name, Draws.LinkDraw.name, Draws.PreviewDraw.name])
     }
+
+    BaseGraph.adjust(
+      render,
+      graph,
+      graphSnap,
+      adjustShape,
+      anchorAndShadows,
+      startPoint,
+      endPoint,
+      hoverRect,
+      line.size(),
+      {
+        x: Math.min(
+          ...line.points().reduce((arr, item, idx) => {
+            if (idx % 2 === 0) {
+              arr.push(item)
+            }
+            return arr
+          }, [] as number[])
+        ),
+        y: Math.min(
+          ...line.points().reduce((arr, item, idx) => {
+            if (idx % 2 === 1) {
+              arr.push(item)
+            }
+            return arr
+          }, [] as number[])
+        )
+      }
+    )
   }
 
   /**
@@ -423,8 +460,7 @@ export class Line extends BaseGraph {
       x: 0,
       y: 0,
       stroke: 'black',
-      strokeWidth: 1,
-      hitStrokeWidth: render.toStageValue(5)
+      strokeWidth: 1
     })
 
     // 给予 1 像素，防止导出图片 toDataURL 失败
@@ -500,6 +536,8 @@ export class Line extends BaseGraph {
 
     // 重绘
     this.render.redraw([Draws.GraphDraw.name, Draws.LinkDraw.name, Draws.PreviewDraw.name])
+
+    super.drawEnd(this.line.size())
   }
 
   /**

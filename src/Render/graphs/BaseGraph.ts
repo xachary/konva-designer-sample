@@ -3,6 +3,7 @@ import { nanoid } from 'nanoid'
 
 import { Render } from '../index'
 import * as Types from '../types'
+import * as Draws from '../draws'
 
 /**
  * 图形类
@@ -96,9 +97,24 @@ export abstract class BaseGraph {
     // eslint-disable-next-line
     startPoint: Konva.Vector2d,
     // eslint-disable-next-line
-    endPoint: Konva.Vector2d
+    endPoint: Konva.Vector2d,
+    //
+    // 用于更新占用区域
+    // eslint-disable-next-line
+    hoverRect?: Konva.Rect,
+    // eslint-disable-next-line
+    hoverSize?: { width: number; height: number },
+    // eslint-disable-next-line
+    hoverPos?: { x: number; y: number }
   ) {
-    console.log('请实现 updateAnchorShadows')
+    hoverRect?.position({
+      x: hoverPos?.x ?? 0,
+      y: hoverPos?.y ?? 0
+    })
+    hoverRect?.size({
+      width: hoverSize?.width ?? graph.width(),
+      height: hoverSize?.height ?? graph.height()
+    })
   }
 
   static draw(
@@ -134,6 +150,8 @@ export abstract class BaseGraph {
   //
   protected render: Render
   group: Konva.Group
+  // 占用区域，用于识别 hover 态
+  hoverRect: Konva.Rect
   id: string // 就是 group 的id
   /**
    * 鼠标按下位置
@@ -177,6 +195,14 @@ export abstract class BaseGraph {
       assetType: Types.AssetType.Graph,
       graphType: config.type,
       draggable: true
+    })
+
+    this.hoverRect = new Konva.Rect({
+      name: 'hoverRect',
+      x: 0,
+      y: 0,
+      // fill: 'rgba(255,0,0,0.2)',
+      hitStrokeWidth: this.render.toStageValue(this.render.bgSize * 2 + 2)
     })
 
     // 调整点 定义
@@ -241,17 +267,6 @@ export abstract class BaseGraph {
       this.group.add(circle)
     }
 
-    this.group.on('mouseenter', () => {
-      // 显示 连接点
-      this.render.linkTool.pointsVisible(true, this.group)
-    })
-    this.group.on('mouseleave', () => {
-      // 隐藏 连接点
-      this.render.linkTool.pointsVisible(false, this.group)
-      // 隐藏 hover 框
-      this.group.findOne('#hoverRect')?.visible(false)
-    })
-
     this.render.layer.add(this.group)
 
     this.render.redraw()
@@ -266,5 +281,47 @@ export abstract class BaseGraph {
   /**
    * 调整结束
    */
-  abstract drawEnd(): void
+  drawEnd(size?: { width: number; height: number }): void {
+    this.hoverRect.size({
+      width: size?.width ?? this.group.width(),
+      height: size?.height ?? this.group.height()
+    })
+
+    this.hoverRect.on('mouseenter', () => {
+      // 防止进入调整点，重复处理
+      if (!this.group.attrs.hoverAnchor) {
+        this.group.setAttr('hover', true)
+        this.render.redraw([Draws.GraphDraw.name])
+      }
+
+      setTimeout(() => {
+        // 调整产生 redraw，导致离开调整点不触发其 mouseleave（进入其他元素区域除外）
+        // 在此静态补充“离开调整点”
+        // 不影响正常处理（调整点会不停 hoverAnchor = true）
+        this.group.setAttr('hoverAnchor', false)
+      })
+
+      // 显示 连接点
+      this.render.linkTool.pointsVisible(true, this.group)
+    })
+    this.hoverRect.on('mouseleave', () => {
+      // 延迟事件，使调整点的 mouseleave 优先
+      setTimeout(() => {
+        // 防止进入调整点，重复处理
+        // 补充 2，快速调整会漏掉
+        if (!this.group.attrs.hoverAnchor) {
+          this.group.setAttr('hover', false)
+          this.group.setAttr('hoverAnchor', false)
+          this.render.redraw([Draws.GraphDraw.name])
+        }
+      })
+
+      // 隐藏 连接点
+      this.render.linkTool.pointsVisible(false, this.group)
+      // 隐藏 hover 框
+      this.group.findOne('#hoverRect')?.visible(false)
+    })
+
+    this.group.add(this.hoverRect)
+  }
 }

@@ -153,11 +153,7 @@ export class Circle extends BaseGraph {
         name: 'anchor',
         anchor: anchor,
         //
-        // stroke: colorMap[anchor.adjustType] ?? 'rgba(0,0,255,0.2)',
-        stroke:
-          adjustAnchor?.adjustType === anchor.adjustType && adjustAnchor?.groupId === graph.id()
-            ? 'rgba(0,0,255,0.8)'
-            : 'rgba(0,0,255,0.2)',
+        stroke: `rgba(0,0,255,0.4)`,
         strokeWidth: render.toStageValue(2),
         hitStrokeWidth: render.toStageValue(3),
         // 位置
@@ -204,16 +200,23 @@ export class Circle extends BaseGraph {
             ])
           }[anchor.adjustType] ?? [],
         // 旋转角度
-        rotation: graph.getAbsoluteRotation()
+        rotation: graph.getAbsoluteRotation(),
+        visible: graph.attrs.adjusting || graph.attrs.hover === true
       })
 
       anchorShape.on('mouseenter', () => {
-        anchorShape.stroke('rgba(0,0,255,0.8)')
         document.body.style.cursor = 'move'
+
+        graph.setAttr('hover', true)
+        graph.setAttr('hoverAnchor', true)
       })
       anchorShape.on('mouseleave', () => {
-        anchorShape.stroke(anchorShape.attrs.adjusting ? 'rgba(0,0,255,0.8)' : 'rgba(0,0,255,0.2)')
         document.body.style.cursor = anchorShape.attrs.adjusting ? 'move' : 'default'
+
+        graph.setAttr('hover', false)
+        graph.setAttr('hoverAnchor', false)
+        // 进入其他元素区域时离开需要靠它 redraw
+        render.redraw([Draws.GraphDraw.name])
       })
 
       anchorAndShadow.shape = anchorShape
@@ -234,7 +237,8 @@ export class Circle extends BaseGraph {
       shape?: Konva.Shape | undefined
     }[],
     startPoint: Konva.Vector2d,
-    endPoint: Konva.Vector2d
+    endPoint: Konva.Vector2d,
+    hoverRect?: Konva.Rect
   ) {
     // 目标 圆/椭圆
     const circle = graph.findOne('.graph') as Konva.Ellipse
@@ -791,6 +795,17 @@ export class Circle extends BaseGraph {
       // 重绘
       render.redraw([Draws.GraphDraw.name, Draws.LinkDraw.name, Draws.PreviewDraw.name])
     }
+
+    BaseGraph.adjust(
+      render,
+      graph,
+      graphSnap,
+      adjustShape,
+      anchorAndShadows,
+      startPoint,
+      endPoint,
+      hoverRect
+    )
   }
 
   /**
@@ -933,5 +948,7 @@ export class Circle extends BaseGraph {
       // 重绘
       this.render.redraw([Draws.GraphDraw.name, Draws.LinkDraw.name, Draws.PreviewDraw.name])
     }
+
+    super.drawEnd()
   }
 }
