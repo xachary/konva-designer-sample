@@ -281,7 +281,11 @@ export abstract class BaseGraph {
   /**
    * 调整结束
    */
-  drawEnd(size?: { width: number; height: number }): void {
+  drawEnd(size?: { width: number; height: number }, pos?: { x: number; y: number }): void {
+    this.hoverRect?.position({
+      x: pos?.x ?? 0,
+      y: pos?.y ?? 0
+    })
     this.hoverRect.size({
       width: size?.width ?? this.group.width(),
       height: size?.height ?? this.group.height()

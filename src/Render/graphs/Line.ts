@@ -455,12 +455,14 @@ export class Line extends BaseGraph {
     })
 
     // 新建 直线、折线
-    this.line = new Konva.Line({
+    this.line = new Konva.Arrow({
       name: 'graph',
       x: 0,
       y: 0,
       stroke: 'black',
-      strokeWidth: 1
+      strokeWidth: 1,
+      points: [],
+      pointerWidth: 0
     })
 
     // 给予 1 像素，防止导出图片 toDataURL 失败
@@ -537,7 +539,24 @@ export class Line extends BaseGraph {
     // 重绘
     this.render.redraw([Draws.GraphDraw.name, Draws.LinkDraw.name, Draws.PreviewDraw.name])
 
-    super.drawEnd(this.line.size())
+    super.drawEnd(this.line.size(), {
+      x: Math.min(
+        ...this.line.points().reduce((arr, item, idx) => {
+          if (idx % 2 === 0) {
+            arr.push(item)
+          }
+          return arr
+        }, [] as number[])
+      ),
+      y: Math.min(
+        ...this.line.points().reduce((arr, item, idx) => {
+          if (idx % 2 === 1) {
+            arr.push(item)
+          }
+          return arr
+        }, [] as number[])
+      )
+    })
   }
 
   /**
