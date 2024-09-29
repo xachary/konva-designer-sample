@@ -26412,7 +26412,8 @@ const _Circle = class _Circle extends BaseGraph {
       y: 0,
       radiusX: 0,
       radiusY: 0,
-      stroke: "black",
+      stroke: this.render.getPageSettings().stroke,
+      // fill: this.render.getPageSettings().fill,
       strokeWidth: 1
     });
     this.group.add(this.circle);
@@ -27186,9 +27187,9 @@ const _Rect = class _Rect extends BaseGraph {
       y: 0,
       width: 0,
       height: 0,
-      stroke: "black",
-      strokeWidth: 1,
-      hitStrokeWidth: render22.toStageValue(render22.bgSize * 2 + 2)
+      stroke: this.render.getPageSettings().stroke,
+      // fill: this.render.getPageSettings().fill,
+      strokeWidth: 1
     });
     this.group.add(this.rect);
     this.group.position(this.dropPoint);
@@ -27938,10 +27939,12 @@ const _Line = class _Line extends BaseGraph {
       name: "graph",
       x: 0,
       y: 0,
-      stroke: "black",
+      stroke: this.render.getPageSettings().stroke,
+      fill: this.render.getPageSettings().stroke,
       strokeWidth: 1,
       points: [],
-      pointerWidth: 0
+      pointerAtBeginning: false,
+      pointerAtEnding: false
     });
     this.group.size({
       width: 1,
@@ -28262,7 +28265,7 @@ const _Line = class _Line extends BaseGraph {
   }
   // 实现：拖动结束
   drawEnd() {
-    if (this.line.width() <= 1 && this.line.height() <= 1) {
+    if (this.line.width() <= 10 && this.line.height() <= 10) {
       const width = _Line.size, height = width;
       const linkPoints = [
         [this.line.x(), this.line.y()],
@@ -28425,14 +28428,16 @@ const _Curve = class _Curve extends BaseGraph {
      * 曲线 对应的 Konva 实例
      */
     __publicField(this, "line");
-    this.line = new Konva.Line({
+    this.line = new Konva.Arrow({
       name: "graph",
       x: 0,
       y: 0,
-      stroke: "black",
+      stroke: this.render.getPageSettings().stroke,
+      fill: this.render.getPageSettings().stroke,
       strokeWidth: 1,
       points: [],
-      pointerWidth: 0,
+      pointerAtBeginning: false,
+      pointerAtEnding: false,
       tension: 0.5
     });
     this.group.size({
@@ -28759,7 +28764,7 @@ const _Curve = class _Curve extends BaseGraph {
   }
   // 实现：拖动结束
   drawEnd() {
-    if (this.line.width() <= 1 && this.line.height() <= 1) {
+    if (this.line.width() <= 10 && this.line.height() <= 10) {
       const width = _Curve.size, height = width;
       const linkPoints = [
         [this.line.x(), this.line.y()],
@@ -29111,7 +29116,8 @@ class DragHandlers {
     __publicField(this, "handlers", {
       stage: {
         mousedown: (e) => {
-          if (!this.render.draws[LinkDraw.name].state.linkManualing && !this.render.graphType) {
+          var _a;
+          if (!((_a = this.render.draws[LinkDraw.name]) == null ? void 0 : _a.state.linkManualing) && !this.render.graphType) {
             if (e.evt.button === MouseButton.右键 || e.evt.ctrlKey && e.evt.button === MouseButton.左键) {
               const stageState = this.render.getStageState();
               this.mousedownRight = true;
@@ -29871,27 +29877,32 @@ class LinkHandlers {
     __publicField(this, "handlers", {
       stage: {
         mouseup: () => {
-          var _a;
-          const linkDrawState = this.render.draws[LinkDraw.name].state;
-          (_a = linkDrawState.linkingLine) == null ? void 0 : _a.line.destroy();
-          linkDrawState.linkingLine = null;
+          var _a, _b;
+          const linkDrawState = (_a = this.render.draws[LinkDraw.name]) == null ? void 0 : _a.state;
+          if (linkDrawState) {
+            (_b = linkDrawState.linkingLine) == null ? void 0 : _b.line.destroy();
+            linkDrawState.linkingLine = null;
+          }
         },
         mousemove: () => {
-          const linkDrawState = this.render.draws[LinkDraw.name].state;
-          const pos = this.render.stage.getPointerPosition();
-          if (pos) {
-            const stageState = this.render.getStageState();
-            if (linkDrawState.linkingLine) {
-              const { circle, line } = linkDrawState.linkingLine;
-              line.points(
-                lodash.flatten([
-                  [circle.x(), circle.y()],
-                  [
-                    this.render.toStageValue(pos.x - stageState.x),
-                    this.render.toStageValue(pos.y - stageState.y)
-                  ]
-                ])
-              );
+          var _a;
+          const linkDrawState = (_a = this.render.draws[LinkDraw.name]) == null ? void 0 : _a.state;
+          if (linkDrawState) {
+            const pos = this.render.stage.getPointerPosition();
+            if (pos) {
+              const stageState = this.render.getStageState();
+              if (linkDrawState.linkingLine) {
+                const { circle, line } = linkDrawState.linkingLine;
+                line.points(
+                  lodash.flatten([
+                    [circle.x(), circle.y()],
+                    [
+                      this.render.toStageValue(pos.x - stageState.x),
+                      this.render.toStageValue(pos.y - stageState.y)
+                    ]
+                  ])
+                );
+              }
             }
           }
         }
@@ -31937,6 +31948,7 @@ class LinkTool {
     this.render = render22;
   }
   pointsVisible(visible, group) {
+    var _a;
     const start = group ?? this.render.layer;
     for (const asset of [
       ...["asset", "sub-asset"].includes(start.name()) ? [start] : [],
@@ -31948,7 +31960,7 @@ class LinkTool {
         points: points.map((o) => ({ ...o, visible }))
       });
     }
-    if (!this.render.draws[LinkDraw.name].state.linkManualing) {
+    if (!((_a = this.render.draws[LinkDraw.name]) == null ? void 0 : _a.state.linkManualing)) {
       this.render.redraw([
         LinkDraw.name,
         AttractDraw.name,
@@ -32880,6 +32892,7 @@ const _Render = class _Render {
   }
   // 重绘（可选择）
   redraw(drawNames) {
+    var _a, _b;
     const all = [
       BgDraw.name,
       // 更新背景
@@ -32901,12 +32914,12 @@ const _Render = class _Render {
     if (Array.isArray(drawNames) && !this.debug) {
       for (const name of all) {
         if (drawNames.includes(name)) {
-          this.draws[name].draw();
+          (_a = this.draws[name]) == null ? void 0 : _a.draw();
         }
       }
     } else {
       for (const name of all) {
-        this.draws[name].draw();
+        (_b = this.draws[name]) == null ? void 0 : _b.draw();
       }
     }
   }
@@ -32949,6 +32962,9 @@ const _Render = class _Render {
   // 获取素材设置
   getAssetSettings(asset) {
     const base2 = (asset == null ? void 0 : asset.attrs.assetSettings) ?? { ..._Render.AssetSettingsDefault };
+    if ((asset == null ? void 0 : asset.attrs.assetType) === AssetType.Graph) {
+      base2.fill = "transparent";
+    }
     return {
       // 特定
       ...base2,
@@ -32988,16 +33004,32 @@ const _Render = class _Render {
     var _a;
     asset.setAttr("assetSettings", settings);
     if (asset instanceof Konva.Group) {
-      const node = asset.children[0];
-      if (node instanceof Konva.Image) {
-        if (node.attrs.svgXML) {
-          const n = await this.assetTool.loadSvgXML(
-            this.setSvgXMLSettings(node.attrs.svgXML, settings)
-          );
-          (_a = node.parent) == null ? void 0 : _a.add(n);
-          node.remove();
-          node.destroy();
-          n.zIndex(0);
+      if (asset.attrs.imageType === ImageType.svg) {
+        const node = asset.children[0];
+        if (node instanceof Konva.Image) {
+          if (node.attrs.svgXML) {
+            const n = await this.assetTool.loadSvgXML(
+              this.setSvgXMLSettings(node.attrs.svgXML, settings)
+            );
+            (_a = node.parent) == null ? void 0 : _a.add(n);
+            node.remove();
+            node.destroy();
+            n.zIndex(0);
+          }
+        }
+      } else if (asset.attrs.assetType === AssetType.Graph) {
+        const node = asset.findOne(".graph");
+        if (node instanceof Konva.Shape) {
+          node.stroke(settings.stroke);
+          if (node instanceof Konva.Arrow) {
+            node.fill(settings.stroke);
+          } else {
+            node.fill(settings.fill);
+          }
+          if (node instanceof Konva.Arrow) {
+            node.pointerAtBeginning(settings.arrowStart);
+            node.pointerAtEnding(settings.arrowEnd);
+          }
         }
       }
     }
@@ -55917,7 +55949,7 @@ const IosUndo = /* @__PURE__ */ defineComponent({
     return openBlock(), createElementBlock("svg", _hoisted_1$3, _hoisted_3$2);
   }
 });
-const _withScopeId$1 = (n) => (pushScopeId("data-v-0582d83f"), n = n(), popScopeId(), n);
+const _withScopeId$1 = (n) => (pushScopeId("data-v-7d22eb6b"), n = n(), popScopeId(), n);
 const _hoisted_1$2 = { class: "main-header" };
 const _hoisted_2$2 = /* @__PURE__ */ _withScopeId$1(() => /* @__PURE__ */ createBaseVNode("img", {
   class: "main-header__logo",
@@ -56039,8 +56071,8 @@ const _sfc_main$2 = /* @__PURE__ */ defineComponent({
     }
     const currentLinkType = ref(LinkType.manual);
     function onLinkTypeChange(linkType) {
-      var _a;
-      ((_a = props.render) == null ? void 0 : _a.draws[LinkDraw.name]).changeLinkType(linkType);
+      var _a, _b;
+      (_b = (_a = props.render) == null ? void 0 : _a.draws[LinkDraw.name]) == null ? void 0 : _b.changeLinkType(linkType);
     }
     const debug = ref(false);
     function onDebug() {
@@ -57130,7 +57162,7 @@ const _export_sfc = (sfc, props) => {
   }
   return target;
 };
-const MainHeader = /* @__PURE__ */ _export_sfc(_sfc_main$2, [["__scopeId", "data-v-0582d83f"]]);
+const MainHeader = /* @__PURE__ */ _export_sfc(_sfc_main$2, [["__scopeId", "data-v-7d22eb6b"]]);
 const assetsModules = {
   svg: [
     {
@@ -57609,7 +57641,7 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
   }
 });
 const AssetBar = /* @__PURE__ */ _export_sfc(_sfc_main$1, [["__scopeId", "data-v-0d76df1f"]]);
-const _withScopeId = (n) => (pushScopeId("data-v-814e6cd4"), n = n(), popScopeId(), n);
+const _withScopeId = (n) => (pushScopeId("data-v-3ae8f502"), n = n(), popScopeId(), n);
 const _hoisted_1 = { class: "page" };
 const _hoisted_2 = /* @__PURE__ */ _withScopeId(() => /* @__PURE__ */ createBaseVNode("footer", null, null, -1));
 const _sfc_main = /* @__PURE__ */ defineComponent({
@@ -57874,9 +57906,9 @@ const _sfc_main = /* @__PURE__ */ defineComponent({
                       size: "small"
                     }, {
                       default: withCtx(() => {
-                        var _a, _b, _c;
+                        var _a, _b, _c, _d, _e, _f, _g;
                         return [
-                          ((_a = assetCurrent.value) == null ? void 0 : _a.attrs.imageType) === ImageType.svg ? (openBlock(), createBlock(unref(NFormItem), {
+                          ((_a = assetCurrent.value) == null ? void 0 : _a.attrs.imageType) === ImageType.svg || ((_b = assetCurrent.value) == null ? void 0 : _b.attrs.assetType) === AssetType.Graph ? (openBlock(), createBlock(unref(NFormItem), {
                             key: 0,
                             label: "线条颜色",
                             path: "stroke"
@@ -57898,7 +57930,7 @@ const _sfc_main = /* @__PURE__ */ defineComponent({
                             ]),
                             _: 1
                           })) : createCommentVNode("", true),
-                          ((_b = assetCurrent.value) == null ? void 0 : _b.attrs.imageType) === ImageType.svg ? (openBlock(), createBlock(unref(NFormItem), {
+                          ((_c = assetCurrent.value) == null ? void 0 : _c.attrs.imageType) === ImageType.svg || ((_d = assetCurrent.value) == null ? void 0 : _d.attrs.graphType) === GraphType.Rect || ((_e = assetCurrent.value) == null ? void 0 : _e.attrs.graphType) === GraphType.Circle ? (openBlock(), createBlock(unref(NFormItem), {
                             key: 1,
                             label: "填充颜色",
                             path: "fill"
@@ -57920,7 +57952,7 @@ const _sfc_main = /* @__PURE__ */ defineComponent({
                             ]),
                             _: 1
                           })) : createCommentVNode("", true),
-                          ((_c = assetCurrent.value) == null ? void 0 : _c.attrs.assetType) === AssetType.Graph ? (openBlock(), createBlock(unref(NFormItem), {
+                          ((_f = assetCurrent.value) == null ? void 0 : _f.attrs.graphType) === GraphType.Line || ((_g = assetCurrent.value) == null ? void 0 : _g.attrs.graphType) === GraphType.Curve ? (openBlock(), createBlock(unref(NFormItem), {
                             key: 2,
                             label: "箭头",
                             path: "fill"
@@ -57940,7 +57972,7 @@ const _sfc_main = /* @__PURE__ */ defineComponent({
                                 "onUpdate:checked": _cache[23] || (_cache[23] = ($event) => assetSettingsModel.value.arrowEnd = $event)
                               }, {
                                 default: withCtx(() => [
-                                  createTextVNode(" 开始 ")
+                                  createTextVNode(" 结束 ")
                                 ]),
                                 _: 1
                               }, 8, ["checked"])
@@ -57986,7 +58018,7 @@ const _sfc_main = /* @__PURE__ */ defineComponent({
     };
   }
 });
-const App = /* @__PURE__ */ _export_sfc(_sfc_main, [["__scopeId", "data-v-814e6cd4"]]);
+const App = /* @__PURE__ */ _export_sfc(_sfc_main, [["__scopeId", "data-v-3ae8f502"]]);
 const optionsDefault = {
   colors: ["purple", "blue", "green", "blueviolet", "goldenrod", "brown", "chocolate"],
   type: "log"
@@ -58011,7 +58043,7 @@ const logArray = (words2) => {
     console.error(e);
   }
 };
-var define_BUILD_INFO_default = { lastBuildTime: "2024-09-29 13:39:38", git: { branch: "master", hash: "63e19efe9c10f32d14fa301dcedfb3b4f354bc90", tag: "chapter23-dirty" } };
+var define_BUILD_INFO_default = { lastBuildTime: "2024-09-29 18:00:51", git: { branch: "master", hash: "b2c80d859910245447de87a771c78c2bace99803", tag: "chapter23-dirty" } };
 const {
   lastBuildTime,
   git: { branch, tag, hash }
