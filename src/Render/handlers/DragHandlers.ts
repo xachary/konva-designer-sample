@@ -38,6 +38,9 @@ export class DragHandlers implements Types.Handler {
             // 鼠标右键
             this.mousedownRight = true
 
+            // 暂停元素 draggable
+            this.render.changeDraggable(false)
+
             this.mousedownStagePos = { x: stageState.x, y: stageState.y }
 
             const pos = this.render.stage.getPointerPosition()
@@ -51,6 +54,9 @@ export class DragHandlers implements Types.Handler {
       },
       mouseup: () => {
         this.mousedownRight = false
+
+        // 恢复元素 draggable
+        this.render.changeDraggable(true)
 
         document.body.style.cursor = 'default'
       },
