@@ -276,6 +276,12 @@
             3、画布拖动，在空白处，【Win】右键按下移动，【Mac】control + 触控板三指移动；<br>
         </n-card>
     </n-modal>
+    <n-modal v-model:show="showDonate">
+        <n-card style="width: 630px" title="谢谢你的支持!" aria-modal="false">
+            <img style="width:48%;float:left;" src="/donate2.jpg">
+            <img style="width:48%;float:right;" src="/donate.jpg">
+        </n-card>
+    </n-modal>
 </div>
 </template>
 
@@ -326,6 +332,8 @@ const props = withDefaults(defineProps<{
 });
 
 const showShortCut = ref(false)
+
+const showDonate = ref(false)
 
 // 从 json 文件恢复
 function onRestore() {
@@ -794,6 +802,22 @@ const menuOptions = [
                 disabled: true
             },
         ]
+    }, {
+        key: 'donate',
+        label: () => h(
+            'a',
+            {
+                rel: 'noopenner noreferrer',
+                onClick: () => {
+                    showDonate.value = true
+                },
+                style: {
+                    color: 'blue'
+                }
+            },
+            '请我喝杯奶茶呗!',
+        ),
+        children: []
     }
 ]
 
