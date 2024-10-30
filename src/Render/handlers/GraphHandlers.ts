@@ -76,6 +76,15 @@ export class GraphHandlers implements Types.Handler {
                 // 新建 曲线
                 this.currentGraph = new Graphs.Curve(this.render, point)
               }
+
+              // 初始化设置信息
+              if (this.currentGraph) {
+                this.render.setAssetSettings(
+                  this.currentGraph.group,
+                  this.render.getAssetSettings(this.currentGraph.group),
+                  false
+                )
+              }
             }
           }
         }

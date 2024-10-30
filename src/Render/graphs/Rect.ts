@@ -848,8 +848,8 @@ export class Rect extends BaseGraph {
       width: 0,
       height: 0,
       stroke: this.render.getPageSettings().stroke,
+      strokeWidth: this.render.getPageSettings().strokeWidth
       // fill: this.render.getPageSettings().fill,
-      strokeWidth: 1,
     })
 
     // 加入

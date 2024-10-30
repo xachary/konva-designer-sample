@@ -111,7 +111,7 @@ function init() {
 
         render.on('selection-change', (nodes: Konva.Node[]) => {
           assetSettingsModelInnerChange.value = true
-          
+
           if (nodes.length === 0) {
             // 清空选择
             assetCurrent.value = undefined
@@ -187,8 +187,8 @@ watch(() => pageSettingsModel.value, () => {
     pageSettingsModelFill.value = pageSettingsModel.value.fill
     pageSettingsModelLinkStroke.value = pageSettingsModel.value.linkStroke
 
-    if (ready.value && !pageSettingsModelInnerChange.value) {
-      render?.setPageSettings(pageSettingsModel.value)
+    if (ready.value) {
+      render?.setPageSettings(pageSettingsModel.value, !pageSettingsModelInnerChange.value)
     }
   }
 
@@ -202,8 +202,8 @@ watch(() => assetSettingsModel.value, () => {
     assetSettingsModelStroke.value = assetSettingsModel.value.stroke
     assetSettingsModelFill.value = assetSettingsModel.value.fill
 
-    if (ready.value && !assetSettingsModelInnerChange.value) {
-      render?.setAssetSettings(assetCurrent.value, assetSettingsModel.value)
+    if (ready.value) {
+      render?.setAssetSettings(assetCurrent.value, assetSettingsModel.value, !assetSettingsModelInnerChange.value)
     }
   }
 
@@ -216,8 +216,8 @@ watch(() => linkSettingsModel.value, () => {
   if (linkSettingsModel.value && linkCurrent.value) {
     linkSettingsModelStroke.value = linkSettingsModel.value.stroke
 
-    if (ready.value && !linkSettingsModelInnerChange.value) {
-      render?.setLinkSettings(linkCurrent.value, linkSettingsModel.value)
+    if (ready.value) {
+      render?.setLinkSettings(linkCurrent.value, linkSettingsModel.value, !linkSettingsModelInnerChange.value)
     }
   }
 
@@ -258,6 +258,9 @@ watch(() => linkSettingsModel.value, () => {
                 @confirm="(v: string) => { pageSettingsModel && (pageSettingsModel.stroke = v) }"
                 @clear="pageSettingsModel && (pageSettingsModel.stroke = Render.AssetSettingsDefault.stroke)"></n-color-picker>
             </n-form-item>
+            <n-form-item label="线条粗细" path="strokeWidth">
+              <n-input-number v-model:value="pageSettingsModel.strokeWidth" placeholder="Input" />
+            </n-form-item>
             <n-form-item label="填充颜色" path="fill">
               <n-color-picker v-model:value="pageSettingsModelFill" @update:show="(v: boolean) => {
                 pageSettingsModel && !v && (pageSettingsModelFill = pageSettingsModel.fill)
@@ -278,8 +281,6 @@ watch(() => linkSettingsModel.value, () => {
           </n-form>
         </n-tab-pane>
         <n-tab-pane name="asset" tab="素材" :disabled="assetCurrent === void 0">
-          <!-- {{ Object.keys((assetCurrent as Konva.Group)?.children[(assetCurrent as
-            Konva.Group)?.children.length - 1]?.attrs) }} -->
           <n-form ref="formRef" :model="assetSettingsModel" :rules="{}" label-placement="top" size="small"
             v-if="assetSettingsModel">
             <n-form-item label="线条颜色" path="stroke"
@@ -289,6 +290,9 @@ watch(() => linkSettingsModel.value, () => {
               }" :actions="['clear', 'confirm']" show-preview
                 @confirm="(v: string) => { assetSettingsModel && (assetSettingsModel.stroke = v) }"
                 @clear="assetSettingsModel && (assetSettingsModel.stroke = Render.AssetSettingsDefault.stroke)"></n-color-picker>
+            </n-form-item>
+            <n-form-item label="线条粗细" path="strokeWidth" v-if="assetCurrent?.attrs.assetType === Types.AssetType.Graph">
+              <n-input-number v-model:value="assetSettingsModel.strokeWidth" placeholder="Input" />
             </n-form-item>
             <n-form-item label="填充颜色" path="fill"
               v-if="assetCurrent?.attrs.imageType === Types.ImageType.svg || assetCurrent?.attrs.graphType === Types.GraphType.Rect || assetCurrent?.attrs.graphType === Types.GraphType.Circle">

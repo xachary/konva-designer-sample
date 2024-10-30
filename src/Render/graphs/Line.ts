@@ -460,11 +460,11 @@ export class Line extends BaseGraph {
       x: 0,
       y: 0,
       stroke: this.render.getPageSettings().stroke,
+      strokeWidth: this.render.getPageSettings().strokeWidth,
       fill: this.render.getPageSettings().stroke,
-      strokeWidth: 1,
       points: [],
       pointerAtBeginning: false,
-      pointerAtEnding: false,
+      pointerAtEnding: false
     })
 
     // 给予 1 像素，防止导出图片 toDataURL 失败

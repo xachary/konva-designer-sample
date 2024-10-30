@@ -522,9 +522,10 @@ export class Render {
   static PageSettingsDefault: Types.PageSettings = {
     background: 'transparent',
     stroke: 'rgb(0,0,0)',
+    strokeWidth: 1,
     fill: 'rgb(0,0,0)',
     linkStroke: 'rgb(0,0,0)',
-    linkStrokeWidth: 2
+    linkStrokeWidth: 1
   }
 
   // 获取页面设置
@@ -533,14 +534,16 @@ export class Render {
   }
 
   // 更新页面设置
-  setPageSettings(settings: Types.PageSettings) {
+  setPageSettings(settings: Types.PageSettings, update = false) {
     this.stage.setAttr('pageSettings', settings)
 
     // 更新背景
     this.updateBackground()
 
-    // 更新历史
-    this.updateHistory()
+    if (update) {
+      // 更新历史
+      this.updateHistory()
+    }
   }
 
   // 获取背景
@@ -567,6 +570,7 @@ export class Render {
   // 素材设置 默认值
   static AssetSettingsDefault: Types.AssetSettings = {
     stroke: '',
+    strokeWidth: 0,
     fill: '',
     arrowStart: false,
     arrowEnd: false
@@ -585,6 +589,7 @@ export class Render {
       ...base,
       // 继承全局
       stroke: base.stroke || this.getPageSettings().stroke,
+      strokeWidth: base.strokeWidth || this.getPageSettings().strokeWidth,
       fill: base.fill || this.getPageSettings().fill
     }
   }
@@ -624,7 +629,7 @@ export class Render {
   }
 
   // 更新素材设置
-  async setAssetSettings(asset: Konva.Node, settings: Types.AssetSettings) {
+  async setAssetSettings(asset: Konva.Node, settings: Types.AssetSettings, update = false) {
     asset.setAttr('assetSettings', settings)
     if (asset instanceof Konva.Group) {
       if (asset.attrs.imageType === Types.ImageType.svg) {
@@ -643,6 +648,7 @@ export class Render {
       } else if (asset.attrs.assetType === Types.AssetType.Graph) {
         const node = asset.findOne('.graph')
         if (node instanceof Konva.Shape) {
+          node.strokeWidth(settings.strokeWidth)
           node.stroke(settings.stroke)
           if (node instanceof Konva.Arrow) {
             // 箭头跟随 stroke
@@ -658,8 +664,10 @@ export class Render {
       }
     }
 
-    // 更新历史
-    this.updateHistory()
+    if (update) {
+      // 更新历史
+      this.updateHistory()
+    }
 
     this.draws[Draws.BgDraw.name].draw()
     this.draws[Draws.GraphDraw.name].draw()
@@ -674,7 +682,7 @@ export class Render {
   }
 
   // 连接线设置
-  async setLinkSettings(link: Konva.Line, settings: Types.LinkSettings) {
+  async setLinkSettings(link: Konva.Line, settings: Types.LinkSettings, update = false) {
     const group = this.layer.findOne(`#${link.attrs.groupId}`)
     if (Array.isArray(group?.attrs.points)) {
       const point = (group?.attrs.points as Types.LinkDrawPoint[]).find(
@@ -693,8 +701,10 @@ export class Render {
       }
     }
 
-    // 更新历史
-    this.updateHistory()
+    if (update) {
+      // 更新历史
+      this.updateHistory()
+    }
 
     this.draws[Draws.BgDraw.name].draw()
     this.draws[Draws.GraphDraw.name].draw()

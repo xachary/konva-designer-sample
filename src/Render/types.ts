@@ -267,6 +267,7 @@ export interface SortItem {
 export interface PageSettings {
   background: string
   stroke: string
+  strokeWidth: number
   fill: string
   linkStroke: string
   linkStrokeWidth: number
@@ -277,6 +278,7 @@ export interface PageSettings {
  */
 export interface AssetSettings {
   stroke: string
+  strokeWidth: number
   fill: string
   arrowStart: boolean
   arrowEnd: boolean

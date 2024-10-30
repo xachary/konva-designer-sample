@@ -83,7 +83,7 @@ export class DragOutsideHandlers implements Types.Handler {
                       : undefined
                 })
 
-                this.render.setAssetSettings(group, this.render.getAssetSettings())
+                this.render.setAssetSettings(group, this.render.getAssetSettings(), false)
 
                 group.add(target)
 
