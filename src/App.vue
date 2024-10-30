@@ -259,7 +259,7 @@ watch(() => linkSettingsModel.value, () => {
                 @clear="pageSettingsModel && (pageSettingsModel.stroke = Render.AssetSettingsDefault.stroke)"></n-color-picker>
             </n-form-item>
             <n-form-item label="线条粗细" path="strokeWidth">
-              <n-input-number v-model:value="pageSettingsModel.strokeWidth" placeholder="Input" />
+              <n-input-number v-model:value="pageSettingsModel.strokeWidth" placeholder="Input" :min="1" />
             </n-form-item>
             <n-form-item label="填充颜色" path="fill">
               <n-color-picker v-model:value="pageSettingsModelFill" @update:show="(v: boolean) => {
@@ -276,7 +276,7 @@ watch(() => linkSettingsModel.value, () => {
                 @clear="pageSettingsModel && (pageSettingsModel.linkStroke = Render.LinkSettingsDefault.stroke)"></n-color-picker>
             </n-form-item>
             <n-form-item label="连接线粗细" path="strokeWidth">
-              <n-input-number v-model:value="pageSettingsModel.linkStrokeWidth" placeholder="Input" />
+              <n-input-number v-model:value="pageSettingsModel.linkStrokeWidth" placeholder="Input" :min="1" />
             </n-form-item>
           </n-form>
         </n-tab-pane>
