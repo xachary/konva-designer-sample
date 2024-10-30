@@ -6,7 +6,7 @@ import type Konva from 'konva'
 import { Render } from './Render'
 import * as Types from './Render/types'
 
-import { NIcon, NFloatButton, NTabs, NTabPane, NForm, NFormItem, NColorPicker, NCheckbox } from 'naive-ui'
+import { NIcon, NFloatButton, NTabs, NTabPane, NForm, NFormItem, NColorPicker, NCheckbox, NInputNumber } from 'naive-ui'
 
 import {
   FullScreenMinimize24Regular
@@ -110,12 +110,14 @@ function init() {
         })
 
         render.on('selection-change', (nodes: Konva.Node[]) => {
+          assetSettingsModelInnerChange.value = true
+          
           if (nodes.length === 0) {
             // 清空选择
             assetCurrent.value = undefined
             assetSettingsModel.value = undefined
 
-            tabCurrent.value = 'page'
+            tabCurrent.value = linkCurrent.value ? 'link' : 'page'
           } else if (nodes.length === 1) {
             // 单选
             assetCurrent.value = nodes[0]
@@ -127,8 +129,17 @@ function init() {
             assetCurrent.value = undefined
             assetSettingsModel.value = undefined
 
-            tabCurrent.value = 'page'
+            tabCurrent.value = linkCurrent.value ? 'link' : 'page'
           }
+        })
+
+        render.on('link-selection-change', (link?: Konva.Line) => {
+          linkSettingsModelInnerChange.value = true
+
+          linkCurrent.value = link
+          linkSettingsModel.value = render!.getLinkSettings(link)
+
+          tabCurrent.value = linkCurrent.value ? 'link' : 'page'
         })
       }
     })
@@ -149,6 +160,7 @@ const pageSettingsModelInnerChange = ref(false)
 const pageSettingsModelBackground = ref('')
 const pageSettingsModelStroke = ref('')
 const pageSettingsModelFill = ref('')
+const pageSettingsModelLinkStroke = ref('')
 
 // 当前素材
 const assetCurrent: Ref<Konva.Node | undefined> = ref()
@@ -157,14 +169,23 @@ const assetCurrent: Ref<Konva.Node | undefined> = ref()
 const assetSettingsModel: Ref<Types.AssetSettings | undefined> = ref()
 const assetSettingsModelInnerChange = ref(false)
 
-const assetSettingsModelStorke = ref('')
+const assetSettingsModelStroke = ref('')
 const assetSettingsModelFill = ref('')
+
+// 当前连接线
+const linkCurrent: Ref<Konva.Line | undefined> = ref()
+// 素材设置
+const linkSettingsModel: Ref<Types.LinkSettings | undefined> = ref()
+const linkSettingsModelInnerChange = ref(false)
+
+const linkSettingsModelStroke = ref('')
 
 watch(() => pageSettingsModel.value, () => {
   if (pageSettingsModel.value) {
     pageSettingsModelBackground.value = pageSettingsModel.value.background
     pageSettingsModelStroke.value = pageSettingsModel.value.stroke
     pageSettingsModelFill.value = pageSettingsModel.value.fill
+    pageSettingsModelLinkStroke.value = pageSettingsModel.value.linkStroke
 
     if (ready.value && !pageSettingsModelInnerChange.value) {
       render?.setPageSettings(pageSettingsModel.value)
@@ -178,7 +199,7 @@ watch(() => pageSettingsModel.value, () => {
 
 watch(() => assetSettingsModel.value, () => {
   if (assetSettingsModel.value && assetCurrent.value) {
-    assetSettingsModelStorke.value = assetSettingsModel.value.stroke
+    assetSettingsModelStroke.value = assetSettingsModel.value.stroke
     assetSettingsModelFill.value = assetSettingsModel.value.fill
 
     if (ready.value && !assetSettingsModelInnerChange.value) {
@@ -187,6 +208,20 @@ watch(() => assetSettingsModel.value, () => {
   }
 
   assetSettingsModelInnerChange.value = false
+}, {
+  deep: true
+})
+
+watch(() => linkSettingsModel.value, () => {
+  if (linkSettingsModel.value && linkCurrent.value) {
+    linkSettingsModelStroke.value = linkSettingsModel.value.stroke
+
+    if (ready.value && !linkSettingsModelInnerChange.value) {
+      render?.setLinkSettings(linkCurrent.value, linkSettingsModel.value)
+    }
+  }
+
+  linkSettingsModelInnerChange.value = false
 }, {
   deep: true
 })
@@ -230,8 +265,16 @@ watch(() => assetSettingsModel.value, () => {
                 @confirm="(v: string) => { pageSettingsModel && (pageSettingsModel.fill = v) }"
                 @clear="pageSettingsModel && (pageSettingsModel.fill = Render.AssetSettingsDefault.fill)"></n-color-picker>
             </n-form-item>
-            <!-- 全局线条、连接线颜色等等 -->
-            <!-- <n-input v-model:value="pageSettingsModel.background" placeholder="Input" /> -->
+            <n-form-item label="连接线颜色" path="stroke">
+              <n-color-picker v-model:value="pageSettingsModelLinkStroke" @update:show="(v: boolean) => {
+                pageSettingsModel && !v && (pageSettingsModelLinkStroke = pageSettingsModel.linkStroke)
+              }" :actions="['clear', 'confirm']" show-preview
+                @confirm="(v: string) => { pageSettingsModel && (pageSettingsModel.linkStroke = v) }"
+                @clear="pageSettingsModel && (pageSettingsModel.linkStroke = Render.LinkSettingsDefault.stroke)"></n-color-picker>
+            </n-form-item>
+            <n-form-item label="连接线粗细" path="strokeWidth">
+              <n-input-number v-model:value="pageSettingsModel.linkStrokeWidth" placeholder="Input" />
+            </n-form-item>
           </n-form>
         </n-tab-pane>
         <n-tab-pane name="asset" tab="素材" :disabled="assetCurrent === void 0">
@@ -241,11 +284,11 @@ watch(() => assetSettingsModel.value, () => {
             v-if="assetSettingsModel">
             <n-form-item label="线条颜色" path="stroke"
               v-if="assetCurrent?.attrs.imageType === Types.ImageType.svg || assetCurrent?.attrs.assetType === Types.AssetType.Graph">
-              <n-color-picker v-model:value="assetSettingsModelStorke" @update:show="(v: boolean) => {
-                assetSettingsModel && !v && (assetSettingsModelStorke = assetSettingsModel.stroke)
+              <n-color-picker v-model:value="assetSettingsModelStroke" @update:show="(v: boolean) => {
+                assetSettingsModel && !v && (assetSettingsModelStroke = assetSettingsModel.stroke)
               }" :actions="['clear', 'confirm']" show-preview
                 @confirm="(v: string) => { assetSettingsModel && (assetSettingsModel.stroke = v) }"
-                @clear="assetSettingsModel && (assetSettingsModel.stroke = '#000')"></n-color-picker>
+                @clear="assetSettingsModel && (assetSettingsModel.stroke = Render.AssetSettingsDefault.stroke)"></n-color-picker>
             </n-form-item>
             <n-form-item label="填充颜色" path="fill"
               v-if="assetCurrent?.attrs.imageType === Types.ImageType.svg || assetCurrent?.attrs.graphType === Types.GraphType.Rect || assetCurrent?.attrs.graphType === Types.GraphType.Circle">
@@ -253,7 +296,7 @@ watch(() => assetSettingsModel.value, () => {
                 assetSettingsModel && !v && (assetSettingsModelFill = assetSettingsModel.fill)
               }" :actions="['clear', 'confirm']" show-preview
                 @confirm="(v: string) => { assetSettingsModel && (assetSettingsModel.fill = v) }"
-                @clear="assetSettingsModel && (assetSettingsModel.fill = '#000')"></n-color-picker>
+                @clear="assetSettingsModel && (assetSettingsModel.fill = Render.AssetSettingsDefault.fill)"></n-color-picker>
             </n-form-item>
             <n-form-item label="箭头" path="fill"
               v-if="assetCurrent?.attrs.graphType === Types.GraphType.Line || assetCurrent?.attrs.graphType === Types.GraphType.Curve">
@@ -266,14 +309,22 @@ watch(() => assetSettingsModel.value, () => {
             </n-form-item>
           </n-form>
         </n-tab-pane>
+        <n-tab-pane name="link" tab="连接线" :disabled="linkCurrent === void 0">
+          <n-form ref="formRef" :model="linkSettingsModel" :rules="{}" label-placement="top" size="small"
+            v-if="linkSettingsModel">
+            <n-form-item label="线条颜色" path="stroke">
+              <n-color-picker v-model:value="linkSettingsModelStroke" @update:show="(v: boolean) => {
+                linkSettingsModel && !v && (linkSettingsModelStroke = linkSettingsModel.stroke)
+              }" :actions="['clear', 'confirm']" show-preview
+                @confirm="(v: string) => { linkSettingsModel && (linkSettingsModel.stroke = v) }"
+                @clear="linkSettingsModel && (linkSettingsModel.stroke = Render.LinkSettingsDefault.stroke)"></n-color-picker>
+            </n-form-item>
+            <n-form-item label="线条粗细" path="strokeWidth">
+              <n-input-number v-model:value="linkSettingsModel.strokeWidth" placeholder="Input" />
+            </n-form-item>
+          </n-form>
+        </n-tab-pane>
       </n-tabs>
-      <!-- pageSettingsModel:
-      <br>
-      {{ pageSettingsModel }}
-      <br>
-      assetSettingsModel:
-      <br>
-      {{ assetSettingsModel }} -->
     </footer>
   </section>
   <footer>

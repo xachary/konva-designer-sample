@@ -280,6 +280,7 @@ export class Render {
     if (nodes.length > 0) {
       // 清除选择
       this.selectionTool.selectingClear()
+      this.linkTool.selectingClear()
 
       // 更新历史
       this.updateHistory()
@@ -317,6 +318,7 @@ export class Render {
   }
 
   updateHistory() {
+    console.trace()
     this.history.splice(this.historyIndex + 1)
     this.history.push(this.importExportTool.save())
     this.historyIndex = this.history.length - 1
@@ -520,7 +522,9 @@ export class Render {
   static PageSettingsDefault: Types.PageSettings = {
     background: 'transparent',
     stroke: 'rgb(0,0,0)',
-    fill: 'rgb(0,0,0)'
+    fill: 'rgb(0,0,0)',
+    linkStroke: 'rgb(0,0,0)',
+    linkStrokeWidth: 2
   }
 
   // 获取页面设置
@@ -537,8 +541,6 @@ export class Render {
 
     // 更新历史
     this.updateHistory()
-
-    // console.log(this.stage.attrs)
   }
 
   // 获取背景
@@ -557,6 +559,8 @@ export class Render {
     }
 
     this.draws[Draws.BgDraw.name].draw()
+    this.draws[Draws.GraphDraw.name].draw()
+    this.draws[Draws.LinkDraw.name].draw()
     this.draws[Draws.PreviewDraw.name].draw()
   }
 
@@ -654,9 +658,76 @@ export class Render {
       }
     }
 
+    // 更新历史
+    this.updateHistory()
+
     this.draws[Draws.BgDraw.name].draw()
     this.draws[Draws.GraphDraw.name].draw()
     this.draws[Draws.LinkDraw.name].draw()
     this.draws[Draws.PreviewDraw.name].draw()
+  }
+
+  // 连接线设置 默认值
+  static LinkSettingsDefault: Types.LinkSettings = {
+    stroke: 'rgb(0,0,0)',
+    strokeWidth: 0
+  }
+
+  // 连接线设置
+  async setLinkSettings(link: Konva.Line, settings: Types.LinkSettings) {
+    const group = this.layer.findOne(`#${link.attrs.groupId}`)
+    if (Array.isArray(group?.attrs.points)) {
+      const point = (group?.attrs.points as Types.LinkDrawPoint[]).find(
+        (o: Types.LinkDrawPoint) => o.id === link.attrs.pointId
+      )
+      if (point) {
+        const pair = point.pairs.find((o) => o.id === link.attrs.pairId)
+        if (pair) {
+          pair.style = {
+            ...pair.style,
+            ...settings
+          }
+
+          group.setAttr('points', group?.attrs.points)
+        }
+      }
+    }
+
+    // 更新历史
+    this.updateHistory()
+
+    this.draws[Draws.BgDraw.name].draw()
+    this.draws[Draws.GraphDraw.name].draw()
+    this.draws[Draws.LinkDraw.name].draw()
+    this.draws[Draws.PreviewDraw.name].draw()
+  }
+
+  // 获取连接线设置
+  getLinkSettings(link?: Konva.Line): Types.LinkSettings {
+    let settings: Konva.LineConfig | undefined = undefined
+    if (link) {
+      const group = this.layer.findOne(`#${link.attrs.groupId}`)
+      if (Array.isArray(group?.attrs.points)) {
+        const point = (group?.attrs.points as Types.LinkDrawPoint[]).find(
+          (o: Types.LinkDrawPoint) => o.id === link.attrs.pointId
+        )
+        if (point) {
+          const pair = point.pairs.find((o) => o.id === link.attrs.pairId)
+          if (pair) {
+            settings = pair.style
+          }
+        }
+      }
+    }
+
+    const base = settings ?? { ...Render.LinkSettingsDefault }
+
+    return {
+      // 特定
+      ...base,
+      // 继承全局
+      stroke: (base.stroke as string) || this.getPageSettings().linkStroke,
+      strokeWidth: base.strokeWidth || this.getPageSettings().linkStrokeWidth
+    }
   }
 }

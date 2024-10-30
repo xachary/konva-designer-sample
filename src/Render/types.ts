@@ -26,6 +26,7 @@ export type RenderEvents = {
   ['graph-type-change']: GraphType | undefined
   //
   ['page-settings-change']: PageSettings
+  ['link-selection-change']: Konva.Line | undefined
 }
 
 export interface Handler {
@@ -161,6 +162,7 @@ export interface LinkDrawPair {
   }
   disabled?: boolean // 标记为 true，算法会忽略该 pair 的画线逻辑
   linkType?: LinkType // 连接线类型
+  style?: Konva.LineConfig
 }
 
 /**
@@ -266,6 +268,8 @@ export interface PageSettings {
   background: string
   stroke: string
   fill: string
+  linkStroke: string
+  linkStrokeWidth: number
 }
 
 /**
@@ -276,4 +280,12 @@ export interface AssetSettings {
   fill: string
   arrowStart: boolean
   arrowEnd: boolean
+}
+
+/**
+ * 连接线设置
+ */
+export interface LinkSettings {
+  stroke: string
+  strokeWidth: number
 }

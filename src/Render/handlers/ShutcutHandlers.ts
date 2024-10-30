@@ -30,8 +30,11 @@ export class ShutcutHandlers implements Types.Handler {
           }
         } else if (e.code === Types.ShutcutKey.删除 || e.code === Types.ShutcutKey.Backspace) {
           this.render.remove(this.render.selectionTool.selectingNodes)
+          // 删除 连接线
+          this.render.linkTool.remove()
         } else if (e.code === Types.ShutcutKey.Esc) {
           this.render.selectionTool.selectingClear()
+          this.render.linkTool.selectingClear()
         }
       }
     }

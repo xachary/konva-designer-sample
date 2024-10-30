@@ -178,6 +178,13 @@ export class PreviewDraw extends Types.BaseDraw implements Types.Draw {
       // 复制提取的节点，用作预览
       for (const node of nodes) {
         const copy = node.clone()
+        // 消除连接线选中状态
+        copy.find('.link-line').forEach((link: Konva.Line) => {
+          const dash = link.dash()
+          if (dash.length === 2 && dash.every((o) => o === 1)) {
+            link.dash([])
+          }
+        })
         // 不可交互
         copy.listening(false)
         // 设置名称用于 ignore

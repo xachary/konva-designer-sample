@@ -233,6 +233,7 @@ export class ImportExportTool {
 
       // 清空选择
       this.render.selectionTool.selectingClear()
+      this.render.linkTool.selectingClear()
 
       // 清空 main layer 节点
       this.render.layer.getChildren().forEach((o) => {

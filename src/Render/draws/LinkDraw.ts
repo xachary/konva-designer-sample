@@ -441,9 +441,25 @@ export class LinkDraw extends Types.BaseDraw implements Types.Draw {
               pairId: pair.id,
               linkType: pair.linkType,
 
-              points: _.flatten(linkPoints),
-              stroke: 'red',
-              strokeWidth: 2
+              points: _.flatten(linkPoints)
+            })
+
+            linkLine.stroke(this.render.getLinkSettings(linkLine).stroke)
+            linkLine.strokeWidth(this.render.getLinkSettings(linkLine).strokeWidth)
+            linkLine.hitStrokeWidth(Math.max(this.render.getLinkSettings().strokeWidth, 6))
+            linkLine.dash(this.render.linkTool.linkCurrent?.attrs.pairId === pair.id ? [1, 1] : [])
+
+            linkLine.on('pointerclick', () => {
+              this.render.linkTool.select(linkLine)
+            })
+
+            linkLine.on('mouseenter', () => {
+              linkLine.opacity(0.5)
+              document.body.style.cursor = 'pointer'
+            })
+            linkLine.on('mouseleave', () => {
+              linkLine.opacity(1)
+              document.body.style.cursor = 'default'
             })
 
             this.group.add(linkLine)
@@ -717,8 +733,24 @@ export class LinkDraw extends Types.BaseDraw implements Types.Draw {
                 ],
                 [this.render.toStageValue(toAnchorPos.x), this.render.toStageValue(toAnchorPos.y)]
               ]),
-              stroke: 'red',
-              strokeWidth: 2
+            })
+
+            linkLine.stroke(this.render.getLinkSettings(linkLine).stroke)
+                linkLine.strokeWidth(this.render.getLinkSettings(linkLine).strokeWidth)
+                linkLine.hitStrokeWidth(Math.max(this.render.getLinkSettings().strokeWidth, 6))
+                linkLine.dash(this.render.linkTool.linkCurrent?.attrs.pairId === pair.id ? [1, 1] : [])
+
+            linkLine.on('pointerclick', () => {
+              this.render.linkTool.select(linkLine)
+            })
+
+            linkLine.on('mouseenter', () => {
+              linkLine.opacity(0.5)
+              document.body.style.cursor = 'pointer'
+            })
+            linkLine.on('mouseleave', () => {
+              linkLine.opacity(1)
+              document.body.style.cursor = 'default'
             })
 
             this.group.add(linkLine)
@@ -1057,9 +1089,27 @@ export class LinkDraw extends Types.BaseDraw implements Types.Draw {
                       this.render.toStageValue(toAnchorPos.x),
                       this.render.toStageValue(toAnchorPos.y)
                     ] // 补充 终点
-                  ]),
-                  stroke: 'red',
-                  strokeWidth: 2
+                  ])
+                })
+
+                linkLine.stroke(this.render.getLinkSettings(linkLine).stroke)
+                linkLine.strokeWidth(this.render.getLinkSettings(linkLine).strokeWidth)
+                linkLine.hitStrokeWidth(Math.max(this.render.getLinkSettings().strokeWidth, 6))
+                linkLine.dash(
+                  this.render.linkTool.linkCurrent?.attrs.pairId === pair.id ? [1, 1] : []
+                )
+
+                linkLine.on('pointerclick', () => {
+                  this.render.linkTool.select(linkLine)
+                })
+
+                linkLine.on('mouseenter', () => {
+                  linkLine.opacity(0.5)
+                  document.body.style.cursor = 'pointer'
+                })
+                linkLine.on('mouseleave', () => {
+                  linkLine.opacity(1)
+                  document.body.style.cursor = 'default'
                 })
 
                 this.group.add(linkLine)
@@ -1111,6 +1161,7 @@ export class LinkDraw extends Types.BaseDraw implements Types.Draw {
 
           circle.on('mousedown', () => {
             this.render.selectionTool.selectingClear()
+            this.render.linkTool.selectingClear()
 
             const pos = this.render.stage.getPointerPosition()
 

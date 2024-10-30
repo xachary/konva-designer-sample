@@ -59,6 +59,7 @@ export class GraphHandlers implements Types.Handler {
             this.graphing = true
 
             this.render.selectionTool.selectingClear()
+            this.render.linkTool.selectingClear()
 
             const point = this.getStagePoint()
             if (point) {

@@ -41,35 +41,38 @@ export class LinkTool {
     }
   }
 
-  remove(line: Konva.Line) {
-    const { groupId, pointId, pairId } = line.getAttrs()
+  remove(target?: Konva.Line) {
+    const line = target ?? this.linkCurrent
+    if (line) {
+      const { groupId, pointId, pairId } = line.getAttrs()
 
-    if (groupId && pointId && pairId) {
-      const group = this.render.layer.findOne(`#${groupId}`) as Konva.Group
-      if (group) {
-        const points = (group.getAttr('points') ?? []) as Types.LinkDrawPoint[]
-        const point = points.find((o) => o.id === pointId)
-        if (point) {
-          const pairIndex = (point.pairs ?? ([] as Types.LinkDrawPair[])).findIndex(
-            (o) => o.id === pairId
-          )
-          if (pairIndex > -1) {
-            const pair = point.pairs.splice(pairIndex, 1)[0]
+      if (groupId && pointId && pairId) {
+        const group = this.render.layer.findOne(`#${groupId}`) as Konva.Group
+        if (group) {
+          const points = (group.getAttr('points') ?? []) as Types.LinkDrawPoint[]
+          const point = points.find((o) => o.id === pointId)
+          if (point) {
+            const pairIndex = (point.pairs ?? ([] as Types.LinkDrawPair[])).findIndex(
+              (o) => o.id === pairId
+            )
+            if (pairIndex > -1) {
+              const pair = point.pairs.splice(pairIndex, 1)[0]
 
-            if (group.attrs.manualPointsMap && group.attrs.manualPointsMap[pair.id]) {
-              group.setAttr('manualPointsMap', {
-                ...group.attrs.manualPointsMap,
-                [pair.id]: undefined
-              })
+              if (group.attrs.manualPointsMap && group.attrs.manualPointsMap[pair.id]) {
+                group.setAttr('manualPointsMap', {
+                  ...group.attrs.manualPointsMap,
+                  [pair.id]: undefined
+                })
+              }
+
+              // 重绘
+              this.render.redraw([
+                Draws.LinkDraw.name,
+                Draws.AttractDraw.name,
+                Draws.RulerDraw.name,
+                Draws.PreviewDraw.name
+              ])
             }
-            
-            // 重绘
-            this.render.redraw([
-              Draws.LinkDraw.name,
-              Draws.AttractDraw.name,
-              Draws.RulerDraw.name,
-              Draws.PreviewDraw.name
-            ])
           }
         }
       }
@@ -211,5 +214,38 @@ export class LinkTool {
         subGroups.push(...(subGroup.find('.sub-asset') as Konva.Group[]))
       }
     }
+  }
+
+  // 选中连接线
+  linkCurrent: Konva.Line | undefined = undefined
+
+  // 选中
+  select(link: Konva.Line) {
+    this.render.selectionTool.selectingClear()
+
+    this.linkCurrent = link
+    this.render.emit('link-selection-change', this.linkCurrent)
+
+    // 重绘
+    this.render.redraw([
+      Draws.BgDraw.name, // 更新背景
+      Draws.LinkDraw.name, // 更新连线
+      Draws.RulerDraw.name, // 更新比例尺
+      Draws.PreviewDraw.name // 更新预览
+    ])
+  }
+
+  // 清空选中
+  selectingClear() {
+    this.linkCurrent = undefined
+    this.render.emit('link-selection-change', undefined)
+
+    // 重绘
+    this.render.redraw([
+      Draws.BgDraw.name, // 更新背景
+      Draws.LinkDraw.name, // 更新连线
+      Draws.RulerDraw.name, // 更新比例尺
+      Draws.PreviewDraw.name // 更新预览
+    ])
   }
 }

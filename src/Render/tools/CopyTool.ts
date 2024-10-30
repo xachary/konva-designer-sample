@@ -46,6 +46,7 @@ export class CopyTool {
   pasteEnd() {
     if (this.pasteCache.length > 0) {
       this.render.selectionTool.selectingClear()
+      this.render.linkTool.selectingClear()
       this.copy(this.pasteCache)
       this.pasteCount++
     }
@@ -244,6 +245,7 @@ export class CopyTool {
         // 复制已选择
         const backup = [...this.render.selectionTool.selectingNodes]
         this.render.selectionTool.selectingClear()
+        this.render.linkTool.selectingClear()
         this.copy(backup)
 
         return

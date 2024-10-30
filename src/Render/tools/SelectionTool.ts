@@ -66,6 +66,9 @@ export class SelectionTool {
 
   // 选择节点
   select(nodes: Konva.Node[]) {
+    // 清除连接线选中
+    this.render.linkTool.selectingClear()
+
     // 选择变化了
     this.render.emit('selection-change', nodes)
     

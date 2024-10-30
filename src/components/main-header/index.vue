@@ -694,6 +694,18 @@ const menuOptions = [
                         ),
                         key: '占用区域大小测试',
                     },
+                    {
+                        label: () => h(
+                            'a',
+                            {
+                                target: '_blank',
+                                rel: 'noopenner noreferrer',
+                                onClick: onLinkStrokeTest
+                            },
+                            '连接线颜色测试'
+                        ),
+                        key: '连接线颜色测试',
+                    },
                 ]
             }
         ]
@@ -931,6 +943,10 @@ async function onAdjustTransformTest() {
 }
 async function onAreaSizeTest() {
     const json = await (await fetch('./test/area-size.json')).text()
+    props.render?.importExportTool.restore(json)
+}
+async function onLinkStrokeTest() {
+    const json = await (await fetch('./test/link-stroke.json')).text()
     props.render?.importExportTool.restore(json)
 }
 

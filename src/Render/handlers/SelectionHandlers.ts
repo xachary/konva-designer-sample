@@ -137,6 +137,7 @@ export class SelectionHandlers implements Types.Handler {
 
             // 清除选择
             this.render.selectionTool.selectingClear()
+            this.render.linkTool.selectingClear()
 
             // 选择框（判断 ctrlKey 为了排查 mac 拖动快捷键）
             if (e.evt.button === Types.MouseButton.左键 && !e.evt.ctrlKey) {
