@@ -71,7 +71,7 @@ export class SelectionTool {
 
     // 选择变化了
     this.render.emit('selection-change', nodes)
-    
+
     this.selectingClear(true)
 
     if (nodes.length > 0) {
@@ -85,7 +85,7 @@ export class SelectionTool {
       )
 
       // 记录状态
-      for (const node of nodes.sort((a, b) => a.zIndex() - b.zIndex())) {
+      for (const node of nodes) {
         node.setAttrs({
           nodeMousedownPos: node.position(), // 后面用于移动所选
           lastOpacity: node.opacity(), // 选中时，下面会使其变透明，记录原有的透明度
@@ -95,6 +95,12 @@ export class SelectionTool {
 
           listening: false, // 不可交互
           opacity: node.opacity() * 0.8, // 设置透明度
+        })
+      }
+
+      // 提升层次
+      for (const node of nodes.sort((a, b) => a.zIndex() - b.zIndex())) {
+        node.setAttrs({
           zIndex: maxZIndex // 提升层次
         })
       }
