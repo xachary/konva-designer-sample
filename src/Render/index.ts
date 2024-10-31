@@ -580,17 +580,18 @@ export class Render {
   getAssetSettings(asset?: Konva.Node): Types.AssetSettings {
     const base = asset?.attrs.assetSettings ?? { ...Render.AssetSettingsDefault }
 
-    // 绘制图形，默认不填充
-    if (asset?.attrs.assetType === Types.AssetType.Graph) {
-      base.fill = 'transparent'
-    }
     return {
       // 特定
       ...base,
       // 继承全局
       stroke: base.stroke || this.getPageSettings().stroke,
       strokeWidth: base.strokeWidth || this.getPageSettings().strokeWidth,
-      fill: base.fill || this.getPageSettings().fill
+      // 绘制图形，默认不填充
+      fill:
+        base.fill ||
+        (asset?.attrs.assetType === Types.AssetType.Graph
+          ? 'transparent'
+          : this.getPageSettings().fill)
     }
   }
 
