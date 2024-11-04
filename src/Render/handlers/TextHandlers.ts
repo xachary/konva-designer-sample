@@ -1,0 +1,88 @@
+import Konva from 'konva'
+//
+import { Render } from '../index'
+import * as Types from '../types'
+
+import { nanoid } from 'nanoid'
+
+export class TextHandlers implements Types.Handler {
+  static readonly name = 'Text'
+
+  private render: Render
+  constructor(render: Render) {
+    this.render = render
+  }
+
+  /**
+   * 获取鼠标位置，并处理为 相对大小
+   * @param attract 含磁贴计算
+   * @returns
+   */
+  getStagePoint(attract = false) {
+    const pos = this.render.stage.getPointerPosition()
+    if (pos) {
+      const stageState = this.render.getStageState()
+      if (attract) {
+        // 磁贴
+        const { pos: transformerPos } = this.render.attractTool.attractPoint(pos)
+        return {
+          x: this.render.toStageValue(transformerPos.x - stageState.x),
+          y: this.render.toStageValue(transformerPos.y - stageState.y)
+        }
+      } else {
+        return {
+          x: this.render.toStageValue(pos.x - stageState.x),
+          y: this.render.toStageValue(pos.y - stageState.y)
+        }
+      }
+    }
+    return null
+  }
+
+  handlers = {
+    stage: {
+      mousedown: (e: Konva.KonvaEventObject<GlobalEventHandlersEventMap['mousedown']>) => {
+        if (this.render.texting) {
+          if (e.target === this.render.stage) {
+            this.render.selectionTool.selectingClear()
+            this.render.linkTool.selectingClear()
+
+            const point = this.getStagePoint()
+            if (point) {
+              const group = new Konva.Group({
+                id: nanoid(),
+                name: 'asset',
+                assetType: Types.AssetType.Text,
+                draggable: false,
+                position: point
+              })
+              group.setAttr('assetSettings', this.render.getAssetSettings())
+              const text = new Konva.Text({
+                text: this.render.getAssetSettings()?.text,
+                fill: this.render.getAssetSettings()?.fill,
+                fontSize: this.render.getAssetSettings()?.fontSize,
+                draggable: false
+              })
+              const bg = new Konva.Rect({
+                width: text.width(),
+                height: text.height()
+              })
+              group.add(bg)
+              group.add(text)
+              this.render.layer.add(group)
+            }
+          }
+        }
+      },
+      mouseup: () => {
+        this.render.changeTexting(false)
+      }
+    },
+    transformer: {
+      dblclick: () => {
+        // 界面上修改文字，涉及到状态控制较多，暂时在属性面板上设置
+        // https://konvajs.org/docs/sandbox/Editable_Text.html
+      }
+    }
+  }
+}

@@ -6,7 +6,7 @@ import type Konva from 'konva'
 import { Render } from './Render'
 import * as Types from './Render/types'
 
-import { NIcon, NFloatButton, NTabs, NTabPane, NForm, NFormItem, NColorPicker, NCheckbox, NInputNumber } from 'naive-ui'
+import { NIcon, NFloatButton, NTabs, NTabPane, NForm, NFormItem, NColorPicker, NCheckbox, NInputNumber, NInput } from 'naive-ui'
 
 import {
   FullScreenMinimize24Regular
@@ -73,6 +73,12 @@ const graphType: Ref<Types.GraphType | undefined> = ref()
 
 watch(() => graphType.value, () => {
   render?.changeGraphType(graphType.value)
+})
+
+const texting = ref(false)
+
+watch(() => texting.value, () => {
+  render?.changeTexting(texting.value)
 })
 
 function init() {
@@ -161,6 +167,7 @@ const pageSettingsModelBackground = ref('')
 const pageSettingsModelStroke = ref('')
 const pageSettingsModelFill = ref('')
 const pageSettingsModelLinkStroke = ref('')
+const pageSettingsModelTextFill = ref('')
 
 // 当前素材
 const assetCurrent: Ref<Konva.Node | undefined> = ref()
@@ -186,6 +193,7 @@ watch(() => pageSettingsModel.value, () => {
     pageSettingsModelStroke.value = pageSettingsModel.value.stroke
     pageSettingsModelFill.value = pageSettingsModel.value.fill
     pageSettingsModelLinkStroke.value = pageSettingsModel.value.linkStroke
+    pageSettingsModelTextFill.value = pageSettingsModel.value.textFill
 
     if (ready.value) {
       render?.setPageSettings(pageSettingsModel.value, !pageSettingsModelInnerChange.value)
@@ -230,7 +238,8 @@ watch(() => linkSettingsModel.value, () => {
 <template>
 <div class="page">
   <header v-show="!full">
-    <MainHeader :render="render" v-model:full="full" v-model:graphType="graphType" v-if="ready" />
+    <MainHeader :render="render" v-model:full="full" v-model:graphType="graphType" v-model:texting="texting"
+      v-if="ready" />
   </header>
   <section>
     <header v-show="!full">
@@ -278,6 +287,17 @@ watch(() => linkSettingsModel.value, () => {
             <n-form-item label="连接线粗细" path="strokeWidth">
               <n-input-number v-model:value="pageSettingsModel.linkStrokeWidth" placeholder="Input" :min="1" />
             </n-form-item>
+            <!-- Text -->
+            <n-form-item label="文字颜色" path="textFill">
+              <n-color-picker v-model:value="pageSettingsModelTextFill" @update:show="(v: boolean) => {
+                pageSettingsModel && !v && (pageSettingsModelTextFill = pageSettingsModel.textFill)
+              }" :actions="['clear', 'confirm']" show-preview
+                @confirm="(v: string) => { pageSettingsModel && (pageSettingsModel.textFill = v) }"
+                @clear="pageSettingsModel && (pageSettingsModel.textFill = Render.PageSettingsDefault.textFill)"></n-color-picker>
+            </n-form-item>
+            <n-form-item label="文字大小" path="fontSize">
+              <n-input-number v-model:value="pageSettingsModel.fontSize" placeholder="Input" :min="1" />
+            </n-form-item>
           </n-form>
         </n-tab-pane>
         <n-tab-pane name="asset" tab="素材" :disabled="assetCurrent === void 0">
@@ -311,6 +331,22 @@ watch(() => linkSettingsModel.value, () => {
                 结束
               </n-checkbox>
             </n-form-item>
+            <!-- Text -->
+            <template v-if="assetCurrent?.attrs.assetType === Types.AssetType.Text">
+              <n-form-item label="文字颜色" path="fill">
+                <n-color-picker v-model:value="assetSettingsModelFill" @update:show="(v: boolean) => {
+                  assetSettingsModel && !v && (assetSettingsModelFill = assetSettingsModel.fill)
+                }" :actions="['clear', 'confirm']" show-preview
+                  @confirm="(v: string) => { assetSettingsModel && (assetSettingsModel.fill = v) }"
+                  @clear="assetSettingsModel && (assetSettingsModel.fill = Render.AssetSettingsDefault.fill)"></n-color-picker>
+              </n-form-item>
+              <n-form-item label="文字大小" path="fontSize">
+                <n-input-number v-model:value="assetSettingsModel.fontSize" placeholder="Input" :min="1" />
+              </n-form-item>
+              <n-form-item label="文字内容" path="text">
+                <n-input type="textarea" v-model:value="assetSettingsModel.text" placeholder="Input" />
+              </n-form-item>
+            </template>
           </n-form>
         </n-tab-pane>
         <n-tab-pane name="link" tab="连接线" :disabled="linkCurrent === void 0">

@@ -90,6 +90,9 @@ export class Render {
   // 画图类型
   graphType: Types.GraphType | undefined = undefined
 
+  // 添加文字中
+  texting = false
+
   protected emitter: Emitter<Types.RenderEvents> = mitt()
   on: Emitter<Types.RenderEvents>['on']
   off: Emitter<Types.RenderEvents>['off']
@@ -196,6 +199,7 @@ export class Render {
     this.handlers[Handlers.ShutcutHandlers.name] = new Handlers.ShutcutHandlers(this)
     this.handlers[Handlers.LinkHandlers.name] = new Handlers.LinkHandlers(this)
     this.handlers[Handlers.GraphHandlers.name] = new Handlers.GraphHandlers(this)
+    this.handlers[Handlers.TextHandlers.name] = new Handlers.TextHandlers(this)
 
     // 初始化
     this.init()
@@ -392,7 +396,8 @@ export class Render {
       'dragmove',
       'dragend',
       'mousemove',
-      'mouseleave'
+      'mouseleave',
+      'dblclick'
     ]) {
       this.transformer.on(event, (e) => {
         e?.evt?.preventDefault()
@@ -483,7 +488,7 @@ export class Render {
       Draws.RulerDraw.name, // 更新比例尺
       Draws.RefLineDraw.name, // 更新参考线
       Draws.PreviewDraw.name, // 更新预览
-      Draws.ContextmenuDraw.name, // 更新右键菜单
+      Draws.ContextmenuDraw.name // 更新右键菜单
     ]
 
     // // 可以以此发现缺失的 draw
@@ -512,11 +517,27 @@ export class Render {
 
   // 改变画图类型
   changeGraphType(type?: Types.GraphType) {
+    if (type) {
+      this.texting = false
+      this.emit('texting-change', this.texting)
+    }
+
     this.graphType = type
     this.emit('graph-type-change', this.graphType)
 
     // 绘制 Graph 的时候，不允许直接拖动其他素材
     this.changeDraggable(this.graphType === void 0)
+  }
+
+  // 添加文字状态
+  changeTexting(texting: boolean) {
+    if (texting) {
+      this.graphType = undefined
+      this.emit('graph-type-change', this.graphType)
+    }
+
+    this.texting = texting
+    this.emit('texting-change', this.texting)
   }
 
   // 页面设置 默认值
@@ -526,7 +547,9 @@ export class Render {
     strokeWidth: 1,
     fill: 'rgb(0,0,0)',
     linkStroke: 'rgb(0,0,0)',
-    linkStrokeWidth: 1
+    linkStrokeWidth: 1,
+    fontSize: 24,
+    textFill: 'rgb(0,0,0)'
   }
 
   // 获取页面设置
@@ -574,7 +597,9 @@ export class Render {
     strokeWidth: 0,
     fill: '',
     arrowStart: false,
-    arrowEnd: false
+    arrowEnd: false,
+    fontSize: 0,
+    text: 'Text'
   }
 
   // 获取素材设置
@@ -587,12 +612,13 @@ export class Render {
       // 继承全局
       stroke: base.stroke || this.getPageSettings().stroke,
       strokeWidth: base.strokeWidth || this.getPageSettings().strokeWidth,
+      fontSize: base.fontSize || this.getPageSettings().fontSize,
       // 绘制图形，默认不填充
       fill:
         base.fill ||
         (asset?.attrs.assetType === Types.AssetType.Graph
           ? 'transparent'
-          : this.getPageSettings().fill)
+          : this.getPageSettings().textFill)
     }
   }
 
@@ -661,6 +687,30 @@ export class Render {
           if (node instanceof Konva.Arrow) {
             node.pointerAtBeginning(settings.arrowStart)
             node.pointerAtEnding(settings.arrowEnd)
+          }
+        }
+      } else if (asset.attrs.assetType === Types.AssetType.Text) {
+        const node = asset.findOne('Text')
+        const rect = asset.findOne('Rect')
+
+        if (node instanceof Konva.Text && rect instanceof Konva.Rect) {
+          let sizeChanged = false
+          if (node.fontSize() !== settings.fontSize || node.text() !== settings.text) {
+            sizeChanged = true
+          }
+
+          node.fill(settings.fill)
+          node.fontSize(settings.fontSize)
+          node.text(settings.text)
+
+          // 内容为空时，给一个半透明背景色
+          rect.fill(node.text().trim() ? '' : 'rgba(0,0,0,0.1)')
+          rect.width(Math.max(node.width(), settings.fontSize))
+          rect.height(Math.max(node.height(), settings.fontSize))
+
+          // 刷新 transformer 大小
+          if (sizeChanged) {
+            this.selectionTool.select([asset])
           }
         }
       }

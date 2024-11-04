@@ -24,6 +24,7 @@ export type RenderEvents = {
   ['scale-change']: number
   ['loading']: boolean
   ['graph-type-change']: GraphType | undefined
+  ['texting-change']: boolean
   //
   ['page-settings-change']: PageSettings
   ['link-selection-change']: Konva.Line | undefined
@@ -32,7 +33,7 @@ export type RenderEvents = {
 export interface Handler {
   handlers?: {
     stage?: {
-      [index: string]: (e?: any) => void
+      [index: string]: (e?: any) => void | boolean
     }
     dom?: {
       [index: string]: (e?: any) => void
@@ -126,7 +127,8 @@ export enum ShutcutKey {
   A = 'KeyA',
   R = 'KeyR',
   Esc = 'Escape',
-  Backspace = 'Backspace'
+  Backspace = 'Backspace',
+  Enter = 'Enter'
 }
 
 export enum AlignType {
@@ -241,7 +243,8 @@ export interface GraphAnchorShape {
 export enum AssetType {
   'Image' = 'Image',
   'Json' = 'Json',
-  'Graph' = 'Graph'
+  'Graph' = 'Graph',
+  'Text' = 'Text'
 }
 
 /**
@@ -271,6 +274,8 @@ export interface PageSettings {
   fill: string
   linkStroke: string
   linkStrokeWidth: number
+  fontSize: number
+  textFill: string
 }
 
 /**
@@ -282,6 +287,8 @@ export interface AssetSettings {
   fill: string
   arrowStart: boolean
   arrowEnd: boolean
+  fontSize: number
+  text: string
 }
 
 /**

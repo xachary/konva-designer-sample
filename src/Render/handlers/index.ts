@@ -6,3 +6,4 @@ export { KeyMoveHandlers } from './KeyMoveHandlers'
 export { ShutcutHandlers } from './ShutcutHandlers';
 export { LinkHandlers } from './LinkHandlers';
 export { GraphHandlers } from './GraphHandlers';
+export { TextHandlers } from './TextHandlers';

@@ -229,9 +229,9 @@
             <NDivider vertical />
             <NTooltip trigger="hover" :delay="1000">
                 <template #trigger>
-                    <NButton tag="div" size="tiny" quaternary :focusable="false" @click="onText" disabled>
+                    <NButton tag="div" size="tiny" quaternary :focusable="false" @click="onText">
                         <template #icon>
-                            <NIcon>
+                            <NIcon :depth="props.texting ? 1 : 3">
                                 <TextT20Filled />
                             </NIcon>
                         </template>
@@ -321,14 +321,16 @@ defineOptions({
     name: 'MainHeader',
 });
 
-const emit = defineEmits(['update:full', 'update:graphType'])
+const emit = defineEmits(['update:full', 'update:graphType', 'update:texting'])
 
 const props = withDefaults(defineProps<{
     render?: Render | null, // 实例
     full: boolean,
     graphType?: Types.GraphType
+    texting: boolean
 }>(), {
     full: () => false,
+    texting: () => false
 });
 
 const showShortCut = ref(false)
@@ -883,6 +885,10 @@ watch(() => props.render, () => {
             emit('update:graphType', value)
         })
 
+        props.render?.on('texting-change', (value) => {
+            emit('update:texting', value)
+        })
+
         // onLinkTest()
         // onRotateTest()
         // onAlignTest()
@@ -962,7 +968,7 @@ function onGraph(type: Types.GraphType) {
 }
 
 function onText() {
-    // https://konvajs.org/docs/sandbox/Editable_Text.html
+    emit('update:texting', true)
 }
 </script>
 
