@@ -415,13 +415,21 @@ watch(() => linkSettingsModel.value, () => {
       border-left: 1px solid #ccc;
       padding: 8px;
 
-      :deep(.n-tabs-nav-scroll-content) {
-        box-shadow: 0 -1px 0 0 rgb(230, 230, 230) inset;
-        border-bottom-color: rgb(230, 230, 230) !important;
-      }
+      &>.n-tabs {
+        height: 100%;
 
-      :deep(.n-tabs-tab-pad) {
-        width: 16px;
+        :deep(.n-tabs-nav-scroll-content) {
+          box-shadow: 0 -1px 0 0 rgb(230, 230, 230) inset;
+          border-bottom-color: rgb(230, 230, 230) !important;
+        }
+
+        :deep(.n-tabs-tab-pad) {
+          width: 16px;
+        }
+
+        :deep(.n-tabs-pane-wrapper) {
+          overflow: auto;
+        }
       }
     }
 
