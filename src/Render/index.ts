@@ -474,14 +474,16 @@ export class Render {
   // 重绘（可选择）
   redraw(drawNames?: string[]) {
     const all = [
+      // layerFloor
       Draws.BgDraw.name, // 更新背景
+      // layerCover（按先后顺序）
       Draws.GraphDraw.name, // 更新图形调整点
       Draws.LinkDraw.name, // 更新连线
       Draws.AttractDraw.name, // 更新磁贴
       Draws.RulerDraw.name, // 更新比例尺
       Draws.RefLineDraw.name, // 更新参考线
       Draws.PreviewDraw.name, // 更新预览
-      Draws.ContextmenuDraw.name // 更新右键菜单
+      Draws.ContextmenuDraw.name, // 更新右键菜单
     ]
 
     // // 可以以此发现缺失的 draw

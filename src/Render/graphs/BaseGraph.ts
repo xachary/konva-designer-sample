@@ -269,7 +269,7 @@ export abstract class BaseGraph {
 
     this.render.layer.add(this.group)
 
-    this.render.redraw()
+    this.render.redraw([Draws.GraphDraw.name])
   }
 
   /**

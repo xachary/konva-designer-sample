@@ -117,7 +117,6 @@ export class AlignTool {
     this.render.redraw([
       Draws.GraphDraw.name,
       Draws.LinkDraw.name,
-      Draws.AttractDraw.name,
       Draws.RulerDraw.name,
       Draws.PreviewDraw.name
     ])
