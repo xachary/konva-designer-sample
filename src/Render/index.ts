@@ -318,7 +318,6 @@ export class Render {
   }
 
   updateHistory() {
-    console.trace()
     this.history.splice(this.historyIndex + 1)
     this.history.push(this.importExportTool.save())
     this.historyIndex = this.history.length - 1
