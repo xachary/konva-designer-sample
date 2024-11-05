@@ -368,6 +368,11 @@ export class LinkDraw extends Types.BaseDraw implements Types.Draw {
     this.render.emit('link-type-change', this.state.linkType)
   }
 
+  // TODO: 优化
+  // *思路：此 draw 弃用“整体 redraw”的方式，改为“局部更新”的方式:
+  // 循环 pair 的时候查找 link-line、manualing-line、link-manual-point 等实例是否存在
+  // 不存在 -> 新建并事件绑定
+  // 存在 -> 更新
   override draw() {
     this.clear()
 
