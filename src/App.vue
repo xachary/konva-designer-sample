@@ -76,6 +76,7 @@ watch(() => graphType.value, () => {
 })
 
 const texting = ref(false)
+const textInputRef: Ref<HTMLInputElement | undefined> = ref()
 
 watch(() => texting.value, () => {
   render?.changeTexting(texting.value)
@@ -171,6 +172,12 @@ const pageSettingsModelTextFill = ref('')
 
 // 当前素材
 const assetCurrent: Ref<Konva.Node | undefined> = ref()
+
+watch(() => assetCurrent.value, async () => {
+  await nextTick()
+  textInputRef.value?.focus()
+  textInputRef.value?.select()
+})
 
 // 素材设置
 const assetSettingsModel: Ref<Types.AssetSettings | undefined> = ref()
@@ -344,7 +351,8 @@ watch(() => linkSettingsModel.value, () => {
                 <n-input-number v-model:value="assetSettingsModel.fontSize" placeholder="Input" :min="1" />
               </n-form-item>
               <n-form-item label="文字内容" path="text">
-                <n-input type="textarea" v-model:value="assetSettingsModel.text" placeholder="Input" />
+                <n-input type="textarea" v-model:value="assetSettingsModel.text" placeholder="Input"
+                  ref="textInputRef" />
               </n-form-item>
             </template>
           </n-form>

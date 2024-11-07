@@ -538,6 +538,8 @@ export class Render {
 
     this.texting = texting
     this.emit('texting-change', this.texting)
+
+    document.body.style.cursor = this.texting ? 'text' : 'default'
   }
 
   // 页面设置 默认值

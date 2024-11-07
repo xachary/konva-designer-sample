@@ -39,6 +39,8 @@ export class TextHandlers implements Types.Handler {
     return null
   }
 
+  group: Konva.Group | null = null
+
   handlers = {
     stage: {
       mousedown: (e: Konva.KonvaEventObject<GlobalEventHandlersEventMap['mousedown']>) => {
@@ -49,14 +51,14 @@ export class TextHandlers implements Types.Handler {
 
             const point = this.getStagePoint()
             if (point) {
-              const group = new Konva.Group({
+              this.group = new Konva.Group({
                 id: nanoid(),
                 name: 'asset',
                 assetType: Types.AssetType.Text,
                 draggable: false,
                 position: point
               })
-              group.setAttr('assetSettings', this.render.getAssetSettings())
+              this.group.setAttr('assetSettings', this.render.getAssetSettings())
               const text = new Konva.Text({
                 text: this.render.getAssetSettings()?.text,
                 fill: this.render.getAssetSettings()?.fill,
@@ -67,14 +69,17 @@ export class TextHandlers implements Types.Handler {
                 width: text.width(),
                 height: text.height()
               })
-              group.add(bg)
-              group.add(text)
-              this.render.layer.add(group)
+              this.group.add(bg)
+              this.group.add(text)
+              this.render.layer.add(this.group)
             }
           }
         }
       },
       mouseup: () => {
+        if (this.group && this.render.texting) {
+          this.render.selectionTool.select([this.group])
+        }
         this.render.changeTexting(false)
       }
     },
