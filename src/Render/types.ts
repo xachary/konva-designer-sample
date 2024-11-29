@@ -28,6 +28,7 @@ export type RenderEvents = {
   //
   ['page-settings-change']: PageSettings
   ['link-selection-change']: Konva.Line | undefined
+  ['asset-position-change']: Konva.Node[]
 }
 
 export interface Handler {

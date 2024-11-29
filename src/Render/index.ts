@@ -722,6 +722,11 @@ export class Render {
           }
         }
       }
+
+      asset.position({
+        x: settings.x,
+        y: settings.y
+      })
     }
 
     if (update) {

@@ -148,6 +148,21 @@ function init() {
 
           tabCurrent.value = linkCurrent.value ? 'link' : 'page'
         })
+
+        render.on('asset-position-change', (nodes: Konva.Node[]) => {
+          assetPositionChange.value = true
+          for (const node of nodes) {
+            if (node.id() === assetCurrent.value?.id()) {
+              if (assetSettingsModel.value) {
+                assetSettingsModel.value.x = parseFloat(node.position().x.toFixed(1))
+                assetSettingsModel.value.y = parseFloat(node.position().y.toFixed(1))
+              }
+            }
+          }
+          nextTick(() => {
+            assetPositionChange.value = false
+          })
+        })
       }
     })
   }
@@ -212,17 +227,22 @@ watch(() => pageSettingsModel.value, () => {
   deep: true
 })
 
-watch(() => assetSettingsModel.value, () => {
-  if (assetSettingsModel.value && assetCurrent.value) {
-    assetSettingsModelStroke.value = assetSettingsModel.value.stroke
-    assetSettingsModelFill.value = assetSettingsModel.value.fill
+const assetPositionChange = ref(false)
 
-    if (ready.value) {
-      render?.setAssetSettings(assetCurrent.value, assetSettingsModel.value, !assetSettingsModelInnerChange.value)
+watch(() => assetSettingsModel.value, () => {
+  if (!assetPositionChange.value) {
+    if (assetSettingsModel.value && assetCurrent.value) {
+      assetSettingsModelStroke.value = assetSettingsModel.value.stroke
+      assetSettingsModelFill.value = assetSettingsModel.value.fill
+
+      if (ready.value) {
+        render?.setAssetSettings(assetCurrent.value, assetSettingsModel.value, !assetSettingsModelInnerChange.value)
+      }
     }
+
+    assetSettingsModelInnerChange.value = false
   }
 
-  assetSettingsModelInnerChange.value = false
 }, {
   deep: true
 })
@@ -337,6 +357,11 @@ watch(() => linkSettingsModel.value, () => {
               <n-checkbox v-model:checked="assetSettingsModel.arrowEnd">
                 结束
               </n-checkbox>
+            </n-form-item>
+            <n-form-item label="坐标" path="x">
+              <n-input-number v-model:value="assetSettingsModel.x" placeholder="Input" :precision="1" />
+              &nbsp;
+              <n-input-number v-model:value="assetSettingsModel.y" placeholder="Input" :precision="1" />
             </n-form-item>
             <!-- Text -->
             <template v-if="assetCurrent?.attrs.assetType === Types.AssetType.Text">

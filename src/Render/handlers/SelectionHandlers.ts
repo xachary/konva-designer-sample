@@ -397,6 +397,13 @@ export class SelectionHandlers implements Types.Handler {
               }
             }
           }
+
+          // 更新坐标记录
+          for (const group of groups) {
+            this.render.setAssetSettings(group, this.render.getAssetSettings(group), false)
+          }
+
+          this.render.emit('asset-position-change', groups)
         }
 
         // 重绘
@@ -486,6 +493,13 @@ export class SelectionHandlers implements Types.Handler {
             }
           }
         }
+
+        // 更新坐标记录
+        for (const group of groups) {
+          this.render.setAssetSettings(group, this.render.getAssetSettings(group), false)
+        }
+
+        this.render.emit('asset-position-change', groups)
 
         // 重绘
         this.render.redraw([

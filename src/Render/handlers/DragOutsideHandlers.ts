@@ -132,6 +132,9 @@ export class DragOutsideHandlers implements Types.Handler {
                 y
               })
 
+              // 更新坐标记录
+              this.render.setAssetSettings(group, this.render.getAssetSettings(group), false)
+
               // 自定义连接点 覆盖 默认连接点
               if (Array.isArray(morePoints) && morePoints.length > 0) {
                 points = morePoints
