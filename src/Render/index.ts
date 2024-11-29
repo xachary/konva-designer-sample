@@ -601,7 +601,10 @@ export class Render {
     arrowStart: false,
     arrowEnd: false,
     fontSize: 0,
-    text: 'Text'
+    textFill: '',
+    text: 'Text',
+    x: 0,
+    y: 0
   }
 
   // 获取素材设置
@@ -615,12 +618,15 @@ export class Render {
       stroke: base.stroke || this.getPageSettings().stroke,
       strokeWidth: base.strokeWidth || this.getPageSettings().strokeWidth,
       fontSize: base.fontSize || this.getPageSettings().fontSize,
+      textFill: base.textFill || this.getPageSettings().textFill,
       // 绘制图形，默认不填充
       fill:
         base.fill ||
         (asset?.attrs.assetType === Types.AssetType.Graph
           ? 'transparent'
-          : this.getPageSettings().textFill)
+          : this.getPageSettings().fill),
+      x: asset?.position().x,
+      y: asset?.position().y
     }
   }
 
@@ -701,7 +707,7 @@ export class Render {
             sizeChanged = true
           }
 
-          node.fill(settings.fill)
+          node.fill(settings.textFill)
           node.fontSize(settings.fontSize)
           node.text(settings.text)
 
@@ -731,7 +737,7 @@ export class Render {
 
   // 连接线设置 默认值
   static LinkSettingsDefault: Types.LinkSettings = {
-    stroke: 'rgb(0,0,0)',
+    stroke: '',
     strokeWidth: 0
   }
 

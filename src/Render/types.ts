@@ -288,7 +288,10 @@ export interface AssetSettings {
   arrowStart: boolean
   arrowEnd: boolean
   fontSize: number
+  textFill: string
   text: string
+  x: number
+  y: number
 }
 
 /**

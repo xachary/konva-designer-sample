@@ -58,11 +58,12 @@ export class TextHandlers implements Types.Handler {
                 draggable: false,
                 position: point
               })
-              this.group.setAttr('assetSettings', this.render.getAssetSettings())
+              const assetSettings = this.render.getAssetSettings()
+              this.group.setAttr('assetSettings', assetSettings)
               const text = new Konva.Text({
-                text: this.render.getAssetSettings()?.text,
-                fill: this.render.getAssetSettings()?.fill,
-                fontSize: this.render.getAssetSettings()?.fontSize,
+                text: assetSettings.text,
+                fill: assetSettings.textFill,
+                fontSize: assetSettings.fontSize,
                 draggable: false
               })
               const bg = new Konva.Rect({

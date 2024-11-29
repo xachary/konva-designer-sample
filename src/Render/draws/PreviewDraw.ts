@@ -181,7 +181,7 @@ export class PreviewDraw extends Types.BaseDraw implements Types.Draw {
         // 消除连接线选中状态
         copy.find('.link-line').forEach((link: Konva.Line) => {
           const dash = link.dash()
-          if (dash.length === 2 && dash.every((o) => o === 1)) {
+          if (dash && dash.length === 2 && dash.every((o) => o === 1)) {
             link.dash([])
           }
         })
