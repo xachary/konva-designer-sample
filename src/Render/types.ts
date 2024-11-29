@@ -11,6 +11,7 @@ export interface RenderConfig {
   showRuler?: boolean
   showRefLine?: boolean
   showPreview?: boolean
+  //
   attractResize?: boolean
   attractBg?: boolean
   attractNode?: boolean
@@ -29,6 +30,7 @@ export type RenderEvents = {
   ['page-settings-change']: PageSettings
   ['link-selection-change']: Konva.Line | undefined
   ['asset-position-change']: Konva.Node[]
+  ['asset-rotation-change']: Konva.Node[]
 }
 
 export interface Handler {
@@ -293,6 +295,7 @@ export interface AssetSettings {
   text: string
   x: number
   y: number
+  rotation: number
 }
 
 /**

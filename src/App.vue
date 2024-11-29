@@ -95,9 +95,10 @@ function init() {
             showBg: true,
             showRuler: true,
             showRefLine: true,
+            showPreview: true,
+            //
             attractResize: true,
             attractBg: true,
-            showPreview: true,
             attractNode: true,
           })
 
@@ -161,6 +162,20 @@ function init() {
           }
           nextTick(() => {
             assetPositionChange.value = false
+          })
+        })
+
+        render.on('asset-rotation-change', (nodes: Konva.Node[]) => {
+          assetRotationChange.value = true
+          for (const node of nodes) {
+            if (node.id() === assetCurrent.value?.id()) {
+              if (assetSettingsModel.value) {
+                assetSettingsModel.value.rotation = parseFloat(node.rotation().toFixed(1))
+              }
+            }
+          }
+          nextTick(() => {
+            assetRotationChange.value = false
           })
         })
       }
@@ -228,9 +243,10 @@ watch(() => pageSettingsModel.value, () => {
 })
 
 const assetPositionChange = ref(false)
+const assetRotationChange = ref(false)
 
 watch(() => assetSettingsModel.value, () => {
-  if (!assetPositionChange.value) {
+  if (!assetPositionChange.value && !assetRotationChange.value) {
     if (assetSettingsModel.value && assetCurrent.value) {
       assetSettingsModelStroke.value = assetSettingsModel.value.stroke
       assetSettingsModelFill.value = assetSettingsModel.value.fill
@@ -358,10 +374,13 @@ watch(() => linkSettingsModel.value, () => {
                 结束
               </n-checkbox>
             </n-form-item>
-            <n-form-item label="坐标" path="x">
+            <n-form-item label="坐标">
               <n-input-number v-model:value="assetSettingsModel.x" placeholder="Input" :precision="1" />
               &nbsp;
               <n-input-number v-model:value="assetSettingsModel.y" placeholder="Input" :precision="1" />
+            </n-form-item>
+            <n-form-item label="角度" path="rotation">
+              <n-input-number v-model:value="assetSettingsModel.rotation" placeholder="Input" :precision="1" />
             </n-form-item>
             <!-- Text -->
             <template v-if="assetCurrent?.attrs.assetType === Types.AssetType.Text">

@@ -404,6 +404,7 @@ export class SelectionHandlers implements Types.Handler {
           }
 
           this.render.emit('asset-position-change', groups)
+          this.render.emit('asset-rotation-change', groups)
         }
 
         // 重绘

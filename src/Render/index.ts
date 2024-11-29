@@ -604,7 +604,8 @@ export class Render {
     textFill: '',
     text: 'Text',
     x: 0,
-    y: 0
+    y: 0,
+    rotation: 0
   }
 
   // 获取素材设置
@@ -625,8 +626,9 @@ export class Render {
         (asset?.attrs.assetType === Types.AssetType.Graph
           ? 'transparent'
           : this.getPageSettings().fill),
-      x: asset?.position().x,
-      y: asset?.position().y
+      x: parseFloat((asset?.position().x ?? 0).toFixed(1)),
+      y: parseFloat((asset?.position().y ?? 0).toFixed(1)),
+      rotation: parseFloat((asset?.rotation() ?? 0).toFixed(1))
     }
   }
 
@@ -662,6 +664,24 @@ export class Render {
     }
 
     return xml
+  }
+
+  rotatePoint({ x, y }: { x: number; y: number }, rad: number) {
+    const rCos = Math.cos(rad)
+    const rSin = Math.sin(rad)
+    return { x: x * rCos - y * rSin, y: y * rCos + x * rSin }
+  }
+
+  rotateAroundCenter(node: Konva.Node, rotation: number) {
+    const topLeft = { x: -node.width() / 2, y: -node.height() / 2 }
+    const current = this.rotatePoint(topLeft, Konva.getAngle(node.rotation()))
+    const rotated = this.rotatePoint(topLeft, Konva.getAngle(rotation))
+    const dx = rotated.x - current.x,
+      dy = rotated.y - current.y
+
+    node.rotation(rotation)
+    node.x(node.x() + dx)
+    node.y(node.y() + dy)
   }
 
   // 更新素材设置
@@ -723,10 +743,19 @@ export class Render {
         }
       }
 
-      asset.position({
-        x: settings.x,
-        y: settings.y
-      })
+      // rotate 会影响 position，不能同时改变
+      // 区分属性面板正在调整
+      if (Math.abs(settings.rotation - asset.rotation()) >= 0.1) {
+        this.rotateAroundCenter(asset, settings.rotation)
+
+        // 同步 position 的变化
+        this.emit('asset-position-change', [asset])
+      } else {
+        asset.position({
+          x: parseFloat(settings.x.toFixed(1)),
+          y: parseFloat(settings.y.toFixed(1))
+        })
+      }
     }
 
     if (update) {
