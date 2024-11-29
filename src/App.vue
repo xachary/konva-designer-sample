@@ -96,10 +96,13 @@ function init() {
             showRuler: true,
             showRefLine: true,
             showPreview: true,
+            showContextmenu: true,
             //
             attractResize: true,
             attractBg: true,
             attractNode: true,
+            //
+            readonly: true,
           })
 
           // 同步页面设置

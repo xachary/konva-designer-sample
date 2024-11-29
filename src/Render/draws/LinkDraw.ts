@@ -454,262 +454,266 @@ export class LinkDraw extends Types.BaseDraw implements Types.Draw {
             linkLine.hitStrokeWidth(Math.max(this.render.getLinkSettings().strokeWidth, 6))
             linkLine.dash(this.render.linkTool.linkCurrent?.attrs.pairId === pair.id ? [1, 1] : [])
 
-            linkLine.on('pointerclick', () => {
-              this.render.linkTool.select(linkLine)
-            })
+            if (!this.render.config.readonly) {
+              linkLine.on('pointerclick', () => {
+                this.render.linkTool.select(linkLine)
+              })
 
-            linkLine.on('mouseenter', () => {
-              linkLine.opacity(0.5)
-              document.body.style.cursor = 'pointer'
-            })
-            linkLine.on('mouseleave', () => {
-              linkLine.opacity(1)
-              document.body.style.cursor = 'default'
-            })
+              linkLine.on('mouseenter', () => {
+                linkLine.opacity(0.5)
+                document.body.style.cursor = 'pointer'
+              })
+              linkLine.on('mouseleave', () => {
+                linkLine.opacity(1)
+                document.body.style.cursor = 'default'
+              })
+            }
 
             this.group.add(linkLine)
 
-            // 正在拖动效果
-            const manualingLine = new Konva.Line({
-              name: 'manualing-line',
-              //
-              stroke: '#ff0000',
-              strokeWidth: 2,
-              points: [],
-              dash: [4, 4]
-            })
-            this.group.add(manualingLine)
-
-            // 拐点
-
-            // 拐点（待拐）
-            for (let i = 0; i < linkPoints.length - 1; i++) {
-              const circle = new Konva.Circle({
-                name: 'link-manual-point',
+            if (!this.render.config.readonly) {
+              // 正在拖动效果
+              const manualingLine = new Konva.Line({
+                name: 'manualing-line',
                 //
-                id: nanoid(),
-                pairId: pair.id,
-                x: (linkPoints[i][0] + linkPoints[i + 1][0]) / 2,
-                y: (linkPoints[i][1] + linkPoints[i + 1][1]) / 2,
-                radius: this.render.toStageValue(this.render.bgSize / 2),
-                stroke: 'rgba(0,0,255,0.1)',
-                strokeWidth: this.render.toStageValue(1),
-                // opacity: 0,
-                linkManualIndex: i // 当前拐点位置
+                stroke: '#ff0000',
+                strokeWidth: 2,
+                points: [],
+                dash: [4, 4]
               })
+              this.group.add(manualingLine)
 
-              // hover 效果
-              circle.on('mouseenter', () => {
-                circle.stroke('rgba(0,0,255,0.8)')
-                document.body.style.cursor = 'pointer'
-              })
-              circle.on('mouseleave', () => {
-                if (!circle.attrs.dragStart) {
-                  circle.stroke('rgba(0,0,255,0.1)')
-                  document.body.style.cursor = 'default'
-                }
-              })
+              // 拐点
 
-              // 拐点操作
-              circle.on('mousedown', () => {
-                const pos = circle.getAbsolutePosition()
-
-                // 记录操作开始状态
-                circle.setAttrs({
-                  // 开始坐标
-                  dragStartX: pos.x,
-                  dragStartY: pos.y,
-                  // 正在操作
-                  dragStart: true
+              // 拐点（待拐）
+              for (let i = 0; i < linkPoints.length - 1; i++) {
+                const circle = new Konva.Circle({
+                  name: 'link-manual-point',
+                  //
+                  id: nanoid(),
+                  pairId: pair.id,
+                  x: (linkPoints[i][0] + linkPoints[i + 1][0]) / 2,
+                  y: (linkPoints[i][1] + linkPoints[i + 1][1]) / 2,
+                  radius: this.render.toStageValue(this.render.bgSize / 2),
+                  stroke: 'rgba(0,0,255,0.1)',
+                  strokeWidth: this.render.toStageValue(1),
+                  // opacity: 0,
+                  linkManualIndex: i // 当前拐点位置
                 })
 
-                // 标记状态 - 正在操作拐点
-                this.state.linkManualing = true
-              })
-              this.render.stage.on('mousemove', () => {
-                if (circle.attrs.dragStart) {
-                  // 正在操作
-                  const pos = this.render.stage.getPointerPosition()
-                  if (pos) {
-                    // 磁贴
-                    const { pos: transformerPos } = this.render.attractTool.attractPoint(pos)
-
-                    // 移动拐点
-                    circle.setAbsolutePosition(transformerPos)
-
-                    // 正在拖动效果
-                    const tempPoints = [...linkPoints]
-                    tempPoints.splice(circle.attrs.linkManualIndex + 1, 0, [
-                      this.render.toStageValue(transformerPos.x - stageState.x),
-                      this.render.toStageValue(transformerPos.y - stageState.y)
-                    ])
-                    manualingLine.points(_.flatten(tempPoints))
+                // hover 效果
+                circle.on('mouseenter', () => {
+                  circle.stroke('rgba(0,0,255,0.8)')
+                  document.body.style.cursor = 'pointer'
+                })
+                circle.on('mouseleave', () => {
+                  if (!circle.attrs.dragStart) {
+                    circle.stroke('rgba(0,0,255,0.1)')
+                    document.body.style.cursor = 'default'
                   }
-                }
-              })
-              circle.on('mouseup', () => {
-                const pos = circle.getAbsolutePosition()
+                })
 
-                if (
-                  Math.abs(pos.x - circle.attrs.dragStartX) > this.option.size ||
-                  Math.abs(pos.y - circle.attrs.dragStartY) > this.option.size
-                ) {
-                  // 操作移动距离达到阈值
+                // 拐点操作
+                circle.on('mousedown', () => {
+                  const pos = circle.getAbsolutePosition()
 
-                  // stage 状态
-                  const stageState = this.render.getStageState()
-
-                  // 记录（插入）拐点
-                  manualPoints.splice(circle.attrs.linkManualIndex, 0, {
-                    x: this.render.toStageValue(pos.x - stageState.x),
-                    y: this.render.toStageValue(pos.y - stageState.y)
+                  // 记录操作开始状态
+                  circle.setAttrs({
+                    // 开始坐标
+                    dragStartX: pos.x,
+                    dragStartY: pos.y,
+                    // 正在操作
+                    dragStart: true
                   })
-                  manualPointsMap[pair.id] = manualPoints
-                  fromGroup.setAttr('manualPointsMap', manualPointsMap)
-                }
 
-                // 操作结束
-                circle.setAttrs({
-                  dragStart: false
+                  // 标记状态 - 正在操作拐点
+                  this.state.linkManualing = true
                 })
+                this.render.stage.on('mousemove', () => {
+                  if (circle.attrs.dragStart) {
+                    // 正在操作
+                    const pos = this.render.stage.getPointerPosition()
+                    if (pos) {
+                      // 磁贴
+                      const { pos: transformerPos } = this.render.attractTool.attractPoint(pos)
 
-                // state 操作结束
-                this.state.linkManualing = false
+                      // 移动拐点
+                      circle.setAbsolutePosition(transformerPos)
 
-                // 销毁
-                circle.destroy()
-                manualingLine.destroy()
-
-                // 更新历史
-                this.render.updateHistory()
-
-                // 对齐线清除
-                this.render.attractTool.alignLinesClear()
-
-                // 重绘
-                this.render.redraw([
-                  Draws.LinkDraw.name,
-                  Draws.AttractDraw.name,
-                  Draws.RulerDraw.name,
-                  Draws.PreviewDraw.name
-                ])
-              })
-
-              this.group.add(circle)
-            }
-
-            // 拐点（已拐）
-            for (let i = 1; i < linkPoints.length - 1; i++) {
-              const circle = new Konva.Circle({
-                name: 'link-manual-point',
-                //
-                id: nanoid(),
-                pairId: pair.id,
-                x: linkPoints[i][0],
-                y: linkPoints[i][1],
-                radius: this.render.toStageValue(this.render.bgSize / 2),
-                stroke: 'rgba(0,100,0,0.1)',
-                strokeWidth: this.render.toStageValue(1),
-                // opacity: 0,
-                linkManualIndex: i // 当前拐点位置
-              })
-
-              // hover 效果
-              circle.on('mouseenter', () => {
-                circle.stroke('rgba(0,100,0,1)')
-                document.body.style.cursor = 'pointer'
-              })
-              circle.on('mouseleave', () => {
-                if (!circle.attrs.dragStart) {
-                  circle.stroke('rgba(0,100,0,0.1)')
-                  document.body.style.cursor = 'default'
-                }
-              })
-
-              // 拐点操作
-              circle.on('mousedown', () => {
-                const pos = circle.getAbsolutePosition()
-
-                // 记录操作开始状态
-                circle.setAttrs({
-                  dragStartX: pos.x,
-                  dragStartY: pos.y,
-                  dragStart: true
-                })
-
-                // 标记状态 - 正在操作拐点
-                this.state.linkManualing = true
-              })
-              this.render.stage.on('mousemove', () => {
-                if (circle.attrs.dragStart) {
-                  // 正在操作
-                  const pos = this.render.stage.getPointerPosition()
-                  if (pos) {
-                    // 磁贴
-                    const { pos: transformerPos } = this.render.attractTool.attractPoint(pos)
-
-                    // 移动拐点
-                    circle.setAbsolutePosition(transformerPos)
-
-                    // 正在拖动效果
-                    const tempPoints = [...linkPoints]
-                    tempPoints[circle.attrs.linkManualIndex] = [
-                      this.render.toStageValue(transformerPos.x - stageState.x),
-                      this.render.toStageValue(transformerPos.y - stageState.y)
-                    ]
-                    manualingLine.points(_.flatten(tempPoints))
+                      // 正在拖动效果
+                      const tempPoints = [...linkPoints]
+                      tempPoints.splice(circle.attrs.linkManualIndex + 1, 0, [
+                        this.render.toStageValue(transformerPos.x - stageState.x),
+                        this.render.toStageValue(transformerPos.y - stageState.y)
+                      ])
+                      manualingLine.points(_.flatten(tempPoints))
+                    }
                   }
-                }
-              })
-              circle.on('mouseup', () => {
-                const pos = circle.getAbsolutePosition()
+                })
+                circle.on('mouseup', () => {
+                  const pos = circle.getAbsolutePosition()
 
-                if (
-                  Math.abs(pos.x - circle.attrs.dragStartX) > this.option.size ||
-                  Math.abs(pos.y - circle.attrs.dragStartY) > this.option.size
-                ) {
-                  // 操作移动距离达到阈值
+                  if (
+                    Math.abs(pos.x - circle.attrs.dragStartX) > this.option.size ||
+                    Math.abs(pos.y - circle.attrs.dragStartY) > this.option.size
+                  ) {
+                    // 操作移动距离达到阈值
 
-                  // stage 状态
-                  const stageState = this.render.getStageState()
+                    // stage 状态
+                    const stageState = this.render.getStageState()
 
-                  // 记录（更新）拐点
-                  manualPoints[circle.attrs.linkManualIndex - 1] = {
-                    x: this.render.toStageValue(pos.x - stageState.x),
-                    y: this.render.toStageValue(pos.y - stageState.y)
+                    // 记录（插入）拐点
+                    manualPoints.splice(circle.attrs.linkManualIndex, 0, {
+                      x: this.render.toStageValue(pos.x - stageState.x),
+                      y: this.render.toStageValue(pos.y - stageState.y)
+                    })
+                    manualPointsMap[pair.id] = manualPoints
+                    fromGroup.setAttr('manualPointsMap', manualPointsMap)
                   }
-                  manualPointsMap[pair.id] = manualPoints
-                  fromGroup.setAttr('manualPointsMap', manualPointsMap)
-                }
 
-                // 操作结束
-                circle.setAttrs({
-                  dragStart: false
+                  // 操作结束
+                  circle.setAttrs({
+                    dragStart: false
+                  })
+
+                  // state 操作结束
+                  this.state.linkManualing = false
+
+                  // 销毁
+                  circle.destroy()
+                  manualingLine.destroy()
+
+                  // 更新历史
+                  this.render.updateHistory()
+
+                  // 对齐线清除
+                  this.render.attractTool.alignLinesClear()
+
+                  // 重绘
+                  this.render.redraw([
+                    Draws.LinkDraw.name,
+                    Draws.AttractDraw.name,
+                    Draws.RulerDraw.name,
+                    Draws.PreviewDraw.name
+                  ])
                 })
 
-                // state 操作结束
-                this.state.linkManualing = false
+                this.group.add(circle)
+              }
 
-                // 销毁
-                circle.destroy()
-                manualingLine.destroy()
+              // 拐点（已拐）
+              for (let i = 1; i < linkPoints.length - 1; i++) {
+                const circle = new Konva.Circle({
+                  name: 'link-manual-point',
+                  //
+                  id: nanoid(),
+                  pairId: pair.id,
+                  x: linkPoints[i][0],
+                  y: linkPoints[i][1],
+                  radius: this.render.toStageValue(this.render.bgSize / 2),
+                  stroke: 'rgba(0,100,0,0.1)',
+                  strokeWidth: this.render.toStageValue(1),
+                  // opacity: 0,
+                  linkManualIndex: i // 当前拐点位置
+                })
 
-                // 更新历史
-                this.render.updateHistory()
+                // hover 效果
+                circle.on('mouseenter', () => {
+                  circle.stroke('rgba(0,100,0,1)')
+                  document.body.style.cursor = 'pointer'
+                })
+                circle.on('mouseleave', () => {
+                  if (!circle.attrs.dragStart) {
+                    circle.stroke('rgba(0,100,0,0.1)')
+                    document.body.style.cursor = 'default'
+                  }
+                })
 
-                // 对齐线清除
-                this.render.attractTool.alignLinesClear()
+                // 拐点操作
+                circle.on('mousedown', () => {
+                  const pos = circle.getAbsolutePosition()
 
-                // 重绘
-                this.render.redraw([
-                  Draws.LinkDraw.name,
-                  Draws.AttractDraw.name,
-                  Draws.RulerDraw.name,
-                  Draws.PreviewDraw.name
-                ])
-              })
+                  // 记录操作开始状态
+                  circle.setAttrs({
+                    dragStartX: pos.x,
+                    dragStartY: pos.y,
+                    dragStart: true
+                  })
 
-              this.group.add(circle)
+                  // 标记状态 - 正在操作拐点
+                  this.state.linkManualing = true
+                })
+                this.render.stage.on('mousemove', () => {
+                  if (circle.attrs.dragStart) {
+                    // 正在操作
+                    const pos = this.render.stage.getPointerPosition()
+                    if (pos) {
+                      // 磁贴
+                      const { pos: transformerPos } = this.render.attractTool.attractPoint(pos)
+
+                      // 移动拐点
+                      circle.setAbsolutePosition(transformerPos)
+
+                      // 正在拖动效果
+                      const tempPoints = [...linkPoints]
+                      tempPoints[circle.attrs.linkManualIndex] = [
+                        this.render.toStageValue(transformerPos.x - stageState.x),
+                        this.render.toStageValue(transformerPos.y - stageState.y)
+                      ]
+                      manualingLine.points(_.flatten(tempPoints))
+                    }
+                  }
+                })
+                circle.on('mouseup', () => {
+                  const pos = circle.getAbsolutePosition()
+
+                  if (
+                    Math.abs(pos.x - circle.attrs.dragStartX) > this.option.size ||
+                    Math.abs(pos.y - circle.attrs.dragStartY) > this.option.size
+                  ) {
+                    // 操作移动距离达到阈值
+
+                    // stage 状态
+                    const stageState = this.render.getStageState()
+
+                    // 记录（更新）拐点
+                    manualPoints[circle.attrs.linkManualIndex - 1] = {
+                      x: this.render.toStageValue(pos.x - stageState.x),
+                      y: this.render.toStageValue(pos.y - stageState.y)
+                    }
+                    manualPointsMap[pair.id] = manualPoints
+                    fromGroup.setAttr('manualPointsMap', manualPointsMap)
+                  }
+
+                  // 操作结束
+                  circle.setAttrs({
+                    dragStart: false
+                  })
+
+                  // state 操作结束
+                  this.state.linkManualing = false
+
+                  // 销毁
+                  circle.destroy()
+                  manualingLine.destroy()
+
+                  // 更新历史
+                  this.render.updateHistory()
+
+                  // 对齐线清除
+                  this.render.attractTool.alignLinesClear()
+
+                  // 重绘
+                  this.render.redraw([
+                    Draws.LinkDraw.name,
+                    Draws.AttractDraw.name,
+                    Draws.RulerDraw.name,
+                    Draws.PreviewDraw.name
+                  ])
+                })
+
+                this.group.add(circle)
+              }
             }
           }
         } else if (pair.linkType === Types.LinkType.straight) {
@@ -737,26 +741,28 @@ export class LinkDraw extends Types.BaseDraw implements Types.Draw {
                   this.render.toStageValue(fromAnchorPos.y)
                 ],
                 [this.render.toStageValue(toAnchorPos.x), this.render.toStageValue(toAnchorPos.y)]
-              ]),
+              ])
             })
 
             linkLine.stroke(this.render.getLinkSettings(linkLine).stroke)
-                linkLine.strokeWidth(this.render.getLinkSettings(linkLine).strokeWidth)
-                linkLine.hitStrokeWidth(Math.max(this.render.getLinkSettings().strokeWidth, 6))
-                linkLine.dash(this.render.linkTool.linkCurrent?.attrs.pairId === pair.id ? [1, 1] : [])
+            linkLine.strokeWidth(this.render.getLinkSettings(linkLine).strokeWidth)
+            linkLine.hitStrokeWidth(Math.max(this.render.getLinkSettings().strokeWidth, 6))
+            linkLine.dash(this.render.linkTool.linkCurrent?.attrs.pairId === pair.id ? [1, 1] : [])
 
-            linkLine.on('pointerclick', () => {
-              this.render.linkTool.select(linkLine)
-            })
+            if (!this.render.config.readonly) {
+              linkLine.on('pointerclick', () => {
+                this.render.linkTool.select(linkLine)
+              })
 
-            linkLine.on('mouseenter', () => {
-              linkLine.opacity(0.5)
-              document.body.style.cursor = 'pointer'
-            })
-            linkLine.on('mouseleave', () => {
-              linkLine.opacity(1)
-              document.body.style.cursor = 'default'
-            })
+              linkLine.on('mouseenter', () => {
+                linkLine.opacity(0.5)
+                document.body.style.cursor = 'pointer'
+              })
+              linkLine.on('mouseleave', () => {
+                linkLine.opacity(1)
+                document.body.style.cursor = 'default'
+              })
+            }
 
             this.group.add(linkLine)
           }
@@ -1104,18 +1110,20 @@ export class LinkDraw extends Types.BaseDraw implements Types.Draw {
                   this.render.linkTool.linkCurrent?.attrs.pairId === pair.id ? [1, 1] : []
                 )
 
-                linkLine.on('pointerclick', () => {
-                  this.render.linkTool.select(linkLine)
-                })
+                if (!this.render.config.readonly) {
+                  linkLine.on('pointerclick', () => {
+                    this.render.linkTool.select(linkLine)
+                  })
 
-                linkLine.on('mouseenter', () => {
-                  linkLine.opacity(0.5)
-                  document.body.style.cursor = 'pointer'
-                })
-                linkLine.on('mouseleave', () => {
-                  linkLine.opacity(1)
-                  document.body.style.cursor = 'default'
-                })
+                  linkLine.on('mouseenter', () => {
+                    linkLine.opacity(0.5)
+                    document.body.style.cursor = 'pointer'
+                  })
+                  linkLine.on('mouseleave', () => {
+                    linkLine.opacity(1)
+                    document.body.style.cursor = 'default'
+                  })
+                }
 
                 this.group.add(linkLine)
               }
@@ -1125,131 +1133,133 @@ export class LinkDraw extends Types.BaseDraw implements Types.Draw {
       }
     }
 
-    // 连接点
-    for (const point of points) {
-      const group = groups.find((o) => o.id() === point.groupId)
+    if (!this.render.config.readonly) {
+      // 连接点
+      for (const point of points) {
+        const group = groups.find((o) => o.id() === point.groupId)
 
-      // 非 选择中
-      if (group && !group.getAttr('selected')) {
-        const anchor = this.render.layer.findOne(`#${point.id}`)
+        // 非 选择中
+        if (group && !group.getAttr('selected')) {
+          const anchor = this.render.layer.findOne(`#${point.id}`)
 
-        if (anchor) {
-          const circle = new Konva.Circle({
-            name: 'link-point',
-            //
-            id: point.id,
-            groupId: group.id(),
-            x: this.render.toStageValue(anchor.absolutePosition().x - stageState.x),
-            y: this.render.toStageValue(anchor.absolutePosition().y - stageState.y),
-            radius: this.render.toStageValue(this.option.size),
-            stroke: 'rgba(255,0,0,0.2)',
-            strokeWidth: this.render.toStageValue(1),
-            // 调整中，不显示连接点
-            opacity:
-              point.visible &&
-              !(this.render.draws[Draws.GraphDraw.name] as Draws.GraphDraw).state.adjusting
-                ? 1
-                : 0
-          })
+          if (anchor) {
+            const circle = new Konva.Circle({
+              name: 'link-point',
+              //
+              id: point.id,
+              groupId: group.id(),
+              x: this.render.toStageValue(anchor.absolutePosition().x - stageState.x),
+              y: this.render.toStageValue(anchor.absolutePosition().y - stageState.y),
+              radius: this.render.toStageValue(this.option.size),
+              stroke: 'rgba(255,0,0,0.2)',
+              strokeWidth: this.render.toStageValue(1),
+              // 调整中，不显示连接点
+              opacity:
+                point.visible &&
+                !(this.render.draws[Draws.GraphDraw.name] as Draws.GraphDraw).state.adjusting
+                  ? 1
+                  : 0
+            })
 
-          // hover 效果
-          circle.on('mouseenter', () => {
-            circle.stroke('rgba(255,0,0,0.5)')
-            circle.opacity(1)
-            document.body.style.cursor = 'pointer'
-          })
-          circle.on('mouseleave', () => {
-            circle.stroke('rgba(255,0,0,0.2)')
-            circle.opacity(0)
-            document.body.style.cursor = 'default'
-          })
+            // hover 效果
+            circle.on('mouseenter', () => {
+              circle.stroke('rgba(255,0,0,0.5)')
+              circle.opacity(1)
+              document.body.style.cursor = 'pointer'
+            })
+            circle.on('mouseleave', () => {
+              circle.stroke('rgba(255,0,0,0.2)')
+              circle.opacity(0)
+              document.body.style.cursor = 'default'
+            })
 
-          circle.on('mousedown', () => {
-            this.render.selectionTool.selectingClear()
-            this.render.linkTool.selectingClear()
+            circle.on('mousedown', () => {
+              this.render.selectionTool.selectingClear()
+              this.render.linkTool.selectingClear()
 
-            const pos = this.render.stage.getPointerPosition()
+              const pos = this.render.stage.getPointerPosition()
 
-            if (pos) {
-              // 临时 连接线 画
-              this.state.linkingLine = {
-                group: group,
-                circle: circle,
-                line: new Konva.Line({
-                  name: 'linking-line',
-                  points: _.flatten([
-                    [circle.x(), circle.y()],
-                    [
-                      this.render.toStageValue(pos.x - stageState.x),
-                      this.render.toStageValue(pos.y - stageState.y)
-                    ]
-                  ]),
-                  stroke: 'blue',
-                  strokeWidth: 1
-                })
+              if (pos) {
+                // 临时 连接线 画
+                this.state.linkingLine = {
+                  group: group,
+                  circle: circle,
+                  line: new Konva.Line({
+                    name: 'linking-line',
+                    points: _.flatten([
+                      [circle.x(), circle.y()],
+                      [
+                        this.render.toStageValue(pos.x - stageState.x),
+                        this.render.toStageValue(pos.y - stageState.y)
+                      ]
+                    ]),
+                    stroke: 'blue',
+                    strokeWidth: 1
+                  })
+                }
+
+                this.layer.add(this.state.linkingLine.line)
               }
+            })
 
-              this.layer.add(this.state.linkingLine.line)
-            }
-          })
+            circle.on('mouseup', () => {
+              if (this.state.linkingLine) {
+                const line = this.state.linkingLine
+                // 不同连接点
+                if (line.circle.id() !== circle.id()) {
+                  const toGroup = groups.find((o) => o.id() === circle.getAttr('groupId'))
 
-          circle.on('mouseup', () => {
-            if (this.state.linkingLine) {
-              const line = this.state.linkingLine
-              // 不同连接点
-              if (line.circle.id() !== circle.id()) {
-                const toGroup = groups.find((o) => o.id() === circle.getAttr('groupId'))
+                  if (toGroup) {
+                    const fromPoint = points.find((o) => o.id === line.circle.id())
 
-                if (toGroup) {
-                  const fromPoint = points.find((o) => o.id === line.circle.id())
+                    if (fromPoint) {
+                      const toPoint = points.find((o) => o.id === line.circle.id())
 
-                  if (fromPoint) {
-                    const toPoint = points.find((o) => o.id === line.circle.id())
+                      if (toPoint) {
+                        if (Array.isArray(fromPoint.pairs)) {
+                          fromPoint.pairs = [
+                            ...fromPoint.pairs,
+                            {
+                              id: nanoid(),
+                              from: {
+                                groupId: line.group.id(),
+                                pointId: line.circle.id()
+                              },
+                              to: {
+                                groupId: circle.getAttr('groupId'),
+                                pointId: circle.id()
+                              },
+                              linkType: this.state.linkType // 记录 连接线 类型
+                            }
+                          ]
+                        }
 
-                    if (toPoint) {
-                      if (Array.isArray(fromPoint.pairs)) {
-                        fromPoint.pairs = [
-                          ...fromPoint.pairs,
-                          {
-                            id: nanoid(),
-                            from: {
-                              groupId: line.group.id(),
-                              pointId: line.circle.id()
-                            },
-                            to: {
-                              groupId: circle.getAttr('groupId'),
-                              pointId: circle.id()
-                            },
-                            linkType: this.state.linkType // 记录 连接线 类型
-                          }
-                        ]
+                        // 更新历史
+                        this.render.updateHistory()
+
+                        // 对齐线清除
+                        this.render.attractTool.alignLinesClear()
+
+                        // 重绘
+                        this.render.redraw([
+                          Draws.LinkDraw.name,
+                          Draws.AttractDraw.name,
+                          Draws.RulerDraw.name,
+                          Draws.PreviewDraw.name
+                        ])
                       }
-
-                      // 更新历史
-                      this.render.updateHistory()
-
-                      // 对齐线清除
-                      this.render.attractTool.alignLinesClear()
-
-                      // 重绘
-                      this.render.redraw([
-                        Draws.LinkDraw.name,
-                        Draws.AttractDraw.name,
-                        Draws.RulerDraw.name,
-                        Draws.PreviewDraw.name
-                      ])
                     }
                   }
                 }
+
+                // 临时 连接线 移除
+                this.state.linkingLine?.line.destroy()
+                this.state.linkingLine = null
               }
+            })
 
-              // 临时 连接线 移除
-              this.state.linkingLine?.line.destroy()
-              this.state.linkingLine = null
-            }
-          })
-
-          this.group.add(circle)
+            this.group.add(circle)
+          }
         }
       }
     }

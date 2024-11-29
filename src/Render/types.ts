@@ -11,10 +11,13 @@ export interface RenderConfig {
   showRuler?: boolean
   showRefLine?: boolean
   showPreview?: boolean
+  showContextmenu?: boolean
   //
   attractResize?: boolean
   attractBg?: boolean
   attractNode?: boolean
+  //
+  readonly?: boolean
 }
 
 export type RenderEvents = {

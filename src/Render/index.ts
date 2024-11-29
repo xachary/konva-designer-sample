@@ -24,7 +24,7 @@ export class Render {
   config: Types.RenderConfig
 
   // 附加工具
-  draws: { [index: string]: Types.Draw & Types.Handler } = {}
+  draws: { [index: string]: (Types.Draw & Types.Handler) | undefined } = {}
 
   // 素材工具
   assetTool: Tools.AssetTool
@@ -102,12 +102,12 @@ export class Render {
     this.debug = v
     this.emit('debug-change', this.debug)
 
-    this.draws[Draws.LinkDraw.name].init()
-    this.draws[Draws.AttractDraw.name].init()
-    this.draws[Draws.RulerDraw.name].init()
-    this.draws[Draws.RefLineDraw.name].init()
-    this.draws[Draws.ContextmenuDraw.name].init()
-    this.draws[Draws.PreviewDraw.name].init()
+    this.draws[Draws.LinkDraw.name]?.init()
+    this.draws[Draws.AttractDraw.name]?.init()
+    this.draws[Draws.RulerDraw.name]?.init()
+    this.draws[Draws.RefLineDraw.name]?.init()
+    this.draws[Draws.ContextmenuDraw.name]?.init()
+    this.draws[Draws.PreviewDraw.name]?.init()
 
     return this.debug
   }
@@ -137,27 +137,43 @@ export class Render {
     this.layerCover.add(this.groupTransformer)
 
     // 附加工具
-    this.draws[Draws.BgDraw.name] = new Draws.BgDraw(this, this.layerFloor, {
-      size: this.bgSize
-    })
+    if (!this.config.readonly && this.config.showBg) {
+      this.draws[Draws.BgDraw.name] = new Draws.BgDraw(this, this.layerFloor, {
+        size: this.bgSize
+      })
+    }
+
     this.draws[Draws.LinkDraw.name] = new Draws.LinkDraw(this, this.layerCover, {
       size: this.pointSize
     })
     this.draws[Draws.AttractDraw.name] = new Draws.AttractDraw(this, this.layerCover, {
       size: this.pointSize
     })
-    this.draws[Draws.RulerDraw.name] = new Draws.RulerDraw(this, this.layerCover, {
-      size: this.rulerSize
-    })
-    this.draws[Draws.RefLineDraw.name] = new Draws.RefLineDraw(this, this.layerCover, {
-      padding: this.rulerSize
-    })
-    this.draws[Draws.ContextmenuDraw.name] = new Draws.ContextmenuDraw(this, this.layerCover, {
-      //
-    })
-    this.draws[Draws.PreviewDraw.name] = new Draws.PreviewDraw(this, this.layerCover, {
-      size: this.previewSize
-    })
+
+    if (!this.config.readonly && this.config.showRuler) {
+      this.draws[Draws.RulerDraw.name] = new Draws.RulerDraw(this, this.layerCover, {
+        size: this.rulerSize
+      })
+    }
+
+    if (!this.config.readonly && this.config.showRefLine) {
+      this.draws[Draws.RefLineDraw.name] = new Draws.RefLineDraw(this, this.layerCover, {
+        padding: this.rulerSize
+      })
+    }
+
+    if (!this.config.readonly && this.config.showContextmenu) {
+      this.draws[Draws.ContextmenuDraw.name] = new Draws.ContextmenuDraw(this, this.layerCover, {
+        //
+      })
+    }
+
+    if (!this.config.readonly && this.config.showPreview) {
+      this.draws[Draws.PreviewDraw.name] = new Draws.PreviewDraw(this, this.layerCover, {
+        size: this.previewSize
+      })
+    }
+
     this.draws[Draws.GraphDraw.name] = new Draws.GraphDraw(this, this.layerCover, {
       //
     })
@@ -192,14 +208,23 @@ export class Render {
     // 事件处理
     this.handlers[Handlers.DragHandlers.name] = new Handlers.DragHandlers(this)
     this.handlers[Handlers.ZoomHandlers.name] = new Handlers.ZoomHandlers(this)
-    this.handlers[Handlers.DragOutsideHandlers.name] = new Handlers.DragOutsideHandlers(this)
-    this.handlers[Draws.RefLineDraw.name] = this.draws[Draws.RefLineDraw.name]
-    this.handlers[Handlers.SelectionHandlers.name] = new Handlers.SelectionHandlers(this)
-    this.handlers[Handlers.KeyMoveHandlers.name] = new Handlers.KeyMoveHandlers(this)
+
+    if (!this.config.readonly) {
+      this.handlers[Handlers.DragOutsideHandlers.name] = new Handlers.DragOutsideHandlers(this)
+      this.handlers[Handlers.SelectionHandlers.name] = new Handlers.SelectionHandlers(this)
+      this.handlers[Handlers.KeyMoveHandlers.name] = new Handlers.KeyMoveHandlers(this)
+      this.handlers[Handlers.LinkHandlers.name] = new Handlers.LinkHandlers(this)
+      this.handlers[Handlers.GraphHandlers.name] = new Handlers.GraphHandlers(this)
+      this.handlers[Handlers.TextHandlers.name] = new Handlers.TextHandlers(this)
+    }
+
+    if (!this.config.readonly && this.config.showRefLine) {
+      if (this.draws[Draws.RefLineDraw.name] !== void 0) {
+        this.handlers[Draws.RefLineDraw.name] = this.draws[Draws.RefLineDraw.name]!
+      }
+    }
+
     this.handlers[Handlers.ShutcutHandlers.name] = new Handlers.ShutcutHandlers(this)
-    this.handlers[Handlers.LinkHandlers.name] = new Handlers.LinkHandlers(this)
-    this.handlers[Handlers.GraphHandlers.name] = new Handlers.GraphHandlers(this)
-    this.handlers[Handlers.TextHandlers.name] = new Handlers.TextHandlers(this)
 
     // 初始化
     this.init()
@@ -208,17 +233,17 @@ export class Render {
   // 初始化
   init() {
     this.stage.add(this.layerFloor)
-    this.draws[Draws.BgDraw.name].init()
+    this.draws[Draws.BgDraw.name]?.init()
 
     this.stage.add(this.layer)
 
     this.stage.add(this.layerCover)
-    this.draws[Draws.LinkDraw.name].init()
-    this.draws[Draws.AttractDraw.name].init()
-    this.draws[Draws.RulerDraw.name].init()
-    this.draws[Draws.RefLineDraw.name].init()
-    this.draws[Draws.ContextmenuDraw.name].init()
-    this.draws[Draws.PreviewDraw.name].init()
+    this.draws[Draws.LinkDraw.name]?.init()
+    this.draws[Draws.AttractDraw.name]?.init()
+    this.draws[Draws.RulerDraw.name]?.init()
+    this.draws[Draws.RefLineDraw.name]?.init()
+    this.draws[Draws.ContextmenuDraw.name]?.init()
+    this.draws[Draws.PreviewDraw.name]?.init()
 
     // 事件绑定
     this.eventBind()
@@ -346,11 +371,11 @@ export class Render {
         e?.evt?.preventDefault()
 
         for (const k in this.draws) {
-          this.draws[k].handlers?.stage?.[event]?.(e)
+          this.draws[k]?.handlers?.stage?.[event]?.(e)
         }
 
         for (const k in this.handlers) {
-          this.handlers[k].handlers?.stage?.[event]?.(e)
+          this.handlers[k]?.handlers?.stage?.[event]?.(e)
         }
       })
     }
@@ -378,11 +403,11 @@ export class Render {
         }
 
         for (const k in this.draws) {
-          this.draws[k].handlers?.dom?.[event]?.(e)
+          this.draws[k]?.handlers?.dom?.[event]?.(e)
         }
 
         for (const k in this.handlers) {
-          this.handlers[k].handlers?.dom?.[event]?.(e)
+          this.handlers[k]?.handlers?.dom?.[event]?.(e)
         }
       })
     }
@@ -403,11 +428,11 @@ export class Render {
         e?.evt?.preventDefault()
 
         for (const k in this.draws) {
-          this.draws[k].handlers?.transformer?.[event]?.(e)
+          this.draws[k]?.handlers?.transformer?.[event]?.(e)
         }
 
         for (const k in this.handlers) {
-          this.handlers[k].handlers?.transformer?.[event]?.(e)
+          this.handlers[k]?.handlers?.transformer?.[event]?.(e)
         }
       })
     }
@@ -526,7 +551,7 @@ export class Render {
     this.emit('graph-type-change', this.graphType)
 
     // 绘制 Graph 的时候，不允许直接拖动其他素材
-    this.changeDraggable(this.graphType === void 0)
+    this.changeDraggable(!this.config.readonly && this.graphType === void 0)
   }
 
   // 添加文字状态
@@ -574,7 +599,7 @@ export class Render {
 
   // 获取背景
   getBackground() {
-    return this.draws[Draws.BgDraw.name].layer.findOne(
+    return this.draws[Draws.BgDraw.name]?.layer.findOne(
       `.${Draws.BgDraw.name}__background`
     ) as Konva.Rect
   }
@@ -587,10 +612,10 @@ export class Render {
       background.fill(this.getPageSettings().background ?? 'transparent')
     }
 
-    this.draws[Draws.BgDraw.name].draw()
-    this.draws[Draws.GraphDraw.name].draw()
-    this.draws[Draws.LinkDraw.name].draw()
-    this.draws[Draws.PreviewDraw.name].draw()
+    this.draws[Draws.BgDraw.name]?.draw()
+    this.draws[Draws.GraphDraw.name]?.draw()
+    this.draws[Draws.LinkDraw.name]?.draw()
+    this.draws[Draws.PreviewDraw.name]?.draw()
   }
 
   // 素材设置 默认值
@@ -763,10 +788,10 @@ export class Render {
       this.updateHistory()
     }
 
-    this.draws[Draws.BgDraw.name].draw()
-    this.draws[Draws.GraphDraw.name].draw()
-    this.draws[Draws.LinkDraw.name].draw()
-    this.draws[Draws.PreviewDraw.name].draw()
+    this.draws[Draws.BgDraw.name]?.draw()
+    this.draws[Draws.GraphDraw.name]?.draw()
+    this.draws[Draws.LinkDraw.name]?.draw()
+    this.draws[Draws.PreviewDraw.name]?.draw()
   }
 
   // 连接线设置 默认值
@@ -800,10 +825,10 @@ export class Render {
       this.updateHistory()
     }
 
-    this.draws[Draws.BgDraw.name].draw()
-    this.draws[Draws.GraphDraw.name].draw()
-    this.draws[Draws.LinkDraw.name].draw()
-    this.draws[Draws.PreviewDraw.name].draw()
+    this.draws[Draws.BgDraw.name]?.draw()
+    this.draws[Draws.GraphDraw.name]?.draw()
+    this.draws[Draws.LinkDraw.name]?.draw()
+    this.draws[Draws.PreviewDraw.name]?.draw()
   }
 
   // 获取连接线设置

@@ -132,7 +132,7 @@ export class AttractTool {
     let pairY: SortItemPair | null = null
 
     // 对齐线 磁吸逻辑
-    if (this.render.config.attractNode) {
+    if (!this.render.config.readonly && this.render.config.attractNode) {
       const sortX = [
           {
             value: this.render.toStageValue(newPosX - stageState.x) // 左
@@ -277,7 +277,7 @@ export class AttractTool {
       }
     }
 
-    if (this.render.config.attractBg) {
+    if (!this.render.config.readonly && this.render.config.attractBg) {
       // 没有 x 对齐节点
       if (pairX === null) {
         const logicLeftX = this.render.toStageValue(newPosX - stageState.x) // x坐标
@@ -380,7 +380,7 @@ export class AttractTool {
     let pairY: SortItemPair | null = null
 
     // 对齐线 磁吸逻辑
-    if (this.render.config.attractNode) {
+    if (!this.render.config.readonly && this.render.config.attractNode) {
       const { sortX, sortY } = this.getSortItems(rect)
 
       // x 最短距离
@@ -516,7 +516,7 @@ export class AttractTool {
       }
     }
 
-    if (this.render.config.attractBg) {
+    if (!this.render.config.readonly && this.render.config.attractBg) {
       // 没有 x 对齐节点
       if (pairX === null) {
         const logicLeftX = this.render.toStageValue(newPosX - stageState.x) // x坐标

@@ -112,7 +112,7 @@ export class ImportExportTool {
         node.listening(true)
 
         // 恢复 draggable（因为，绘制 Graph 的时候，不允许直接拖动其他素材）
-        node.draggable(true)
+        node.draggable(!this.render.config.readonly)
 
         for (const child of (node as Konva.Group).children) {
           if (this.render.ignoreSelect(child)) {
@@ -254,7 +254,7 @@ export class ImportExportTool {
         // 重置旧数据节点为可 draggable
         // 为了使旧数据和新节点一样
         // 可以直接被拖动
-        node.draggable(true)
+        node.draggable(!this.render.config.readonly)
         //
         node.off('mouseenter')
         node.on('mouseenter', () => {

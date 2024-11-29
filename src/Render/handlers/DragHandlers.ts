@@ -56,7 +56,7 @@ export class DragHandlers implements Types.Handler {
         this.mousedownRight = false
 
         // 恢复元素 draggable
-        this.render.changeDraggable(true)
+        this.render.changeDraggable(!this.render.config.readonly)
 
         document.body.style.cursor = 'default'
       },

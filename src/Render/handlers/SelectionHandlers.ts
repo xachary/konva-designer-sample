@@ -578,7 +578,7 @@ export class SelectionHandlers implements Types.Handler {
     anchorDragBoundFunc: (oldPos: Konva.Vector2d, newPos: Konva.Vector2d) => {
       // 磁贴逻辑
 
-      if (this.render.config.attractResize) {
+      if (!this.render.config.readonly && this.render.config.attractResize) {
         // transformer 锚点按钮
         const anchor = this.render.transformer.getActiveAnchor()
 

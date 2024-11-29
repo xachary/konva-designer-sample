@@ -54,7 +54,7 @@ export class AssetTool {
 
           this.render.layer.draw()
           // 更新预览（layer）
-          this.render.draws[Draws.PreviewDraw.name].layer.draw()
+          this.render.draws[Draws.PreviewDraw.name]?.layer.draw()
         })
 
         resolve(

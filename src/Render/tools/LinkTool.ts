@@ -15,24 +15,26 @@ export class LinkTool {
   }
 
   pointsVisible(visible: boolean, group?: Konva.Group) {
-    const start = group ?? this.render.layer
+    if (!this.render.config.readonly) {
+      const start = group ?? this.render.layer
 
-    // 查找深层 points
-    for (const asset of [
-      ...(['asset', 'sub-asset'].includes(start.name()) ? [start] : []),
-      ...start.find('.asset'),
-      ...start.find('.sub-asset')
-    ]) {
-      const points = asset.getAttr('points') ?? []
-      asset.setAttrs({
-        points: points.map((o: any) => ({ ...o, visible }))
-      })
-    }
+      // 查找深层 points
+      for (const asset of [
+        ...(['asset', 'sub-asset'].includes(start.name()) ? [start] : []),
+        ...start.find('.asset'),
+        ...start.find('.sub-asset')
+      ]) {
+        const points = asset.getAttr('points') ?? []
+        asset.setAttrs({
+          points: points.map((o: any) => ({ ...o, visible }))
+        })
+      }
 
-    // 拐点操作中，此处不重绘
-    if (!(this.render.draws[Draws.LinkDraw.name] as Draws.LinkDraw)?.state.linkManualing) {
-      // 重绘
-      this.render.redraw([Draws.LinkDraw.name, Draws.RulerDraw.name, Draws.PreviewDraw.name])
+      // 拐点操作中，此处不重绘
+      if (!(this.render.draws[Draws.LinkDraw.name] as Draws.LinkDraw)?.state.linkManualing) {
+        // 重绘
+        this.render.redraw([Draws.LinkDraw.name, Draws.RulerDraw.name, Draws.PreviewDraw.name])
+      }
     }
   }
 
