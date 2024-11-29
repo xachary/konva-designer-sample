@@ -82,6 +82,8 @@ watch(() => texting.value, () => {
   render?.changeTexting(texting.value)
 })
 
+const readonly = false
+
 function init() {
   if (boardElement.value && stageElement.value) {
     resizer.init(boardElement.value, {
@@ -102,7 +104,7 @@ function init() {
             attractBg: true,
             attractNode: true,
             //
-            readonly: true,
+            readonly,
           })
 
           // 同步页面设置
@@ -285,16 +287,16 @@ watch(() => linkSettingsModel.value, () => {
 <div class="page">
   <header v-show="!full">
     <MainHeader :render="render" v-model:full="full" v-model:graphType="graphType" v-model:texting="texting"
-      v-if="ready" />
+      :readonly="readonly" v-if="ready" />
   </header>
   <section>
-    <header v-show="!full">
+    <header v-show="!full && !readonly">
       <AssetBar :render="render" v-if="ready"></AssetBar>
     </header>
     <section ref="boardElement">
       <div ref="stageElement"></div>
     </section>
-    <footer v-show="!full">
+    <footer v-show="!full && !readonly">
       <n-tabs type="line" size="small" animated v-model:value="tabCurrent">
         <n-tab-pane name="page" tab="页面">
           <n-form ref="formRef" :model="pageSettingsModel" :rules="{}" label-placement="top" size="small"

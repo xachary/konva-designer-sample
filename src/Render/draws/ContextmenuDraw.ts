@@ -38,6 +38,12 @@ export class ContextmenuDraw extends Types.BaseDraw implements Types.Draw {
       if (this.state.target === this.render.stage) {
         // 空白处
         menus.push({
+          name: '自适应大小',
+          action: () => {
+            this.render.positionTool.positionFit()
+          }
+        })
+        menus.push({
           name: '恢复位置',
           action: () => {
             this.render.positionTool.positionReset()
@@ -49,121 +55,126 @@ export class ContextmenuDraw extends Types.BaseDraw implements Types.Draw {
             this.render.positionTool.positionZoomReset()
           }
         })
-      } else if (this.state.target.name() === 'link-line') {
-        menus.push({
-          name: '删除',
-          action: () => {
-            // 删除 连接线
-            this.render.linkTool.remove(this.state.target as Konva.Line)
-          }
-        })
-      } else {
-        // 未选择：真实节点，即素材的容器 group
-        // 已选择：transformer
-        const target = this.state.target.parent
+      } else if (!this.render.config.readonly) {
+        if (this.state.target.name() === 'link-line') {
+          menus.push({
+            name: '删除',
+            action: () => {
+              // 删除 连接线
+              this.render.linkTool.remove(this.state.target as Konva.Line)
+            }
+          })
+        } else {
+          // 未选择：真实节点，即素材的容器 group
+          // 已选择：transformer
+          const target = this.state.target.parent
 
-        // 目标
-        menus.push({
-          name: '复制',
-          action: () => {
-            if (target) {
-              this.render.copyTool.copy([target])
+          // 目标
+          menus.push({
+            name: '复制',
+            action: () => {
+              if (target) {
+                this.render.copyTool.copy([target])
+              }
             }
-          }
-        })
-        menus.push({
-          name: '删除',
-          action: () => {
-            if (target) {
-              this.render.remove([target])
+          })
+          menus.push({
+            name: '删除',
+            action: () => {
+              if (target) {
+                this.render.remove([target])
+              }
             }
-          }
-        })
-        menus.push({
-          name: '上移',
-          action: () => {
-            if (target) {
-              this.render.zIndexTool.up([target])
+          })
+          menus.push({
+            name: '上移',
+            action: () => {
+              if (target) {
+                this.render.zIndexTool.up([target])
+              }
             }
-          }
-        })
-        menus.push({
-          name: '下移',
-          action: () => {
-            if (target) {
-              this.render.zIndexTool.down([target])
+          })
+          menus.push({
+            name: '下移',
+            action: () => {
+              if (target) {
+                this.render.zIndexTool.down([target])
+              }
             }
-          }
-        })
-        menus.push({
-          name: '置顶',
-          action: () => {
-            if (target) {
-              this.render.zIndexTool.top([target])
+          })
+          menus.push({
+            name: '置顶',
+            action: () => {
+              if (target) {
+                this.render.zIndexTool.top([target])
+              }
             }
-          }
-        })
-        menus.push({
-          name: '置底',
-          action: () => {
-            if (target) {
-              this.render.zIndexTool.bottom([target])
+          })
+          menus.push({
+            name: '置底',
+            action: () => {
+              if (target) {
+                this.render.zIndexTool.bottom([target])
+              }
             }
-          }
-        })
-        if (target instanceof Konva.Transformer) {
-          const pos = this.render.stage.getPointerPosition()
+          })
+          if (target instanceof Konva.Transformer) {
+            const pos = this.render.stage.getPointerPosition()
 
-          if (pos) {
-            // 获取所有图形
-            const shapes = target.nodes()
-            if (shapes.length > 1) {
-              // zIndex 倒序（大的优先）
-              shapes.sort((a, b) => b.zIndex() - a.zIndex())
+            if (pos) {
+              // 获取所有图形
+              const shapes = target.nodes()
+              if (shapes.length > 1) {
+                // zIndex 倒序（大的优先）
+                shapes.sort((a, b) => b.zIndex() - a.zIndex())
 
-              // 提取重叠目标
-              const selected = shapes.find((shape) =>
-                // 关键 api
-                Konva.Util.haveIntersection({ ...pos, width: 1, height: 1 }, shape.getClientRect())
-              )
+                // 提取重叠目标
+                const selected = shapes.find((shape) =>
+                  // 关键 api
+                  Konva.Util.haveIntersection(
+                    { ...pos, width: 1, height: 1 },
+                    shape.getClientRect()
+                  )
+                )
 
-              // 对齐菜单
-              menus.push({
-                name: '垂直居中' + (selected ? '于目标' : ''),
-                action: () => {
-                  this.render.alignTool.align(Types.AlignType.垂直居中, selected)
-                }
-              })
-              menus.push({
-                name: '左对齐' + (selected ? '于目标' : ''),
-                action: () => {
-                  this.render.alignTool.align(Types.AlignType.左对齐, selected)
-                }
-              })
-              menus.push({
-                name: '右对齐' + (selected ? '于目标' : ''),
-                action: () => {
-                  this.render.alignTool.align(Types.AlignType.右对齐, selected)
-                }
-              })
-              menus.push({
-                name: '水平居中' + (selected ? '于目标' : ''),
-                action: () => {
-                  this.render.alignTool.align(Types.AlignType.水平居中, selected)
-                }
-              })
-              menus.push({
-                name: '上对齐' + (selected ? '于目标' : ''),
-                action: () => {
-                  this.render.alignTool.align(Types.AlignType.上对齐, selected)
-                }
-              })
-              menus.push({
-                name: '下对齐' + (selected ? '于目标' : ''),
-                action: () => {
-                  this.render.alignTool.align(Types.AlignType.下对齐, selected)
-                }
-              })
+                // 对齐菜单
+                menus.push({
+                  name: '垂直居中' + (selected ? '于目标' : ''),
+                  action: () => {
+                    this.render.alignTool.align(Types.AlignType.垂直居中, selected)
+                  }
+                })
+                menus.push({
+                  name: '左对齐' + (selected ? '于目标' : ''),
+                  action: () => {
+                    this.render.alignTool.align(Types.AlignType.左对齐, selected)
+                  }
+                })
+                menus.push({
+                  name: '右对齐' + (selected ? '于目标' : ''),
+                  action: () => {
+                    this.render.alignTool.align(Types.AlignType.右对齐, selected)
+                  }
+                })
+                menus.push({
+                  name: '水平居中' + (selected ? '于目标' : ''),
+                  action: () => {
+                    this.render.alignTool.align(Types.AlignType.水平居中, selected)
+                  }
+                })
+                menus.push({
+                  name: '上对齐' + (selected ? '于目标' : ''),
+                  action: () => {
+                    this.render.alignTool.align(Types.AlignType.上对齐, selected)
+                  }
+                })
+                menus.push({
+                  name: '下对齐' + (selected ? '于目标' : ''),
+                  action: () => {
+                    this.render.alignTool.align(Types.AlignType.下对齐, selected)
+                  }
+                })
+              }
             }
           }
         }

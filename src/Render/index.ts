@@ -162,7 +162,7 @@ export class Render {
       })
     }
 
-    if (!this.config.readonly && this.config.showContextmenu) {
+    if (this.config.showContextmenu) {
       this.draws[Draws.ContextmenuDraw.name] = new Draws.ContextmenuDraw(this, this.layerCover, {
         //
       })
