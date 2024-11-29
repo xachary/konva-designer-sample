@@ -370,7 +370,7 @@ watch(() => linkSettingsModel.value, () => {
                 @confirm="(v: string) => { assetSettingsModel && (assetSettingsModel.fill = v) }"
                 @clear="assetSettingsModel && (assetSettingsModel.fill = Render.AssetSettingsDefault.fill)"></n-color-picker>
             </n-form-item>
-            <n-form-item label="箭头" path="fill"
+            <n-form-item label="箭头"
               v-if="assetCurrent?.attrs.graphType === Types.GraphType.Line || assetCurrent?.attrs.graphType === Types.GraphType.Curve">
               <n-checkbox v-model:checked="assetSettingsModel.arrowStart">
                 开始
@@ -418,6 +418,14 @@ watch(() => linkSettingsModel.value, () => {
             </n-form-item>
             <n-form-item label="线条粗细" path="strokeWidth">
               <n-input-number v-model:value="linkSettingsModel.strokeWidth" placeholder="Input" />
+            </n-form-item>
+            <n-form-item label="箭头">
+              <n-checkbox v-model:checked="linkSettingsModel.arrowStart">
+                开始
+              </n-checkbox>
+              <n-checkbox v-model:checked="linkSettingsModel.arrowEnd">
+                结束
+              </n-checkbox>
             </n-form-item>
           </n-form>
         </n-tab-pane>

@@ -438,7 +438,7 @@ export class LinkDraw extends Types.BaseDraw implements Types.Draw {
             ]
 
             // 连接线
-            const linkLine = new Konva.Line({
+            const linkLine = new Konva.Arrow({
               name: 'link-line',
               // 用于删除连接线
               groupId: fromGroup.id(),
@@ -446,13 +446,20 @@ export class LinkDraw extends Types.BaseDraw implements Types.Draw {
               pairId: pair.id,
               linkType: pair.linkType,
 
-              points: _.flatten(linkPoints)
+              points: _.flatten(linkPoints),
+
+              pointerAtBeginning: false,
+              pointerAtEnding: false
             })
 
             linkLine.stroke(this.render.getLinkSettings(linkLine).stroke)
             linkLine.strokeWidth(this.render.getLinkSettings(linkLine).strokeWidth)
-            linkLine.hitStrokeWidth(Math.max(this.render.getLinkSettings().strokeWidth, 6))
+            linkLine.hitStrokeWidth(Math.max(this.render.getLinkSettings().strokeWidth, 10))
             linkLine.dash(this.render.linkTool.linkCurrent?.attrs.pairId === pair.id ? [1, 1] : [])
+
+            linkLine.fill(this.render.getLinkSettings(linkLine).stroke)
+            linkLine.pointerAtBeginning(this.render.getLinkSettings(linkLine).arrowStart)
+            linkLine.pointerAtEnding(this.render.getLinkSettings(linkLine).arrowEnd)
 
             if (!this.render.config.readonly) {
               linkLine.on('pointerclick', () => {
@@ -727,7 +734,7 @@ export class LinkDraw extends Types.BaseDraw implements Types.Draw {
             const fromAnchorPos = this.getAnchorPos(fromAnchor)
             const toAnchorPos = this.getAnchorPos(toAnchor)
 
-            const linkLine = new Konva.Line({
+            const linkLine = new Konva.Arrow({
               name: 'link-line',
               // 用于删除连接线
               groupId: fromGroup.id(),
@@ -741,13 +748,20 @@ export class LinkDraw extends Types.BaseDraw implements Types.Draw {
                   this.render.toStageValue(fromAnchorPos.y)
                 ],
                 [this.render.toStageValue(toAnchorPos.x), this.render.toStageValue(toAnchorPos.y)]
-              ])
+              ]),
+
+              pointerAtBeginning: false,
+              pointerAtEnding: false
             })
 
             linkLine.stroke(this.render.getLinkSettings(linkLine).stroke)
             linkLine.strokeWidth(this.render.getLinkSettings(linkLine).strokeWidth)
-            linkLine.hitStrokeWidth(Math.max(this.render.getLinkSettings().strokeWidth, 6))
+            linkLine.hitStrokeWidth(Math.max(this.render.getLinkSettings().strokeWidth, 10))
             linkLine.dash(this.render.linkTool.linkCurrent?.attrs.pairId === pair.id ? [1, 1] : [])
+
+            linkLine.fill(this.render.getLinkSettings(linkLine).stroke)
+            linkLine.pointerAtBeginning(this.render.getLinkSettings(linkLine).arrowStart)
+            linkLine.pointerAtEnding(this.render.getLinkSettings(linkLine).arrowEnd)
 
             if (!this.render.config.readonly) {
               linkLine.on('pointerclick', () => {
@@ -1079,7 +1093,7 @@ export class LinkDraw extends Types.BaseDraw implements Types.Draw {
                   maxCost: 2
                 })
 
-                const linkLine = new Konva.Line({
+                const linkLine = new Konva.Arrow({
                   name: 'link-line',
                   // 用于删除连接线
                   groupId: fromGroup.id(),
@@ -1100,15 +1114,22 @@ export class LinkDraw extends Types.BaseDraw implements Types.Draw {
                       this.render.toStageValue(toAnchorPos.x),
                       this.render.toStageValue(toAnchorPos.y)
                     ] // 补充 终点
-                  ])
+                  ]),
+
+                  pointerAtBeginning: false,
+                  pointerAtEnding: false
                 })
 
                 linkLine.stroke(this.render.getLinkSettings(linkLine).stroke)
                 linkLine.strokeWidth(this.render.getLinkSettings(linkLine).strokeWidth)
-                linkLine.hitStrokeWidth(Math.max(this.render.getLinkSettings().strokeWidth, 6))
+                linkLine.hitStrokeWidth(Math.max(this.render.getLinkSettings().strokeWidth, 10))
                 linkLine.dash(
                   this.render.linkTool.linkCurrent?.attrs.pairId === pair.id ? [1, 1] : []
                 )
+                
+                linkLine.fill(this.render.getLinkSettings(linkLine).stroke)
+                linkLine.pointerAtBeginning(this.render.getLinkSettings(linkLine).arrowStart)
+                linkLine.pointerAtEnding(this.render.getLinkSettings(linkLine).arrowEnd)
 
                 if (!this.render.config.readonly) {
                   linkLine.on('pointerclick', () => {

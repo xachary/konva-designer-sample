@@ -170,7 +170,7 @@ export interface LinkDrawPair {
   }
   disabled?: boolean // 标记为 true，算法会忽略该 pair 的画线逻辑
   linkType?: LinkType // 连接线类型
-  style?: Konva.LineConfig
+  style?: Konva.LineConfig & LinkSettings
 }
 
 /**
@@ -307,4 +307,6 @@ export interface AssetSettings {
 export interface LinkSettings {
   stroke: string
   strokeWidth: number
+  arrowStart: boolean
+  arrowEnd: boolean
 }

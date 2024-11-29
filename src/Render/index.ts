@@ -797,7 +797,9 @@ export class Render {
   // 连接线设置 默认值
   static LinkSettingsDefault: Types.LinkSettings = {
     stroke: '',
-    strokeWidth: 0
+    strokeWidth: 0,
+    arrowStart: false,
+    arrowEnd: false
   }
 
   // 连接线设置
@@ -833,7 +835,7 @@ export class Render {
 
   // 获取连接线设置
   getLinkSettings(link?: Konva.Line): Types.LinkSettings {
-    let settings: Konva.LineConfig | undefined = undefined
+    let settings: (Konva.LineConfig & Types.LinkSettings) | undefined = undefined
     if (link) {
       const group = this.layer.findOne(`#${link.attrs.groupId}`)
       if (Array.isArray(group?.attrs.points)) {
