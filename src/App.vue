@@ -190,6 +190,20 @@ function init() {
 
 onMounted(() => {
   init()
+
+  // setInterval(() => {
+  //   const target = render?.stage.findOne('#mUuUl42rhwrARUlg-osFq')
+  //   console.log('target', target)
+  //   if (target) {
+  //     const currentSettings = render?.getAssetSettings(target)
+  //     if (currentSettings) {
+  //       render?.setAssetSettings(target, {
+  //         ...currentSettings,
+  //         y: currentSettings.y + 10
+  //       }, false)
+  //     }
+  //   }
+  // }, 1000)
 })
 
 // 当前 tab
@@ -351,6 +365,9 @@ watch(() => linkSettingsModel.value, () => {
         <n-tab-pane name="asset" tab="素材" :disabled="assetCurrent === void 0">
           <n-form ref="formRef" :model="assetSettingsModel" :rules="{}" label-placement="top" size="small"
             v-if="assetSettingsModel">
+            <n-form-item label="id" path="id">
+              <n-input :value="assetCurrent?.id()" placeholder="Input" readonly />
+            </n-form-item>
             <n-form-item label="线条颜色" path="stroke"
               v-if="assetCurrent?.attrs.imageType === Types.ImageType.svg || assetCurrent?.attrs.assetType === Types.AssetType.Graph">
               <n-color-picker v-model:value="assetSettingsModelStroke" @update:show="(v: boolean) => {

@@ -776,10 +776,17 @@ export class Render {
         // 同步 position 的变化
         this.emit('asset-position-change', [asset])
       } else {
+        const prevSettings = this.getAssetSettings(asset)
+
         asset.position({
           x: parseFloat(settings.x.toFixed(1)),
           y: parseFloat(settings.y.toFixed(1))
         })
+
+        // 外部调用变化同步
+        if (settings.x !== prevSettings.x || settings.y !== prevSettings.y) {
+          this.emit('asset-position-change', [asset])
+        }
       }
     }
 
