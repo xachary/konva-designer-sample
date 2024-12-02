@@ -83,6 +83,13 @@ export class PositionTool {
       }
     }
 
+    minX === Infinity && (minX = (this.render.stage.width() - this.render.rulerSize) / 2)
+    maxX === -Infinity && (maxX = minX)
+    minY === Infinity && (minY = (this.render.stage.height() - this.render.rulerSize) / 2)
+    maxY === -Infinity && (maxY = minY)
+    minStartX === Infinity && minX
+    minStartY === Infinity && minY
+
     const assetSize = {
       width: maxX - minX,
       height: maxY - minY
@@ -102,6 +109,8 @@ export class PositionTool {
     } else if (viewRate < assetRate) {
       scale = viewSize.width / assetSize.width
     }
+
+    scale = Math.max(0.2, scale)
 
     scale = Math.floor(scale * 100) / 100
 
