@@ -231,7 +231,7 @@
                     </template>
                     画折线
                 </NTooltip>
-                <!-- <NTooltip trigger="hover" :delay="1000">
+                <NTooltip trigger="hover" :delay="1000">
                     <template #trigger>
                         <NButton tag="div" size="tiny" quaternary :focusable="false"
                             @click="onGraph(Types.GraphType.Bezier)">
@@ -243,7 +243,7 @@
                         </NButton>
                     </template>
                     画贝赛尔曲线
-                </NTooltip> -->
+                </NTooltip>
                 <NTooltip trigger="hover" :delay="1000">
                     <template #trigger>
                         <NButton tag="div" size="tiny" quaternary :focusable="false"
@@ -361,7 +361,7 @@ import {
     // Subtract20Regular,
     DataLine20Regular,
     TextT20Filled,
-    // InkStroke20Regular
+    InkStroke20Regular
 } from '@vicons/fluent'
 
 defineOptions({

@@ -121,7 +121,10 @@ export class Bezier extends BaseGraph {
             y: y,
             // 旋转角度
             rotation: graph.getAbsoluteRotation(),
-            visible: graph.attrs.adjusting || graph.attrs.hover === true
+            // 阻止多余的调整点出现
+            visible:
+              (graph.attrs.adjusting || graph.attrs.hover === true) &&
+              (anchor.adjusted || anchorAndShadows.length <= 6)
           })
 
           anchorShape.on('mouseenter', () => {
@@ -466,6 +469,55 @@ export class Bezier extends BaseGraph {
       ] as Types.AssetInfoPoint[]
     })
 
+    function rotatePoint(x1: number, y1: number, x2: number, y2: number, angleInDegrees: number) {
+      const radians = angleInDegrees * (Math.PI / 180)
+      const cosTheta = Math.cos(radians)
+      const sinTheta = Math.sin(radians)
+
+      // Translate point (x2, y2) to be relative to (x1, y1)
+      const x = x2 - x1
+      const y = y2 - y1
+
+      // Rotate point
+      const xPrime = cosTheta * x - sinTheta * y
+      const yPrime = sinTheta * x + cosTheta * y
+
+      // Translate back
+      const xNew = xPrime + x1
+      const yNew = yPrime + y1
+
+      return { x: xNew, y: yNew }
+    }
+
+    function drawPointer(
+      ctx: Konva.Context,
+      shape: Konva.Shape,
+      startX: number,
+      startY: number,
+      ctrlX: number,
+      ctrlY: number
+    ) {
+      const x2 = startX + 12
+      const y2 = startY - 6
+      const x3 = startX + 12
+      const y3 = startY + 6
+
+      const angle = (Math.atan2(ctrlY - startY, ctrlX - startX) * 180) / Math.PI
+
+      const p2 = rotatePoint(startX, startY, x2, y2, angle)
+      const p3 = rotatePoint(startX, startY, x3, y3, angle)
+
+      ctx.beginPath()
+      ctx.moveTo(startX, startY)
+      ctx.lineTo(p2.x, p2.y)
+      ctx.lineTo(p3.x, p3.y)
+      ctx.lineTo(startX, startY)
+      ctx.lineTo(p2.x, p2.y)
+
+      ctx.strokeShape(shape)
+      ctx.fillShape(shape)
+    }
+
     // 新建 曲线
     this.line = new Konva.Arrow({
       name: 'graph',
@@ -475,8 +527,57 @@ export class Bezier extends BaseGraph {
       strokeWidth: this.render.getPageSettings().strokeWidth,
       fill: this.render.getPageSettings().stroke,
       points: [],
-      pointerAtBeginning: false,
-      pointerAtEnding: false,
+      pointerAtBeginning: true,
+      pointerAtEnding: true,
+      tension: 0.5,
+      lineJoin: 'miter',
+      hitStrokeWidth: 10,
+      //
+      sceneFunc: (ctx: Konva.Context, shape: Konva.Shape) => {
+        if (shape instanceof Konva.Arrow) {
+          const ps = shape.points()
+          if (ps.length / 2 === 4) {
+            // 三次
+            ctx.beginPath()
+
+            ctx.moveTo(ps[0], ps[1])
+            ctx.bezierCurveTo(ps[2], ps[3], ps[4], ps[5], ps[6], ps[7])
+            ctx.strokeShape(shape)
+
+            ctx.closePath()
+
+            shape.pointerAtBeginning() && drawPointer(ctx, shape, ps[0], ps[1], ps[2], ps[3])
+
+            shape.pointerAtEnding() && drawPointer(ctx, shape, ps[6], ps[7], ps[4], ps[5])
+          } else if (ps.length / 2 === 3) {
+            // 二次
+            ctx.beginPath()
+
+            ctx.moveTo(ps[0], ps[1])
+            ctx.quadraticCurveTo(ps[2], ps[3], ps[4], ps[5])
+            ctx.strokeShape(shape)
+
+            ctx.closePath()
+
+            shape.pointerAtBeginning() && drawPointer(ctx, shape, ps[0], ps[1], ps[2], ps[3])
+
+            shape.pointerAtEnding() && drawPointer(ctx, shape, ps[4], ps[5], ps[2], ps[3])
+          } else {
+            // 直线
+            ctx.beginPath()
+
+            ctx.moveTo(ps[0], ps[1])
+            ctx.lineTo(ps[2], ps[3])
+            ctx.strokeShape(shape)
+
+            ctx.closePath()
+
+            shape.pointerAtBeginning() && drawPointer(ctx, shape, ps[0], ps[1], ps[2], ps[3])
+
+            shape.pointerAtEnding() && drawPointer(ctx, shape, ps[2], ps[3], ps[0], ps[1])
+          }
+        }
+      }
     })
 
     // 给予 1 像素，防止导出图片 toDataURL 失败
@@ -544,6 +645,14 @@ export class Bezier extends BaseGraph {
     // 更新 图形 的 连接点 的 锚点位置
     Bezier.updateLinkAnchorShadows(this.group, this.linkAnchorShadows, this.line)
 
+    // 扣除多余的间隙
+    const size = {
+      width: this.line.size().width - 10,
+      height: this.line.size().height - 10
+    }
+    // 更新大小
+    this.group.size(size)
+
     // 对齐线清除
     this.render.attractTool.alignLinesClear()
 
@@ -553,7 +662,7 @@ export class Bezier extends BaseGraph {
     // 重绘
     this.render.redraw([Draws.GraphDraw.name, Draws.LinkDraw.name, Draws.PreviewDraw.name])
 
-    super.drawEnd(this.line.size(), {
+    super.drawEnd(size, {
       x: Math.min(
         ...this.line.points().reduce((arr, item, idx) => {
           if (idx % 2 === 0) {
