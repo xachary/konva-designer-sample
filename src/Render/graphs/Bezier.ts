@@ -529,7 +529,6 @@ export class Bezier extends BaseGraph {
       points: [],
       pointerAtBeginning: true,
       pointerAtEnding: true,
-      tension: 0.5,
       lineJoin: 'miter',
       hitStrokeWidth: 10,
       //
