@@ -429,6 +429,9 @@ watch(() => linkSettingsModel.value, () => {
         <n-tab-pane name="link" tab="连接线" :disabled="linkCurrent === void 0">
           <n-form ref="formRef" :model="linkSettingsModel" :rules="{}" label-placement="top" size="small"
             v-if="linkSettingsModel">
+            <n-form-item label="id" path="id">
+              <n-input :value="linkCurrent?.attrs.pairId" placeholder="Input" readonly />
+            </n-form-item>
             <n-form-item label="线条颜色" path="stroke">
               <n-color-picker v-model:value="linkSettingsModelStroke" @update:show="(v: boolean) => {
                 linkSettingsModel && !v && (linkSettingsModelStroke = linkSettingsModel.stroke)
