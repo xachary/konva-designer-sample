@@ -122,6 +122,8 @@ export class SelectionTool {
       node.x(node.x() + offset.x)
       node.y(node.y() + offset.y)
     }
+
+    this.render.emit('asset-position-change', this.render.selectionTool.selectingNodes)
   }
 
   // 选择所有节点
