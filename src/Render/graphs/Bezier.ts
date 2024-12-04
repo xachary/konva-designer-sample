@@ -67,9 +67,12 @@ export class Bezier extends BaseGraph {
   }
 
   static calculateAngle(sideA: number, sideB: number) {
-    const angleInRadians = Math.atan2(sideA, sideB)
-    const angleInDegrees = angleInRadians * (180 / Math.PI)
-    return angleInDegrees
+    if (!isNaN(sideA) && !isNaN(sideB)) {
+      const angleInRadians = Math.atan2(sideA, sideB)
+      const angleInDegrees = angleInRadians * (180 / Math.PI)
+      return angleInDegrees
+    }
+    return 0
   }
 
   // 实现：生成 调整点
