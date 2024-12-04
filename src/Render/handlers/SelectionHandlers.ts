@@ -591,31 +591,19 @@ export class SelectionHandlers implements Types.Handler {
           const logicNumX = Math.round(logicX / this.render.bgSize) // x单元格个数
           const logicClosestX = logicNumX * this.render.bgSize // x磁贴目标坐标
           const logicDiffX = Math.abs(logicX - logicClosestX) // x磁贴偏移量
-          const snappedX = /-(left|right)$/.test(anchor) && logicDiffX < 5 // x磁贴阈值
+          const snappedX = logicDiffX < 5 // x磁贴阈值
 
           const logicY = this.render.toStageValue(newPos.y - stageState.y) // y坐标
           const logicNumY = Math.round(logicY / this.render.bgSize) // y单元格个数
           const logicClosestY = logicNumY * this.render.bgSize // y磁贴目标坐标
           const logicDiffY = Math.abs(logicY - logicClosestY) // y磁贴偏移量
-          const snappedY = /^(top|bottom)-/.test(anchor) && logicDiffY < 5 // y磁贴阈值
+          const snappedY = logicDiffY < 5 // y磁贴阈值
 
-          if (snappedX && !snappedY) {
-            // x磁贴
-            return {
-              x: this.render.toBoardValue(logicClosestX) + stageState.x,
-              y: oldPos.y
-            }
-          } else if (snappedY && !snappedX) {
-            // y磁贴
-            return {
-              x: oldPos.x,
-              y: this.render.toBoardValue(logicClosestY) + stageState.y
-            }
-          } else if (snappedX && snappedY) {
+          if (snappedX || snappedY) {
             // xy磁贴
             return {
-              x: this.render.toBoardValue(logicClosestX) + stageState.x,
-              y: this.render.toBoardValue(logicClosestY) + stageState.y
+              x: snappedX ? this.render.toBoardValue(logicClosestX) + stageState.x : newPos.x,
+              y: snappedY ? this.render.toBoardValue(logicClosestY) + stageState.y : newPos.y
             }
           }
         }
