@@ -134,7 +134,21 @@
                     下对齐
                 </NTooltip>
                 <NDivider vertical />
-                <NTooltip trigger="hover" :delay="1000">
+                <!-- <NTooltip trigger="hover" :delay="1000">
+                    <template #trigger>
+                        <NButton tag="div" size="tiny" quaternary :focusable="false"
+                            @click="onLinkTypeChange(Types.LinkType.straight)"
+                            :disabled="currentLinkType === Types.LinkType.straight">
+                            <template #icon>
+                                <NIcon>
+                                    <Line20Regular />
+                                </NIcon>
+                            </template>
+                        </NButton>
+                    </template>
+                    连接线：直线
+                </NTooltip> -->
+                <!-- <NTooltip trigger="hover" :delay="1000">
                     <template #trigger>
                         <NButton tag="div" size="tiny" quaternary :focusable="false"
                             @click="onLinkTypeChange(Types.LinkType.manual)"
@@ -146,8 +160,36 @@
                             </template>
                         </NButton>
                     </template>
-                    连接线：手动
+                    连接线：折线
+                </NTooltip> -->
+                <NTooltip trigger="hover" :delay="1000">
+                    <template #trigger>
+                        <NButton tag="div" size="tiny" quaternary :focusable="false"
+                            @click="onLinkTypeChange(Types.LinkType.curve)"
+                            :disabled="currentLinkType === Types.LinkType.curve">
+                            <template #icon>
+                                <NIcon>
+                                    <DataLine20Regular />
+                                </NIcon>
+                            </template>
+                        </NButton>
+                    </template>
+                    连接线：折线
                 </NTooltip>
+                <!-- <NTooltip trigger="hover" :delay="1000">
+                    <template #trigger>
+                        <NButton tag="div" size="tiny" quaternary :focusable="false"
+                            @click="onLinkTypeChange(Types.LinkType.bezier)"
+                            :disabled="currentLinkType === Types.LinkType.bezier">
+                            <template #icon>
+                                <NIcon>
+                                    <InkStroke20Regular />
+                                </NIcon>
+                            </template>
+                        </NButton>
+                    </template>
+                    连接线：贝赛尔曲线
+                </NTooltip> -->
                 <NTooltip trigger="hover" :delay="1000">
                     <template #trigger>
                         <NButton tag="div" size="tiny" quaternary :focusable="false"
@@ -162,34 +204,20 @@
                     </template>
                     连接线：自动
                 </NTooltip>
-                <NTooltip trigger="hover" :delay="1000">
-                    <template #trigger>
-                        <NButton tag="div" size="tiny" quaternary :focusable="false"
-                            @click="onLinkTypeChange(Types.LinkType.straight)"
-                            :disabled="currentLinkType === Types.LinkType.straight">
-                            <template #icon>
-                                <NIcon>
-                                    <Line20Regular />
-                                </NIcon>
-                            </template>
-                        </NButton>
-                    </template>
-                    连接线：直线
-                </NTooltip>
                 <NDivider vertical />
-                <NTooltip trigger="hover" :delay="1000">
+                <!-- <NTooltip trigger="hover" :delay="1000">
                     <template #trigger>
                         <NButton tag="div" size="tiny" quaternary :focusable="false"
                             @click="onGraph(Types.GraphType.Line)">
                             <template #icon>
                                 <NIcon :depth="props.graphType === Types.GraphType.Line ? 1 : 3">
-                                    <Subtract20Regular />
+                                    <Flowchart20Regular />
                                 </NIcon>
                             </template>
                         </NButton>
                     </template>
                     画直线
-                </NTooltip>
+                </NTooltip> -->
                 <NTooltip trigger="hover" :delay="1000">
                     <template #trigger>
                         <NButton tag="div" size="tiny" quaternary :focusable="false"
@@ -201,8 +229,21 @@
                             </template>
                         </NButton>
                     </template>
-                    画曲线
+                    画折线
                 </NTooltip>
+                <!-- <NTooltip trigger="hover" :delay="1000">
+                    <template #trigger>
+                        <NButton tag="div" size="tiny" quaternary :focusable="false"
+                            @click="onGraph(Types.GraphType.Bezier)">
+                            <template #icon>
+                                <NIcon :depth="props.graphType === Types.GraphType.Bezier ? 1 : 3">
+                                    <InkStroke20Regular />
+                                </NIcon>
+                            </template>
+                        </NButton>
+                    </template>
+                    画贝赛尔曲线
+                </NTooltip> -->
                 <NTooltip trigger="hover" :delay="1000">
                     <template #trigger>
                         <NButton tag="div" size="tiny" quaternary :focusable="false"
@@ -309,7 +350,7 @@ import {
     AlignTop16Regular,
     AlignBottom16Regular,
     Pulse20Regular,
-    Line20Regular,
+    // Line20Regular,
     Flowchart20Regular,
     Bug16Regular,
     FullScreenMaximize24Regular,
@@ -317,9 +358,10 @@ import {
     ArrowSync16Regular,
     Circle16Regular,
     RectangleLandscape16Regular,
-    Subtract20Regular,
+    // Subtract20Regular,
     DataLine20Regular,
-    TextT20Filled
+    TextT20Filled,
+    // InkStroke20Regular
 } from '@vicons/fluent'
 
 defineOptions({
@@ -465,7 +507,7 @@ function onAlign(type: Types.AlignType) {
 }
 
 // 连接线模式
-const currentLinkType = ref(Types.LinkType.manual)
+const currentLinkType = ref(Types.LinkType.curve)
 
 function onLinkTypeChange(linkType: Types.LinkType) {
     (props.render?.draws[Draws.LinkDraw.name] as Draws.LinkDraw)?.changeLinkType(linkType)

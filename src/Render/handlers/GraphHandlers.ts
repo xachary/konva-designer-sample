@@ -75,6 +75,9 @@ export class GraphHandlers implements Types.Handler {
               } else if (this.render.graphType === Types.GraphType.Curve) {
                 // 新建 曲线
                 this.currentGraph = new Graphs.Curve(this.render, point)
+              } else if (this.render.graphType === Types.GraphType.Bezier) {
+                // 新建 贝赛尔曲线
+                this.currentGraph = new Graphs.Bezier(this.render, point)
               }
 
               // 初始化设置信息

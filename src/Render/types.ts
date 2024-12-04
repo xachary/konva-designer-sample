@@ -150,7 +150,9 @@ export enum AlignType {
 export enum LinkType {
   'auto' = 'auto',
   'straight' = 'straight', // 直线
-  'manual' = 'manual' // 手动折线
+  'manual' = 'manual', // 折线
+  'curve' = 'curve', // 曲线
+  'bezier' = 'bezier' // 贝赛尔曲线
 }
 
 /**
@@ -219,7 +221,8 @@ export enum GraphType {
   Line = 'Line', // 直线
   Curve = 'Curve', // 曲线
   Rect = 'Rect', // 矩形
-  Circle = 'Circle' // 圆/椭圆形
+  Circle = 'Circle', // 圆/椭圆形
+  Bezier = 'Bezier' // 贝赛尔曲线
 }
 
 /**
@@ -299,6 +302,7 @@ export interface AssetSettings {
   x: number
   y: number
   rotation: number
+  tension: number
 }
 
 /**
@@ -309,4 +313,5 @@ export interface LinkSettings {
   strokeWidth: number
   arrowStart: boolean
   arrowEnd: boolean
+  tension: number
 }

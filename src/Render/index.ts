@@ -630,7 +630,8 @@ export class Render {
     text: 'Text',
     x: 0,
     y: 0,
-    rotation: 0
+    rotation: 0,
+    tension: 0
   }
 
   // 获取素材设置
@@ -653,7 +654,12 @@ export class Render {
           : this.getPageSettings().fill),
       x: parseFloat((asset?.position().x ?? 0).toFixed(1)),
       y: parseFloat((asset?.position().y ?? 0).toFixed(1)),
-      rotation: parseFloat((asset?.rotation() ?? 0).toFixed(1))
+      rotation: parseFloat((asset?.rotation() ?? 0).toFixed(1)),
+      tension:
+        asset?.attrs.assetType === Types.AssetType.Graph &&
+        asset?.attrs.graphType === Types.GraphType.Curve
+          ? base.tension
+          : undefined
     }
   }
 
@@ -741,6 +747,9 @@ export class Render {
             node.pointerAtBeginning(settings.arrowStart)
             node.pointerAtEnding(settings.arrowEnd)
           }
+          if (node instanceof Konva.Arrow && asset.attrs.graphType === Types.GraphType.Curve) {
+            node.tension(settings.tension)
+          }
         }
       } else if (asset.attrs.assetType === Types.AssetType.Text) {
         const node = asset.findOne('Text')
@@ -806,7 +815,8 @@ export class Render {
     stroke: '',
     strokeWidth: 0,
     arrowStart: false,
-    arrowEnd: false
+    arrowEnd: false,
+    tension: 0
   }
 
   // 连接线设置

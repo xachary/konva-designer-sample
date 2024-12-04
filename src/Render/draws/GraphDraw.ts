@@ -133,6 +133,14 @@ export class GraphDraw extends Types.BaseDraw implements Types.Draw {
               anchorAndShadows = res.anchorAndShadows
             }
             break
+
+          case Types.GraphType.Bezier:
+            {
+              const res = Graphs.Bezier.draw(graph, this.render, this.state.adjustAnchor)
+
+              anchorAndShadows = res.anchorAndShadows
+            }
+            break
         }
 
         for (const anchorAndShadow of anchorAndShadows) {
@@ -164,6 +172,10 @@ export class GraphDraw extends Types.BaseDraw implements Types.Draw {
                     case Types.GraphType.Curve:
                       // 使用 直线、折线 静态处理方法
                       Graphs.Curve.adjustStart(this.render, graph, this.state.adjustAnchor, pos)
+                      break
+                    case Types.GraphType.Bezier:
+                      // 使用 直线、折线 静态处理方法
+                      Graphs.Bezier.adjustStart(this.render, graph, this.state.adjustAnchor, pos)
                       break
                   }
                 }
@@ -220,6 +232,19 @@ export class GraphDraw extends Types.BaseDraw implements Types.Draw {
                       case Types.GraphType.Curve:
                         // 使用 直线、折线 静态处理方法
                         Graphs.Curve.adjust(
+                          this.render,
+                          graph,
+                          this.state.graphCurrentSnap,
+                          shape,
+                          anchorAndShadows,
+                          this.state.startPointCurrent,
+                          pos,
+                          graph.findOne('.hoverRect')
+                        )
+                        break
+                      case Types.GraphType.Bezier:
+                        // 使用 直线、折线 静态处理方法
+                        Graphs.Bezier.adjust(
                           this.render,
                           graph,
                           this.state.graphCurrentSnap,

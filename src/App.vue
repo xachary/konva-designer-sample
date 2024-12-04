@@ -388,13 +388,16 @@ watch(() => linkSettingsModel.value, () => {
                 @clear="assetSettingsModel && (assetSettingsModel.fill = Render.AssetSettingsDefault.fill)"></n-color-picker>
             </n-form-item>
             <n-form-item label="箭头"
-              v-if="assetCurrent?.attrs.graphType === Types.GraphType.Line || assetCurrent?.attrs.graphType === Types.GraphType.Curve">
+              v-if="assetCurrent?.attrs.graphType === Types.GraphType.Line || assetCurrent?.attrs.graphType === Types.GraphType.Curve || assetCurrent?.attrs.graphType === Types.GraphType.Bezier">
               <n-checkbox v-model:checked="assetSettingsModel.arrowStart">
                 开始
               </n-checkbox>
               <n-checkbox v-model:checked="assetSettingsModel.arrowEnd">
                 结束
               </n-checkbox>
+            </n-form-item>
+            <n-form-item label="张力" v-if="assetCurrent?.attrs.graphType === Types.GraphType.Curve">
+              <n-input-number v-model:value="assetSettingsModel.tension" placeholder="Input" :step="0.1" />
             </n-form-item>
             <n-form-item label="坐标">
               <n-input-number v-model:value="assetSettingsModel.x" placeholder="Input" :precision="1" />
@@ -443,6 +446,9 @@ watch(() => linkSettingsModel.value, () => {
               <n-checkbox v-model:checked="linkSettingsModel.arrowEnd">
                 结束
               </n-checkbox>
+            </n-form-item>
+            <n-form-item label="张力" v-if="linkCurrent?.attrs.linkType === Types.LinkType.curve">
+              <n-input-number v-model:value="linkSettingsModel.tension" placeholder="Input" :step="0.1" />
             </n-form-item>
           </n-form>
         </n-tab-pane>
