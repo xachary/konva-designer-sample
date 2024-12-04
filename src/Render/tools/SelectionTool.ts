@@ -2,6 +2,7 @@ import Konva from 'konva'
 //
 import { Render } from '../index'
 import * as Draws from '../draws'
+import * as Types from '../types'
 
 export class SelectionTool {
   static readonly name = 'SelectionTool'
@@ -66,6 +67,30 @@ export class SelectionTool {
 
   // 选择节点
   select(nodes: Konva.Node[]) {
+    if (nodes.length > 1) {
+      // 多选 不能改变大小/旋转
+      this.render.transformer.resizeEnabled(false)
+      this.render.transformer.rotateEnabled(false)
+    } else {
+      if (nodes.length === 1) {
+        const target = nodes[0]
+        // 图形 不能改变大小
+        this.render.transformer.resizeEnabled(
+          target.attrs.assetType === Types.AssetType.Graph ? false : true
+        )
+        this.render.transformer.rotateEnabled(
+          target.attrs.assetType === Types.AssetType.Graph &&
+            (target.attrs.graphType === Types.GraphType.Line ||
+              target.attrs.graphType === Types.GraphType.Curve ||
+              target.attrs.graphType === Types.GraphType.Bezier)
+            ? false
+            : true
+        )
+      } else {
+        this.render.transformer.resizeEnabled(true)
+      }
+    }
+
     // 清除连接线选中
     this.render.linkTool.selectingClear()
 

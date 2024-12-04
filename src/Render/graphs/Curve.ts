@@ -544,6 +544,14 @@ export class Curve extends BaseGraph {
     // 更新 图形 的 连接点 的 锚点位置
     Curve.updateLinkAnchorShadows(this.group, this.linkAnchorShadows, this.line)
 
+    // 扣除多余的间隙
+    const size = {
+      width: this.line.size().width - 10,
+      height: this.line.size().height - 10
+    }
+    // 更新大小
+    this.group.size(size)
+
     // 对齐线清除
     this.render.attractTool.alignLinesClear()
 
@@ -553,7 +561,7 @@ export class Curve extends BaseGraph {
     // 重绘
     this.render.redraw([Draws.GraphDraw.name, Draws.LinkDraw.name, Draws.PreviewDraw.name])
 
-    super.drawEnd(this.line.size(), {
+    super.drawEnd(size, {
       x: Math.min(
         ...this.line.points().reduce((arr, item, idx) => {
           if (idx % 2 === 0) {
