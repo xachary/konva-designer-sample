@@ -224,8 +224,12 @@ const assetCurrent: Ref<Konva.Node | undefined> = ref()
 
 watch(() => assetCurrent.value, async () => {
   await nextTick()
-  textInputRef.value?.focus()
-  textInputRef.value?.select()
+  if (assetCurrent.value?.attrs.assetType === Types.AssetType.Text) {
+    textInputRef.value?.select()
+  } else {
+    // 恢复焦点->快捷键
+    stageElement.value?.focus()
+  }
 })
 
 // 素材设置
