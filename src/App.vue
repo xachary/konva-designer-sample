@@ -234,6 +234,7 @@ const assetSettingsModelInnerChange = ref(false)
 
 const assetSettingsModelStroke = ref('')
 const assetSettingsModelFill = ref('')
+const assetSettingsModelTextFill = ref('')
 
 // 当前连接线
 const linkCurrent: Ref<Konva.Line | undefined> = ref()
@@ -269,6 +270,7 @@ watch(() => assetSettingsModel.value, () => {
     if (assetSettingsModel.value && assetCurrent.value) {
       assetSettingsModelStroke.value = assetSettingsModel.value.stroke
       assetSettingsModelFill.value = assetSettingsModel.value.fill
+      assetSettingsModelTextFill.value = assetSettingsModel.value.textFill
 
       if (ready.value) {
         render?.setAssetSettings(assetCurrent.value, assetSettingsModel.value, !assetSettingsModelInnerChange.value)
@@ -409,12 +411,12 @@ watch(() => linkSettingsModel.value, () => {
             </n-form-item>
             <!-- Text -->
             <template v-if="assetCurrent?.attrs.assetType === Types.AssetType.Text">
-              <n-form-item label="文字颜色" path="fill">
-                <n-color-picker v-model:value="assetSettingsModelFill" @update:show="(v: boolean) => {
-                  assetSettingsModel && !v && (assetSettingsModelFill = assetSettingsModel.fill)
+              <n-form-item label="文字颜色" path="textFill">
+                <n-color-picker v-model:value="assetSettingsModelTextFill" @update:show="(v: boolean) => {
+                  assetSettingsModel && !v && (assetSettingsModelTextFill = assetSettingsModel.textFill)
                 }" :actions="['clear', 'confirm']" show-preview
-                  @confirm="(v: string) => { assetSettingsModel && (assetSettingsModel.fill = v) }"
-                  @clear="assetSettingsModel && (assetSettingsModel.fill = Render.AssetSettingsDefault.fill)"></n-color-picker>
+                  @confirm="(v: string) => { assetSettingsModel && (assetSettingsModel.textFill = v) }"
+                  @clear="assetSettingsModel && (assetSettingsModel.textFill = Render.AssetSettingsDefault.textFill)"></n-color-picker>
               </n-form-item>
               <n-form-item label="文字大小" path="fontSize">
                 <n-input-number v-model:value="assetSettingsModel.fontSize" placeholder="Input" :min="1" />
