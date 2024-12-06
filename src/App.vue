@@ -410,7 +410,8 @@ watch(() => linkSettingsModel.value, () => {
               &nbsp;
               <n-input-number v-model:value="assetSettingsModel.y" placeholder="Input" :precision="1" />
             </n-form-item>
-            <n-form-item label="角度" path="rotation">
+            <n-form-item label="角度" path="rotation"
+              v-if="assetCurrent?.attrs.graphType === Types.GraphType.Circle || assetCurrent?.attrs.graphType === Types.GraphType.Rect">
               <n-input-number v-model:value="assetSettingsModel.rotation" placeholder="Input" :precision="1" />
             </n-form-item>
             <!-- Text -->
