@@ -102,47 +102,47 @@ export class PositionTool {
     }
     const viewRate = viewSize.width / viewSize.height
 
-    if (assetSize.width > viewSize.width || assetSize.height > viewSize.height) {
-      let scale = 1
+    let scale = 1
 
-      if (viewRate > assetRate) {
-        scale = viewSize.height / assetSize.height
-      } else if (viewRate < assetRate) {
-        scale = viewSize.width / assetSize.width
-      }
-
-      scale = Math.max(0.2, scale)
-
-      scale = Math.floor(scale * 100) / 100
-
-      this.render.stage.setAttrs({
-        scale: { x: scale, y: scale },
-        position: {
-          x:
-            (this.render.config.readonly ? 0 : this.render.rulerSize) -
-            minX * scale +
-            (viewSize.width - assetSize.width * scale) / 2,
-          y:
-            (this.render.config.readonly ? 0 : this.render.rulerSize) -
-            minY * scale +
-            (viewSize.height - assetSize.height * scale) / 2
-        }
-      })
-
-      this.render.emit('scale-change', scale)
-
-      // 重绘
-      this.render.redraw([
-        Draws.BgDraw.name,
-        Draws.GraphDraw.name,
-        Draws.LinkDraw.name,
-        Draws.RulerDraw.name,
-        Draws.RefLineDraw.name,
-        Draws.PreviewDraw.name
-      ])
-    } else {
-      this.positionZoomReset()
+    if (viewRate > assetRate) {
+      scale = viewSize.height / assetSize.height
+    } else if (viewRate < assetRate) {
+      scale = viewSize.width / assetSize.width
     }
+
+    scale = Math.max(0.2, scale)
+
+    scale = Math.floor(scale * 100) / 100
+
+    if (assetSize.width <= viewSize.width && assetSize.height <= viewSize.height) {
+      scale = 1
+    }
+
+    this.render.stage.setAttrs({
+      scale: { x: scale, y: scale },
+      position: {
+        x:
+          (this.render.config.readonly ? 0 : this.render.rulerSize) -
+          minX * scale +
+          (viewSize.width - assetSize.width * scale) / 2,
+        y:
+          (this.render.config.readonly ? 0 : this.render.rulerSize) -
+          minY * scale +
+          (viewSize.height - assetSize.height * scale) / 2
+      }
+    })
+
+    this.render.emit('scale-change', scale)
+
+    // 重绘
+    this.render.redraw([
+      Draws.BgDraw.name,
+      Draws.GraphDraw.name,
+      Draws.LinkDraw.name,
+      Draws.RulerDraw.name,
+      Draws.RefLineDraw.name,
+      Draws.PreviewDraw.name
+    ])
   }
 
   // 恢复位置大小
