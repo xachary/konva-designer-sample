@@ -140,6 +140,8 @@ export class PositionTool {
         Draws.RefLineDraw.name,
         Draws.PreviewDraw.name
       ])
+    } else {
+      this.positionZoomReset()
     }
   }
 
