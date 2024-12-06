@@ -12,6 +12,28 @@ export class AlignTool {
     this.render = render
   }
 
+  getAlignRect(node: Konva.Node | Konva.Transformer) {
+    // stage 状态
+    const stageState = this.render.getStageState()
+
+    let width = 0,
+      height = 0,
+      x = 0,
+      y = 0
+
+    const result = node.getClientRect()
+
+    // 转为 逻辑觉尺寸
+    ;[width, height, x, y] = [
+      this.render.toStageValue(result.width),
+      this.render.toStageValue(result.height),
+      this.render.toStageValue(result.x - stageState.x),
+      this.render.toStageValue(result.y - stageState.y)
+    ]
+
+    return { width, height, x, y }
+  }
+
   // 对齐参考点
   getAlignPoints(node?: Konva.Node | Konva.Transformer): { [index: string]: number } {
     let width = 0,
@@ -19,28 +41,12 @@ export class AlignTool {
       x = 0,
       y = 0
 
-    if (node instanceof Konva.Transformer) {
-      // stage 状态
-      const stageState = this.render.getStageState()
+    if (node !== void 0) {
+      // 选择器 / 基于节点
 
-      const result = node.getClientRect()
-
-      // 选择器
-      // 转为 逻辑觉尺寸
-      ;[width, height] = [
-        this.render.toStageValue(result.width),
-        this.render.toStageValue(result.height)
-      ]
-      ;[x, y] = [
-        this.render.toStageValue(result.x - stageState.x),
-        this.render.toStageValue(result.y - stageState.y)
-      ]
-    } else if (node !== void 0) {
-      const result = node.getClientRect()
-      // 节点
-      // 逻辑尺寸
-      ;[width, height] = [result.width, result.height]
-      ;[x, y] = [result.x, result.y]
+      // 逻辑觉尺寸
+      const rect = this.getAlignRect(node)
+      ;[width, height, x, y] = [rect.width, rect.height, rect.x, rect.y]
     } else {
       // 默认为选择器
       return this.getAlignPoints(this.render.transformer)
@@ -68,7 +74,9 @@ export class AlignTool {
 
     // 移动逻辑
     for (const node of nodes) {
-      const { width, height, x, y } = node.getClientRect()
+      // 逻辑觉尺寸
+      const rect = this.getAlignRect(node)
+      const [width, height, x, y] = [rect.width, rect.height, rect.x, rect.y]
 
       switch (type) {
         case Types.AlignType.垂直居中:
