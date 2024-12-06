@@ -15,9 +15,9 @@ export class Render {
 
   // 主要层
   layer: Konva.Layer = new Konva.Layer({ id: 'main' })
-  // 辅助层 - 底层
+  // 辅助层 - 背景
   layerFloor: Konva.Layer = new Konva.Layer()
-  // 辅助层 - 顶层
+  // 辅助层 - 连接线、对齐线
   layerCover: Konva.Layer = new Konva.Layer({ id: 'cover' })
 
   // 配置

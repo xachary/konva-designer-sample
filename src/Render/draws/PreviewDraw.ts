@@ -184,6 +184,9 @@ export class PreviewDraw extends Types.BaseDraw implements Types.Draw {
           link.dash([])
         }
       })
+      // 不显示 调整点
+      copy.find('.link-point').map((o: Konva.Shape) => o.destroy())
+      copy.find('.link-manual-point').map((o: Konva.Shape) => o.destroy())
       // 不可交互
       copy.listening(false)
       // 设置名称用于 ignore
