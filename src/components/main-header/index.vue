@@ -176,7 +176,7 @@
                     </template>
                     连接线：折线
                 </NTooltip>
-                <!-- <NTooltip trigger="hover" :delay="1000">
+                <NTooltip trigger="hover" :delay="1000">
                     <template #trigger>
                         <NButton tag="div" size="tiny" quaternary :focusable="false"
                             @click="onLinkTypeChange(Types.LinkType.bezier)"
@@ -189,7 +189,7 @@
                         </NButton>
                     </template>
                     连接线：贝赛尔曲线
-                </NTooltip> -->
+                </NTooltip>
                 <NTooltip trigger="hover" :delay="1000">
                     <template #trigger>
                         <NButton tag="div" size="tiny" quaternary :focusable="false"
@@ -507,7 +507,7 @@ function onAlign(type: Types.AlignType) {
 }
 
 // 连接线模式
-const currentLinkType = ref(Types.LinkType.curve)
+const currentLinkType = ref(Types.LinkType.bezier)
 
 function onLinkTypeChange(linkType: Types.LinkType) {
     (props.render?.draws[Draws.LinkDraw.name] as Draws.LinkDraw)?.changeLinkType(linkType)
@@ -758,6 +758,18 @@ const menuOptions = [
                         ),
                         key: '连接线颜色测试',
                     },
+                    {
+                        label: () => h(
+                            'a',
+                            {
+                                target: '_blank',
+                                rel: 'noopenner noreferrer',
+                                onClick: onLinkBezierTest
+                            },
+                            '贝赛尔曲线'
+                        ),
+                        key: '贝赛尔曲线',
+                    },
                 ]
             }
         ]
@@ -955,6 +967,7 @@ watch(() => props.render, () => {
         // onLinkRotateTest()
         // onAdjustTransformTest()
         // onAreaSizeTest()
+        onLinkBezierTest()
     }
 
 }, {
@@ -1019,6 +1032,11 @@ async function onAreaSizeTest() {
 }
 async function onLinkStrokeTest() {
     const json = await (await fetch('./test/link-stroke.json')).text()
+    await props.render?.importExportTool.restore(json)
+    props.render?.positionTool.positionFit()
+}
+async function onLinkBezierTest() {
+    const json = await (await fetch('./test/link-bezier.json')).text()
     await props.render?.importExportTool.restore(json)
     props.render?.positionTool.positionFit()
 }
