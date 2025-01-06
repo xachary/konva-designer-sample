@@ -21,45 +21,48 @@ export class ZoomHandlers implements Types.Handler {
   handlers = {
     stage: {
       wheel: (e: Konva.KonvaEventObject<GlobalEventHandlersEventMap['wheel']>) => {
-        // stage 状态
-        const stageState = this.render.getStageState()
+        const { scale: oldScale } = this.render.getStageState()
+        const isPinchToZoom = e.evt.ctrlKey
 
-        const oldScale = stageState.scale
+        const newScale = isPinchToZoom
+          ? oldScale + (e.evt.deltaY < 0 ? this.scaleBy : -this.scaleBy)
+          : oldScale
 
-        const pos = this.render.stage.getPointerPosition()
-        if (pos) {
+        const finalScale = Math.max(this.scaleMin, Math.min(this.scaleMax, newScale))
+
+        if (finalScale !== oldScale) {
+          const position = this.render.stage.getPosition()
+          const point = { x: e.evt.offsetX, y: e.evt.offsetY }
           const mousePointTo = {
-            x: (pos.x - stageState.x) / oldScale,
-            y: (pos.y - stageState.y) / oldScale
+            x: (point.x - position.x) / oldScale,
+            y: (point.y - position.y) / oldScale
           }
 
-          // 滚轮方向
-          const direction = e.evt.deltaY > 0 ? -1 : 1
-
-          const newScale = direction > 0 ? oldScale + this.scaleBy : oldScale - this.scaleBy
-
-          if (newScale >= this.scaleMin && newScale < this.scaleMax) {
-            // 缩放 stage
-            this.render.stage.scale({ x: newScale, y: newScale })
-            this.render.emit('scale-change', newScale)
-
-            // 移动 stage
-            this.render.stage.position({
-              x: pos.x - mousePointTo.x * newScale,
-              y: pos.y - mousePointTo.y * newScale
-            })
-
-            // 重绘
-            this.render.redraw([
-              Draws.BgDraw.name,
-              Draws.GraphDraw.name,
-              Draws.LinkDraw.name,
-              Draws.RulerDraw.name,
-              Draws.RefLineDraw.name,
-              Draws.PreviewDraw.name
-            ])
+          const newPosition = {
+            x: -(mousePointTo.x * finalScale - point.x),
+            y: -(mousePointTo.y * finalScale - point.y)
           }
+
+          this.render.emit('scale-change', finalScale)
+          this.render.stage.scale({ x: finalScale, y: finalScale })
+          this.render.stage.position(newPosition)
+        } else if (!isPinchToZoom) {
+          const position = this.render.stage.getPosition()
+          this.render.stage.position({
+            x: position.x - e.evt.deltaX,
+            y: position.y - e.evt.deltaY
+          })
         }
+
+        // 重绘
+        this.render.redraw([
+          Draws.BgDraw.name,
+          Draws.GraphDraw.name,
+          Draws.LinkDraw.name,
+          Draws.RulerDraw.name,
+          Draws.RefLineDraw.name,
+          Draws.PreviewDraw.name
+        ])
       }
     }
   }
