@@ -39,23 +39,24 @@ export class AssetTool {
   async loadGif(src: string) {
     return new Promise<Konva.Image>((resolve) => {
       const img = document.createElement('img')
+      
       img.onload = () => {
         const canvas = document.createElement('canvas')
 
         canvas.width = img.naturalWidth
-        canvas.height = img.naturalWidth
-
-        img.remove()
+        canvas.height = img.naturalHeight
 
         const gif = gifler(src)
 
         gif.frames(canvas, (ctx: CanvasRenderingContext2D, frame: any) => {
-          ctx.drawImage(frame.buffer, 0, 0)
+          ctx.drawImage(frame.buffer, frame.x, frame.y)
 
           this.render.layer.draw()
           // 更新预览（layer）
           this.render.draws[Draws.PreviewDraw.name]?.layer.draw()
         })
+
+        img.remove()
 
         resolve(
           new Konva.Image({
