@@ -51,28 +51,7 @@ export class TextHandlers implements Types.Handler {
 
             const point = this.getStagePoint()
             if (point) {
-              this.group = new Konva.Group({
-                id: nanoid(),
-                name: 'asset',
-                assetType: Types.AssetType.Text,
-                draggable: false,
-                position: point
-              })
-              const assetSettings = this.render.getAssetSettings()
-              this.group.setAttr('assetSettings', assetSettings)
-              const text = new Konva.Text({
-                text: assetSettings.text,
-                fill: assetSettings.textFill,
-                fontSize: assetSettings.fontSize,
-                draggable: false
-              })
-              const bg = new Konva.Rect({
-                width: text.width(),
-                height: text.height()
-              })
-              this.group.add(bg)
-              this.group.add(text)
-              this.render.layer.add(this.group)
+              this.group = this.render.importExportTool.addTextAsset(point)
             }
           }
         }

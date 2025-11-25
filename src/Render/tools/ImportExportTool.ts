@@ -1,5 +1,6 @@
 import Konva from 'konva'
 import C2S from 'canvas2svg'
+import { nanoid } from 'nanoid'
 //
 import { Render } from '../index'
 //
@@ -236,7 +237,7 @@ export class ImportExportTool {
             graph.sceneFunc(BezierSceneFunc)
           }
         }
-        
+
         const hoverRect = node.findOne('.hoverRect')
 
         if (hoverRect instanceof Konva.Rect) {
@@ -731,5 +732,38 @@ export class ImportExportTool {
 
     copy.destroy()
     return result
+  }
+
+  /**
+   * 添加文字素材
+   * @param pos 落点位置
+   * @param settings 设置项
+   * @returns
+   */
+  addTextAsset(pos: Konva.Vector2d, settings?: Partial<Types.AssetSettings>) {
+    const group = new Konva.Group({
+      id: nanoid(),
+      name: 'asset',
+      assetType: Types.AssetType.Text,
+      draggable: false,
+      position: pos
+    })
+    const assetSettings = settings ?? this.render.getAssetSettings()
+    group.setAttr('assetSettings', assetSettings)
+    const text = new Konva.Text({
+      text: assetSettings.text,
+      fill: assetSettings.textFill,
+      fontSize: assetSettings.fontSize,
+      draggable: false
+    })
+    const bg = new Konva.Rect({
+      width: text.width(),
+      height: text.height()
+    })
+    group.add(bg)
+    group.add(text)
+    this.render.layer.add(group)
+
+    return group
   }
 }
