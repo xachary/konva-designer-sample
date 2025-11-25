@@ -967,7 +967,7 @@ watch(() => props.render, () => {
         // onLinkRotateTest()
         // onAdjustTransformTest()
         // onAreaSizeTest()
-        onLinkBezierTest()
+        // onLinkBezierTest()
     }
 
 }, {
