@@ -530,7 +530,6 @@ export class Bezier extends BaseGraph {
       pointerAtBeginning: true,
       pointerAtEnding: true,
       lineJoin: 'miter',
-      hitStrokeWidth: 10,
       //
       sceneFunc: (ctx: Konva.Context, shape: Konva.Shape) => {
         if (shape instanceof Konva.Arrow) {
