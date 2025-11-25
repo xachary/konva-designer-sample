@@ -4,6 +4,9 @@ import C2S from 'canvas2svg'
 import { Render } from '../index'
 //
 import * as Draws from '../draws'
+import * as Types from '../types'
+
+import { BezierSceneFunc } from '../utils/BezierSceneFunc'
 
 C2S.prototype.__applyCurrentDefaultPath = function () {
   // 补丁：修复以下问题：
@@ -223,6 +226,59 @@ export class ImportExportTool {
     }
   }
 
+  // 恢复图形
+  restoreGraph(nodes: Konva.Node[] = []) {
+    for (const node of nodes) {
+      if (node instanceof Konva.Group && node.attrs.assetType === Types.AssetType.Graph) {
+        if (node.attrs.graphType === Types.GraphType.Bezier) {
+          const graph = node.findOne('.graph')
+          if (graph instanceof Konva.Arrow) {
+            graph.sceneFunc(BezierSceneFunc)
+          }
+        }
+        
+        const hoverRect = node.findOne('.hoverRect')
+
+        if (hoverRect instanceof Konva.Rect) {
+          hoverRect.on('mouseenter', () => {
+            // 防止进入调整点，重复处理
+            if (!node.attrs.hoverAnchor) {
+              node.setAttr('hover', true)
+              this.render.redraw([Draws.GraphDraw.name])
+            }
+
+            setTimeout(() => {
+              // 调整产生 redraw，导致离开调整点不触发其 mouseleave（进入其他元素区域除外）
+              // 在此静态补充“离开调整点”
+              // 不影响正常处理（调整点会不停 hoverAnchor = true）
+              node.setAttr('hoverAnchor', false)
+            })
+
+            // 显示 连接点
+            this.render.linkTool.pointsVisible(true, node)
+          })
+          hoverRect.on('mouseleave', () => {
+            // 延迟事件，使调整点的 mouseleave 优先
+            setTimeout(() => {
+              // 防止进入调整点，重复处理
+              // 补充 2，快速调整会漏掉
+              if (!node.attrs.hoverAnchor) {
+                node.setAttr('hover', false)
+                node.setAttr('hoverAnchor', false)
+                this.render.redraw([Draws.GraphDraw.name])
+              }
+            })
+
+            // 隐藏 连接点
+            this.render.linkTool.pointsVisible(false, node)
+            // 隐藏 hover 框
+            node.findOne('#hoverRect')?.visible(false)
+          })
+        }
+      }
+    }
+  }
+
   // 恢复
   async restore(json: string, silent = false) {
     console.group('restore')
@@ -249,6 +305,7 @@ export class ImportExportTool {
 
       // 恢复节点图片素材
       await this.restoreImage(nodes)
+      await this.restoreGraph(nodes)
 
       for (const node of nodes) {
         // 重置旧数据节点为可 draggable

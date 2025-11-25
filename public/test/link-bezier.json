@@ -1,1 +1,624 @@
-{"attrs":{"x":40,"y":40,"width":640,"height":647,"pageSettings":{"background":"transparent","stroke":"rgb(0,0,0)","strokeWidth":1,"fill":"rgb(0,0,0)","linkStroke":"rgb(0,0,0)","linkStrokeWidth":1,"fontSize":24,"textFill":"rgb(0,0,0)"}},"className":"Stage","children":[{"attrs":{},"className":"Layer","children":[{"attrs":{"id":"1igMIFTC0wWVb6WZcKCd4","width":200,"height":200,"name":"asset","assetType":"Image","draggable":true,"imageType":"svg","assetSettings":{"stroke":"rgb(0,0,0)","strokeWidth":1,"fill":"rgb(0,0,0)","arrowStart":false,"arrowEnd":false,"fontSize":24,"textFill":"rgb(0,0,0)","text":"Text","x":0,"y":0,"rotation":0},"points":[{"x":100,"y":100,"id":"8FgHzqNLTRK06T7UKRbi-","groupId":"1igMIFTC0wWVb6WZcKCd4","visible":false,"pairs":[{"id":"wrIeU2BYfr5k8Ho-bi9qK","from":{"groupId":"1igMIFTC0wWVb6WZcKCd4","pointId":"8FgHzqNLTRK06T7UKRbi-"},"to":{"groupId":"mhvOrvIu_b9EfFtVlHQii","pointId":"QL7TdHHYLn44O8UjrJZA4"},"linkType":"bezier"}]}],"selected":false},"className":"Group","children":[{"attrs":{"svgXML":"<?xml version=\"1.0\" standalone=\"no\"?><!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\"><svg class=\"icon\" width=\"200px\" height=\"200.00px\" viewBox=\"0 0 1024 1024\" version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M512 0c282.763636 0 512 229.236364 512 512S794.763636 1024 512 1024 0 794.763636 0 512 229.236364 0 512 0z m0 11.636364C235.659636 11.636364 11.636364 235.659636 11.636364 512s224.023273 500.363636 500.363636 500.363636 500.363636-224.023273 500.363636-500.363636S788.340364 11.636364 512 11.636364z\"  stroke=\"rgb(0,0,0)\"  fill=\"rgb(0,0,0)\" /></svg>"},"className":"Image"},{"attrs":{"name":"link-anchor","id":"8FgHzqNLTRK06T7UKRbi-","x":100,"y":100,"radius":1,"stroke":"rgba(0,0,255,1)","visible":false},"className":"Circle"}]},{"attrs":{"id":"mhvOrvIu_b9EfFtVlHQii","width":200,"height":200,"name":"asset","assetType":"Image","draggable":true,"imageType":"svg","assetSettings":{"stroke":"rgb(0,0,0)","strokeWidth":1,"fill":"rgb(0,0,0)","arrowStart":false,"arrowEnd":false,"fontSize":24,"textFill":"rgb(0,0,0)","text":"Text","x":-0.5,"y":300.5,"rotation":0},"x":-0.5,"y":300.5,"points":[{"x":100,"y":100,"id":"QL7TdHHYLn44O8UjrJZA4","groupId":"mhvOrvIu_b9EfFtVlHQii","visible":false,"pairs":[]}],"selected":false},"className":"Group","children":[{"attrs":{"svgXML":"<?xml version=\"1.0\" standalone=\"no\"?><!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\"><svg class=\"icon\" width=\"200px\" height=\"200.00px\" viewBox=\"0 0 1024 1024\" version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M512 0c282.763636 0 512 229.236364 512 512S794.763636 1024 512 1024 0 794.763636 0 512 229.236364 0 512 0z m0 11.636364C235.659636 11.636364 11.636364 235.659636 11.636364 512s224.023273 500.363636 500.363636 500.363636 500.363636-224.023273 500.363636-500.363636S788.340364 11.636364 512 11.636364z\"  stroke=\"rgb(0,0,0)\"  fill=\"rgb(0,0,0)\" /></svg>"},"className":"Image"},{"attrs":{"name":"link-anchor","id":"QL7TdHHYLn44O8UjrJZA4","x":100,"y":100,"radius":1,"stroke":"rgba(0,0,255,1)","visible":false},"className":"Circle"}]}]}]}
+{
+  "attrs": {
+    "x": 43.489999999999995,
+    "y": 217.71000000000004,
+    "width": 669,
+    "height": 647,
+    "pageSettings": {
+      "background": "transparent",
+      "stroke": "rgb(0,0,0)",
+      "strokeWidth": 1,
+      "fill": "rgb(0,0,0)",
+      "linkStroke": "rgb(0,0,0)",
+      "linkStrokeWidth": 1,
+      "fontSize": 24,
+      "textFill": "rgb(0,0,0)"
+    },
+    "scaleX": 0.84,
+    "scaleY": 0.84
+  },
+  "className": "Stage",
+  "children": [
+    {
+      "attrs": {},
+      "className": "Layer",
+      "children": [
+        {
+          "attrs": {
+            "id": "1igMIFTC0wWVb6WZcKCd4",
+            "width": 200,
+            "height": 200,
+            "name": "asset",
+            "assetType": "Image",
+            "draggable": true,
+            "imageType": "svg",
+            "assetSettings": {
+              "stroke": "rgb(0,0,0)",
+              "strokeWidth": 1,
+              "fill": "rgb(0,0,0)",
+              "arrowStart": false,
+              "arrowEnd": false,
+              "fontSize": 24,
+              "textFill": "rgb(0,0,0)",
+              "text": "Text",
+              "x": 0,
+              "y": 0,
+              "rotation": 0
+            },
+            "points": [
+              {
+                "x": 100,
+                "y": 100,
+                "id": "8FgHzqNLTRK06T7UKRbi-",
+                "groupId": "1igMIFTC0wWVb6WZcKCd4",
+                "visible": false,
+                "pairs": [
+                  {
+                    "id": "wrIeU2BYfr5k8Ho-bi9qK",
+                    "from": {
+                      "groupId": "1igMIFTC0wWVb6WZcKCd4",
+                      "pointId": "8FgHzqNLTRK06T7UKRbi-"
+                    },
+                    "to": {
+                      "groupId": "mhvOrvIu_b9EfFtVlHQii",
+                      "pointId": "QL7TdHHYLn44O8UjrJZA4"
+                    },
+                    "linkType": "bezier"
+                  }
+                ]
+              }
+            ],
+            "selected": false
+          },
+          "className": "Group",
+          "children": [
+            {
+              "attrs": {
+                "svgXML": "<?xml version=\"1.0\" standalone=\"no\"?><!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\"><svg class=\"icon\" width=\"200px\" height=\"200.00px\" viewBox=\"0 0 1024 1024\" version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M512 0c282.763636 0 512 229.236364 512 512S794.763636 1024 512 1024 0 794.763636 0 512 229.236364 0 512 0z m0 11.636364C235.659636 11.636364 11.636364 235.659636 11.636364 512s224.023273 500.363636 500.363636 500.363636 500.363636-224.023273 500.363636-500.363636S788.340364 11.636364 512 11.636364z\"  stroke=\"rgb(0,0,0)\"  fill=\"rgb(0,0,0)\" /></svg>"
+              },
+              "className": "Image"
+            },
+            {
+              "attrs": {
+                "name": "link-anchor",
+                "id": "8FgHzqNLTRK06T7UKRbi-",
+                "x": 100,
+                "y": 100,
+                "radius": 1,
+                "stroke": "rgba(0,0,255,1)",
+                "visible": false
+              },
+              "className": "Circle"
+            }
+          ]
+        },
+        {
+          "attrs": {
+            "id": "mhvOrvIu_b9EfFtVlHQii",
+            "width": 200,
+            "height": 200,
+            "name": "asset",
+            "assetType": "Image",
+            "draggable": true,
+            "imageType": "svg",
+            "assetSettings": {
+              "stroke": "rgb(0,0,0)",
+              "strokeWidth": 1,
+              "fill": "rgb(0,0,0)",
+              "arrowStart": false,
+              "arrowEnd": false,
+              "fontSize": 24,
+              "textFill": "rgb(0,0,0)",
+              "text": "Text",
+              "x": -0.5,
+              "y": 300.5,
+              "rotation": 0
+            },
+            "x": -0.5,
+            "y": 300.5,
+            "points": [
+              {
+                "x": 100,
+                "y": 100,
+                "id": "QL7TdHHYLn44O8UjrJZA4",
+                "groupId": "mhvOrvIu_b9EfFtVlHQii",
+                "visible": false,
+                "pairs": []
+              }
+            ],
+            "selected": false
+          },
+          "className": "Group",
+          "children": [
+            {
+              "attrs": {
+                "svgXML": "<?xml version=\"1.0\" standalone=\"no\"?><!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\"><svg class=\"icon\" width=\"200px\" height=\"200.00px\" viewBox=\"0 0 1024 1024\" version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M512 0c282.763636 0 512 229.236364 512 512S794.763636 1024 512 1024 0 794.763636 0 512 229.236364 0 512 0z m0 11.636364C235.659636 11.636364 11.636364 235.659636 11.636364 512s224.023273 500.363636 500.363636 500.363636 500.363636-224.023273 500.363636-500.363636S788.340364 11.636364 512 11.636364z\"  stroke=\"rgb(0,0,0)\"  fill=\"rgb(0,0,0)\" /></svg>"
+              },
+              "className": "Image"
+            },
+            {
+              "attrs": {
+                "name": "link-anchor",
+                "id": "QL7TdHHYLn44O8UjrJZA4",
+                "x": 100,
+                "y": 100,
+                "radius": 1,
+                "stroke": "rgba(0,0,255,1)",
+                "visible": false
+              },
+              "className": "Circle"
+            }
+          ]
+        },
+        {
+          "attrs": {
+            "id": "Q-v7bQJB_8Wwtu1e5K0vg",
+            "width": 104,
+            "height": 104,
+            "name": "asset",
+            "assetType": "Image",
+            "draggable": true,
+            "imageType": "other",
+            "assetSettings": {
+              "stroke": "rgb(0,0,0)",
+              "strokeWidth": 1,
+              "fill": "rgb(0,0,0)",
+              "arrowStart": false,
+              "arrowEnd": false,
+              "fontSize": 24,
+              "textFill": "rgb(0,0,0)",
+              "text": "Text",
+              "x": 199.5,
+              "y": 95,
+              "rotation": 0
+            },
+            "x": 199.5,
+            "y": 95,
+            "points": [
+              {
+                "x": 52,
+                "y": 2,
+                "direction": "top",
+                "id": "PBRvDkw9MzTNkFN-Cb3-S",
+                "groupId": "Q-v7bQJB_8Wwtu1e5K0vg",
+                "visible": false,
+                "pairs": [
+                  {
+                    "id": "szgHaGsdXBMBbUsgSjCjE",
+                    "from": {
+                      "groupId": "Q-v7bQJB_8Wwtu1e5K0vg",
+                      "pointId": "PBRvDkw9MzTNkFN-Cb3-S"
+                    },
+                    "to": {
+                      "groupId": "H6DzwjDpJA-ZEV3DKjHgE",
+                      "pointId": "Gxas87ePqM-Ho0tHGK7r9"
+                    },
+                    "linkType": "bezier"
+                  }
+                ]
+              },
+              {
+                "x": 52,
+                "y": 100,
+                "direction": "bottom",
+                "id": "YouniB29eTh76jxdCXd_h",
+                "groupId": "Q-v7bQJB_8Wwtu1e5K0vg",
+                "visible": false,
+                "pairs": []
+              },
+              {
+                "x": 2,
+                "y": 51,
+                "direction": "left",
+                "id": "DCHjxMGMsMapz0ozizgZs",
+                "groupId": "Q-v7bQJB_8Wwtu1e5K0vg",
+                "visible": false,
+                "pairs": []
+              },
+              {
+                "x": 101,
+                "y": 51,
+                "direction": "right",
+                "id": "t-ZdtFPgAaaad5fnJk8bC",
+                "groupId": "Q-v7bQJB_8Wwtu1e5K0vg",
+                "visible": false,
+                "pairs": []
+              }
+            ],
+            "selected": false,
+            "manualPointsMap": { "szgHaGsdXBMBbUsgSjCjE": [{ "x": 740, "y": -200.00000000000006 }] }
+          },
+          "className": "Group",
+          "children": [
+            { "attrs": { "src": "./img/png/1.png" }, "className": "Image" },
+            {
+              "attrs": {
+                "name": "link-anchor",
+                "id": "PBRvDkw9MzTNkFN-Cb3-S",
+                "x": 52,
+                "y": 2,
+                "radius": 1,
+                "stroke": "rgba(0,0,255,1)",
+                "visible": false,
+                "direction": "top"
+              },
+              "className": "Circle"
+            },
+            {
+              "attrs": {
+                "name": "link-anchor",
+                "id": "YouniB29eTh76jxdCXd_h",
+                "x": 52,
+                "y": 100,
+                "radius": 1,
+                "stroke": "rgba(0,0,255,1)",
+                "visible": false,
+                "direction": "bottom"
+              },
+              "className": "Circle"
+            },
+            {
+              "attrs": {
+                "name": "link-anchor",
+                "id": "DCHjxMGMsMapz0ozizgZs",
+                "x": 2,
+                "y": 51,
+                "radius": 1,
+                "stroke": "rgba(0,0,255,1)",
+                "visible": false,
+                "direction": "left"
+              },
+              "className": "Circle"
+            },
+            {
+              "attrs": {
+                "name": "link-anchor",
+                "id": "t-ZdtFPgAaaad5fnJk8bC",
+                "x": 101,
+                "y": 51,
+                "radius": 1,
+                "stroke": "rgba(0,0,255,1)",
+                "visible": false,
+                "direction": "right"
+              },
+              "className": "Circle"
+            }
+          ]
+        },
+        {
+          "attrs": {
+            "id": "H6DzwjDpJA-ZEV3DKjHgE",
+            "width": 104,
+            "height": 104,
+            "name": "asset",
+            "assetType": "Image",
+            "draggable": true,
+            "imageType": "other",
+            "assetSettings": {
+              "stroke": "rgb(0,0,0)",
+              "strokeWidth": 1,
+              "fill": "rgb(0,0,0)",
+              "arrowStart": false,
+              "arrowEnd": false,
+              "fontSize": 24,
+              "textFill": "rgb(0,0,0)",
+              "text": "Text",
+              "x": 400,
+              "y": 100,
+              "rotation": 0
+            },
+            "x": 400,
+            "y": 100,
+            "points": [
+              {
+                "x": 52,
+                "y": 2,
+                "direction": "top",
+                "id": "Gxas87ePqM-Ho0tHGK7r9",
+                "groupId": "H6DzwjDpJA-ZEV3DKjHgE",
+                "visible": false,
+                "pairs": []
+              },
+              {
+                "x": 52,
+                "y": 100,
+                "direction": "bottom",
+                "id": "fxUhC1Z5TdTYuE-8cobN4",
+                "groupId": "H6DzwjDpJA-ZEV3DKjHgE",
+                "visible": false,
+                "pairs": []
+              },
+              {
+                "x": 2,
+                "y": 51,
+                "direction": "left",
+                "id": "tYV_Tu5RZECPDhxsFZ_xU",
+                "groupId": "H6DzwjDpJA-ZEV3DKjHgE",
+                "visible": false,
+                "pairs": []
+              },
+              {
+                "x": 101,
+                "y": 51,
+                "direction": "right",
+                "id": "3Fz46MSYvTHxxQalkQveL",
+                "groupId": "H6DzwjDpJA-ZEV3DKjHgE",
+                "visible": false,
+                "pairs": []
+              }
+            ],
+            "selected": false
+          },
+          "className": "Group",
+          "children": [
+            { "attrs": { "src": "./img/png/1.png" }, "className": "Image" },
+            {
+              "attrs": {
+                "name": "link-anchor",
+                "id": "Gxas87ePqM-Ho0tHGK7r9",
+                "x": 52,
+                "y": 2,
+                "radius": 1,
+                "stroke": "rgba(0,0,255,1)",
+                "visible": false,
+                "direction": "top"
+              },
+              "className": "Circle"
+            },
+            {
+              "attrs": {
+                "name": "link-anchor",
+                "id": "fxUhC1Z5TdTYuE-8cobN4",
+                "x": 52,
+                "y": 100,
+                "radius": 1,
+                "stroke": "rgba(0,0,255,1)",
+                "visible": false,
+                "direction": "bottom"
+              },
+              "className": "Circle"
+            },
+            {
+              "attrs": {
+                "name": "link-anchor",
+                "id": "tYV_Tu5RZECPDhxsFZ_xU",
+                "x": 2,
+                "y": 51,
+                "radius": 1,
+                "stroke": "rgba(0,0,255,1)",
+                "visible": false,
+                "direction": "left"
+              },
+              "className": "Circle"
+            },
+            {
+              "attrs": {
+                "name": "link-anchor",
+                "id": "3Fz46MSYvTHxxQalkQveL",
+                "x": 101,
+                "y": 51,
+                "radius": 1,
+                "stroke": "rgba(0,0,255,1)",
+                "visible": false,
+                "direction": "right"
+              },
+              "className": "Circle"
+            }
+          ]
+        },
+        {
+          "attrs": {
+            "id": "9hiWAzm1Co4pucbQC0lgP",
+            "name": "asset",
+            "assetType": "Graph",
+            "graphType": "Bezier",
+            "draggable": true,
+            "anchors": [
+              {
+                "adjustType": "start",
+                "name": "anchor",
+                "groupId": "9hiWAzm1Co4pucbQC0lgP",
+                "type": "Bezier"
+              },
+              {
+                "adjustType": "end",
+                "name": "anchor",
+                "groupId": "9hiWAzm1Co4pucbQC0lgP",
+                "type": "Bezier"
+              },
+              {
+                "type": "Bezier",
+                "adjustType": "manual",
+                "name": "anchor",
+                "groupId": "9hiWAzm1Co4pucbQC0lgP",
+                "manualIndex": 1,
+                "adjusted": false
+              },
+              {
+                "type": "Bezier",
+                "adjustType": "manual",
+                "name": "anchor",
+                "groupId": "9hiWAzm1Co4pucbQC0lgP",
+                "manualIndex": 2,
+                "adjusted": true
+              },
+              {
+                "type": "Bezier",
+                "adjustType": "manual",
+                "name": "anchor",
+                "groupId": "9hiWAzm1Co4pucbQC0lgP",
+                "manualIndex": 3,
+                "adjusted": false
+              }
+            ],
+            "points": [
+              {
+                "x": 0,
+                "y": 0,
+                "alias": "start",
+                "id": "YKn7BADeyHB0np8eFqeWG",
+                "groupId": "9hiWAzm1Co4pucbQC0lgP",
+                "visible": false,
+                "pairs": []
+              },
+              {
+                "x": 0,
+                "y": 0,
+                "alias": "end",
+                "id": "jSZbEPfRjSn_9SS-JsOBs",
+                "groupId": "9hiWAzm1Co4pucbQC0lgP",
+                "visible": false,
+                "pairs": []
+              }
+            ],
+            "width": 200,
+            "height": 91.08333333333331,
+            "x": 274.5,
+            "y": 367.9,
+            "assetSettings": {
+              "stroke": "rgb(0,0,0)",
+              "strokeWidth": 1,
+              "fill": "transparent",
+              "arrowStart": false,
+              "arrowEnd": false,
+              "fontSize": 24,
+              "textFill": "rgb(0,0,0)",
+              "text": "Text",
+              "x": 274.5,
+              "y": 367.9,
+              "rotation": 0
+            },
+            "adjusting": false,
+            "hover": false,
+            "hoverAnchor": false,
+            "selected": false
+          },
+          "className": "Group",
+          "children": [
+            {
+              "attrs": { "adjustType": "start", "anchorType": "Bezier", "name": "anchor" },
+              "className": "Circle"
+            },
+            {
+              "attrs": {
+                "adjustType": "end",
+                "anchorType": "Bezier",
+                "name": "anchor",
+                "x": 200,
+                "y": 91.08333333333331
+              },
+              "className": "Circle"
+            },
+            {
+              "attrs": {
+                "name": "link-anchor",
+                "id": "YKn7BADeyHB0np8eFqeWG",
+                "radius": 1.1904761904761905,
+                "stroke": "rgba(0,0,255,1)",
+                "strokeWidth": 2.380952380952381,
+                "visible": false,
+                "alias": "start"
+              },
+              "className": "Circle"
+            },
+            {
+              "attrs": {
+                "name": "link-anchor",
+                "id": "jSZbEPfRjSn_9SS-JsOBs",
+                "x": 200,
+                "y": 91.08333333333331,
+                "radius": 1.1904761904761905,
+                "stroke": "rgba(0,0,255,1)",
+                "strokeWidth": 2.380952380952381,
+                "visible": false,
+                "alias": "end"
+              },
+              "className": "Circle"
+            },
+            {
+              "attrs": {
+                "name": "graph",
+                "stroke": "rgb(0,0,0)",
+                "strokeWidth": 1,
+                "fill": "rgb(0,0,0)",
+                "points": [0, 0, 147.2, -61.888095238095275, 200, 91.08333333333331],
+                "pointerAtEnding": false,
+                "lineJoin": "miter",
+                "manualPoints": [{ "x": 147.2, "y": -61.888095238095275, "index": 2 }]
+              },
+              "className": "Arrow"
+            },
+            {
+              "attrs": {
+                "name": "hoverRect",
+                "y": -61.888095238095275,
+                "hitStrokeWidth": 50,
+                "width": 200,
+                "height": 152.9714285714286
+              },
+              "className": "Rect"
+            },
+            {
+              "attrs": {
+                "adjustType": "manual",
+                "anchorType": "Bezier",
+                "name": "anchor",
+                "manualIndex": 1,
+                "x": 73.6,
+                "y": -30.944047619047637,
+                "anchor": {
+                  "type": "Bezier",
+                  "adjustType": "manual",
+                  "name": "anchor",
+                  "groupId": "9hiWAzm1Co4pucbQC0lgP",
+                  "manualIndex": 1,
+                  "adjusted": false
+                }
+              },
+              "className": "Circle"
+            },
+            {
+              "attrs": {
+                "adjustType": "manual",
+                "anchorType": "Bezier",
+                "name": "anchor",
+                "manualIndex": 2,
+                "adjusted": true,
+                "x": 147.2,
+                "y": -61.888095238095275,
+                "anchor": {
+                  "type": "Bezier",
+                  "adjustType": "manual",
+                  "name": "anchor",
+                  "groupId": "9hiWAzm1Co4pucbQC0lgP",
+                  "manualIndex": 2,
+                  "adjusted": true
+                }
+              },
+              "className": "Circle"
+            },
+            {
+              "attrs": {
+                "adjustType": "manual",
+                "anchorType": "Bezier",
+                "name": "anchor",
+                "manualIndex": 3,
+                "x": 173.6,
+                "y": 14.59761904761902,
+                "anchor": {
+                  "type": "Bezier",
+                  "adjustType": "manual",
+                  "name": "anchor",
+                  "groupId": "9hiWAzm1Co4pucbQC0lgP",
+                  "manualIndex": 3,
+                  "adjusted": false
+                }
+              },
+              "className": "Circle"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
