@@ -507,7 +507,7 @@ function onAlign(type: Types.AlignType) {
 }
 
 // 连接线模式
-const currentLinkType = ref(Types.LinkType.bezier)
+const currentLinkType = ref(Types.LinkType.curve)
 
 function onLinkTypeChange(linkType: Types.LinkType) {
     (props.render?.draws[Draws.LinkDraw.name] as Draws.LinkDraw)?.changeLinkType(linkType)
